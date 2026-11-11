@@ -1,0 +1,2096 @@
+\documentclass[aspectratio=169,10pt]{beamer}
+% notes.tex defines \NOTESONLY and reads this file: then only the speaker notes are printed
+\ifdefined\NOTESONLY
+  \setbeameroption{show only notes}
+\fi
+
+\usepackage{lmodern}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[polish,english]{babel}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{colortbl}
+\usepackage{xcolor}
+\usepackage{fontawesome5}
+\usepackage{listings}
+\usepackage{etoolbox}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, calc, positioning, fit, decorations.pathreplacing, decorations.pathmorphing}
+\usepackage{pgfplots}
+% layers for the code windows drawn in TikZ: the window, then the line that runs now, then the text
+\pgfdeclarelayer{codebg}\pgfdeclarelayer{codehl}\pgfsetlayers{codebg,codehl,main}
+\pgfplotsset{compat=1.18}
+
+\usetheme{Madrid}
+\useinnertheme{rounded}
+\useoutertheme{miniframes}
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{itemize items}[circle]
+\setbeamertemplate{enumerate items}[default]
+\setbeamertemplate{blocks}[rounded][shadow=true]
+% many slides: smaller dots, so that the navigation bar fits the page width
+\setbeamersize{mini frame size=.07cm,mini frame offset=.03cm}
+
+% ======================================================================
+% Colour rules for presentations (Beamer + TikZ), from Agents/colors
+% ======================================================================
+
+% ---------- template ----------
+\definecolor{DeepBlue}{HTML}{283593}      % title bar, headings, links, control-flow arrows
+\definecolor{AccentOrange}{HTML}{EB5A14}  % annotations: step numbers, "look here", code highlight, conclusions
+\definecolor{LightGray}{HTML}{F5F6FA}     % background of information blocks
+\setbeamercolor{palette primary}{bg=DeepBlue,fg=white}
+\setbeamercolor{palette secondary}{bg=DeepBlue!80!black,fg=white}
+\setbeamercolor{palette tertiary}{bg=DeepBlue!90!black,fg=white}
+\setbeamercolor{title}{bg=DeepBlue,fg=white}
+\setbeamercolor{frametitle}{bg=DeepBlue,fg=white}
+\setbeamercolor{structure}{fg=DeepBlue}
+\setbeamercolor{item}{fg=AccentOrange}
+\setbeamercolor{alerted text}{fg=AccentOrange}
+\setbeamercolor{block title}{bg=DeepBlue,fg=white}
+\setbeamercolor{block body}{bg=LightGray,fg=black}
+\setbeamercolor{block title example}{bg=AccentOrange,fg=white}
+\setbeamercolor{block body example}{bg=AccentOrange!10,fg=black}
+\setbeamercolor{enumerate item}{fg=DeepBlue}
+\setbeamerfont{enumerate item}{series=\bfseries}
+
+% ---------- actors and categories: fills only (S1 to S6) ----------
+\definecolor{sIndigo}{HTML}{5C6BC0}   % S1
+\definecolor{sPink}{HTML}{EC407A}     % S2
+\definecolor{sViolet}{HTML}{7E57C2}   % S3
+\definecolor{sAmber}{HTML}{FFB300}    % S4: black text on it
+\definecolor{sTeal}{HTML}{26A69A}     % S5
+\definecolor{sBrown}{HTML}{8D6E63}    % S6
+% text variants that stay readable on white
+\definecolor{sPinkText}{HTML}{C2185B}
+\definecolor{sAmberText}{HTML}{A06A00}
+\definecolor{sTealText}{HTML}{00796B}
+
+% ---------- actions: frames only; results: signs only ----------
+\definecolor{aExec}{HTML}{43A047}     % runs now
+\definecolor{aRead}{HTML}{1E88E5}     % is read
+\definecolor{aWrite}{HTML}{E53935}    % is written
+
+% ---------- neutral (Blue Grey) ----------
+\definecolor{nInk}{HTML}{37474F}      % text in figures, waveforms, wires, data-flow arrows
+\definecolor{nLine}{HTML}{90A4AE}     % borders, axes
+\definecolor{nLight}{HTML}{CFD8DC}    % inactive lines, grids, empty places (dashed)
+\definecolor{nFill}{HTML}{ECEFF1}     % fill of boxes and used cells
+\definecolor{nIdle}{HTML}{E0E0E0}     % time lost (idle, busy waiting, bubbles)
+
+% ---------- TikZ styles ----------
+\tikzset{
+  aexec/.style={draw=aExec, line width=1.6pt},
+  aexecm/.style={aexec, label={[text=aExec, inner sep=1pt, font=\tiny]left:$\blacktriangleright$}},
+  aread/.style={draw=aRead, line width=1.6pt, dash pattern=on 3pt off 2pt},
+  awrite/.style={draw=aWrite, line width=2.4pt},
+  hw/.style={draw=nLine, thick, fill=nFill, text=nInk, rounded corners=3pt, align=center, inner sep=4pt},
+  hwmain/.style={draw=nInk, thick, fill=nInk, text=white, rounded corners=3pt, align=center, inner sep=4pt},
+  cell/.style={draw=nLine, thick, fill=white, text=nInk, font=\ttfamily\scriptsize},
+  cellused/.style={cell, fill=nFill},
+  cellfree/.style={cell, dashed, draw=nLight},
+  container/.style={draw=nLine, thick, dashed, rounded corners=5pt},
+  actor/.style={fill=#1, draw=#1, text=white, rounded corners=3pt, align=center, font=\scriptsize\bfseries, inner sep=4pt},
+  actorlight/.style={fill=#1!15, draw=#1, thick, text=nInk, rounded corners=3pt, align=center, inner sep=4pt},
+  suspended/.style={fill=#1!30, draw=#1, dashed, line width=0.9pt, text=nInk, rounded corners=3pt, align=center, inner sep=4pt},
+  ready/.style={fill=white, draw=#1, line width=0.8pt, text=nInk, rounded corners=3pt, align=center, inner sep=4pt},
+  idle/.style={fill=nIdle, draw=none, text=nInk, rounded corners=3pt, align=center, inner sep=4pt},
+  flow/.style={-{Stealth}, very thick, DeepBlue},
+  data/.style={-{Stealth}, very thick, nInk},
+  holds/.style={-{Stealth}, very thick, nInk},
+  waits/.style={-{Stealth}, very thick, nLine, dashed},
+  annot/.style={draw=AccentOrange, line width=1.4pt, rounded corners=3pt},
+}
+\tikzset{actoramber/.style={actor=sAmber, text=black}}
+
+% ---------- signs and small helpers ----------
+\newcommand{\ok}{\textcolor{aExec}{\faCheck}}
+\newcommand{\nok}{\textcolor{aWrite}{\faTimes}}
+\newcommand{\badge}[1]{\tikz[baseline=(b.base)]\node[circle,fill=AccentOrange,text=white,
+  inner sep=1.2pt,font=\bfseries\tiny] (b) {#1};}
+\newcommand{\bigbadge}[1]{\tikz[baseline=(b.base)]\node[circle,fill=AccentOrange,text=white,
+  inner sep=2pt,font=\bfseries\small] (b) {#1};}
+% ---------- text boxes ----------
+\newcommand{\defbox}[1]{%
+  \begin{beamercolorbox}[rounded=true,sep=0.1cm,wd=\linewidth]{block body example}
+    \footnotesize #1
+  \end{beamercolorbox}\vspace{0.06cm}}
+% a large definition in the middle of the slide
+\newcommand{\bigdef}[1]{%
+  \begin{beamercolorbox}[rounded=true,sep=0.25cm,wd=\linewidth]{block body example}
+    \centering\normalsize #1
+  \end{beamercolorbox}\vspace{0.06cm}}
+\newcommand{\stepbox}[2]{%
+  \begin{beamercolorbox}[rounded=true,sep=0.09cm,wd=\linewidth]{block body}
+    \footnotesize\textbf{#1}\\ #2
+  \end{beamercolorbox}\vspace{0.06cm}}
+\newcommand{\keymsg}[1]{%
+  \begin{beamercolorbox}[rounded=true,sep=0.1cm,wd=\textwidth]{block body example}
+    \centering\footnotesize #1
+  \end{beamercolorbox}}
+% a grey box without a title
+\newcommand{\plainbox}[1]{%
+  \begin{beamercolorbox}[rounded=true,sep=0.12cm,wd=\linewidth]{block body}
+    \centering\footnotesize #1
+  \end{beamercolorbox}\vspace{0.06cm}}
+\setbeamercolor{block body problem}{bg=AccentOrange!10,fg=black}
+\newcommand{\probbox}[2]{%
+  \begin{beamercolorbox}[rounded=true,sep=0.09cm,wd=\linewidth]{block body problem}
+    \footnotesize\textbf{\textcolor{AccentOrange}{\faExclamationTriangle}\ #1}\\ #2
+  \end{beamercolorbox}\vspace{0.06cm}}
+
+% ---------- code: dark window, grey dots, syntax colours ----------
+\definecolor{VSDarkBg}{RGB}{25,25,25}
+\definecolor{VSText}{RGB}{245,245,245}
+\definecolor{VSBlue}{RGB}{80,180,255}
+\definecolor{VSPurple}{RGB}{210,110,210}
+\definecolor{VSString}{RGB}{255,140,80}
+\definecolor{VSComment}{RGB}{80,220,80}
+\setbeamercolor{vscodelisting}{bg=VSDarkBg}
+\lstdefinestyle{code}{basicstyle=\color{VSText}\ttfamily\scriptsize, keywordstyle=\color{VSBlue}\bfseries,
+  stringstyle=\color{VSString}, commentstyle=\color{VSComment}\itshape, emphstyle=\color{VSPurple},
+  numbers=none, columns=fixed, basewidth=0.52em, keepspaces=true, showstringspaces=false, xleftmargin=6pt}
+\lstdefinestyle{py}{style=code, language=Python, emph={print,chr,zip,range,len,bytes,ord,hex}}
+\BeforeBeginEnvironment{lstlisting}{%
+  \begin{beamercolorbox}[rounded=true,sep=2mm,wd=\linewidth]{vscodelisting}%
+  \begin{tikzpicture}
+    \fill[nLine] (0,0) circle (3pt); \fill[nLine] (0.35,0) circle (3pt); \fill[nLine] (0.70,0) circle (3pt);
+  \end{tikzpicture}%
+  \vspace{-0.2cm}}
+\AfterEndEnvironment{lstlisting}{\end{beamercolorbox}}
+\newcommand{\hlcode}[1]{{\setlength{\fboxsep}{1pt}\colorbox{AccentOrange}{\textcolor{white}{\bfseries #1}}}}
+\newcommand{\eol}{\tikz[remember picture, overlay]\coordinate (eol) at (0,0.08);}
+\newcommand{\codenote}[3][0pt]{%
+  \begin{tikzpicture}[remember picture, overlay, >=Stealth]
+    \node[draw=AccentOrange, very thick, fill=AccentOrange!6, rounded corners=4pt, text width=0.33\paperwidth,
+      align=left, inner sep=6pt, font=\footnotesize, anchor=west] (cal)
+      at ([yshift=#1]eol -| {$(current page.west)!0.6!(current page.east)$}) {\textbf{\textcolor{AccentOrange}{#2}}\\[3pt]#3};
+    \draw[->, very thick, AccentOrange] (eol -| cal.west) -- ([xshift=4pt]eol);
+  \end{tikzpicture}}
+% program output: a light terminal line
+\newcommand{\terminal}[1]{%
+  \begin{tikzpicture}
+    \node[draw=nLine, thick, fill=nFill, rounded corners=3pt, inner sep=5pt, font=\ttfamily\small, text=nInk]
+      {\textcolor{nLine}{\$}\ #1};
+  \end{tikzpicture}}
+
+% ======================================================================
+% Course macros
+% ======================================================================
+% task header: \taskhead{Task}{Open the template from \ghlink{Task1}.}
+\newcommand{\taskhead}[2]{%
+  \begin{beamercolorbox}[rounded=true,sep=0.12cm,wd=\linewidth]{block body example}
+    \small\textbf{#1}\\[0.04cm]
+    \footnotesize #2
+  \end{beamercolorbox}\vspace{0.1cm}}
+% the starter files of a task on GitHub: the word "GitHub" will be the link
+% TODO: the repository address is not decided yet, so the word is not a link for now
+\newcommand{\ghlink}[1]{\textcolor{DeepBlue}{\textbf{GitHub}}}
+
+% speaker notes (Polish): printed only in the notes PDF (make notes)
+\setbeamertemplate{note page}[default]
+\setbeamerfont{note page}{size=\normalsize}
+\newcommand{\say}[1]{\note{\selectlanguage{polish}#1}}
+
+\usetikzlibrary{shadows}
+% long numbers that may break anywhere
+\usepackage{seqsplit}
+
+% ======================================================================
+% Colour mapping for this lecture (colour rules, section 6)
+%   S1 sIndigo : Ania
+%   S2 sPink   : the attackers (Ewa listens, Mallory changes)
+%   S3 sViolet : the message M
+%   S4 sAmber  : secret values: a, b, x, k, m and the shared secret
+%   S5 sTeal   : Bartek
+%   S6 sBrown  : ciphertext (C1, C2)
+%   public values (p, g, A, B, y) are neutral: grey boxes
+%   paint colours in the mixing story are pictures of paint, not roles
+% ======================================================================
+\definecolor{paintY}{HTML}{FDD835}
+\definecolor{paintR}{HTML}{E53935}
+\definecolor{paintB}{HTML}{1E88E5}
+\definecolor{paintO}{HTML}{FB8C00}
+\definecolor{paintG}{HTML}{7CB342}
+\definecolor{paintM}{HTML}{6D4C41}
+\tikzset{
+  pub/.style={draw=nLine, thick, fill=nFill, text=nInk, rounded corners=3pt, inner sep=4pt, align=center},
+  sec/.style={draw=sAmber, thick, fill=sAmber!25, text=nInk, rounded corners=3pt, inner sep=4pt, align=center},
+  msgb/.style={draw=sViolet, thick, fill=sViolet!15, text=nInk, rounded corners=3pt, inner sep=4pt, align=center},
+  ctx/.style={draw=sBrown, thick, fill=sBrown!15, text=nInk, rounded corners=3pt, inner sep=4pt, align=center},
+  net/.style={very thick, nInk, decorate, decoration={snake, amplitude=1.4pt, segment length=8pt}},
+  netarrow/.style={-{Stealth}, very thick, nInk, decorate, decoration={snake, amplitude=1.4pt, segment length=8pt, post length=5pt}},
+  capt/.style={font=\scriptsize, text=nInk, align=center},
+  rowlabel/.style={font=\scriptsize, text=nInk, anchor=east},
+  rowhl/.style={fill=AccentOrange!10, draw=AccentOrange, thick, rounded corners=3pt},
+}
+% a person: \who{x}{y}{fill}{text colour}{name}{icon}; the node is called by the name
+\newcommand{\who}[6]{%
+  \node[circle, fill=#3, minimum size=1.1cm, inner sep=0pt, text=white, font=\Large] (#5) at (#1,#2) {#6};
+  \node[font=\small\bfseries, text=#4, below=1pt of #5] (#5name) {#5};}
+\newcommand{\ania}[2]{\who{#1}{#2}{sIndigo}{sIndigo}{Ania}{\faUser}}
+\newcommand{\bartek}[2]{\who{#1}{#2}{sTeal}{sTealText}{Bartek}{\faUser}}
+\newcommand{\ewa}[2]{\who{#1}{#2}{sPink}{sPinkText}{Ewa}{\faUserSecret}}
+\newcommand{\mallory}[2]{\who{#1}{#2}{sPink}{sPinkText}{Mallory}{\faUserNinja}}
+% an envelope: \envpic{x}{y}{fill}{border}
+\newcommand{\envpic}[4]{%
+  \begin{scope}[shift={(#1,#2)}]
+    \draw[#4, thick, fill=#3, rounded corners=1pt] (-0.8,-0.5) rectangle (0.8,0.5);
+    \draw[#4, thick, line join=round] (-0.8,0.5) -- (0,-0.05) -- (0.8,0.5);
+  \end{scope}}
+% a step list: \stepitem{number}{current step}{text}
+\newcommand{\stepitem}[3]{%
+  \ifnum#1=#2\relax
+    \textcolor{AccentOrange}{$\blacktriangleright$}\ \textbf{#1. #3}%
+  \else\ifnum#1<#2\relax
+    \phantom{$\blacktriangleright$}\ \textcolor{nInk}{#1. #3}%
+  \else
+    \phantom{$\blacktriangleright$}\ \textcolor{gray!70}{#1. #3}%
+  \fi\fi\par}
+% a row of numbered boxes with values: \valrow{list}{style}
+\newcommand{\valrow}[2]{%
+  \foreach \v [count=\k from 1] in {#1} {
+    \node[#2, minimum width=0.56cm, minimum height=0.5cm, inner sep=1pt, font=\ttfamily\scriptsize] (v\k) at ({0.6*\k},0) {\v};
+  }}
+
+\title{Cryptography}
+\subtitle{Diffie-Hellman and ElGamal}
+\author{Ksawery Możdżyński}
+\date{}
+
+\begin{document}
+
+% ======================================================================
+% Opening
+% ======================================================================
+
+\begin{frame}
+  \titlepage
+  \say{Dziś: jak dwie osoby ustalają wspólny sekret, choć ktoś słyszy każde ich słowo. I jak z tego samego pomysłu zrobić szyfr.}
+\end{frame}
+
+\begin{frame}{Agenda For Today}
+  \vfill
+  \begin{columns}[T,onlytextwidth]
+    \column{0.52\textwidth}
+      \large
+      \begin{itemize}
+        \item[\textcolor{DeepBlue}{\faComments}] \textbf{1. A secret in public} \\
+        \textcolor{gray}{\small Agree without sending it}
+        \vspace{0.3cm}
+
+        \item[\textcolor{DeepBlue}{\faHandshake}] \textbf{2. Diffie-Hellman} \\
+        \textcolor{gray}{\small Two numbers, one secret}
+        \vspace{0.3cm}
+
+        \item[\textcolor{DeepBlue}{\faSearch}] \textbf{3. Why is it safe?} \\
+        \textcolor{gray}{\small The discrete logarithm}
+        \vspace{0.3cm}
+
+        \item[\textcolor{DeepBlue}{\faKey}] \textbf{4. A key, not a cipher} \\
+        \textcolor{gray}{\small Where DH is used}
+      \end{itemize}
+    \column{0.48\textwidth}
+      \large
+      \begin{itemize}
+        \item[\textcolor{DeepBlue}{\faUserSecret}] \textbf{5. The man in the middle} \\
+        \textcolor{gray}{\small When nobody checks who is who}
+        \vspace{0.3cm}
+
+        \item[\textcolor{DeepBlue}{\faEnvelope}] \textbf{6. ElGamal encryption} \\
+        \textcolor{gray}{\small Diffie-Hellman with a message}
+        \vspace{0.3cm}
+
+        \item[\textcolor{DeepBlue}{\faBalanceScale}] \textbf{7. Signatures and RSA} \\
+        \textcolor{gray}{\small ElGamal side by side with RSA}
+      \end{itemize}
+  \end{columns}
+  \vfill
+  \say{Pierwsza połowa to wymiana klucza, druga to szyfr i podpis zbudowane na tym samym pomyśle.}
+\end{frame}
+
+\begin{frame}{Today you will need}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \foreach \x/\ic/\name/\sub in {0/\faPython/Python 3/{version 3.8 or newer, nothing to install},
+                                     4.6/\faEdit/An editor/any one you like,
+                                     9.2/\faPen/Paper and a pen/Task 1 is on paper} {
+        \node[hw, minimum width=3.8cm, minimum height=2.5cm] (c) at (\x,0) {};
+        \node[text=nInk] at (\x,0.35) {\fontsize{36}{38}\selectfont\ic};
+        \node[font=\large\bfseries, text=nInk] at (\x,-0.65) {\name};
+        \node[font=\small, text=gray, below=0.15cm of c, text width=3.8cm, align=center] {\sub};
+      }
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}
+    \small The tasks: \ghlink{Lecture4}\ \texttt{Lecture4 / Task2 \dots\ Task7}
+  \end{center}
+  \vfill
+  \say{Każde zadanie jest samodzielne. Zadanie 1 robimy na kartce, małymi liczbami.}
+\end{frame}
+
+% ======================================================================
+\section[A secret in public]{A secret in public}
+% ======================================================================
+
+\begin{frame}{Recall: a symmetric cipher needs a shared key}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \ania{0}{0}
+      \bartek{10}{0}
+      \node[hwmain, minimum width=3.4cm, minimum height=1.1cm, font=\small\bfseries] (ciph) at (5,0)
+        {\faBolt\ ChaCha20 / AES};
+      \draw[data] (Ania) -- (ciph);
+      \draw[data] (ciph) -- (Bartek);
+      \node[capt, below=0.15cm of ciph] {gigabytes per second};
+      % the missing key
+      \node[draw=sAmber, very thick, dashed, rounded corners=3pt, minimum width=1.6cm, minimum height=1.0cm,
+        text=sAmberText, font=\Large] (key) at (5,1.9) {\faKey\,?};
+      \draw[waits] (key.west) -| (Ania.north);
+      \draw[waits] (key.east) -| (Bartek.north);
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}
+    ChaCha20 and AES encrypt gigabytes per second.\\[2pt]
+    But Ania and Bartek must first have the \textbf{same secret key}.\\[8pt]
+    \large\textcolor{AccentOrange}{\textbf{Where does that key come from?}}
+  \end{center}
+  \vfill
+  \say{Szyfr symetryczny: ten sam klucz szyfruje i odszyfrowuje. Pytanie o klucz zostało otwarte w poprzednim wykładzie.}
+\end{frame}
+
+\begin{frame}{Everybody can hear you}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \ania{0}{0}
+      \bartek{11}{0}
+      \draw[net] (Ania.east) -- (Bartek.west);
+      \node[capt, fill=white] at (5.5,0.35) {\faGlobe\ internet};
+      \ewa{5.5}{-2.1}
+      \draw[data, dashed] (5.5,-0.15) -- (Ewa.north);
+      \node[font=\small, text=sPinkText, anchor=west] at (6.3,-2.0) {\faAssistiveListeningSystems\ Ewa hears every message};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small They share no secret yet. Everything they say, Ewa hears too.\end{center}
+  \vfill
+  \keymsg{Can two people agree on a secret that Ewa hears in full?}
+  \say{Pytanie do sali. Większość powie, że to niemożliwe. Za chwilę się okaże, że jednak można.}
+\end{frame}
+
+\begin{frame}{Recall: one way from the last lecture}
+  \begin{columns}[c,onlytextwidth]
+    \column{0.5\textwidth}
+      \stepbox{Hybrid encryption with RSA}{Ania picks a random key and encrypts it with Bartek's \textbf{public key}.\\
+        Only Bartek's \textbf{private key} opens it.}
+      \vspace{0.3cm}
+      \plainbox{Today a different way: \textbf{nobody sends the key at all}.\\ Both sides compute it.}
+    \column{0.46\textwidth}
+      \begin{center}
+      \begin{tikzpicture}[>=Stealth]
+        % the last lecture: a key inside an envelope locked for Bartek
+        \envpic{0}{1.6}{sBrown!15}{sBrown}
+        \node[text=sAmberText, font=\large] at (-0.25,1.5) {\faKey};
+        \node[circle, fill=sTeal, text=white, inner sep=2pt, font=\small] at (0.45,1.35) {\faLock};
+        \node[capt] at (0,0.75) {last lecture: the key travels,\\locked with Bartek's public key};
+        % today: no key on the wire
+        \draw[data] (-1.3,-0.6) -- (1.3,-0.6);
+        \node[text=sAmberText, font=\large, fill=white] at (0,-0.6) {\faKey};
+        \node[text=aWrite, font=\huge] at (0,-0.6) {\faTimes};
+        \node[capt] at (0,-1.3) {today: the key never travels};
+      \end{tikzpicture}
+      \end{center}
+  \end{columns}
+  \say{Szyfrowanie hybrydowe: kryptografia asymetryczna przenosi krótki klucz, szyfr symetryczny dane. Dziś klucz w ogóle nie podróżuje.}
+\end{frame}
+
+% ---------- the paint story ----------
+% a cup of paint: \paintcup{x}{y}{colour}{label}
+\newcommand{\paintcup}[4]{%
+  \begin{scope}[shift={(#1,#2)}]
+    \fill[#3] (-0.36,-0.42) -- (0.36,-0.42) -- (0.43,0.2) -- (-0.43,0.2) -- cycle;
+    \draw[nInk, thick, line join=round] (-0.5,0.42) -- (-0.36,-0.42) -- (0.36,-0.42) -- (0.5,0.42);
+    \node[font=\tiny, text=nInk, below] at (0,-0.44) {#4};
+  \end{scope}}
+\newcommand{\plus}[2]{\node[font=\large\bfseries, text=nInk] at (#1,#2) {+};}
+\newcommand{\eq}[2]{\node[font=\large\bfseries, text=nInk] at (#1,#2) {=};}
+% the whole picture after step #1 (1 to 4)
+\newcommand{\paintscene}[1]{%
+  \begin{tikzpicture}[>=Stealth, scale=0.78, transform shape]
+    \useasboundingbox (-1.2,-2.6) rectangle (14.6,2.3);
+    \ania{0}{-0.6}
+    \bartek{13.4}{-0.6}
+    \ewa{6.7}{1.55}
+    \draw[nLight, very thick, dashed] (6.7,0.85) -- (6.7,-2.4);
+    \node[capt, text=gray] at (6.7,-2.55) {public channel};
+    % step 1: the public yellow
+    \paintcup{1.5}{0.5}{paintY}{public}
+    \paintcup{11.9}{0.5}{paintY}{public}
+    \ifnum#1>1
+      % step 2: each adds a secret colour
+      \plus{2.35}{0.5}
+      \paintcup{3.2}{0.5}{paintR}{\textcolor{sAmberText}{\faLock} secret}
+      \eq{4.05}{0.5}
+      \paintcup{4.9}{0.5}{paintO}{mixture}
+      \plus{11.05}{0.5}
+      \paintcup{10.2}{0.5}{paintB}{\textcolor{sAmberText}{\faLock} secret}
+      \eq{9.35}{0.5}
+      \paintcup{8.5}{0.5}{paintG}{mixture}
+    \fi
+    \ifnum#1>2
+      % step 3: the mixtures cross the channel, Ewa sees them
+      \draw[flow] (5.4,0.1) to[out=-20, in=160] (11.4,-1.45);
+      \draw[flow] (8.0,0.1) to[out=200, in=20] (2.0,-1.45);
+      \paintcup{1.5}{-1.7}{paintG}{from Bartek}
+      \paintcup{11.9}{-1.7}{paintO}{from Ania}
+      \node[draw=sPink, thick, fill=white, rounded corners=3pt, font=\tiny, text=sPinkText, anchor=west, inner sep=3pt]
+        at (7.45,1.75) {Ewa sees: \tikz[baseline=-0.5ex]{\fill[paintY] (0,0) circle (0.12);}
+          \tikz[baseline=-0.5ex]{\fill[paintO] (0,0) circle (0.12);}
+          \tikz[baseline=-0.5ex]{\fill[paintG] (0,0) circle (0.12);}};
+    \fi
+    \ifnum#1>3
+      % step 4: each adds their own secret again
+      \plus{2.35}{-1.7}
+      \paintcup{3.2}{-1.7}{paintR}{\textcolor{sAmberText}{\faLock} secret}
+      \eq{4.05}{-1.7}
+      \paintcup{4.9}{-1.7}{paintM}{\textbf{the same}}
+      \plus{11.05}{-1.7}
+      \paintcup{10.2}{-1.7}{paintB}{\textcolor{sAmberText}{\faLock} secret}
+      \eq{9.35}{-1.7}
+      \paintcup{8.5}{-1.7}{paintM}{\textbf{the same}}
+    \fi
+  \end{tikzpicture}}
+\newcommand{\paintsteps}[1]{%
+  \footnotesize
+  \stepitem{1}{#1}{Both start with a public colour: yellow.}
+  \stepitem{2}{#1}{Each adds a secret colour: Ania red, Bartek blue.}
+  \stepitem{3}{#1}{They swap the mixtures in public.}
+  \stepitem{4}{#1}{Each adds their own secret colour again.}}
+
+\begin{frame}{Mixing paint, step 1}
+  \begin{center}\paintscene{1}\end{center}
+  \vfill
+  \begin{center}\begin{minipage}{0.62\textwidth}\paintsteps{1}\end{minipage}\end{center}
+  \vfill
+  \say{Żółty jest jawny, każdy go zna, także Ewa.}
+\end{frame}
+
+\begin{frame}{Mixing paint, step 2}
+  \begin{center}\paintscene{2}\end{center}
+  \vfill
+  \begin{center}\begin{minipage}{0.62\textwidth}\paintsteps{2}\end{minipage}\end{center}
+  \vfill
+  \say{Czerwony i niebieski są tajne i nigdy nie opuszczają domu.}
+\end{frame}
+
+\begin{frame}{Mixing paint, step 3}
+  \begin{center}\paintscene{3}\end{center}
+  \vfill
+  \begin{center}\begin{minipage}{0.62\textwidth}\paintsteps{3}\end{minipage}\end{center}
+  \vfill
+  \say{Ewa widzi obie mieszanki: żółto-czerwoną i żółto-niebieską.}
+\end{frame}
+
+\begin{frame}{Mixing paint, step 4}
+  \begin{center}\paintscene{4}\end{center}
+  \vspace{-0.15cm}
+  \begin{center}\begin{minipage}{0.62\textwidth}\paintsteps{4}
+    \vspace{2pt}\phantom{$\blacktriangleright$}\ \ Both now have yellow + red + blue: \textbf{the same colour}.\end{minipage}\end{center}
+  \vfill
+  \keymsg{Mixing is easy, unmixing is hard.}
+  \say{Kolejność mieszania nie ma znaczenia, więc obie strony mają ten sam kolor. Ewa ma tylko mieszanki, a rozdzielić farby się nie da.}
+\end{frame}
+
+\begin{frame}{Diffie and Hellman, 1976}
+  \vfill
+  \begin{columns}[c,onlytextwidth]
+    \column{0.42\textwidth}
+      \begin{center}
+      \begin{tikzpicture}
+        % the first page of the paper
+        \draw[nLine, thick, fill=white, drop shadow={opacity=0.25}] (0,0) rectangle (4.2,5.2);
+        \node[font=\small\bfseries, text=nInk, text width=3.6cm, align=center] at (2.1,4.4) {New Directions in Cryptography};
+        \node[font=\scriptsize, text=nInk] at (2.1,3.6) {Whitfield Diffie};
+        \node[font=\scriptsize, text=nInk] at (2.1,3.25) {Martin E. Hellman};
+        \foreach \y in {2.7,2.45,...,0.4} \draw[nLight, thick] (0.4,\y) -- (3.8,\y);
+        \node[fill=DeepBlue, text=white, font=\small\bfseries, rounded corners=2pt] at (3.4,0.3) {1976};
+      \end{tikzpicture}
+      \end{center}
+    \column{0.55\textwidth}
+      Whitfield Diffie and Martin Hellman,\\ \textbf{``New Directions in Cryptography''}, 1976.
+      \vspace{0.4cm}
+
+      The first public way to \textbf{agree on a secret over an open channel}.
+      \vspace{0.4cm}
+
+      \textcolor{AccentOrange}{\Large\faTrophy}\ \ Turing Award, 2015.
+  \end{columns}
+  \vfill
+  \say{Ralph Merkle miał podobny pomysł rok wcześniej; Hellman sam mówi, że jego nazwisko powinno być w nazwie. Nagroda Turinga to najważniejsza nagroda w informatyce.}
+\end{frame}
+
+% ======================================================================
+\section[Diffie-Hellman]{Diffie-Hellman}
+% ======================================================================
+
+\begin{frame}{Recall: powers modulo p}
+  \vfill
+  \begin{center}
+    \LARGE $5^3 \bmod 23 \;=\; 125 \bmod 23 \;=\; \textcolor{AccentOrange}{\mathbf{10}}$
+  \end{center}
+  \vfill
+  \begin{center}
+    \normalsize In Python:\quad \terminal{pow(5, 3, 23)}
+  \end{center}
+  \vfill
+  \begin{center}\small Fast even when every number has \textbf{600 digits}.\end{center}
+  \vfill
+  \say{Mod to reszta z dzielenia. pow z trzema argumentami liczy potęgę modulo bez liczenia ogromnej potęgi.}
+\end{frame}
+
+\begin{frame}{The public numbers: p and g}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \node[pub, minimum width=4.2cm, minimum height=2.2cm] (p) at (0,0) {};
+      \node[font=\Huge\bfseries, text=nInk] at (0,0.3) {$p = 23$};
+      \node[capt] at (0,-0.65) {a prime};
+      \node[pub, minimum width=4.2cm, minimum height=2.2cm] (g) at (5.5,0) {};
+      \node[font=\Huge\bfseries, text=nInk] at (5.5,0.3) {$g = 5$};
+      \node[capt] at (5.5,-0.65) {a number smaller than $p$};
+      \foreach \n in {p,g} \node[fill=nInk, text=white, font=\tiny\bfseries, rounded corners=2pt, anchor=south east]
+        at (\n.north east) {\faEye\ public};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}
+    Both are \textbf{public}: everybody may know them, Ewa too.\\[2pt]
+    They play the role of the \tikz[baseline=-0.6ex]{\fill[paintY] (0,0) circle (0.13);} \textbf{yellow paint}.
+  \end{center}
+  \vfill
+  \say{Liczba pierwsza dzieli się tylko przez 1 i siebie. W prawdziwej wymianie p ma 2048 bitów; teraz małe liczby, żeby liczyć na kartce.}
+\end{frame}
+
+% CHECKED (python3): [pow(5, e, 23) for e in range(1, 23)]
+\begin{frame}{Why this g?}
+  \small Powers of 5 mod 23, for exponents 1 to 22:
+  \begin{center}
+    \begin{tikzpicture}
+      \foreach \e in {1,...,22} \node[font=\tiny, text=gray] at ({0.6*\e},0.45) {\e};
+      \valrow{5,2,10,4,20,8,17,16,11,9,22,18,21,13,19,3,15,6,7,12,14,1}{pub}
+      \node[rowlabel] at (0.2,0.45) {exponent};
+      \node[rowlabel] at (0.2,0) {$5^e \bmod 23$};
+    \end{tikzpicture}
+  \end{center}
+  \vspace{-0.3cm}
+  \begin{center}
+    \begin{tikzpicture}
+      \begin{axis}[width=12cm, height=3.9cm, xmin=0, xmax=23, ymin=0, ymax=23.5,
+          xtick={1,5,10,15,20,22}, ytick={1,5,10,15,20,22}, tick label style={font=\tiny},
+          axis lines=left, axis line style={nLine}, xlabel={\scriptsize exponent $e$},
+          ylabel={\scriptsize $5^e \bmod 23$}, ymajorgrids, grid style={nLight}]
+        \addplot[only marks, mark=*, mark size=2pt, color=DeepBlue] coordinates {
+          (1,5)(2,2)(3,10)(4,4)(5,20)(6,8)(7,17)(8,16)(9,11)(10,9)(11,22)
+          (12,18)(13,21)(14,13)(15,19)(16,3)(17,15)(18,6)(19,7)(20,12)(21,14)(22,1)};
+      \end{axis}
+    \end{tikzpicture}
+  \end{center}
+  \vspace{-0.25cm}
+  \begin{center}\footnotesize Every number from 1 to 22 appears \textbf{exactly once}.\end{center}
+  \keymsg{A good g produces every number from 1 to p - 1.}
+  \say{Taką liczbę g nazywamy generatorem. Widać też, że wyniki skaczą bez żadnego porządku; to wróci w sekcji 3.}
+\end{frame}
+
+\begin{frame}{A bad g}
+  \vfill
+  \small Powers of 2 mod 23:
+  \begin{center}
+    \begin{tikzpicture}
+      % CHECKED (python3): [pow(2, e, 23) for e in range(1, 17)]
+      \foreach \e in {1,...,16} \node[font=\tiny, text=gray] at ({0.6*\e},0.45) {\e};
+      \valrow{2,4,8,16,9,18,13,3,6,12,1,2,4,8,16,9}{pub}
+      \foreach \k in {12,...,16} \node[cellfree, minimum width=0.56cm, minimum height=0.5cm, fill=AccentOrange!12,
+        draw=AccentOrange, font=\ttfamily\scriptsize, solid] at (v\k) {};
+      \foreach \k/\v in {12/2,13/4,14/8,15/16,16/9} \node[font=\ttfamily\scriptsize, text=nInk] at (v\k) {\v};
+      \node[font=\scriptsize, text=gray] at (10.25,0) {\dots};
+      \draw[-{Stealth}, very thick, AccentOrange] (v11.south) to[out=-40, in=-140] node[below, font=\scriptsize, text=AccentOrange] {back to the start}
+        ([xshift=-2pt]v12.south);
+      \draw[decorate, decoration={brace, mirror, amplitude=5pt}, nInk] ([yshift=-0.9cm]v1.south west) -- ([yshift=-0.9cm]v11.south east)
+        node[midway, below=6pt, font=\scriptsize, text=nInk] {11 different values, then they repeat};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}Only \textbf{11 different values}: half as many for Ewa to try.\end{center}
+  \vfill
+  \say{Wybór g należy do twórców standardu, nie do użytkownika. Gotowe grupy z oficjalnych standardów mają sprawdzone p i g.}
+\end{frame}
+
+% ---------- the exchange, one picture in five steps ----------
+\newcommand{\dhrow}[3]{% \dhrow{step number}{current step}{y}: highlight when current
+  \ifnum#1=#2\relax \fill[rowhl] (-0.3,{#3-0.36}) rectangle (14.3,{#3+0.36}); \fi}
+\newcommand{\dhlabel}[4]{% \dhlabel{number}{current}{y}{text}
+  \ifnum#1=#2\relax
+    \node[anchor=west, font=\small\bfseries, text=AccentOrange] at (-0.2,#3) {$\blacktriangleright$ #1. #4};
+  \else
+    \node[anchor=west, font=\small, text=nInk] at (0.1,#3) {#1. #4};
+  \fi}
+\newcommand{\dhscene}[1]{%
+  \begin{tikzpicture}[>=Stealth, scale=0.97, transform shape]
+    \useasboundingbox (-0.4,-4.25) rectangle (14.4,1.55);
+    \node[circle, fill=sIndigo, text=white, minimum size=0.75cm, inner sep=0pt] (an) at (4.6,1.0) {\faUser};
+    \node[font=\small\bfseries, text=sIndigo, right=2pt of an] {Ania};
+    \node[circle, fill=sTeal, text=white, minimum size=0.75cm, inner sep=0pt] (bt) at (11.6,1.0) {\faUser};
+    \node[font=\small\bfseries, text=sTealText, right=2pt of bt] {Bartek};
+    % Ewa's notebook over the channel
+    \node[circle, fill=sPink, text=white, minimum size=0.75cm, inner sep=0pt] (ew) at (8.25,1.0) {\faUserSecret};
+    \ifnum#1>2
+      \node[draw=sPink, thick, fill=white, rounded corners=2pt, font=\scriptsize, text=sPinkText, anchor=west, align=left]
+        at (ew.east) {\faBook\ 23, 5, 8, 19};
+    \else
+      \node[draw=sPink, thick, fill=white, rounded corners=2pt, font=\scriptsize, text=sPinkText, anchor=west, align=left]
+        at (ew.east) {\faBook\ 23, 5};
+    \fi
+    \draw[nLight, very thick, dashed] (8.25,0.5) -- (8.25,-3.55);
+    \dhrow{1}{#1}{0}  \dhrow{2}{#1}{-0.8}  \dhrow{3}{#1}{-1.6}  \dhrow{4}{#1}{-2.4}  \dhrow{5}{#1}{-3.2}
+    \dhlabel{1}{#1}{0}{Secrets}
+    \node[sec] at (5.1,0) {$a = 6$};
+    \node[sec] at (12.1,0) {$b = 15$};
+    \ifnum#1>1
+      \dhlabel{2}{#1}{-0.8}{Public values}
+      \node[pub] at (5.1,-0.8) {$A = 5^{6} \bmod 23 = 8$};
+      \node[pub] at (12.1,-0.8) {$B = 5^{15} \bmod 23 = 19$};
+    \fi
+    \ifnum#1>2
+      \dhlabel{3}{#1}{-1.6}{Send}
+      \draw[netarrow] (5.6,-1.42) -- node[above=3pt, font=\scriptsize, text=nInk, fill=white, inner sep=1pt] {sends $A = 8$} (11.0,-1.45);
+      \draw[netarrow] (11.0,-1.8) -- node[below=3pt, font=\scriptsize, text=nInk, fill=white, inner sep=1pt] {sends $B = 19$} (5.6,-1.8);
+    \fi
+    \ifnum#1>3
+      \dhlabel{4}{#1}{-2.4}{Ania computes}
+      \node[sec] at (5.1,-2.4) {$B^{a} = 19^{6} \bmod 23 = \mathbf{2}$};
+    \fi
+    \ifnum#1>4
+      \dhlabel{5}{#1}{-3.2}{Bartek computes}
+      \node[sec] at (12.1,-3.2) {$A^{b} = 8^{15} \bmod 23 = \mathbf{2}$};
+    \fi
+    \node[pub, font=\small] at (5.1,-4.0) {$p = 23,\; g = 5$\quad (public)};
+  \end{tikzpicture}}
+
+\begin{frame}{The exchange, step 1}
+  \vfill
+  \begin{center}\dhscene{1}\end{center}
+  \vfill
+  \say{Ania i Bartek wybierają tajne liczby. Ewa ich nie zna.}
+\end{frame}
+
+\begin{frame}{The exchange, step 2}
+  \vfill
+  \begin{center}\dhscene{2}\end{center}
+  \vfill
+  \say{Każdy liczy g do swojej tajnej potęgi. To są mieszanki farb.}
+\end{frame}
+
+\begin{frame}{The exchange, step 3}
+  \vfill
+  \begin{center}\dhscene{3}\end{center}
+  \vfill
+  \say{Ewa widzi 8 i 19. Zapisuje je.}
+\end{frame}
+
+\begin{frame}{The exchange, step 4}
+  \vfill
+  \begin{center}\dhscene{4}\end{center}
+  \vfill
+  \say{Ania bierze liczbę od Bartka i podnosi do swojej tajnej potęgi.}
+\end{frame}
+
+% CHECKED (python3): pow(5,6,23) = 8, pow(5,15,23) = 19, pow(19,6,23) = 2, pow(8,15,23) = 2
+\begin{frame}{The exchange, step 5}
+  \vfill
+  \begin{center}\dhscene{5}\end{center}
+  \vfill
+  \keymsg{Both have 2. Ewa saw only 23, 5, 8 and 19.}
+  \say{Bartek robi to samo z liczbą od Ani. Ten sam wynik: 2.}
+\end{frame}
+
+\begin{frame}{Why are they equal?}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \node[anchor=east, font=\large\bfseries, text=sIndigo] at (0,0.7) {Ania:};
+      \node[anchor=west, font=\Large] at (0.2,0.7) {$B^{a} \;=\; (g^{b})^{a} \;=\; g^{\,b a}$};
+      \node[anchor=east, font=\large\bfseries, text=sTealText] at (0,-0.7) {Bartek:};
+      \node[anchor=west, font=\Large] at (0.2,-0.7) {$A^{b} \;=\; (g^{a})^{b} \;=\; g^{\,a b}$};
+      \node[sec, font=\Large, minimum height=2.5cm, minimum width=3.2cm] (r) at (8.8,0) {$g^{ab} \bmod p$};
+      \draw[data] (5.6,0.7) -- (r.west |- 0,0.7);
+      \draw[data] (5.6,-0.7) -- (r.west |- 0,-0.7);
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}$a\,b = b\,a$, so both get $g^{ab} \bmod p$.\end{center}
+  \vfill
+  \keymsg{Both compute $g^{(ab)} \bmod p$, and nobody ever sent it.}
+  \say{Zwykłe prawo potęg, działa też modulo p. To jest zamiana kolejności mieszania farb.}
+\end{frame}
+
+% the table for task 1: #1 = 0 empty, 1 filled
+\newcommand{\taskonetable}[1]{%
+  \renewcommand{\arraystretch}{1.5}
+  \begin{tabular}{lll}
+    \toprule
+    & \textbf{computation} & \textbf{result} \\
+    \midrule
+    $A$ & \ifnum#1=1 $5^4 \bmod 23 = 625 \bmod 23$\else \rule{4.2cm}{0pt}\fi & \ifnum#1=1 $4$\fi \\
+    $B$ & \ifnum#1=1 $5^3 \bmod 23 = 125 \bmod 23$\fi & \ifnum#1=1 $10$\fi \\
+    \textcolor{sIndigo}{\textbf{Ania}}: $B^a$ & \ifnum#1=1 $10^4 \bmod 23 = 10000 \bmod 23$\fi &
+      \ifnum#1=1 \colorbox{AccentOrange!20}{\textbf{18}}\fi \\
+    \textcolor{sTealText}{\textbf{Bartek}}: $A^b$ & \ifnum#1=1 $4^3 \bmod 23 = 64 \bmod 23$\fi &
+      \ifnum#1=1 \colorbox{AccentOrange!20}{\textbf{18}}\fi \\
+    \bottomrule
+  \end{tabular}}
+
+\begin{frame}{Task 1: an exchange on paper}
+  \taskhead{Task 1}{On paper. $p = 23$,\quad $g = 5$,\quad Ania's secret $a = 4$,\quad Bartek's secret $b = 3$}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.42\textwidth}
+      \footnotesize
+      \begin{enumerate}\setlength{\itemsep}{6pt}
+        \item Compute $A$ and $B$.
+        \item Compute the shared secret as Ania, and again as Bartek.
+        \item Check that both are the same.
+      \end{enumerate}
+    \column{0.56\textwidth}
+      \footnotesize\taskonetable{0}
+  \end{columns}
+  \say{Około 5 minut, na kartce. Potęgi są małe: 5\textasciicircum 4 = 625, 5\textasciicircum 3 = 125.}
+\end{frame}
+
+% CHECKED (python3): pow(5,4,23) = 4, pow(5,3,23) = 10, pow(10,4,23) = 18, pow(4,3,23) = 18
+\begin{frame}{Solution: an exchange on paper}
+  \vfill
+  \begin{center}\small
+    \renewcommand{\arraystretch}{1.6}
+    \begin{tabular}{rl}
+      $A$ =& $5^4 \bmod 23 = 625 \bmod 23 = 4$ \\
+      $B$ =& $5^3 \bmod 23 = 125 \bmod 23 = 10$ \\
+      \textcolor{sIndigo}{\textbf{Ania}}:\ \ $B^a$ =& $10^4 \bmod 23 = 10000 \bmod 23 = \colorbox{AccentOrange!20}{\textbf{18}}$ \\
+      \textcolor{sTealText}{\textbf{Bartek}}:\ \ $A^b$ =& $4^3 \bmod 23 = 64 \bmod 23 = \colorbox{AccentOrange!20}{\textbf{18}}$ \\
+    \end{tabular}
+  \end{center}
+  \vfill
+  \say{Sprawdzone w Pythonie. 10000 = 434 · 23 + 18.}
+\end{frame}
+
+% CHECKED (python3): the prime of group 14 from RFC 3526 has 2048 bits and 617 decimal digits
+\begin{frame}{Real sizes}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.44\textwidth}
+      \vspace{0.2cm}
+      \small
+      \renewcommand{\arraystretch}{1.5}
+      \begin{tabular}{@{}lp{4.6cm}@{}}
+        $p$ & \textbf{2048 bits} (617 digits), a fixed public group, for example group 14 from RFC 3526 \\
+        $g$ & 2 \\
+        $a, b$ & random numbers of at least 256 bits, \textbf{new for every exchange} \\
+      \end{tabular}
+    \column{0.54\textwidth}
+      \begin{beamercolorbox}[rounded=true,sep=0.12cm,wd=\linewidth]{block body}
+        \tiny\ttfamily\color{nInk} $p$ = \seqsplit{32317006071311007300338913926423828248817941241140239112842009751400741706634354222619689417363569347117901737909704191754605873209195028853758986185622153212175412514901774520270235796078236248884246189477587641105928646099411723245426622522193230540919037680524235519125679715870117001058055877651038861847280257976054903569732561526167081339361799541336476559160368317896729073178384589680639671900977202194168647225871031411336429319536193471636533209717077448227988588565369208645296636077250268955505928362751121174096972998068410554359584866583291642136218231078990999448652468262416972035911852507045361090559}
+      \end{beamercolorbox}
+  \end{columns}
+  \say{RFC to oficjalny dokument standardu internetowego. Grupa to gotowa para p i g, którą wszyscy mogą używać.}
+\end{frame}
+
+% CHECKED (python3): random.Random(2026), a and b = getrandbits(256) twice, A = pow(2, a, P), B = pow(2, b, P)
+\begin{frame}{Task 2: a real exchange}
+  \taskhead{Task 2}{Use the real 2048-bit $p$ and $g = 2$ from RFC 3526. Starter file: \texttt{dh.py} from \ghlink{Task2}.}
+  \begin{columns}[c,onlytextwidth]
+    \column{0.5\textwidth}
+      \footnotesize
+      \begin{enumerate}\setlength{\itemsep}{6pt}
+        \item Pick random secrets $a$ and $b$.
+        \item Compute $A$, $B$ and the secret on both sides.
+        \item Check that both secrets are equal, and measure the time.
+      \end{enumerate}
+    \column{0.48\textwidth}
+      \begin{center}
+      \begin{tikzpicture}[>=Stealth, scale=0.85, transform shape]
+        \ania{0}{0}
+        \bartek{5.4}{0}
+        \node[pub, font=\tiny\ttfamily, text width=2.8cm, align=left] at (2.7,0.75) {A = 25222448494279\dots{} (617 digits)};
+        \node[pub, font=\tiny\ttfamily, text width=2.8cm, align=left] at (2.7,-0.75) {B = 64186192558273\dots{} (616 digits)};
+        \draw[data] (Ania.east) ++(0,0.3) -- ++(0.35,0.45);
+        \draw[data] (Bartek.west) ++(0,-0.3) -- ++(-0.35,-0.45);
+      \end{tikzpicture}
+      \end{center}
+  \end{columns}
+  \say{Około 6 minut. Liczby losowe: secrets.randbits(256).}
+\end{frame}
+
+\begin{frame}[fragile]{Task 2: what to do}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.62\textwidth}
+\begin{lstlisting}[style=py]
+import secrets
+P = int("FFFFFFFFFFFFFFFFC90FDAA2...", 16)   # 2048 bits
+G = 2
+
+# TODO 1: a and b: secrets.randbits(256)
+# TODO 2: A = G^a mod P,  B = G^b mod P
+# TODO 3: B^a mod P and A^b mod P
+# TODO 4: print whether they are equal
+\end{lstlisting}
+    \column{0.35\textwidth}
+      \taskhead{Task 2}{Open \texttt{dh.py} from \ghlink{Task2}. Write the code in place of the \texttt{TODO} lines.}
+  \end{columns}
+  \say{Moduł secrets daje liczby losowe dobre do kryptografii, w przeciwieństwie do random.}
+\end{frame}
+
+% CHECKED: Task2/solution/dh.py prints "equal: True"; the author's runs: 11.8 ms and 12.2 ms
+\begin{frame}[fragile]{Solution: a real exchange}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.55\textwidth}
+\begin{lstlisting}[style=py, emph={pow,print}]
+a = secrets.randbits(256)
+b = secrets.randbits(256)
+A = pow(G, a, P)
+B = pow(G, b, P)
+print(pow(B, a, P) == pow(A, b, P))
+\end{lstlisting}
+    \column{0.42\textwidth}
+      \terminal{equal: True}\\[0.25cm]
+      \terminal{took 12 ms}\\[0.15cm]
+      \footnotesize\textcolor{gray}{(4 powers in plain Python)}
+  \end{columns}
+  \vfill
+  \keymsg{Four lines of Python, and two strangers share a 2048-bit secret.}
+  \say{Kod sprawdzony, dwa uruchomienia: 11,8 ms i 12,2 ms. OpenSSL robi całą stronę wymiany w około 0,3 ms.}
+\end{frame}
+
+% ======================================================================
+\section[Why is it safe?]{Why is it safe?}
+% ======================================================================
+
+\begin{frame}{What Ewa knows}
+  \vfill
+  \begin{columns}[c,onlytextwidth]
+    \column{0.4\textwidth}
+      \begin{center}
+      \begin{tikzpicture}
+        % Ewa's notebook
+        \draw[sPink, thick, fill=white, rounded corners=3pt] (0,0) rectangle (4.4,4.3);
+        \fill[sPink] (0,3.75) rectangle (4.4,4.3);
+        \node[text=white, font=\small\bfseries] at (2.2,4.02) {\faUserSecret\ Ewa's notebook};
+        \foreach \y in {0.4,0.95,...,3.3} \draw[nLight] (0.25,\y) -- (4.15,\y);
+        \node[anchor=west, font=\small, text=nInk] at (0.3,3.3) {$p = 23,\; g = 5$};
+        \node[anchor=west, font=\small, text=nInk] at (0.3,2.6) {$A = 8$};
+        \node[anchor=west, font=\small, text=nInk] at (0.3,1.9) {$B = 19$};
+        \node[anchor=west, font=\small, text=gray] at (0.3,1.2) {$a = \,?$};
+        \node[anchor=west, font=\small, text=gray] at (2.3,1.2) {$b = \,?$};
+        \draw[aWrite, very thick] (0.3,1.0) -- (1.4,1.4) (2.3,1.0) -- (3.4,1.4);
+      \end{tikzpicture}
+      \end{center}
+    \column{0.56\textwidth}
+      \renewcommand{\arraystretch}{1.6}
+      \begin{tabular}{ll}
+        $p,\ g$ & public \\
+        $A = g^{a}$ & she saw it \\
+        $B = g^{b}$ & she saw it \\
+      \end{tabular}
+      \vspace{0.5cm}
+
+      To compute the secret $g^{ab}$, she needs \textcolor{sAmberText}{\textbf{$a$ or $b$}}.
+  \end{columns}
+  \vfill
+  \say{Ewa ma wszystko poza tajnymi liczbami. Czy da się je odzyskać z A?}
+\end{frame}
+
+\begin{frame}{The discrete logarithm}
+  \bigdef{\textbf{Discrete logarithm:} given $p$, $g$ and $A = g^{a} \bmod p$, find $a$.}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.49\textwidth}
+      \centering
+      \begin{tikzpicture}
+        \begin{axis}[width=6.6cm, height=4.0cm, xmin=0, xmax=6.5, ymin=0, ymax=17000, axis lines=left,
+            axis line style={nLine}, tick label style={font=\tiny}, xtick={0,...,6},
+            ytick={0,5000,10000,15625}, yticklabel style={/pgf/number format/fixed},
+            scaled y ticks=false, title={\scriptsize over normal numbers: $5^a$}]
+          \addplot[DeepBlue, very thick, domain=0:6.2, samples=60] {5^x};
+          \addplot[only marks, mark=*, mark size=1.8pt, DeepBlue] coordinates {(1,5)(2,25)(3,125)(4,625)(5,3125)(6,15625)};
+          \addplot[only marks, mark=*, mark size=3pt, AccentOrange] coordinates {(6,15625)};
+        \end{axis}
+      \end{tikzpicture}\\
+      \footnotesize $5^a = 15625 \;\rightarrow\; a = 6$, \textbf{easy}: the powers grow steadily
+    \column{0.49\textwidth}
+      \centering
+      \begin{tikzpicture}
+        \begin{axis}[width=6.6cm, height=4.0cm, xmin=0, xmax=23, ymin=0, ymax=23.5, axis lines=left,
+            axis line style={nLine}, tick label style={font=\tiny}, xtick={1,6,11,16,22}, ytick={1,8,15,22},
+            title={\scriptsize modulo 23: $5^a \bmod 23$}]
+          \addplot[only marks, mark=*, mark size=1.8pt, DeepBlue] coordinates {
+            (1,5)(2,2)(3,10)(4,4)(5,20)(6,8)(7,17)(8,16)(9,11)(10,9)(11,22)
+            (12,18)(13,21)(14,13)(15,19)(16,3)(17,15)(18,6)(19,7)(20,12)(21,14)(22,1)};
+          \addplot[only marks, mark=*, mark size=3pt, AccentOrange] coordinates {(6,8)};
+        \end{axis}
+      \end{tikzpicture}\\
+      \footnotesize $5^a \bmod 23 = 8 \;\rightarrow$ the powers \textbf{jump around} (5 2 10 4 20 8 \dots)
+  \end{columns}
+  \vfill
+  \keymsg{Powers modulo p are easy to compute and hard to undo.}
+  \say{Zwykły logarytm da się policzyć, bo potęgi rosną po kolei. Modulo p nie ma porządku, więc trzeba zgadywać.}
+\end{frame}
+
+% the primes from Task3/dlog.py
+\begin{frame}{Task 3: find a}
+  \taskhead{Task 3}{Four problems: $p$ has 16, 20, 24 and 28 bits. You know $p$, $g$ and $A$.
+    Find the secret $a$ by trying $a = 1, 2, 3, \dots$}
+  \begin{center}
+    \begin{tikzpicture}
+      \foreach \y/\bits/\p in {0/16/49223, -0.75/20/939167, -1.5/24/10684799, -2.25/28/187882979} {
+        \node[rowlabel, font=\small] at (1.5,\y) {\bits\ bits};
+        \node[pub, anchor=west, font=\ttfamily\small] (n) at (1.8,\y) {$p$ = \p};
+        \node[text=nInk, font=\large, anchor=west] at (6.2,\y) {\faClock};
+        \node[text=AccentOrange, font=\large\bfseries, anchor=west] at (6.75,\y) {?};
+      }
+    \end{tikzpicture}
+  \end{center}
+  \begin{center}
+    \small\textcolor{AccentOrange}{\faLightbulb}\ \textbf{Predict first:} each $p$ is 4 bits longer. How many times longer will it take?
+  \end{center}
+  \say{Około 6 minut. Zapisać przewidywania na tablicy. Ostatni przypadek liczy się kilka sekund.}
+\end{frame}
+
+\begin{frame}[fragile]{Task 3: what to do}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.62\textwidth}
+\begin{lstlisting}[style=py]
+def find_exponent(p, g, A):
+    # TODO: try a = 1, 2, 3, ... : keep value = g^a mod p
+    #       (multiply the previous value by g, mod p)
+    #       until value == A, then return a
+    return None
+\end{lstlisting}
+    \column{0.35\textwidth}
+      \taskhead{Task 3}{Open \texttt{dlog.py} from \ghlink{Task3}. Write the code in place of the \texttt{TODO} lines.}
+  \end{columns}
+  \say{Nie liczymy pow od nowa dla każdego a: wystarczy pomnożyć poprzednią wartość przez g.}
+\end{frame}
+
+% CHECKED: Task3/solution/dlog.py finds a = 17773, 415826, 3465539, 60546499; times from the author's laptop
+% (on a busy machine the 28-bit case took 15 to 21 s: the times depend on the load)
+\begin{frame}[fragile]{Solution: find a}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.4\textwidth}
+\begin{lstlisting}[style=py]
+a, value = 1, g
+while value != A:
+    value = value * g % p
+    a += 1
+return a
+\end{lstlisting}
+      \footnotesize
+      \renewcommand{\arraystretch}{1.3}
+      \begin{tabular}{lr}
+        16 bits & 0.002 s \\
+        20 bits & 0.038 s \\
+        24 bits & 0.35 s \\
+        28 bits & 6.1 s \\
+      \end{tabular}
+    \column{0.57\textwidth}
+      \centering
+      \begin{tikzpicture}
+        \begin{axis}[width=7.6cm, height=5.0cm, ybar, bar width=0.8cm, ymode=log, log origin=infty,
+            ymin=0.001, ymax=20, symbolic x coords={16,20,24,28}, xtick=data, axis lines=left,
+            axis line style={nLine}, tick label style={font=\scriptsize}, xlabel={\scriptsize bits of $p$},
+            ylabel={\scriptsize seconds (log scale)}, ymajorgrids, grid style={nLight},
+            nodes near coords, nodes near coords style={font=\scriptsize, text=nInk},
+            point meta=explicit symbolic]
+          \addplot[fill=DeepBlue!70, draw=DeepBlue] coordinates {(16,0.002)[0.002 s] (20,0.038)[0.038 s] (24,0.35)[0.35 s] (28,6.1)[6.1 s]};
+        \end{axis}
+      \end{tikzpicture}
+  \end{columns}
+  \vfill
+  \keymsg{Every 4 more bits make the search about 16 times longer.}
+  \say{Kod sprawdzony na moim laptopie. Czasy zależą też od tego, jak duże było losowe a, dlatego wzrost nie jest równy; średnio około 16 razy na 4 bity.}
+\end{frame}
+
+\begin{frame}{2048 bits}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \draw[nLine, very thick] (0,0) -- (6.2,0);
+      \draw[nLine, very thick] (6.8,0) -- (12.5,0);
+      \draw[nLine, very thick] (6.0,-0.25) -- (6.3,0.25) (6.6,-0.25) -- (6.9,0.25);
+      \foreach \x/\b/\t in {0.4/16/0.002 s, 1.7/20/0.038 s, 3.0/24/0.35 s, 4.3/28/6.1 s} {
+        \fill[DeepBlue] (\x,0) circle (0.12);
+        \node[font=\scriptsize, text=nInk, above=3pt] at (\x,0.1) {\b\ bits};
+        \node[font=\scriptsize, text=gray, below=3pt] at (\x,-0.1) {\t};
+      }
+      \node[font=\scriptsize, text=DeepBlue, align=center] at (2.35,1.0) {our measurements};
+      \fill[AccentOrange] (12.2,0) circle (0.17);
+      \node[font=\small\bfseries, text=AccentOrange, above=4pt] at (12.2,0.1) {2048 bits};
+      \node[font=\scriptsize, text=AccentOrange, below=4pt] at (12.2,-0.1) {about $2^{2047}$ steps};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}
+    Trying every $a$ for a 2048-bit $p$: about $2^{2047}$ steps.\\[2pt]
+    Better algorithms exist. For 2048 bits they are still \textbf{far too slow}.\\[10pt]
+    \plainbox{Diffie-Hellman is safe as long as the \textbf{discrete logarithm is hard}.}
+  \end{center}
+  \vfill
+  \say{Najlepsze znane metody są podobne do metod rozkładu liczb na czynniki, dlatego zalecane długości p są podobne jak dla RSA.}
+\end{frame}
+
+\begin{frame}{When p is too small: Logjam (2015)}
+  \vfill
+  \begin{columns}[c,onlytextwidth]
+    \column{0.3\textwidth}
+      \begin{center}
+      \begin{tikzpicture}
+        \node[text=nInk, font=\fontsize{60}{60}\selectfont] at (0,0) {\faLock};
+        \draw[white, line width=3pt] (-0.15,0.2) -- (0.1,-0.15) -- (-0.1,-0.45) -- (0.12,-0.9);
+        \draw[aWrite, line width=1.4pt] (-0.15,0.2) -- (0.1,-0.15) -- (-0.1,-0.45) -- (0.12,-0.9);
+        \node[draw=aWrite, very thick, fill=aWrite!8, rounded corners=3pt, font=\LARGE\bfseries, text=aWrite]
+          at (0,-2.0) {512 bits};
+      \end{tikzpicture}
+      \end{center}
+    \column{0.66\textwidth}
+      Some servers still accepted old 512-bit \textbf{``export''} groups in TLS.
+      \vspace{0.3cm}
+
+      \stepbox{The attack}{\faCalendar\ one week of computing for one fixed $p$,\\
+        \faClock\ then about one minute for each discrete logarithm in that group}
+      \vspace{0.2cm}
+
+      \textbf{\textcolor{aWrite}{8.4\%}} of the top one million HTTPS sites were vulnerable.
+  \end{columns}
+  \vfill
+  \say{Grupy eksportowe to pozostałość po amerykańskich ograniczeniach z lat 90. TLS to protokół zabezpieczający HTTPS. Atak opisali Adrian i inni na konferencji CCS w 2015 roku.}
+\end{frame}
+
+\begin{frame}{One p for everybody}
+  \begin{columns}[c,onlytextwidth]
+    \column{0.5\textwidth}
+      \begin{center}
+      \begin{tikzpicture}[>=Stealth]
+        \node[pub, font=\large\bfseries, minimum width=1.8cm, minimum height=1.0cm] (p) at (0,0) {one $p$};
+        \foreach \i in {0,...,7} {
+          \pgfmathsetmacro{\yy}{1.75-0.5*\i}
+          \node[text=sTeal, font=\large] (s\i) at (3.6,\yy) {\faServer};
+          \draw[data, thick] (p.east) -- (s\i.west);
+        }
+        \node[font=\scriptsize, text=nInk] at (3.6,-2.3) {millions of servers};
+      \end{tikzpicture}
+      \end{center}
+    \column{0.48\textwidth}
+      The week of work depends \textbf{only on $p$}, not on $a$ or $b$.
+      \vspace{0.25cm}
+
+      A few popular 1024-bit groups were used by millions of servers.
+      \vspace{0.25cm}
+
+      A rich state could do the work \textbf{once} and read them all.
+  \end{columns}
+  \vfill
+  \keymsg{Use at least 2048 bits, or the elliptic version from the next lecture.}
+  \say{Autorzy Logjam oszacowali, że złamanie 10 popularnych grup 1024-bitowych otworzyłoby dużą część szyfrowanych połączeń w internecie. Dlatego dziś p ma co najmniej 2048 bitów.}
+\end{frame}
+
+\begin{frame}{Good to know: the Diffie-Hellman problem}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \node[pub, font=\large] (ga) at (0,0.7) {$g^{a}$};
+      \node[pub, font=\large] (gb) at (0,-0.7) {$g^{b}$};
+      \node[hwmain, minimum width=2.4cm, minimum height=1.9cm, font=\Huge] (box) at (3.4,0) {?};
+      \node[sec, font=\large] (gab) at (6.8,0) {$g^{ab}$};
+      \draw[data] (ga.east) -- (box.west |- ga);
+      \draw[data] (gb.east) -- (box.west |- gb);
+      \draw[data] (box) -- (gab);
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}
+    Ewa does not really need $a$. She needs $g^{ab}$ from $g^{a}$ and $g^{b}$.\\[2pt]
+    Nobody knows a way to do that faster than computing a discrete logarithm.
+  \end{center}
+  \vfill
+  \say{Można pominąć. To formalnie inny problem, ale w praktyce równie trudny.}
+\end{frame}
+
+% ======================================================================
+\section[A key, not a cipher]{A key, not a cipher}
+% ======================================================================
+
+\begin{frame}{DH does not encrypt anything}
+  \begin{center}\small The result of Diffie-Hellman is \textbf{one number} that both sides know.\end{center}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \node[hw, minimum width=3.8cm, minimum height=2.2cm] (dh) at (0,0) {};
+      \node[text=nInk, font=\fontsize{30}{30}\selectfont] at (0,0.35) {\faHandshake};
+      \node[font=\small\bfseries, text=nInk] at (0,-0.6) {Diffie-Hellman};
+      \node[sec, font=\small] (s) at (3.6,0) {\faKey\ a shared secret};
+      \node[hw, minimum width=3.8cm, minimum height=2.2cm] (c) at (7.6,0) {};
+      \node[text=nInk, font=\fontsize{30}{30}\selectfont] at (7.6,0.35) {\faBolt};
+      \node[font=\small\bfseries, text=nInk] at (7.6,-0.6) {ChaCha20 or AES};
+      \draw[data] (dh) -- (s);
+      \draw[data] (s) -- (c);
+      \envpic{11.2}{0}{sBrown!15}{sBrown}
+      \draw[data] (c) -- (10.35,0);
+      \node[capt, below=0.6cm] at (11.2,0) {encrypts the messages with it};
+      \node[capt, below=0.15cm of dh] {step 1};
+      \node[capt, below=0.15cm of c] {step 2};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \keymsg{Diffie-Hellman agrees on a key. A symmetric cipher does the rest.}
+  \say{Wymiana klucza to nie szyfrowanie: żadna wiadomość nie jest szyfrowana Diffie-Hellmanem.}
+\end{frame}
+
+% CHECKED (python3): the shared secret of the example in Task 2 (random.Random(2026)) has 616 digits;
+% hashlib.sha256(secret.to_bytes(256, "big")).hexdigest() = f1584740e2d7aa28...8fac6398
+\begin{frame}{From a number to a key}
+  \begin{center}\small The secret has \textbf{2048 bits}. ChaCha20 needs \textbf{256}.\end{center}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \node[sec, font=\tiny\ttfamily, text width=3.6cm, align=left] (big) at (0,0)
+        {\seqsplit{726396308082692299149293633956275253863230132969}\dots\seqsplit{917295}\\[2pt]\normalfont(616 digits)};
+      % the funnel
+      \draw[nInk, thick, fill=nFill] (2.7,1.0) -- (5.1,1.0) -- (4.3,-0.1) -- (4.3,-0.9) -- (3.5,-0.9) -- (3.5,-0.1) -- cycle;
+      \node[font=\small\bfseries, text=nInk] at (3.9,0.45) {SHA-256};
+      \draw[data] (big.east) -- (2.95,0.5);
+      \node[sec, font=\tiny\ttfamily, text width=3.4cm, align=left] (key) at (8.0,-0.5)
+        {\seqsplit{f1584740e2d7aa2868ceff74a6f36eea24507c49aafff59ade94c1a68fac6398}\\[2pt]\normalfont 32 bytes = 256 bits};
+      \draw[data] (3.9,-0.9) |- (key.west);
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}
+    \Large \texttt{key = SHA-256(secret)}\\[6pt]
+    \small A \textbf{hash function} squeezes the secret into a key of the right size.
+  \end{center}
+  \vfill
+  \say{Funkcja skrótu zamienia dane dowolnej długości w krótki odcisk. Dokładniejszy sposób, KDF, będzie w następnym wykładzie. W zadaniu 4 robi to gotowa funkcja.}
+\end{frame}
+
+\begin{frame}{A new exchange for every session}
+  \begin{center}\small \textbf{Ephemeral} Diffie-Hellman: $a$ and $b$ are new random numbers for every connection,
+    and they are deleted when the connection ends.\end{center}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \foreach \i/\y in {1/0, 2/-1.2} {
+        \node[text=DeepBlue, font=\Large] at (0,\y) {\faCalendar};
+        \node[anchor=west, font=\small, text=nInk] at (0.5,\y) {connection \i:};
+        \node[sec, font=\small] (s\i) at (4.0,\y) {$a_{\i},\ b_{\i}$};
+        \node[sec, font=\small] (k\i) at (6.9,\y) {\faKey\ key \i};
+        \draw[data] (s\i) -- (k\i);
+        \draw[data, dashed] (k\i) -- (9.1,\y);
+        \node[text=nInk, font=\Large] at (9.6,\y) {\faTrash};
+        \node[anchor=west, font=\small, text=gray] at (10.1,\y) {(deleted)};
+      }
+      \node[font=\small, text=gray] at (4.0,-2.1) {\dots};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \say{Ephemeral znaczy ulotny. Liczenie nowej wymiany kosztuje mniej niż milisekundę, więc można to robić przy każdym połączeniu.}
+\end{frame}
+
+\begin{frame}{Forward secrecy}
+  \bigdef{\textbf{Forward secrecy:} a key stolen today does not open conversations recorded yesterday.}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      % RSA: one stolen key opens every recording
+      \node[anchor=west, font=\small\bfseries, text=nInk] at (-0.3,0.6) {RSA sends the key:};
+      \node[sec, font=\small] (rk) at (0.6,-0.2) {\faKey\ stolen};
+      \foreach \i in {0,1,2} {
+        \node[ctx, font=\small] (r\i) at ({3.0+1.25*\i},-0.2) {\faLockOpen};
+        \draw[data, thin] (rk.east) to[out=0, in=180] (r\i.west);
+      }
+      \node[anchor=west, font=\footnotesize, text=aWrite] at (6.6,-0.2) {steal the private key, decrypt every recorded session};
+      % ephemeral DH
+      \node[anchor=west, font=\small\bfseries, text=nInk] at (-0.3,-1.2) {ephemeral Diffie-Hellman:};
+      \node[draw=nLight, dashed, thick, rounded corners=3pt, font=\small, text=gray] (ek) at (0.6,-2.0) {\faKey\ gone};
+      \foreach \i in {0,1,2} \node[ctx, font=\small] at ({3.0+1.25*\i},-2.0) {\faLock};
+      \node[anchor=west, font=\footnotesize, text=aExec] at (6.6,-2.0) {the session keys are gone, there is nothing to steal};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \keymsg{Ephemeral keys protect the past.}
+  \say{To odpowiedź na problem z wykładu 3: wyciek klucza otwierał całą historię. Przy ulotnych kluczach tej historii nie ma czym otworzyć.}
+\end{frame}
+
+\begin{frame}{Where Diffie-Hellman is used}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \foreach \y/\ic/\name/\txt in {0/\faLock/TLS 1.3/every connection starts with an ephemeral exchange,
+                                     -1.3/\faTerminal/SSH/the session key is agreed with Diffie-Hellman,
+                                     -2.6/\faNetworkWired/IPsec/{IKE, the key exchange for many VPNs}} {
+        \node[hw, minimum width=1.3cm, minimum height=1.0cm, font=\Large] at (0,\y) {\ic};
+        \node[anchor=west, font=\large\bfseries, text=nInk] at (1.0,\y) {\name};
+        \node[anchor=west, font=\normalsize, text=nInk] at (3.4,\y) {\txt};
+      }
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small Today mostly in its \textbf{elliptic-curve} version: next lecture.\end{center}
+  \vfill
+  \say{SSH to szyfrowane logowanie na zdalny komputer, IPsec to szyfrowanie ruchu IP, na którym działa wiele sieci VPN. TLS 1.3 w ogóle nie pozwala na połączenie bez wymiany Diffie-Hellmana.}
+\end{frame}
+
+% CHECKED: openssl speed ffdh2048 ffdh3072 on the author's laptop (i5-8265U)
+\begin{frame}{How fast?}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \begin{axis}[width=12cm, height=4.2cm, xbar, bar width=0.55cm, xmin=0, xmax=6000,
+          symbolic y coords={3072-bit group,2048-bit group}, ytick=data, axis lines=left,
+          axis line style={nLine}, tick label style={font=\small}, xlabel={\scriptsize operations per second (OpenSSL)},
+          enlarge y limits=0.5, nodes near coords, point meta=explicit symbolic,
+          nodes near coords style={font=\small, text=nInk, anchor=west}, nodes near coords align={horizontal}, xticklabel style={/pgf/number format/fixed}, scaled x ticks=false]
+        \addplot[fill=DeepBlue!70, draw=DeepBlue] coordinates {(3600,2048-bit group)[about 3600 /s \ (0.28 ms)] (1400,3072-bit group)[about 1400 /s \ (0.70 ms)]};
+      \end{axis}
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}Once per connection, this costs \textbf{almost nothing}.\end{center}
+  \vfill
+  \say{Pomiar openssl speed ffdh2048 i ffdh3072 na tym laptopie z i5-8265U.}
+\end{frame}
+
+\begin{frame}{But who is on the other side?}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \ania{0}{0}
+      \node[sec, font=\small] at (1.6,0.9) {\faKey};
+      \draw[net] (Ania.east) -- (8.8,0);
+      \node[circle, fill=nLight, text=white, minimum size=1.1cm, font=\Large] (q) at (9.5,0) {\faUser};
+      \node[font=\Huge\bfseries, text=AccentOrange] at (10.6,0.3) {?};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}
+    Ania computed a secret \textbf{with somebody}.\\[4pt]
+    \large How does she know it was Bartek?
+  \end{center}
+  \vfill
+  \say{Pytanie do sali przed następną sekcją.}
+\end{frame}
+
+% ======================================================================
+\section[The man in the middle]{The man in the middle}
+% ======================================================================
+
+\begin{frame}{Mallory can change messages}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \ania{0}{0}
+      \bartek{12}{0}
+      \draw[net] (Ania.east) -- (5.4,0);
+      \draw[net] (6.6,0) -- (Bartek.west);
+      \mallory{6}{0}
+      \node[text=sPinkText, font=\Large] at (6,1.0) {\faCut};
+      \ewa{3}{-1.7}
+      \draw[data, dashed] (3,-0.15) -- (Ewa.north);
+      \node[text=sPinkText, font=\large, anchor=west] at (3.75,-1.7) {\faAssistiveListeningSystems};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \renewcommand{\arraystretch}{1.25}
+  \begin{center}
+    \begin{tabular}{ll}
+      \textcolor{sPinkText}{\textbf{Ewa}} & listens \\
+      \textcolor{sPinkText}{\textbf{Mallory}} & sits on the cable: catches every message and sends what she wants \\
+      & \small\textcolor{gray}{Like a router or a public Wi-Fi under her control.} \\
+    \end{tabular}
+  \end{center}
+  \vfill
+  \say{Ewa jest bierna, Mallory aktywna. Taki atak nazywa się man-in-the-middle, człowiek pośrodku.}
+\end{frame}
+
+% the attack, one picture in three steps
+\newcommand{\mitmscene}[1]{%
+  \begin{tikzpicture}[>=Stealth]
+    \useasboundingbox (-1,-2.3) rectangle (13,1.3);
+    \ania{0}{0}
+    \mallory{6}{0}
+    \bartek{12}{0}
+    \draw[netarrow] (0.7,0.25) -- node[above, font=\small] {$A$} (5.3,0.25);
+    \draw[netarrow] (6.7,0.25) -- node[above, font=\small, text=sPinkText] {$M$} (11.3,0.25);
+    \node[sec, font=\scriptsize] at (6,1.05) {$m$};
+    \ifnum#1>1
+      \draw[netarrow] (11.3,-0.25) -- node[below, font=\small] {$B$} (6.7,-0.25);
+      \draw[netarrow] (5.3,-0.25) -- node[below, font=\small, text=sPinkText] {$M$} (0.7,-0.25);
+    \fi
+    \ifnum#1>2
+      \node[sec, font=\small] at (3,-1.6) {\faKey\ secret 1 $= g^{am}$};
+      \node[sec, font=\small] at (9,-1.6) {\faKey\ secret 2 $= g^{bm}$};
+      \draw[decorate, decoration={brace, mirror, amplitude=5pt}, nInk] (0,-1.0) -- (6,-1.0);
+      \draw[decorate, decoration={brace, mirror, amplitude=5pt}, nInk] (6,-1.0) -- (12,-1.0);
+    \fi
+  \end{tikzpicture}}
+\newcommand{\mitmsteps}[1]{%
+  \footnotesize
+  \stepitem{1}{#1}{Ania sends $A$. Mallory keeps it and sends her own $M$ to Bartek.}
+  \stepitem{2}{#1}{Bartek sends $B$. Mallory keeps it and sends $M$ to Ania.}
+  \stepitem{3}{#1}{Ania shares a secret with Mallory. Bartek shares another one with Mallory.}}
+
+\begin{frame}{The attack, step 1}
+  \vfill
+  \begin{center}\mitmscene{1}\end{center}
+  \vfill
+  \begin{center}\begin{minipage}{0.8\textwidth}\mitmsteps{1}\end{minipage}\end{center}
+  \vfill
+  \say{Mallory zna m, więc policzy A\textasciicircum m: ma wspólny sekret z Anią.}
+\end{frame}
+
+\begin{frame}{The attack, step 2}
+  \vfill
+  \begin{center}\mitmscene{2}\end{center}
+  \vfill
+  \begin{center}\begin{minipage}{0.8\textwidth}\mitmsteps{2}\end{minipage}\end{center}
+  \vfill
+  \say{Tak samo z drugiej strony: ma też wspólny sekret z Bartkiem.}
+\end{frame}
+
+\begin{frame}{The attack, step 3}
+  \vfill
+  \begin{center}\mitmscene{3}\end{center}
+  \vfill
+  \begin{center}\begin{minipage}{0.8\textwidth}\mitmsteps{3}\end{minipage}\end{center}
+  \vfill
+  \say{Ania myśli, że jej sekret dzieli z Bartkiem. Bartek myśli to samo. Oboje się mylą.}
+\end{frame}
+
+\begin{frame}{What the attack gives}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \ania{0}{0}
+      \envpic{2.7}{0}{sBrown!15}{sBrown}
+      \node[capt, below=0.55cm] at (2.7,0) {encrypted with key 1};
+      \draw[data] (Ania) -- (1.9,0);
+      \draw[data] (3.5,0) -- (5.0,0);
+      \mallory{6}{0}
+      \node[draw=sPink, thick, fill=white, rounded corners=3pt, font=\scriptsize, text=nInk, align=left, anchor=south]
+        at (6,0.95) {\faLockOpen\ decrypts\\ \faEye\ reads\\ \faLock\ encrypts again};
+      \draw[data] (7.0,0) -- (8.5,0);
+      \envpic{9.3}{0}{sBrown!15}{sBrown}
+      \node[capt, below=0.55cm] at (9.3,0) {encrypted with key 2};
+      \draw[data] (10.1,0) -- (11.4,0);
+      \bartek{12.1}{0}
+      \node[text=aExec, font=\large] at (12.1,1.0) {\faCheck};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}Both sides see \textbf{correct messages}. Nothing looks wrong.\end{center}
+  \vfill
+  \keymsg{Diffie-Hellman alone cannot tell who is on the other side.}
+  \say{Szyfrowanie działa bez zarzutu, tylko z niewłaściwą osobą.}
+\end{frame}
+
+\begin{frame}{Task 4: be Mallory}
+  \taskhead{Task 4}{A simulated network: Ania and Bartek do a Diffie-Hellman exchange,
+    then Ania sends one encrypted message. \textbf{Every value goes through you.}}
+  \begin{columns}[c,onlytextwidth]
+    \column{0.5\textwidth}
+      \footnotesize
+      \begin{enumerate}\setlength{\itemsep}{6pt}
+        \item Replace Ania's $A$ and Bartek's $B$ with your own value.
+        \item Read Ania's message.
+        \item Pass it on, so that Bartek notices nothing.
+      \end{enumerate}
+    \column{0.48\textwidth}
+      \begin{center}
+      \begin{tikzpicture}[scale=0.8, transform shape]
+        \ania{0}{0}
+        \bartek{6}{0}
+        \draw[net] (Ania.east) -- (2.4,0);
+        \draw[net] (3.6,0) -- (Bartek.west);
+        \mallory{3}{0}
+        \node[text=nInk, font=\Large] at (3,1.0) {\faLaptop};
+        \node[capt, text=sPinkText] at (3,-1.25) {you};
+      \end{tikzpicture}
+      \end{center}
+  \end{columns}
+  \say{Około 10 minut. network.py jest gotowy i nie trzeba go zmieniać: zawiera Anię, Bartka i szyfrowanie wiadomości kluczem z SHA-256.}
+\end{frame}
+
+\begin{frame}[fragile]{Task 4: what to do}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.64\textwidth}
+\begin{lstlisting}[style=py, emph={pow,print}]
+class Mallory:
+    def __init__(self):
+        self.m = secrets.randbits(256)
+        self.M = pow(G, self.m, P)
+
+    def change_A(self, A):
+        # TODO 1: keep the key shared with Ania, send M instead
+        return A
+
+    def change_B(self, B):
+        # TODO 2: the same for Bartek
+        return B
+
+    def change_message(self, data):
+        # TODO 3: decrypt, print, encrypt again for Bartek
+        return data
+\end{lstlisting}
+    \column{0.33\textwidth}
+      \taskhead{Task 4}{Open \texttt{mitm.py} from \ghlink{Task4}. Write the code in place of the \texttt{TODO} lines.}
+      \stepbox{Ready in network.py}{\texttt{key\_from\_secret}, \texttt{encrypt}, \texttt{decrypt}}
+  \end{columns}
+  \say{key\_from\_secret, encrypt i decrypt są gotowe w network.py. Bez zmian program wypisuje tylko to, co czyta Bartek.}
+\end{frame}
+
+% CHECKED: Task4/solution/mitm.py prints the two lines below
+\begin{frame}[fragile]{Solution: be Mallory}
+\begin{lstlisting}[style=py, emph={pow,print}]
+def change_A(self, A):
+    self.key_ania = key_from_secret(pow(A, self.m, P))
+    return self.M
+
+def change_message(self, data):
+    text = decrypt(self.key_ania, data)
+    print("Mallory reads:", text)
+    return encrypt(self.key_bartek, text)
+\end{lstlisting}
+  \vfill
+  \begin{center}
+    \terminal{\textcolor{sPinkText}{Mallory reads:} My new card PIN is 7314. Please keep it secret.}\\[0.15cm]
+    \terminal{\textcolor{sTealText}{Bartek reads:}\ \ My new card PIN is 7314. Please keep it secret.}
+  \end{center}
+  \vfill
+  \say{Kod sprawdzony. change\_B wygląda tak samo jak change\_A, z kluczem dla Bartka. Bartek dostał poprawną wiadomość i niczego nie zauważył.}
+\end{frame}
+
+% a seal: \seal{x}{y}{colour}{text}
+\newcommand{\seal}[4]{%
+  \node[circle, draw=#3, very thick, fill=#3!15, text=#3, minimum size=1.0cm, inner sep=0pt, font=\tiny\bfseries, align=center]
+    at (#1,#2) {\faStamp\\#4};}
+\begin{frame}{The fix: authenticate the exchange}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \node[pub, font=\Large, minimum width=2.2cm, minimum height=1.3cm] at (0,0) {$B$};
+      \seal{0.95}{-0.55}{sTeal}{Bartek}
+      \node[text=aExec, font=\Large] at (0,-1.4) {\faCheck};
+      \node[capt] at (0,-1.95) {signed by Bartek};
+      \node[pub, font=\Large, minimum width=2.2cm, minimum height=1.3cm, text=sPinkText] at (5,0) {$M$};
+      \node[circle, draw=nLight, very thick, dashed, minimum size=1.0cm] at (5.95,-0.55) {};
+      \node[text=aWrite, font=\Large] at (5,-1.4) {\faTimes};
+      \node[capt] at (5,-1.95) {Mallory has no seal of Bartek};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}
+    Bartek \textbf{signs} his $B$ with his private key.\\
+    Ania checks the signature with Bartek's public key.\\[6pt]
+    Mallory can replace $B$, but she \textbf{cannot sign} her $M$ as Bartek.
+  \end{center}
+  \vfill
+  \say{Recall z wykładu 3: podpis robi się kluczem prywatnym, sprawdza publicznym. Mallory nie ma klucza prywatnego Bartka.}
+\end{frame}
+
+\begin{frame}{How does Ania know Bartek's public key?}
+  \begin{columns}[c,onlytextwidth]
+    \column{0.42\textwidth}
+      \begin{center}
+      \begin{tikzpicture}
+        \draw[nLine, thick, fill=white, drop shadow={opacity=0.25}] (0,0) rectangle (4.6,3.2);
+        \draw[DeepBlue, thick] (0.15,0.15) rectangle (4.45,3.05);
+        \node[font=\small\bfseries, text=DeepBlue] at (2.3,2.65) {Certificate};
+        \node[font=\scriptsize, text=nInk, anchor=west] at (0.4,2.1) {name: \textbf{Bartek}};
+        \node[font=\scriptsize, text=nInk, anchor=west] at (0.4,1.65) {public key: \textbf{Bartek's $y$}};
+        \node[circle, draw=AccentOrange, very thick, fill=AccentOrange!15, text=AccentOrange, minimum size=1.2cm,
+          font=\tiny\bfseries, align=center] at (3.6,0.85) {\faCertificate\\trusted};
+        \node[font=\tiny, text=gray, anchor=west] at (0.4,0.6) {signed by a trusted party};
+      \end{tikzpicture}
+      \end{center}
+    \column{0.55\textwidth}
+      A \textbf{certificate}: Bartek's public key, signed by a party that Ania already trusts.
+      \vspace{0.4cm}
+
+      \textcolor{DeepBlue}{\faGlobe}\ Browsers come with a list of trusted parties.
+  \end{columns}
+  \vfill
+  \keymsg{Diffie-Hellman needs authentication. Without it, it talks to anyone.}
+  \say{Tylko pojęcie, bez szczegółów. Dlatego przeglądarka ostrzega, gdy certyfikat strony jest nieprawidłowy.}
+\end{frame}
+
+\begin{frame}{In TLS 1.3}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \foreach \y/\n/\ic/\a/\b in {1.3/1/\faHandshake/Ephemeral Diffie-Hellman/a fresh shared key,
+                                0/2/\faStamp/The server's signature/proves who sent the server's value,
+                                -1.3/3/\faCertificate/The certificate/proves whose public key that is} {
+        \node[hw, minimum width=5.6cm, minimum height=1.05cm, anchor=west, align=left] at (0,\y) {};
+        \node[anchor=west] at (0.15,\y) {\bigbadge{\n}};
+        \node[anchor=west, font=\large, text=nInk] at (0.8,\y) {\ic};
+        \node[anchor=west, font=\small\bfseries, text=nInk] at (1.5,\y) {\a};
+        \draw[data] (5.8,\y) -- (6.8,\y);
+        \node[anchor=west, font=\small, text=nInk] at (6.9,\y) {\b};
+      }
+      \draw[container] (-0.2,-2.0) rectangle (12.6,2.0);
+      \node[fill=white, font=\scriptsize\bfseries, text=nLine] at (1.3,2.0) {one protocol};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \say{To dokładnie ten przepis: wymiana daje tajność, podpis i certyfikat dają pewność, z kim rozmawiamy.}
+\end{frame}
+
+% ======================================================================
+\section[ElGamal encryption]{ElGamal encryption}
+% ======================================================================
+
+\begin{frame}{Diffie-Hellman as encryption}
+  \begin{columns}[c,onlytextwidth]
+    \column{0.52\textwidth}
+      \textbf{Taher ElGamal, 1985:}
+      \vspace{0.2cm}
+
+      \begin{itemize}\setlength{\itemsep}{6pt}
+        \item Bartek publishes his half of the exchange, $y = g^{x}$, \textbf{once and for all}.
+        \item For every message, Ania does her half \textbf{on the spot}
+          and uses the shared value to hide the message.
+      \end{itemize}
+    \column{0.46\textwidth}
+      \begin{center}
+      \begin{tikzpicture}[>=Stealth]
+        % the notice board
+        \draw[sBrown, very thick, fill=sBrown!25, rounded corners=2pt] (0,0) rectangle (3.4,2.4);
+        \draw[nInk, very thick] (0.4,0) -- (0.4,-0.6) (3.0,0) -- (3.0,-0.6);
+        \node[pub, font=\large, rotate=-4] (y) at (1.7,1.25) {$y = g^{x}$};
+        \fill[aWrite] (1.7,1.75) circle (0.08);
+        \node[font=\tiny\bfseries, text=nInk] at (1.7,2.15) {notice board};
+        \bartek{4.4}{1.3}
+        \ania{-1.2}{-1.1}
+        \node[msgb, font=\small] (m) at (0.6,-1.1) {\faEnvelope\ message};
+        \draw[data] (m.east) -- (2.3,-1.1);
+      \end{tikzpicture}
+      \end{center}
+  \end{columns}
+  \say{ElGamal to Diffie-Hellman, w którym jedna strona jest stała, a druga robi swoją połowę razem z wiadomością.}
+\end{frame}
+
+% CHECKED (python3): pow(5, 6, 23) = 8
+\begin{frame}{The keys}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \node[text=sAmber, font=\fontsize{40}{40}\selectfont] at (0,0) {\faKey};
+      \node[font=\small\bfseries, text=sAmberText] at (0,-1.0) {private key};
+      \node[text=nLine, font=\fontsize{40}{40}\selectfont] at (5,0) {\faKey};
+      \node[font=\small\bfseries, text=nInk] at (5,-1.0) {public key};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}
+    \renewcommand{\arraystretch}{1.7}
+    \begin{tabular}{lll}
+      \textcolor{sAmberText}{\textbf{private key}} & $x$ & \tikz[baseline=(n.base)]\node[sec] (n) {$x = 6$}; \\
+      \textbf{public key} & $y = g^{x} \bmod p$ & \tikz[baseline=(n.base)]\node[pub] (n) {$y = 5^{6} \bmod 23 = 8$}; \\
+      public too & $p$ and $g$ & \tikz[baseline=(n.base)]\node[pub] (n) {$p = 23,\ g = 5$}; \\
+    \end{tabular}
+  \end{center}
+  \vfill
+  \say{Ten sam przykład co wcześniej: y = 8 to dokładnie A Ani z wymiany.}
+\end{frame}
+
+% CHECKED (python3): pow(5, 3, 23) = 10, pow(8, 3, 23) = 6, 10 * 6 % 23 = 14
+\begin{frame}{Encrypt}
+  \vfill
+  \begin{center}
+    \renewcommand{\arraystretch}{1.8}
+    \begin{tabular}{l@{\hspace{1.2cm}}l}
+      1. pick a random secret $k$ & \tikz[baseline=(n.base)]\node[sec] (n) {$k = 3$}; \\
+      2. $C_1 = g^{k} \bmod p$ & $C_1 = 5^{3} \bmod 23 = 10$ \\
+      3. $C_2 = M \times y^{k} \bmod p$ & \tikz[baseline=(n.base)]\node[msgb, inner sep=2pt] (n) {$M = 10$};:\quad
+        $C_2 = 10 \times 8^{3} \bmod 23 = 14$ \\
+    \end{tabular}
+  \end{center}
+  \vfill
+  \begin{center}
+    The ciphertext is the pair\quad \tikz[baseline=(n.base)]\node[ctx, font=\Large] (n) {$(C_1, C_2) = (10, 14)$};
+  \end{center}
+  \vfill
+  \say{8\textasciicircum 3 = 512, a 512 mod 23 = 6, więc C2 = 60 mod 23 = 14. Wiadomość M to liczba mniejsza od p.}
+\end{frame}
+
+\begin{frame}{Recall: the modular inverse}
+  \vfill
+  \begin{center}
+    the inverse of $s \bmod p$:\quad the number $s^{-1}$ with\quad $s \times s^{-1} \bmod p = 1$
+  \end{center}
+  \vfill
+  \begin{center}
+    \Large the inverse of $6 \bmod 23$ is $\mathbf{4}$,\quad because\quad
+    $6 \times 4 = 24 = 23 + \colorbox{AccentOrange!25}{$\mathbf{1}$}$
+  \end{center}
+  \vfill
+  \begin{center}
+    \normalsize In Python:\quad \terminal{pow(6, -1, 23)}
+  \end{center}
+  \vfill
+  \say{Z wykładu 3, gdzie liczyliśmy ją algorytmem Euklidesa. Działa jak dzielenie modulo p.}
+\end{frame}
+
+% CHECKED (python3): pow(10, 6, 23) = 6, pow(6, -1, 23) = 4, 14 * 4 % 23 = 10
+\begin{frame}{Decrypt}
+  \vfill
+  \begin{center}
+    \renewcommand{\arraystretch}{1.8}
+    \begin{tabular}{l@{\hspace{1.2cm}}l}
+      1. $s = C_1^{\,x} \bmod p$ & $s = 10^{6} \bmod 23 = 6$ \\
+      2. $s^{-1} \bmod p$ & $6^{-1} \bmod 23 = 4$ \\
+      3. $M = C_2 \times s^{-1} \bmod p$ & $M = 14 \times 4 \bmod 23 = 56 \bmod 23 = 10$ \\
+    \end{tabular}
+  \end{center}
+  \vfill
+  \begin{center}
+    The message is back:\quad \tikz[baseline=(n.base)]\node[msgb, font=\Large] (n) {$M = 10$};
+  \end{center}
+  \vfill
+  \say{Wszystkie liczby sprawdzone w Pythonie.}
+\end{frame}
+
+\begin{frame}{Why does it work?}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \node[anchor=east, font=\large\bfseries, text=sTealText] at (0,0.7) {Bartek computes};
+      \node[anchor=west, font=\Large] at (0.2,0.7) {$C_1^{\,x} \;=\; (g^{k})^{x} \;=\; g^{\,kx}$};
+      \node[anchor=east, font=\large\bfseries, text=sIndigo] at (0,-0.7) {Ania used};
+      \node[anchor=west, font=\Large] at (0.2,-0.7) {$y^{k} \;=\; (g^{x})^{k} \;=\; g^{\,xk}$};
+      \node[sec, font=\Large, minimum height=2.5cm, minimum width=2.6cm] (r) at (8.0,0) {$g^{kx} \bmod p$};
+      \draw[data] (5.0,0.7) -- (r.west |- 0,0.7);
+      \draw[data] (5.0,-0.7) -- (r.west |- 0,-0.7);
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}The same value: a Diffie-Hellman secret between $k$ and $x$.\end{center}
+  \vfill
+  \keymsg{Ania multiplies by the shared secret. Bartek divides by it.}
+  \say{Dzielenie modulo p to mnożenie przez odwrotność.}
+\end{frame}
+
+\begin{frame}{Why two parts?}
+  \begin{center}
+    \begin{tikzpicture}[scale=1.5, transform shape]
+      \envpic{0}{0}{sBrown!15}{sBrown}
+      \node[font=\small\bfseries, text=nInk, fill=sBrown!15, inner sep=1pt] at (0,-0.25) {$C_1 = g^{k}$};
+      \envpic{2.0}{0}{sBrown!15}{sBrown}
+      \node[font=\small\bfseries, text=nInk, fill=sBrown!15, inner sep=1pt] at (2.0,-0.25) {$C_2 = M \times y^{k}$};
+      % the clip
+      \draw[nInk, line width=2pt, rounded corners=2pt] (0.75,0.65) -- (0.75,0.25) -- (1.25,0.25) -- (1.25,0.65);
+    \end{tikzpicture}
+  \end{center}
+  \vspace{-0.1cm}
+  \begin{center}
+    \renewcommand{\arraystretch}{1.5}
+    \begin{tabular}{ll}
+      $C_1 = g^{k}$ & Ania's half of the exchange: Bartek needs it to compute the secret \\
+      $C_2 = M \times y^{k}$ & the message, hidden by the secret \\
+    \end{tabular}
+  \end{center}
+  \begin{center}\small Without $C_1$, Bartek cannot find $y^{k}$. Without $C_2$, there is no message.\end{center}
+  \vfill
+  \keymsg{C1 is Ania's half of a Diffie-Hellman exchange. C2 is the message.}
+  \say{To odpowiedź na pytanie z zakresu: dlaczego szyfrogram ma dwa składniki.}
+\end{frame}
+
+\begin{frame}{Task 5: ElGamal in Python}
+  \taskhead{Task 5}{The real 2048-bit group, Bartek's keys are ready.}
+  \begin{columns}[c,onlytextwidth]
+    \column{0.5\textwidth}
+      \footnotesize
+      \begin{enumerate}\setlength{\itemsep}{6pt}
+        \item Write \texttt{encrypt(M, y)}: a new random $k$, then $C_1$ and $C_2$.
+        \item Write \texttt{decrypt(C1, C2, x)}.
+      \end{enumerate}
+      \vspace{0.2cm}
+      The program encrypts one message twice and decrypts it.
+    \column{0.47\textwidth}
+      \begin{center}
+      \begin{tikzpicture}[>=Stealth]
+        \node[hw, font=\ttfamily\small, minimum width=3.6cm] (e) at (0,0.8) {encrypt(M, y)};
+        \node[font=\tiny\bfseries, text=AccentOrange, anchor=south east] at (e.north east) {TODO};
+        \node[msgb, font=\small] (m) at (-2.6,0.8) {$M$};
+        \node[ctx, font=\small] (c) at (2.8,0.8) {$(C_1, C_2)$};
+        \draw[data] (m) -- (e); \draw[data] (e) -- (c);
+        \node[hw, font=\ttfamily\small, minimum width=3.6cm] (d) at (0,-0.8) {decrypt(C1, C2, x)};
+        \node[font=\tiny\bfseries, text=AccentOrange, anchor=south east] at (d.north east) {TODO};
+        \node[msgb, font=\small] (m2) at (2.8,-0.8) {$M$};
+        \draw[data] (c) -- ++(0,-0.8) -| ([xshift=0.4cm]d.north);
+        \draw[data] (d) -- (m2);
+      \end{tikzpicture}
+      \end{center}
+  \end{columns}
+  \say{Około 8 minut. Wzory są na poprzednich slajdach.}
+\end{frame}
+
+\begin{frame}[fragile]{Task 5: what to do}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.66\textwidth}
+\begin{lstlisting}[style=py]
+def encrypt(M, y):
+    # TODO 1: k = secrets.randbelow(P - 2) + 1
+    #         return (G^k mod P,  M * y^k mod P)
+    return None
+
+def decrypt(C1, C2, x):
+    # TODO 2: s = C1^x mod P,  M = C2 * s^-1 mod P
+    return None
+\end{lstlisting}
+    \column{0.31\textwidth}
+      \taskhead{Task 5}{Open \texttt{elgamal.py} from \ghlink{Task5}. Write the code in place of the \texttt{TODO} lines.}
+  \end{columns}
+  \say{Tekst zamieniany na liczbę i z powrotem jest już gotowy w pliku.}
+\end{frame}
+
+% CHECKED: Task5/solution/elgamal.py prints the two lines below
+\begin{frame}[fragile]{Solution: ElGamal in Python}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.6\textwidth}
+\begin{lstlisting}[style=py, emph={pow,print}]
+def encrypt(M, y):
+    k = secrets.randbelow(P - 2) + 1
+    return pow(G, k, P), M * pow(y, k, P) % P
+
+def decrypt(C1, C2, x):
+    s = pow(C1, x, P)
+    return C2 * pow(s, -1, P) % P
+\end{lstlisting}
+  \end{columns}
+  \vfill
+  \begin{center}
+    \terminal{decrypted: Meet me at the old bridge at noon.}\\[0.2cm]
+    \terminal{the same message again gives the same C1: \textbf{False}}
+  \end{center}
+  \vfill
+  \say{Kod sprawdzony. Ostatnia linijka prowadzi do następnego slajdu.}
+\end{frame}
+
+% CHECKED (python3): M = 10, y = 8: k = 3 gives (10, 14), k = 7 gives (17, 5)
+\begin{frame}{The same message twice}
+  \begin{center}\small A new $k$ gives a \textbf{new ciphertext}, every time.\end{center}
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \node[msgb, font=\small] (m) at (0,0) {$M = 10$};
+      \node[sec, font=\scriptsize] (k1) at (2.6,0.75) {$k = 3$};
+      \node[sec, font=\scriptsize] (k2) at (2.6,-0.75) {$k = 7$};
+      \envpic{5.4}{0.75}{sBrown!15}{sBrown}
+      \envpic{5.4}{-0.75}{sBrown!15}{sBrown}
+      \node[font=\small\bfseries, text=nInk, fill=sBrown!15, inner sep=1pt] at (5.4,0.55) {(10, 14)};
+      \node[font=\small\bfseries, text=nInk, fill=sBrown!15, inner sep=1pt] at (5.4,-0.95) {(17, 5)};
+      \draw[data] (m.east) -- (k1.west); \draw[data] (m.east) -- (k2.west);
+      \draw[data] (k1) -- (4.55,0.75); \draw[data] (k2) -- (4.55,-0.75);
+    \end{tikzpicture}
+  \end{center}
+  \begin{center}
+    \renewcommand{\arraystretch}{1.4}
+    \begin{tabular}{lll}
+      textbook RSA: & the same message, \textcolor{aWrite}{\textbf{the same ciphertext}} & \textcolor{gray}{(the PIN attack)} \\
+      ElGamal: & the same message, \textcolor{aExec}{\textbf{a different ciphertext}} & \\
+    \end{tabular}
+  \end{center}
+  \begin{center}\small The price: the ciphertext is two numbers, \textbf{twice as long as $p$}.\end{center}
+  \vfill
+  \keymsg{ElGamal is randomised by design.}
+  \say{W wykładzie 3 zgadywaliśmy PIN, bo podręcznikowe RSA zawsze daje ten sam szyfrogram. ElGamal tego problemu nie ma, bo losuje k.}
+\end{frame}
+
+% the first digits of the values in Task6/reuse.py
+\begin{frame}{Task 6: k used twice}
+  \taskhead{Task 6}{Two ciphertexts for Bartek, made with \textbf{the same $k$}: their $C_1$ is the same.}
+  \begin{center}
+    \begin{tikzpicture}
+      \node[anchor=east, font=\small, text=nInk] at (-0.2,0.5) {first:};
+      \node[ctx, font=\ttfamily\scriptsize, draw=AccentOrange, very thick, fill=AccentOrange!15] at (1.8,0.5) {C1 = 268389893958\dots};
+      \node[ctx, font=\ttfamily\scriptsize] at (5.6,0.5) {C2 = 178206596531\dots};
+      \node[anchor=east, font=\small, text=nInk] at (-0.2,-0.5) {second:};
+      \node[ctx, font=\ttfamily\scriptsize, draw=AccentOrange, very thick, fill=AccentOrange!15] at (1.8,-0.5) {C1 = 268389893958\dots};
+      \node[ctx, font=\ttfamily\scriptsize] at (5.6,-0.5) {C2 = 190653831068\dots};
+      \node[font=\scriptsize\bfseries, text=AccentOrange] at (1.8,-1.2) {the same};
+    \end{tikzpicture}
+  \end{center}
+  \footnotesize
+  \begin{itemize}
+    \item You know the first message: it was printed on a public receipt.
+    \item \textbf{Recover the second message} without Bartek's private key.
+  \end{itemize}
+  \say{Około 7 minut. Nie podpowiadać od razu. Jeśli trzeba: co w obu C2 jest takie samo?}
+\end{frame}
+
+\begin{frame}[fragile]{Task 6: what to do}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.68\textwidth}
+\begin{lstlisting}[style=py]
+C1 = ...          # the same in both
+C2_first, C2_second = ...
+first = "Payment approved: 250 EUR, order 1187."
+
+# TODO 1: the mask y^k = C2_first * (inverse of M_first) mod P
+# TODO 2: M_second = C2_second * (inverse of the mask) mod P
+# TODO 3: print it as text
+\end{lstlisting}
+    \column{0.29\textwidth}
+      \taskhead{Task 6}{Open \texttt{reuse.py} from \ghlink{Task6}. Write the code in place of the \texttt{TODO} lines.}
+  \end{columns}
+  \say{Zamiana tekstu na liczbę jest gotowa w pliku.}
+\end{frame}
+
+% CHECKED: Task6/solution/reuse.py prints the line below
+\begin{frame}[fragile]{Solution: k used twice}
+\begin{lstlisting}[style=py, emph={pow,print}]
+mask = C2_first * pow(text_to_number(first), -1, P) % P
+second = C2_second * pow(mask, -1, P) % P
+print(number_to_text(second))
+\end{lstlisting}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \node[draw=aWrite, very thick, fill=aWrite!8, rounded corners=3pt, inner sep=6pt, font=\ttfamily\small, text=nInk]
+        {\textcolor{aWrite}{\faExclamationTriangle}\ second message: New door code for the server room: 4096.};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \say{Kod sprawdzony. Klucz prywatny Bartka nie był potrzebny ani przez chwilę.}
+\end{frame}
+
+\begin{frame}{The rule}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \node[text=sAmber, font=\fontsize{56}{56}\selectfont] at (0,0) {\faDiceFive};
+      \node[font=\small\bfseries, text=sAmberText] at (0,-1.2) {new every time};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}
+    \large $k$ must be \textbf{random}, \textbf{secret} and \textbf{new for every message}.\\[6pt]
+    \small The same lesson as the keystream and the nonce in the stream cipher lectures.
+  \end{center}
+  \vfill
+  \keymsg{A repeated k gives away the message, just like a repeated keystream.}
+  \say{Keystream i nonce to pojęcia z wykładów o szyfrach strumieniowych: tam też powtórka jednorazowej wartości otwierała wiadomość.}
+\end{frame}
+
+% ======================================================================
+\section[Signatures and RSA]{Signatures and RSA}
+% ======================================================================
+
+\begin{frame}{The ElGamal signature}
+  \vfill
+  \begin{center}
+    \renewcommand{\arraystretch}{2.0}
+    \Large
+    \begin{tabular}{l}
+      1. pick a random $k$ with $\gcd(k, p - 1) = 1$ \\
+      2. $r = g^{k} \bmod p$ \\
+      3. $s = (m - \textcolor{sAmberText}{\mathbf{x}}\, r) \times k^{-1} \bmod (p - 1)$ \\
+    \end{tabular}
+  \end{center}
+  \vfill
+  \begin{center}
+    The signature is the pair\quad \tikz[baseline=(n.base)]\node[pub, font=\large] (n) {$(r, s)$};
+    \qquad\small\textcolor{sAmberText}{\faKey\ $x$ = the private key}
+  \end{center}
+  \vfill
+  \say{Podpisuje się kluczem prywatnym x. Liczymy modulo p - 1, a nie p, bo tak działają wykładniki. gcd to największy wspólny dzielnik; k musi być względnie pierwsze z p - 1, żeby miało odwrotność.}
+\end{frame}
+
+% CHECKED (python3): r = pow(5, 3, 23) = 10, s = (10 - 6 * 10) * pow(3, -1, 22) % 22 = 20,
+% pow(5, 10, 23) = 9, pow(8, 10, 23) * pow(10, 20, 23) % 23 = 9
+\begin{frame}{Verify}
+  \vfill
+  \begin{center}
+    \Large check:\quad $g^{m} \bmod p \;\;==\;\; y^{r} \times r^{s} \bmod p$
+  \end{center}
+  \vfill
+  \begin{center}
+    \small example: $p = 23,\ g = 5,\ x = 6,\ y = 8,\ m = 10,\ k = 3$\qquad gives\qquad $r = 10,\ s = 20$
+  \end{center}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \node[pub, font=\large, minimum width=4.0cm, minimum height=1.2cm] (l) at (0,0) {$5^{10} \bmod 23 = \mathbf{9}$};
+      \node[pub, font=\large, minimum width=5.2cm, minimum height=1.2cm] (r) at (7,0) {$8^{10} \times 10^{20} \bmod 23 = \mathbf{9}$};
+      \node[font=\Large\bfseries, text=aExec] at (3.25,0) {$=$};
+      \node[font=\large\bfseries, text=aExec, anchor=west] at (9.8,0) {\faCheck\ valid};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \keymsg{Signed with the private key x, checked with the public key y.}
+  \say{Liczby sprawdzone w Pythonie. Ciekawostka: dla k = 5 wychodzi s = 0, a takiego podpisu nie wolno użyć, dlatego w przykładzie k = 3.}
+\end{frame}
+
+\begin{frame}{Task 7: sign and verify}
+  \taskhead{Task 7}{Small numbers, as on the last slide.}
+  \begin{columns}[c,onlytextwidth]
+    \column{0.55\textwidth}
+      \footnotesize
+      \begin{enumerate}\setlength{\itemsep}{6pt}
+        \item Write \texttt{sign(m, k)}.
+        \item Write \texttt{verify(m, r, s)}.
+        \item Check the signature for $m = 10$, then for $m = 11$.
+      \end{enumerate}
+    \column{0.42\textwidth}
+      \begin{center}
+      \begin{tikzpicture}
+        \draw[nLine, thick, fill=white] (0,0) rectangle (2.6,3.0);
+        \foreach \y in {2.5,2.15,...,1.0} \draw[nLight, thick] (0.3,\y) -- (2.3,\y);
+        \node[font=\scriptsize\bfseries, text=nInk] at (1.3,2.75) {$m = 10$};
+        \node[circle, draw=sTeal, very thick, fill=sTeal!15, text=sTeal, minimum size=0.9cm, font=\small] at (1.9,0.5) {\faStamp};
+        \node[text=DeepBlue, font=\fontsize{30}{30}\selectfont] at (3.3,0.6) {\faSearch};
+      \end{tikzpicture}
+      \end{center}
+  \end{columns}
+  \say{Około 8 minut. pow(k, -1, p - 1) daje odwrotność k modulo p - 1.}
+\end{frame}
+
+\begin{frame}[fragile]{Task 7: what to do}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.64\textwidth}
+\begin{lstlisting}[style=py, emph={pow}]
+p, g, x = 23, 5, 6
+y = pow(g, x, p)
+
+def sign(m, k):
+    # TODO 1: r = g^k mod p,  s = (m - x r) k^-1 mod (p - 1)
+    return None
+
+def verify(m, r, s):
+    # TODO 2: g^m mod p == y^r * r^s mod p
+    return None
+\end{lstlisting}
+    \column{0.33\textwidth}
+      \taskhead{Task 7}{Open \texttt{sign.py} from \ghlink{Task7}. Write the code in place of the \texttt{TODO} lines.}
+  \end{columns}
+  \say{Sprawdzenie gcd jest w komentarzu w pliku.}
+\end{frame}
+
+% CHECKED: Task7/solution/sign.py prints the three lines below
+\begin{frame}[fragile]{Solution: sign and verify}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.62\textwidth}
+\begin{lstlisting}[style=py, emph={pow}]
+def sign(m, k):
+    r = pow(g, k, p)
+    s = (m - x * r) * pow(k, -1, p - 1) % (p - 1)
+    return r, s
+
+def verify(m, r, s):
+    return pow(g, m, p) == pow(y, r, p) * pow(r, s, p) % p
+\end{lstlisting}
+    \column{0.35\textwidth}
+      \terminal{signature (r, s): (10, 20)}\\[0.2cm]
+      \terminal{valid for m = 10: \textcolor{aExec}{\textbf{True}}}\\[0.2cm]
+      \terminal{valid for m = 11: \textcolor{aWrite}{\textbf{False}}}
+  \end{columns}
+  \vfill
+  \keymsg{A changed message no longer matches the signature.}
+  \say{Kod sprawdzony. Dla m = 11 lewa strona daje 22, prawa nadal 9.}
+\end{frame}
+
+\begin{frame}{Good to know: k in signatures}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \foreach \x/\m in {0/1, 3.2/2} {
+        \draw[nLine, thick, fill=white] (\x,0) rectangle ({\x+2.2},2.6);
+        \foreach \y in {2.1,1.8,...,1.0} \draw[nLight, thick] ({\x+0.25},\y) -- ({\x+1.95},\y);
+        \node[font=\scriptsize\bfseries, text=nInk] at ({\x+1.1},2.35) {message \m};
+        \node[circle, draw=sTeal, very thick, fill=sTeal!15, text=nInk, minimum size=0.85cm, font=\scriptsize\bfseries]
+          at ({\x+1.55},0.5) {$k$};
+      }
+      \draw[annot] (1.05,0.0) rectangle (5.25,1.0);
+      \node[font=\scriptsize\bfseries, text=AccentOrange, anchor=north] at (3.15,-0.05) {the same $k$};
+      \draw[data] (5.5,1.3) -- (7.0,1.3);
+      \node[sec, font=\large] at (8.0,1.3) {\faKey\ $x$};
+      \node[font=\scriptsize, text=aWrite] at (8.0,0.6) {the private key falls out};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}
+    A $k$ used for two signatures \textbf{gives away the private key $x$}.\\[4pt]
+    Today's DSA and ECDSA signatures come from the ElGamal signature\\
+    and have exactly the same weakness. A famous case comes in the next lecture.
+  \end{center}
+  \vfill
+  \say{Można pominąć. Z dwóch równań na s z tym samym k da się wyliczyć k, a potem x. DSA i ECDSA to standardowe algorytmy podpisu.}
+\end{frame}
+
+\begin{frame}{ElGamal and RSA side by side}
+  \vfill
+  \begin{center}
+    \renewcommand{\arraystretch}{1.45}
+    \begin{tabular}{lll}
+      \toprule
+      & \textbf{ElGamal} & \textbf{RSA} \\
+      \midrule
+      hard problem & discrete logarithm & factoring \\
+      ciphertext & two numbers $(C_1, C_2)$ & one number \\
+      randomness & built in (a new $k$) & needs padding (OAEP) \\
+      signatures & $(r, s)$, family of DSA & $S = M^{d} \bmod n$ \\
+      \textcolor{aWrite}{\faExclamationTriangle}\ danger & \textcolor{aWrite}{a repeated $k$} & \textcolor{aWrite}{textbook use without padding} \\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+  \vfill
+  \keymsg{Two ways to public-key crypto, each with its own trap.}
+  \say{Faktoryzacja to rozkład liczby na czynniki pierwsze, problem z wykładu 3. OAEP to losowe dopełnienie dla RSA, też z wykładu 3.}
+\end{frame}
+
+\begin{frame}{Where ElGamal lives today}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \foreach \y/\ic/\name/\txt in {0/\faEnvelope/OpenPGP and GnuPG/{ElGamal encryption keys; DSA + ElGamal was GnuPG's default for many years},
+                                     -1.3/\faStamp/{DSA, ECDSA}/signatures descended from the ElGamal signature} {
+        \node[hw, minimum width=1.3cm, minimum height=1.0cm, font=\Large] at (0,\y) {\ic};
+        \node[anchor=west, font=\normalsize\bfseries, text=nInk] at (1.0,\y) {\name};
+        \node[anchor=west, font=\small, text=nInk, text width=7.6cm] at (5.0,\y) {\txt};
+      }
+      % a small curve for the third row
+      \node[hw, minimum width=1.3cm, minimum height=1.0cm] at (0,-2.6) {};
+      \draw[DeepBlue, thick, domain=-0.9:0.9, samples=40, smooth] plot ({0.3*\x*\x-0.25}, {0.4*\x-2.6});
+      \node[anchor=west, font=\normalsize\bfseries, text=nInk] at (1.0,-2.6) {elliptic curves};
+      \node[anchor=west, font=\small, text=nInk, text width=7.6cm] at (5.0,-2.6) {the same ideas with shorter keys: next lecture};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \say{OpenPGP to standard szyfrowanej poczty, GnuPG to jego najpopularniejszy program. Od wersji 2.3 z 2021 roku GnuPG domyślnie tworzy klucze na krzywych eliptycznych.}
+\end{frame}
+
+\begin{frame}{Summary}
+  \vfill
+  \begin{center}
+    \renewcommand{\arraystretch}{1.7}
+    \begin{tabular}{cp{0.86\textwidth}}
+      \bigbadge{1} & Diffie-Hellman: both sides compute $g^{ab} \bmod p$, nobody sends it. \\
+      \bigbadge{2} & It is safe while the discrete logarithm is hard: $p$ of at least 2048 bits. \\
+      \bigbadge{3} & DH agrees on a key; ephemeral keys give forward secrecy; it needs authentication. \\
+      \bigbadge{4} & ElGamal: $C_1 = g^{k}$, $C_2 = M\,y^{k}$; the two parts are a DH exchange and the message; never reuse $k$. \\
+      \bigbadge{5} & ElGamal signs too; compared with RSA it is randomised but its ciphertext is twice as long. \\
+    \end{tabular}
+  \end{center}
+  \vfill
+  \say{Po jednym zdaniu na każdy cel wykładu. Następnym razem te same pomysły na krzywych eliptycznych.}
+\end{frame}
+\end{document}

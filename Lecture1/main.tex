@@ -1,0 +1,2938 @@
+\documentclass[aspectratio=169,10pt]{beamer}
+% notes.tex defines \NOTESONLY and reads this file: then only the speaker notes are printed
+\ifdefined\NOTESONLY
+  \setbeameroption{show only notes}
+\fi
+
+\usepackage{lmodern}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[polish,english]{babel}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{colortbl}
+\usepackage{xcolor}
+\usepackage{fontawesome5}
+\usepackage{listings}
+\usepackage{etoolbox}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, calc, positioning, fit, decorations.pathreplacing, decorations.pathmorphing}
+\usepackage{pgfplots}
+% layers for the code windows drawn in TikZ: the window, then the line that runs now, then the text
+\pgfdeclarelayer{codebg}\pgfdeclarelayer{codehl}\pgfsetlayers{codebg,codehl,main}
+\pgfplotsset{compat=1.18}
+
+\usetheme{Madrid}
+\useinnertheme{rounded}
+\useoutertheme{miniframes}
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{itemize items}[circle]
+\setbeamertemplate{enumerate items}[default]
+\setbeamertemplate{blocks}[rounded][shadow=true]
+% about 115 slides: smaller dots, so that the navigation bar fits the page width
+\setbeamersize{mini frame size=.07cm,mini frame offset=.03cm}
+
+% ======================================================================
+% Colour rules for presentations (Beamer + TikZ), from Agents/colors
+% ======================================================================
+
+% ---------- template ----------
+\definecolor{DeepBlue}{HTML}{283593}      % title bar, headings, links, control-flow arrows
+\definecolor{AccentOrange}{HTML}{EB5A14}  % annotations: step numbers, "look here", code highlight, conclusions
+\definecolor{LightGray}{HTML}{F5F6FA}     % background of information blocks
+\setbeamercolor{palette primary}{bg=DeepBlue,fg=white}
+\setbeamercolor{palette secondary}{bg=DeepBlue!80!black,fg=white}
+\setbeamercolor{palette tertiary}{bg=DeepBlue!90!black,fg=white}
+\setbeamercolor{title}{bg=DeepBlue,fg=white}
+\setbeamercolor{frametitle}{bg=DeepBlue,fg=white}
+\setbeamercolor{structure}{fg=DeepBlue}
+\setbeamercolor{item}{fg=AccentOrange}
+\setbeamercolor{alerted text}{fg=AccentOrange}
+\setbeamercolor{block title}{bg=DeepBlue,fg=white}
+\setbeamercolor{block body}{bg=LightGray,fg=black}
+\setbeamercolor{block title example}{bg=AccentOrange,fg=white}
+\setbeamercolor{block body example}{bg=AccentOrange!10,fg=black}
+\setbeamercolor{enumerate item}{fg=DeepBlue}
+\setbeamerfont{enumerate item}{series=\bfseries}
+
+% ---------- actors and categories: fills only (S1 to S6) ----------
+\definecolor{sIndigo}{HTML}{5C6BC0}   % S1
+\definecolor{sPink}{HTML}{EC407A}     % S2
+\definecolor{sViolet}{HTML}{7E57C2}   % S3
+\definecolor{sAmber}{HTML}{FFB300}    % S4: black text on it
+\definecolor{sTeal}{HTML}{26A69A}     % S5
+\definecolor{sBrown}{HTML}{8D6E63}    % S6
+% text variants that stay readable on white
+\definecolor{sPinkText}{HTML}{C2185B}
+\definecolor{sAmberText}{HTML}{A06A00}
+\definecolor{sTealText}{HTML}{00796B}
+
+% ---------- actions: frames only; results: signs only ----------
+\definecolor{aExec}{HTML}{43A047}     % runs now
+\definecolor{aRead}{HTML}{1E88E5}     % is read
+\definecolor{aWrite}{HTML}{E53935}    % is written
+
+% ---------- neutral (Blue Grey) ----------
+\definecolor{nInk}{HTML}{37474F}      % text in figures, waveforms, wires, data-flow arrows
+\definecolor{nLine}{HTML}{90A4AE}     % borders, axes
+\definecolor{nLight}{HTML}{CFD8DC}    % inactive lines, grids, empty places (dashed)
+\definecolor{nFill}{HTML}{ECEFF1}     % fill of boxes and used cells
+\definecolor{nIdle}{HTML}{E0E0E0}     % time lost (idle, busy waiting, bubbles)
+
+% ---------- TikZ styles ----------
+\tikzset{
+  aexec/.style={draw=aExec, line width=1.6pt},
+  aexecm/.style={aexec, label={[text=aExec, inner sep=1pt, font=\tiny]left:$\blacktriangleright$}},
+  aread/.style={draw=aRead, line width=1.6pt, dash pattern=on 3pt off 2pt},
+  awrite/.style={draw=aWrite, line width=2.4pt},
+  hw/.style={draw=nLine, thick, fill=nFill, text=nInk, rounded corners=3pt, align=center, inner sep=4pt},
+  hwmain/.style={draw=nInk, thick, fill=nInk, text=white, rounded corners=3pt, align=center, inner sep=4pt},
+  cell/.style={draw=nLine, thick, fill=white, text=nInk, font=\ttfamily\scriptsize},
+  cellused/.style={cell, fill=nFill},
+  cellfree/.style={cell, dashed, draw=nLight},
+  container/.style={draw=nLine, thick, dashed, rounded corners=5pt},
+  actor/.style={fill=#1, draw=#1, text=white, rounded corners=3pt, align=center, font=\scriptsize\bfseries, inner sep=4pt},
+  actorlight/.style={fill=#1!15, draw=#1, thick, text=nInk, rounded corners=3pt, align=center, inner sep=4pt},
+  suspended/.style={fill=#1!30, draw=#1, dashed, line width=0.9pt, text=nInk, rounded corners=3pt, align=center, inner sep=4pt},
+  ready/.style={fill=white, draw=#1, line width=0.8pt, text=nInk, rounded corners=3pt, align=center, inner sep=4pt},
+  idle/.style={fill=nIdle, draw=none, text=nInk, rounded corners=3pt, align=center, inner sep=4pt},
+  flow/.style={-{Stealth}, very thick, DeepBlue},
+  data/.style={-{Stealth}, very thick, nInk},
+  holds/.style={-{Stealth}, very thick, nInk},
+  waits/.style={-{Stealth}, very thick, nLine, dashed},
+  annot/.style={draw=AccentOrange, line width=1.4pt, rounded corners=3pt},
+}
+\tikzset{actoramber/.style={actor=sAmber, text=black}}
+
+% ---------- signs and small helpers ----------
+\newcommand{\ok}{\textcolor{aExec}{\faCheck}}
+\newcommand{\nok}{\textcolor{aWrite}{\faTimes}}
+\newcommand{\badge}[1]{\tikz[baseline=(b.base)]\node[circle,fill=AccentOrange,text=white,
+  inner sep=1.2pt,font=\bfseries\tiny] (b) {#1};}
+\newcommand{\bigbadge}[1]{\tikz[baseline=(b.base)]\node[circle,fill=AccentOrange,text=white,
+  inner sep=2pt,font=\bfseries\small] (b) {#1};}
+% ---------- text boxes ----------
+\newcommand{\defbox}[1]{%
+  \begin{beamercolorbox}[rounded=true,sep=0.1cm,wd=\linewidth]{block body example}
+    \footnotesize #1
+  \end{beamercolorbox}\vspace{0.06cm}}
+% a large definition in the middle of the slide
+\newcommand{\bigdef}[1]{%
+  \begin{beamercolorbox}[rounded=true,sep=0.25cm,wd=\linewidth]{block body example}
+    \centering\normalsize #1
+  \end{beamercolorbox}\vspace{0.06cm}}
+\newcommand{\stepbox}[2]{%
+  \begin{beamercolorbox}[rounded=true,sep=0.09cm,wd=\linewidth]{block body}
+    \footnotesize\textbf{#1}\\ #2
+  \end{beamercolorbox}\vspace{0.06cm}}
+\newcommand{\keymsg}[1]{%
+  \begin{beamercolorbox}[rounded=true,sep=0.1cm,wd=\textwidth]{block body example}
+    \centering\footnotesize #1
+  \end{beamercolorbox}}
+% a grey box without a title
+\newcommand{\plainbox}[1]{%
+  \begin{beamercolorbox}[rounded=true,sep=0.12cm,wd=\linewidth]{block body}
+    \centering\footnotesize #1
+  \end{beamercolorbox}\vspace{0.06cm}}
+\setbeamercolor{block body problem}{bg=AccentOrange!10,fg=black}
+\newcommand{\probbox}[2]{%
+  \begin{beamercolorbox}[rounded=true,sep=0.09cm,wd=\linewidth]{block body problem}
+    \footnotesize\textbf{\textcolor{AccentOrange}{\faExclamationTriangle}\ #1}\\ #2
+  \end{beamercolorbox}\vspace{0.06cm}}
+
+% ---------- code: dark window, grey dots, syntax colours ----------
+\definecolor{VSDarkBg}{RGB}{25,25,25}
+\definecolor{VSText}{RGB}{245,245,245}
+\definecolor{VSBlue}{RGB}{80,180,255}
+\definecolor{VSPurple}{RGB}{210,110,210}
+\definecolor{VSString}{RGB}{255,140,80}
+\definecolor{VSComment}{RGB}{80,220,80}
+\setbeamercolor{vscodelisting}{bg=VSDarkBg}
+\lstdefinestyle{code}{basicstyle=\color{VSText}\ttfamily\scriptsize, keywordstyle=\color{VSBlue}\bfseries,
+  stringstyle=\color{VSString}, commentstyle=\color{VSComment}\itshape, emphstyle=\color{VSPurple},
+  numbers=none, columns=fixed, basewidth=0.52em, keepspaces=true, showstringspaces=false, xleftmargin=6pt}
+\lstdefinestyle{py}{style=code, language=Python, emph={print,chr,zip,range,len,bytes,ord,hex}}
+\BeforeBeginEnvironment{lstlisting}{%
+  \begin{beamercolorbox}[rounded=true,sep=2mm,wd=\linewidth]{vscodelisting}%
+  \begin{tikzpicture}
+    \fill[nLine] (0,0) circle (3pt); \fill[nLine] (0.35,0) circle (3pt); \fill[nLine] (0.70,0) circle (3pt);
+  \end{tikzpicture}%
+  \vspace{-0.2cm}}
+\AfterEndEnvironment{lstlisting}{\end{beamercolorbox}}
+\newcommand{\hlcode}[1]{{\setlength{\fboxsep}{1pt}\colorbox{AccentOrange}{\textcolor{white}{\bfseries #1}}}}
+\newcommand{\eol}{\tikz[remember picture, overlay]\coordinate (eol) at (0,0.08);}
+\newcommand{\codenote}[3][0pt]{%
+  \begin{tikzpicture}[remember picture, overlay, >=Stealth]
+    \node[draw=AccentOrange, very thick, fill=AccentOrange!6, rounded corners=4pt, text width=0.33\paperwidth,
+      align=left, inner sep=6pt, font=\footnotesize, anchor=west] (cal)
+      at ([yshift=#1]eol -| {$(current page.west)!0.6!(current page.east)$}) {\textbf{\textcolor{AccentOrange}{#2}}\\[3pt]#3};
+    \draw[->, very thick, AccentOrange] (eol -| cal.west) -- ([xshift=4pt]eol);
+  \end{tikzpicture}}
+% program output: a light terminal line
+\newcommand{\terminal}[1]{%
+  \begin{tikzpicture}
+    \node[draw=nLine, thick, fill=nFill, rounded corners=3pt, inner sep=5pt, font=\ttfamily\small, text=nInk]
+      {\textcolor{nLine}{\$}\ #1};
+  \end{tikzpicture}}
+
+% ======================================================================
+% Course macros
+% ======================================================================
+% task header: \taskhead{Task}{Open the template from \ghlink{Task1}.}
+\newcommand{\taskhead}[2]{%
+  \begin{beamercolorbox}[rounded=true,sep=0.12cm,wd=\linewidth]{block body example}
+    \small\textbf{#1}\\[0.04cm]
+    \footnotesize #2
+  \end{beamercolorbox}\vspace{0.1cm}}
+% the starter files of a task on GitHub: the word "GitHub" will be the link
+% TODO: the repository address is not decided yet, so the word is not a link for now
+\newcommand{\ghlink}[1]{\textcolor{DeepBlue}{\textbf{GitHub}}}
+
+% speaker notes (Polish): printed only in the notes PDF (make notes)
+\setbeamertemplate{note page}[default]
+\setbeamerfont{note page}{size=\normalsize}
+\newcommand{\say}[1]{\note{\selectlanguage{polish}#1}}
+
+% ======================================================================
+% Colour mapping for this lecture (colour rules, section 6)
+%   S1 sIndigo : the sender (the sensor)
+%   S2 sPink   : the attacker
+%   S3 sViolet : plaintext
+%   S4 sAmber  : key and keystream
+%   S5 sTeal   : the receiver (the server)
+%   S6 sBrown  : ciphertext
+%   mechanisms (generator, block cipher, XOR, RC4 itself) are neutral
+% ======================================================================
+\tikzset{
+  byte/.style={draw=nLine, thick, fill=white, text=nInk, font=\ttfamily\scriptsize,
+    minimum width=0.62cm, minimum height=0.48cm, inner sep=1pt, rounded corners=1.5pt},
+  ptb/.style={byte, fill=sViolet!15, draw=sViolet},
+  ksb/.style={byte, fill=sAmber!25, draw=sAmber},
+  ctb/.style={byte, fill=sBrown!15, draw=sBrown},
+  % the same ciphertext value always gets the same shade of S6 (lightness, not a new colour)
+  ct58/.style={ctb, fill=sBrown!12},
+  ct137/.style={ctb, fill=sBrown!35},
+  ct201/.style={ctb, fill=sBrown!70, text=white},
+  ct64/.style={ctb, fill=sBrown!100, text=white},
+  rowlabel/.style={font=\scriptsize, text=nInk, anchor=east},
+  sender/.style={actor=sIndigo, minimum width=2.4cm, minimum height=1.0cm, font=\small\bfseries},
+  receiver/.style={actor=sTeal, minimum width=2.4cm, minimum height=1.0cm, font=\small\bfseries},
+  attacker/.style={actor=sPink, minimum width=2.0cm, minimum height=0.8cm, font=\small\bfseries},
+  radio/.style={-{Stealth}, very thick, nInk, decorate,
+    decoration={snake, amplitude=1.2pt, segment length=7pt, post length=4pt}},
+}
+% a row of bytes: \byterow{x of the first cell}{y}{style}{list of values}{step between cells}
+\newcommand{\byterow}[5]{%
+  \foreach \v [count=\k from 0] in {#4} {
+    \node[#3] at ({#1+#5*\k},#2) {\v};
+  }}
+
+\title{Cryptography}
+\subtitle{Stream Ciphers and RC4}
+\author{Ksawery Możdżyński}
+\date{}
+
+\begin{document}
+
+% ======================================================================
+% Opening
+% ======================================================================
+
+\begin{frame}
+  \titlepage
+  \say{Dziś: jak szyfrować małe porcje danych i dlaczego słynny szyfr RC4 przestał być bezpieczny.}
+\end{frame}
+
+\begin{frame}{Agenda For Today}
+  \vfill
+  \begin{columns}[T,onlytextwidth]
+    \column{0.56\textwidth}
+      \large
+      \begin{itemize}
+        \item[\textcolor{DeepBlue}{\faStream}] \textbf{1. Encrypting byte by byte} \\
+        \textcolor{gray}{\small Small data, sent at once}
+        \vspace{0.3cm}
+
+        \item[\textcolor{DeepBlue}{\faUnlock}] \textbf{2. The mistake that removes the key} \\
+        \textcolor{gray}{\small One rule that must never be broken}
+        \vspace{0.3cm}
+
+        \item[\textcolor{DeepBlue}{\faRedo}] \textbf{3. When the pattern repeats} \\
+        \textcolor{gray}{\small A cheap generator and its cycle}
+        \vspace{0.3cm}
+
+        \item[\textcolor{DeepBlue}{\faRandom}] \textbf{4. RC4: preparing the key} \\
+        \textcolor{gray}{\small Mixing a table with the key}
+      \end{itemize}
+    \column{0.44\textwidth}
+      \large
+      \begin{itemize}
+        \item[\textcolor{DeepBlue}{\faCogs}] \textbf{5. RC4: producing the bytes} \\
+        \textcolor{gray}{\small One byte at a time}
+        \vspace{0.3cm}
+
+        \item[\textcolor{DeepBlue}{\faBug}] \textbf{6. RC4: the weaknesses} \\
+        \textcolor{gray}{\small How it was broken}
+        \vspace{0.3cm}
+
+        \item[\textcolor{DeepBlue}{\faHistory}] \textbf{7. The end of RC4} \\
+        \textcolor{gray}{\small Where it was used and what came next}
+      \end{itemize}
+  \end{columns}
+  \vfill
+  \say{Agenda celowo bez fachowych nazw: te pojawią się dopiero wtedy, gdy będą potrzebne.}
+\end{frame}
+
+\begin{frame}{Today you will need}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \node[hw, minimum width=3.6cm, minimum height=2.6cm] (py) at (0,0) {};
+      \node[text=nInk] at (0,0.35) {\fontsize{38}{40}\selectfont\faPython};
+      \node[font=\large\bfseries, text=nInk] at (0,-0.65) {Python 3};
+      \node[font=\small, text=gray, below=0.15cm of py] {no extra libraries};
+      \node[hw, minimum width=3.6cm, minimum height=2.6cm] (ed) at (5,0) {};
+      \node[text=nInk] at (5,0.35) {\fontsize{38}{40}\selectfont\faEdit};
+      \node[font=\large\bfseries, text=nInk] at (5,-0.65) {a text editor};
+      \node[font=\small, text=gray, below=0.15cm of ed] {any you like};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}
+    \small Starter files for the tasks: \ghlink{}
+  \end{center}
+  \vfill
+  \say{Każde zadanie jest niezależne: jeśli któreś nie wyjdzie, następne nadal się uda.}
+\end{frame}
+
+% ======================================================================
+\section[Encrypting byte by byte]{Encrypting byte by byte}
+% ======================================================================
+
+% ---------- pictures of the sensor story ----------
+% the sensor: a small box on the wall with a display, an antenna and a battery; centred at (#1,#2)
+\newcommand{\sensordevice}[2]{%
+  \begin{scope}[shift={(#1,#2)}]
+    \draw[nInk, thick] (0.45,0.55) -- (0.45,0.95);
+    \fill[nInk] (0.45,0.97) circle (0.06);
+    \foreach \r in {0.18,0.3,0.42} \draw[nInk, thick] ([shift={(0.45,0.97)}]-35:\r) arc (-35:35:\r);
+    \draw[sIndigo, fill=sIndigo, rounded corners=4pt] (-0.75,-0.55) rectangle (0.75,0.55);
+    \draw[white, fill=white, rounded corners=2pt] (-0.55,-0.05) rectangle (0.55,0.38);
+    \node[font=\ttfamily\small\bfseries, text=nInk] at (0,0.165) {21.0$^\circ$C};
+    \node[text=white, font=\small] at (-0.4,-0.3) {\faThermometerHalf};
+    \node[text=white, font=\small] at (0.35,-0.3) {\faBatteryThreeQuarters};
+  \end{scope}}
+% the server: a rack with three units; centred at (#1,#2)
+\newcommand{\serverrack}[2]{%
+  \begin{scope}[shift={(#1,#2)}]
+    \draw[sTeal, fill=sTeal, rounded corners=4pt] (-0.8,-1.05) rectangle (0.8,1.05);
+    \foreach \y in {0.55,0,-0.55} {
+      \draw[white!75!sTeal, fill=white!25!sTeal, rounded corners=2pt] (-0.62,{\y-0.2}) rectangle (0.62,{\y+0.2});
+      \fill[white] (0.42,\y) circle (0.05);
+      \fill[aExec!60!white] (0.25,\y) circle (0.05);
+      \foreach \x in {-0.45,-0.35,...,0.0} \draw[white!60!sTeal, thick] (\x,{\y-0.1}) -- (\x,{\y+0.1});
+    }
+  \end{scope}}
+% the flat: walls, roof, window, radiator; the inside spans x from -2 to 2.6
+\newcommand{\flatpic}{%
+  \draw[nLine, fill=nFill, thick] (1.6,1.7) rectangle (2.0,2.45);
+  \fill[nFill] (-2.4,1.25) -- (0.3,2.65) -- (3.0,1.25) -- cycle;
+  \draw[nLine, very thick, line join=round] (-2.4,1.25) -- (0.3,2.65) -- (3.0,1.25);
+  \draw[nLine, very thick, fill=white] (-2.0,-1.45) rectangle (2.6,1.25);
+  % window
+  \draw[nLine, thick, fill=DeepBlue!6] (1.45,-0.05) rectangle (2.25,0.65);
+  \draw[nLine, thick] (1.85,-0.05) -- (1.85,0.65) (1.45,0.3) -- (2.25,0.3);
+  % radiator under the window
+  \draw[nLine, thick, fill=nFill, rounded corners=1pt] (1.3,-1.15) rectangle (2.35,-0.45);
+  \foreach \x in {1.45,1.6,...,2.25} \draw[nLine] (\x,-1.1) -- (\x,-0.5);
+  % floor and caption
+  \draw[nInk, very thick] (-2.25,-1.45) -- (2.85,-1.45);
+  \node[font=\scriptsize\bfseries, text=nInk, anchor=north west] at (-1.95,1.2) {\faHome\ your flat};
+}
+% the whole scene; #1 = 1: also the attacker
+\newcommand{\sensorscene}[1]{%
+  \begin{tikzpicture}[>=Stealth]
+    \ifnum#1=0 \useasboundingbox (-2.5,-1.95) rectangle (11.6,2.7);\else \useasboundingbox (-2.5,-2.8) rectangle (11.6,2.7);\fi
+    \flatpic
+    \sensordevice{-0.5}{-0.1}
+    \node[font=\scriptsize\bfseries, text=sIndigo] at (-0.5,-0.95) {sensor};
+    \serverrack{10.4}{0}
+    \node[font=\scriptsize\bfseries, text=sTealText] at (10.4,-1.3) {server};
+    % the radio link: from the antenna to the server
+    \draw[radio] (0.3,0.87) -- (9.55,0.87);
+    \node[font=\scriptsize, text=nInk] at (5.9,1.3) {\faWifi\ radio};
+    \ifnum#1=0
+      \node[ptb, minimum width=0.42cm, minimum height=0.42cm] at (5.65,0.4) {};
+      \node[ptb, minimum width=0.42cm, minimum height=0.42cm] at (6.15,0.4) {};
+      \node[font=\scriptsize, text=nInk] at (5.9,-0.05) {2 bytes, once a minute};
+    \else
+      % the attacker only listens: the arrow goes from the radio to the attacker
+      \draw[data, dashed] (5.9,0.75) -- (5.9,-0.35);
+      \node[circle, fill=sPink, text=white, minimum size=1.2cm, font=\LARGE] (a) at (5.9,-1.0) {\faUserSecret};
+      \node[font=\scriptsize\bfseries, text=sPinkText] at (5.9,-1.8) {attacker};
+      \node[font=\scriptsize, text=nInk, anchor=east, align=right] at (5.1,-1.0) {anyone nearby\\can listen};
+      % the notebook with the recorded readings
+      \draw[nLine, thick, fill=white, rounded corners=2pt] (7.0,-1.65) rectangle (9.0,-0.4);
+      \foreach \y in {-0.65,-0.9,-1.15,-1.4} \draw[nLight] (7.12,\y) -- (8.88,\y);
+      \draw[nInk, thick] (7.15,-0.7) -- (7.5,-0.7) .. controls (7.75,-0.7) and (7.75,-1.4) .. (8.0,-1.4) -- (8.15,-1.4)
+        .. controls (8.4,-1.4) and (8.4,-0.7) .. (8.85,-0.7);
+      \draw[data] (a.east) -- (6.95,-1.0);
+      \node[font=\scriptsize, text=nInk, anchor=west] at (7.4,-1.95) {records the readings for a few days};
+      \draw[data] (7.2,-1.7) -- (7.2,-2.25);
+      \node[font=\small\itshape, text=nInk] at (7.4,-2.5) {``On weekdays this flat is empty from 8 to 17.''};
+    \fi
+  \end{tikzpicture}}
+
+\begin{frame}{A sensor in a flat}
+  \vfill
+  \begin{center}\sensorscene{0}\end{center}
+  \vfill
+  \keymsg{It only sends the temperature. What could go wrong?}
+  \say{Zwykłe urządzenie do domu: mierzy temperaturę i co minutę wysyła odczyt. Zapytać salę, czy taki odczyt w ogóle jest tajemnicą.}
+\end{frame}
+
+\begin{frame}{Is the temperature a secret?}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \begin{axis}[width=11cm, height=5.2cm, xmin=5, xmax=23, ymin=17.5, ymax=21.6,
+          xtick={6,8,17,22}, xticklabels={06:00,08:00,17:00,22:00},
+          ytick={18,19,20,21}, ylabel={\scriptsize temperature ($^\circ$C)},
+          tick label style={font=\scriptsize, text=nInk}, axis line style={nLine},
+          axis lines=left, tick style={nLine}, clip=false]
+        \fill[nIdle] (axis cs:8,17.5) rectangle (axis cs:17,21.6);
+        \node[font=\scriptsize, text=gray] at (axis cs:12.5,20.9) {nobody at home};
+        \addplot[nInk, very thick, smooth, tension=0.4] coordinates
+          {(5,21) (6,21) (8,21) (9,20.2) (10,19.2) (11,18.4) (12,18.1) (14,18) (17,18)
+           (18,18.9) (19,19.8) (20,20.6) (21,21) (22,21) (23,21)};
+        \draw[DeepBlue, thick, dashed] (axis cs:8,17.5) -- (axis cs:8,21.6);
+        \draw[DeepBlue, thick, dashed] (axis cs:17,17.5) -- (axis cs:17,21.6);
+        \node[font=\scriptsize, text=nInk, align=center, anchor=south] at (axis cs:8,21.6) {you leave,\\heating off};
+        \node[font=\scriptsize, text=nInk, align=center, anchor=south] at (axis cs:17,21.6) {you come back,\\heating on};
+      \end{axis}
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \keymsg{The temperature tells when nobody is at home.}
+  \say{Kto wychodząc skręca grzejnik, zostawia ślad w odczytach. Temperatura spada powoli, więc pojedynczy odczyt mówi niewiele, ale odczyty z kilku dni pokazują rozkład dnia.}
+\end{frame}
+
+\begin{frame}{Somebody is listening}
+  \vfill
+  \begin{center}\sensorscene{1}\end{center}
+  \vfill
+  \keymsg{Harmless readings become useful information.}
+  \say{Napastnik nie musi niczego włamywać: wystarczy, że odbiera to, co i tak leci w powietrzu, i analizuje dane z kilku dni.}
+\end{frame}
+
+\begin{frame}{So we encrypt it}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \node[actorlight=sViolet, minimum width=2.6cm, font=\small\bfseries] at (0,1.5) {\faThermometerHalf\ plaintext};
+      \node[anchor=west, font=\small] at (1.8,1.5) {The reading is the \textbf{plaintext}.};
+      \node[actorlight=sBrown, minimum width=2.6cm, font=\small\bfseries] at (0,0.5) {\faLock\ ciphertext};
+      \node[anchor=west, font=\small] at (1.8,0.5) {What we send instead is the \textbf{ciphertext}.};
+      \node[actorlight=sAmber, minimum width=2.6cm, font=\small\bfseries] at (0,-0.5) {\faKey\ key};
+      \node[anchor=west, font=\small] at (1.8,-0.5) {The sensor and the server share a secret \textbf{key}.};
+      \node[attacker, minimum width=2.6cm] at (0,-1.5) {\faUserSecret\ attacker};
+      \node[anchor=west, font=\small] at (1.8,-1.5) {Without the key, the attacker should learn nothing.};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \keymsg{How do we encrypt just 2 bytes?}
+  \say{Nazywamy trzy rzeczy, których będziemy używać do końca. Pytanie do sali: co tu może pójść nie tak, jeśli weźmiemy zwykły szyfr?}
+\end{frame}
+
+\begin{frame}{Many ciphers work in blocks}
+  \defbox{A \textbf{block cipher} encrypts a fixed amount of data at once.}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      % CHECKED: python3 + cryptography 41: AES-128, key 00 01 ... 0F, one block "temperature 21.5"
+      %          gives 0E 22 E6 76 9C 0C 55 72 14 95 FC 26 54 57 60 C1 (the slide does not name AES yet)
+      \foreach \ch [count=\i from 0] in {t,e,m,p,e,r,a,t,u,r,e,{\textvisiblespace},2,1,.,5} {
+        \pgfmathtruncatemacro{\r}{\i/4}\pgfmathtruncatemacro{\c}{mod(\i,4)}
+        \node[ptb, minimum width=0.5cm, minimum height=0.5cm, font=\ttfamily\small] at ({0.55*\c},{-0.55*\r}) {\ch};
+      }
+      \draw[decorate, decoration={brace, amplitude=5pt}, nInk] (-0.3,0.35) -- (1.95,0.35)
+        node[midway, above=6pt, font=\scriptsize, text=nInk] {16 bytes of plaintext};
+      \node[hwmain, minimum width=3.0cm, minimum height=2.1cm] (bc) at (5.0,-0.825) {};
+      \node[text=white, font=\huge] at (5.0,-0.55) {\faCogs};
+      \node[text=white, font=\small\bfseries] at (5.0,-1.35) {block cipher};
+      \draw[data, line width=1.6pt] (2.35,-0.825) -- (bc.west);
+      \draw[data, line width=1.6pt] (bc.east) -- (7.6,-0.825);
+      \foreach \v [count=\i from 0] in {0E,22,E6,76,9C,0C,55,72,14,95,FC,26,54,57,60,C1} {
+        \pgfmathtruncatemacro{\r}{\i/4}\pgfmathtruncatemacro{\c}{mod(\i,4)}
+        \node[ctb, minimum width=0.5cm, minimum height=0.5cm] at ({7.95+0.55*\c},{-0.55*\r}) {\v};
+      }
+      \draw[decorate, decoration={brace, amplitude=5pt}, nInk] (7.65,0.35) -- (9.9,0.35)
+        node[midway, above=6pt, font=\scriptsize, text=nInk] {16 bytes of ciphertext};
+      \node[actorlight=sAmber, font=\scriptsize\bfseries, minimum height=0.6cm] (k) at (5.0,1.0) {\faKey\ key};
+      \draw[data, line width=1.6pt] (k.south) -- (bc.north);
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}
+    \small Always \textbf{16 bytes} in. Never 2, never 5.\qquad
+    \tikz[baseline=-0.6ex]{\foreach \c in {0,1} \node[ptb, minimum width=0.3cm, minimum height=0.3cm] at ({0.34*\c},0) {};}\,\nok
+    \quad
+    \tikz[baseline=-0.6ex]{\foreach \c in {0,...,4} \node[ptb, minimum width=0.3cm, minimum height=0.3cm] at ({0.34*\c},0) {};}\,\nok
+  \end{center}
+  \vfill
+  \keymsg{A block cipher needs a full block of 16 bytes.}
+  \say{Rozmiar 16 bajtów to najczęstszy przypadek. Na razie traktujemy szyfr blokowy jak zamkniętą skrzynkę.}
+\end{frame}
+
+\begin{frame}{Our sensor, option 1: fill the block}
+  \defbox{\textbf{Padding}: extra bytes added to fill the block.}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \foreach \c in {0,1} \node[ptb, minimum width=0.55cm, minimum height=0.55cm] at ({0.6*\c},0) {};
+      \foreach \c in {2,...,15} \node[byte, fill=nFill, minimum width=0.55cm, minimum height=0.55cm] at ({0.6*\c},0) {};
+      \draw[decorate, decoration={brace, mirror, amplitude=4pt}, nInk] (-0.28,-0.4) -- (0.88,-0.4)
+        node[midway, below=5pt, font=\scriptsize, text=nInk, align=center] {2 bytes\\of data};
+      \draw[decorate, decoration={brace, mirror, amplitude=4pt}, nInk] (0.92,-0.4) -- (9.28,-0.4)
+        node[midway, below=5pt, font=\scriptsize, text=nInk] {14 bytes of padding};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \stepbox{What is wrong?}{We send 16 bytes when we only need 2.}
+  \vfill
+  \keymsg{Padding works, but we send more data than we need.}
+  \say{Możemy dodać padding, ale wtedy wysyłamy bloki dłuższe, niż potrzebujemy.}
+\end{frame}
+
+\begin{frame}{Our sensor, option 2: wait for a full block}
+  \begin{center}\small The block has \textbf{16 bytes}. One reading has \textbf{2 bytes}.\end{center}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \useasboundingbox (-1.6,-1.3) rectangle (12.4,0.8);
+      \node[rowlabel] at (-0.5,0.5) {minute};
+      \foreach \m in {1,...,8} {
+        \node[font=\scriptsize, text=nInk] at ({1.15*(\m-1)},0.5) {\m};
+        \node[byte, fill=white, draw=nLight, dashed, minimum width=0.95cm] at ({1.15*(\m-1)},0) {};
+        \only<\m->{\node[ptb, minimum width=0.95cm] at ({1.15*(\m-1)},0) {2 B};}
+      }
+      \only<8->{
+        \draw[decorate, decoration={brace, mirror, amplitude=5pt}, nInk] (-0.5,-0.35) -- (8.55,-0.35)
+          node[midway, below=6pt, font=\scriptsize, text=nInk] {8 readings = 16 bytes};
+        \draw[data] (8.8,0) -- (9.7,0) node[right, font=\scriptsize, text=nInk] {now we can encrypt};
+      }
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \uncover<8->{\stepbox{What is wrong?}{No byte is wasted, but the first reading is \textbf{8 minutes old} when it leaves.\\
+    If the flat freezes or catches fire, the server finds out too late.}}
+  \vfill
+  \uncover<8->{\keymsg{No bytes are wasted, but the data is late.}}
+  \note<8>{\selectlanguage{polish}Ta opcja nie marnuje bajtów, ale płacimy opóźnieniem. Każda z dwóch opcji rozwiązuje problem drugiej i tworzy własny.}
+\end{frame}
+
+\begin{frame}{What do we really need?}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \foreach \n/\y/\t in {2/1.2/{2 bytes}, 5/0/{5 bytes}, 1/-1.2/{1 byte}} {
+        \foreach \c in {1,...,\n} \node[ptb, minimum width=0.42cm, minimum height=0.42cm] at ({-0.5*\c},\y) {};
+        \node[font=\scriptsize, text=nInk, anchor=east] at (-3.0,\y) {\t\ in};
+        \draw[data] (0.1,\y) -- (3.4,\y);
+        \foreach \c in {1,...,\n} \node[ctb, minimum width=0.42cm, minimum height=0.42cm] at ({3.5+0.5*\c},\y) {};
+        \node[font=\scriptsize, text=nInk, anchor=west] at (6.6,\y) {\t\ out};
+      }
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small\textbf{No waiting. No padding.}\end{center}
+  \vfill
+  \keymsg{We need to encrypt exactly the bytes we have, when we have them.}
+  \say{Spróbujmy więc zbudować taki szyfr sami.}
+\end{frame}
+
+\begin{frame}{First try: one fixed table}
+  \begin{center}\small Replace every byte using one \textbf{secret table}.\end{center}
+  \vfill
+  \begin{center}
+    \small
+    \begin{tabular}{cc}
+      \toprule
+      plaintext byte & ciphertext byte \\
+      \midrule
+      18 & 201 \\
+      19 & 64 \\
+      20 & 137 \\
+      \rowcolor{AccentOrange!12} 21 & 58 \\
+      \ldots & \ldots \\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+  \vfill
+  \begin{center}\small The table is the key. It works on single bytes.\end{center}
+  \vfill
+  \keymsg{One byte in, one byte out. Is it good enough?}
+  \say{Pozwólmy sali ocenić, zanim pokażemy kolejny slajd.}
+\end{frame}
+
+\begin{frame}{First try: what goes wrong?}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \node[rowlabel] at (-0.6,0.75) {minute};
+      \node[rowlabel] at (-0.6,0) {temperature};
+      \node[rowlabel] at (-0.6,-1.4) {ciphertext};
+      \foreach \m/\t/\c in {1/21/58, 2/21/58, 3/20/137, 4/19/64, 5/18/201, 6/18/201} {
+        \node[font=\scriptsize, text=nInk] at ({1.2*(\m-1)},0.75) {\m};
+        \node[ptb, minimum width=0.8cm] (p\m) at ({1.2*(\m-1)},0) {\t};
+        \node[ct\c, minimum width=0.8cm] (c\m) at ({1.2*(\m-1)},-1.4) {\c};
+        \draw[data] (p\m.south) -- (c\m.north);
+      }
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}
+    \small The attacker cannot read the numbers,\\
+    but still sees \textbf{when the readings change},\\
+    and that the pattern \textbf{repeats every day}.
+  \end{center}
+  \vfill
+  \keymsg{The same plaintext must not give the same ciphertext.}
+  \say{Napastnik nie zna wartości, ale widzi zmiany w tych samych godzinach każdego dnia, a to wystarcza, żeby odgadnąć, kiedy nikogo nie ma.}
+\end{frame}
+
+\begin{frame}{Why is a repeating pattern dangerous?}
+  \begin{center}\small The attacker records the ciphertext, day after day:\end{center}
+  \begin{center}
+    \begin{tikzpicture}
+      \foreach \h [count=\k from 0] in {07:00,09:00,12:00,16:00,18:00,21:00}
+        \node[font=\scriptsize, text=nInk] at ({1.15*\k},0.5) {\h};
+      \foreach \d/\vals [count=\r from 0] in {Monday/{58,137,201,201,64,58}, Tuesday/{58,137,201,201,64,58},
+          Wednesday/{58,137,201,201,64,58}, Saturday/{58,58,58,58,58,58}} {
+        \node[rowlabel] at (-0.6,{-0.6*\r}) {\d};
+        \foreach \v [count=\k from 0] in \vals
+          \node[ct\v, minimum width=0.95cm] at ({1.15*\k},{-0.6*\r}) {\v};
+      }
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  {\centering\small The attacker does not know what 58 means, but sees:\par}
+  \vspace{0.1cm}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.48\textwidth}
+      \stepbox{Weekdays}{Something changes between 9 and 18.}
+    \column{0.48\textwidth}
+      \stepbox{Saturday}{Nothing changes.}
+  \end{columns}
+  \vfill
+  \keymsg{The attacker does not need the numbers. The pattern is enough.}
+  \say{Napastnik nie złamał tabeli i nie zna ani jednej temperatury. Mimo to wie to samo, co na slajdzie z napastnikiem: kiedy mieszkanie stoi puste. Szyfrowanie ukryło wartości, ale nie ukryło rytmu dnia.}
+\end{frame}
+
+\begin{frame}{There is a better way}
+  \vfill
+  \begin{center}
+    \small A fixed table is not enough. There is a better method.\\[0.1cm]
+    But first, let us recall three things:
+  \end{center}
+  \vfill
+  \begin{center}
+    \begin{tabular}{cl}
+      \bigbadge{1} & \large Writing bytes in hexadecimal \\[0.25cm]
+      \bigbadge{2} & \large XOR, and what happens when we use it twice \\[0.25cm]
+      \bigbadge{3} & \large mod: counting around a circle \\
+    \end{tabular}
+  \end{center}
+  \vfill
+  \keymsg{Three short reminders, then a better cipher.}
+  \say{Slajd przejściowy. Jeśli grupa to zna, przejść przez wszystkie trzy przypomnienia bardzo szybko.}
+\end{frame}
+
+\begin{frame}{Recall: writing bytes in hexadecimal}
+  \begin{center}\small One byte = 8 bits. Too long to write, so we split it into \textbf{two halves}.\end{center}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \foreach \b [count=\k from 0] in {0,1,0,0,0,0,1,1} {
+        \pgfmathsetmacro{\x}{0.55*\k + (\k>3)*0.45}
+        \node[byte, minimum width=0.48cm, font=\ttfamily\small] at (\x,0) {\b};
+      }
+      \draw[decorate, decoration={brace, amplitude=5pt}, nInk] (-0.25,0.35) -- (1.9,0.35)
+        node[midway, above=6pt, font=\large\bfseries\ttfamily, text=nInk] {4};
+      \draw[decorate, decoration={brace, amplitude=5pt}, nInk] (2.35,0.35) -- (4.5,0.35)
+        node[midway, above=6pt, font=\large\bfseries\ttfamily, text=nInk] {3};
+      \draw[data] (4.9,0) -- (6.0,0) node[right, font=\Large\bfseries\ttfamily, text=nInk] {0x43};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}
+    \small Each half is one hex digit: 0 to 9, then A to F (for 10 to 15).\\[0.2cm]
+    \texttt{0x43 = 01000011 =} the letter \texttt{C}\qquad\quad \texttt{0xEB = 11101011}
+  \end{center}
+  \vfill
+  \keymsg{Two hex digits are one byte.}
+  \say{Od teraz bajty piszemy w hex. Jeśli grupa zna, 30 sekund.}
+\end{frame}
+
+\begin{frame}{Recall: XOR}
+  \vfill
+  \begin{center}
+    \Large
+    \begin{tabular}{cc|c}
+      \toprule
+      $a$ & $k$ & $a$ XOR $k$ \\
+      \midrule
+      0 & 0 & 0 \\
+      0 & 1 & \textbf{1} \\
+      1 & 0 & \textbf{1} \\
+      1 & 1 & 0 \\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+  \vfill
+  \begin{center}\small Different bits give \textbf{1}. Equal bits give \textbf{0}.\end{center}
+  \vfill
+  \keymsg{XOR compares two bits.}
+  \say{Zapytać salę, kto zna XOR. Jeśli wszyscy, przejść od razu dalej.}
+\end{frame}
+
+\begin{frame}{Recall: XOR twice changes nothing}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \foreach \lab/\bits/\st [count=\r from 0] in {
+          {$a$}/{1,0,1,1,0,0,1,0}/ptb, {$k$}/{0,1,1,0,1,0,1,1}/ksb,
+          {$a$ XOR $k$}/{1,1,0,1,1,0,0,1}/ctb, {$k$}/{0,1,1,0,1,0,1,1}/ksb,
+          {back to $a$}/{1,0,1,1,0,0,1,0}/ptb} {
+        \pgfmathsetmacro{\y}{-0.55*\r - 0.2*(\r>1) - 0.2*(\r>3)}
+        \node[rowlabel, font=\small] at (-0.5,\y) {\lab};
+        \foreach \b [count=\k from 0] in \bits
+          \node[\st, minimum width=0.45cm, font=\ttfamily\small] at ({0.52*\k},\y) {\b};
+      }
+      \draw[nInk, thick] (-0.3,-0.83) -- (3.94,-0.83);
+      \draw[nInk, thick] (-0.3,-2.13) -- (3.94,-2.13);
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small In short:\quad $(a \text{ XOR } k) \text{ XOR } k = a$\end{center}
+  \vfill
+  \keymsg{XOR with the same value twice gives back the original.}
+  \say{Ta jedna własność to cała mechanika szyfrowania w tej prezentacji.}
+\end{frame}
+
+\begin{frame}{Recall: mod}
+  \vfill
+  \begin{columns}[c,onlytextwidth]
+    \column{0.45\textwidth}
+      \centering
+      \begin{tikzpicture}[>=Stealth]
+        \draw[nLine, thick] (0,0) circle (1.5);
+        \foreach \n in {0,...,7}
+          \node[circle, draw=nLine, thick, fill=nFill, text=nInk, font=\small\ttfamily, inner sep=1pt, minimum size=0.55cm]
+            at ({90-45*\n}:1.5) {\n};
+        \draw[flow] (80:2.05) arc (80:-235:2.05);
+        \node[font=\scriptsize, text=DeepBlue] at (0,0) {after 7 comes 0};
+      \end{tikzpicture}
+    \column{0.5\textwidth}
+      \stepbox{mod: the remainder after dividing}{\texttt{13 mod 8 = 5}\quad (once around the circle: 13 $-$ 8 = 5)\\[3pt]
+        \texttt{260 mod 256 = 4}}
+      \stepbox{In Python}{\texttt{13 \% 8}\qquad \texttt{260 \% 256}}
+  \end{columns}
+  \vfill
+  \keymsg{mod keeps a number inside a fixed range.}
+  \say{Przyda się dwa razy: w zadaniu z tanim generatorem i w RC4, gdzie indeks nie może wyjść poza tablicę.}
+\end{frame}
+
+\begin{frame}{Second try: a new random byte for every byte}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      % CHECKED: 0x15^0x7A=0x6F, 0x15^0xC4=0xD1, 0x14^0x0E=0x1A, 0x13^0x91=0x82, 0x12^0x5B=0x49, 0x12^0xE2=0xF0
+      \node[rowlabel] at (-0.6,0) {temperature};
+      \byterow{0}{0}{ptb}{21,21,20,19,18,18}{1.1}
+      \node[rowlabel] at (-0.6,-0.65) {as a byte (hex)};
+      \byterow{0}{-0.65}{ptb}{15,15,14,13,12,12}{1.1}
+      \foreach \k in {0,...,5} \node[font=\scriptsize, text=nInk] at ({1.1*\k},-1.15) {XOR};
+      \node[rowlabel] at (-0.6,-1.65) {random bytes};
+      \byterow{0}{-1.65}{ksb}{7A,C4,0E,91,5B,E2}{1.1}
+      \foreach \k in {0,...,5} \node[font=\scriptsize, text=nInk] at ({1.1*\k},-2.15) {=};
+      \node[rowlabel] at (-0.6,-2.65) {ciphertext};
+      \byterow{0}{-2.65}{ctb}{6F,D1,1A,82,49,F0}{1.1}
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small Same temperature, \textbf{different ciphertext} every time.\end{center}
+  \vfill
+  \keymsg{The pattern is gone.}
+  \say{Dzięki nowemu losowemu bajtowi identyczne odczyty przestają wyglądać identycznie. Napastnik nie widzi już, kiedy temperatura się zmienia.}
+\end{frame}
+
+\begin{frame}{One-time pad}
+  \vfill
+  \bigdef{\textbf{One-time pad}: XOR the plaintext with \textbf{truly random} bytes,\\
+    as many as the plaintext has, and \textbf{never use them again}.}
+  \vfill
+  \begin{center}\small If the rules are kept, the ciphertext says nothing about the plaintext (Shannon, 1949).\end{center}
+  \vfill
+  \keymsg{Perfect secrecy exists.}
+  % source: C. E. Shannon, "Communication Theory of Secrecy Systems", Bell System Technical Journal, 1949
+  \say{Doskonałe w sensie matematycznym, nie tylko bardzo trudne do złamania.}
+\end{frame}
+
+\begin{frame}{The price of the one-time pad}
+  \begin{center}
+    \small One year of readings:\\[0.15cm]
+    % CHECKED: 2 * 60 * 24 * 365 = 1 051 200 bytes
+    \normalsize 2 bytes $\times$ 60 minutes $\times$ 24 hours $\times$ 365 days $=$ about \textbf{1 MB}
+  \end{center}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \node[font=\scriptsize, text=nInk, anchor=east] at (-0.2,0) {key in the sensor};
+      \draw[sAmber, thick, fill=sAmber!25, rounded corners=2pt] (0,-0.35) rectangle (7,0.35);
+      \node[font=\small\bfseries] at (3.5,0) {\faKey\ 1 MB of key};
+      \only<2>{
+        \fill[nIdle, rounded corners=2pt] (0,-0.33) rectangle (4.6,0.33);
+        \node[font=\scriptsize, text=nInk] at (2.3,0) {used up};
+        \node[font=\scriptsize\bfseries] at (5.8,0) {left};
+        \draw[sAmber, thick, rounded corners=2pt] (0,-0.35) rectangle (7,0.35);
+      }
+      \draw[nLine, thick] (7,-0.15) rectangle (7.15,0.15);
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}
+    \small loaded into the sensor \textbf{before it starts}\\
+    and \textbf{used up}: when it ends, the sensor stops
+  \end{center}
+  \vfill
+  \keymsg{Perfect, and almost never practical.}
+  \note<2>{\selectlanguage{polish}Klucz jest tak długi jak wiadomość i trzeba go wcześniej bezpiecznie dostarczyć.}
+\end{frame}
+
+% the generator: a dark box with cogs, like the block cipher; \gennode{name}{position}{size: 1 large, 0 small}
+\newcommand{\gennode}[3]{%
+  \ifnum#3=1
+    \node[hwmain, minimum width=2.4cm, minimum height=1.5cm] (#1) at (#2) {};
+    \node[text=white, font=\LARGE] at ([yshift=0.22cm]#1.center) {\faCogs};
+    \node[text=white, font=\small\bfseries] at ([yshift=-0.42cm]#1.center) {generator};
+  \else
+    \node[hwmain, minimum width=1.9cm, minimum height=1.05cm] (#1) at (#2) {};
+    \node[text=white, font=\large] at ([yshift=0.16cm]#1.center) {\faCogs};
+    \node[text=white, font=\scriptsize\bfseries] at ([yshift=-0.3cm]#1.center) {generator};
+  \fi}
+\tikzset{
+  bigxor/.style={circle, draw=nInk, very thick, fill=white, inner sep=0pt, minimum size=0.8cm, font=\Large},
+  smallbyte/.style={minimum width=0.5cm, minimum height=0.45cm},
+}
+
+\begin{frame}{Decision: a short key, a long keystream}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \node[actorlight=sAmber, minimum width=2.3cm, minimum height=1.5cm] (k) at (0,0) {};
+      \node[font=\LARGE] at (0,0.3) {\faKey};
+      \node[font=\small\bfseries] at (0,-0.25) {short key};
+      \node[font=\scriptsize, text=nInk] at (0,-0.55) {e.g.\ 16 bytes};
+      \gennode{g}{3.4,0}{1}
+      \draw[data, line width=1.6pt] (k) -- (g);
+      \draw[data, line width=1.6pt] (g.east) -- (5.45,0);
+      % the keystream: a long tape of bytes that goes on
+      \foreach \v/\f [count=\i from 0] in {4A/25,91/25,0E/25,C7/25,5B/20,22/14,E8/8} {
+        \node[byte, smallbyte, fill=sAmber!\f, draw=sAmber, minimum width=0.62cm] at ({5.85+0.68*\i},0) {\v};
+      }
+      \foreach \i in {0,1,2} \fill[sAmber] ({10.6+0.25*\i},0) circle (0.05);
+      \draw[decorate, decoration={brace, mirror, amplitude=5pt}, nInk] (5.5,-0.4) -- (11.2,-0.4)
+        node[midway, below=6pt, font=\scriptsize, text=nInk] {\textbf{keystream}: bytes that look random};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \plainbox{Same key $\rightarrow$ same keystream.\\
+    Without the key, nobody can predict the next byte.}
+  \vfill
+  \keymsg{We trade perfect secrecy for a key we can actually handle.}
+  \say{Uczciwie: to już nie jest doskonałe bezpieczeństwo. Opieramy się na założeniu, że ciągu nie da się przewidzieć.}
+\end{frame}
+
+% the example bytes on the next two slides:
+% CHECKED: "Hi!" = 48 69 21; keystream 4A 91 0E (the first bytes from the slide before);
+%          48^4A = 02, 69^91 = F8, 21^0E = 2F
+% \bytes{x of the first cell}{y}{style}{values}{label above}
+\newcommand{\bytes}[5]{%
+  \foreach \v [count=\i from 0] in {#4} \node[#3, smallbyte] at ({#1+0.55*\i},#2) {\v};
+  \node[font=\scriptsize\bfseries, text=nInk] at ({#1+0.55},{#2+0.45}) {#5};}
+% one side of a stream cipher: key and generator above an XOR gate at (#1,0); #2 = name prefix;
+% #3 = 1: the key is on the left of the generator, -1: on the right
+\newcommand{\streamside}[3]{%
+  \gennode{#2g}{#1,1.75}{0}
+  \node[actorlight=sAmber, font=\scriptsize\bfseries, minimum height=0.6cm] (#2k) at ({#1-2.1*#3},1.75) {\faKey\ key};
+  \draw[data] (#2k) -- (#2g);
+  \node[bigxor] (#2x) at (#1,0) {$\oplus$};
+  \draw[data] (#2g.south) -- node[right, font=\scriptsize, text=sAmberText] {keystream} (#2x.north);
+}
+
+\begin{frame}{A stream cipher}
+  \defbox{\textbf{Stream cipher}: encrypts by XOR with a keystream, byte by byte.}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \streamside{4.5}{s}{1}
+      \bytes{0}{0}{ptb}{48,69,21}{plaintext}
+      \node[font=\tiny, text=gray] at (0.55,-0.45) {``Hi!''};
+      \bytes{7.4}{0}{ctb}{02,F8,2F}{ciphertext}
+      \draw[data, line width=1.6pt] (1.45,0) -- (sx);
+      \draw[data, line width=1.6pt] (sx) -- (7.05,0);
+      \node[font=\scriptsize, text=nInk] at (4.5,-0.65) {XOR, byte by byte};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \keymsg{Ciphertext = plaintext XOR keystream}
+  \say{Niektóre szyfry strumieniowe działają bit po bicie; RC4 działa bajt po bajcie.}
+\end{frame}
+
+\begin{frame}{Decrypting is the same operation}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      % the two sides as containers, the header shows who it is
+      \draw[container] (-0.4,-0.85) rectangle (5.0,2.75);
+      \node[actor=sIndigo, anchor=north west] at (-0.3,2.65) {\faThermometerHalf\ SENDER};
+      \draw[container] (8.4,-0.85) rectangle (13.8,2.75);
+      \node[actor=sTeal, anchor=north east] at (13.7,2.65) {\faServer\ RECEIVER};
+      \streamside{3.7}{s}{1}
+      \streamside{9.2}{r}{-1}
+      \bytes{0}{0}{ptb}{48,69,21}{plaintext}
+      \draw[data] (1.45,0) -- (sx);
+      \bytes{6.15}{0}{ctb}{02,F8,2F}{ciphertext}
+      \draw[radio] (sx) -- (5.8,0);
+      \draw[radio] (7.6,0) -- (rx);
+      \node[font=\scriptsize, text=nInk] at (6.7,-0.5) {\faWifi\ radio};
+      \bytes{11.9}{0}{ptb}{48,69,21}{plaintext}
+      \draw[data] (rx) -- (11.55,0);
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small The receiver has the \textbf{same key}, so the \textbf{same keystream}.\end{center}
+  \vfill
+  \keymsg{XOR with the same keystream twice gives back the plaintext.}
+  \say{Tu wraca własność XOR-a sprzed kilku slajdów.}
+\end{frame}
+
+\begin{frame}{Task 1: decrypt a message}
+  \taskhead{Task 1}{You received a ciphertext and you know the keystream.}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \node[rowlabel, font=\small] at (-0.5,0) {ciphertext};
+      \byterow{0}{0}{ctb}{A3,FA,1B,ED,D8,14,BE,1A,C2,6B,2F}{0.72}
+      \node[rowlabel, font=\small] at (-0.5,-0.7) {keystream};
+      \byterow{0}{-0.7}{ksb}{EB,9F,77,81,B7,34,CA,72,A7,19,4A}{0.72}
+      \node[rowlabel, font=\small] at (-0.5,-1.4) {plaintext};
+      \foreach \k in {0,...,10} \node[ptb, fill=white, dashed, text=sViolet] at ({0.72*\k},-1.4) {?};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\Large\textbf{What is the plaintext?}\end{center}
+  \vfill
+  \say{Około 5 minut, w Pythonie. Tekstu jawnego nie podajemy: to on jest wynikiem zadania.}
+\end{frame}
+
+\begin{frame}[fragile]{Task 1: what to do}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.5\textwidth}
+\begin{lstlisting}[style=py]
+ciphertext = [0xA3, 0xFA, 0x1B, 0xED,
+              0xD8, 0x14, 0xBE, 0x1A,
+              0xC2, 0x6B, 0x2F]
+keystream  = [0xEB, 0x9F, 0x77, 0x81,
+              0xB7, 0x34, 0xCA, 0x72,
+              0xA7, 0x19, 0x4A]
+
+# TODO: XOR the bytes in pairs,
+# turn each result into a character,
+# print the message
+\end{lstlisting}
+    \column{0.47\textwidth}
+      \taskhead{Task 1}{Open \texttt{decrypt.py} from \ghlink{Task1}.
+        Write the code in place of the \texttt{TODO} lines.}
+      \footnotesize
+      \begin{enumerate}\setlength{\itemsep}{4pt}
+        \item XOR each ciphertext byte with its keystream byte.\\ In Python: \texttt{c \textasciicircum{} z}
+        \item Each result is an ASCII code. Turn it into a letter.\\ In Python: \texttt{chr(72)} gives \texttt{H}
+        \item Print the whole message.
+      \end{enumerate}
+  \end{columns}
+  \say{ASCII to numer znaku: 72 to H. Plik startowy jest na GitHubie.}
+\end{frame}
+
+\begin{frame}[fragile]{Solution: decrypt a message}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.5\textwidth}
+% CHECKED: Task1/solution/decrypt.py, python3: the output is exactly "Hello there"
+\begin{lstlisting}[style=py]
+ciphertext = [0xA3, 0xFA, 0x1B, 0xED,
+              0xD8, 0x14, 0xBE, 0x1A,
+              0xC2, 0x6B, 0x2F]
+keystream  = [0xEB, 0x9F, 0x77, 0x81,
+              0xB7, 0x34, 0xCA, 0x72,
+              0xA7, 0x19, 0x4A]
+
+plaintext = ""
+for c, z in zip(ciphertext, keystream):
+    plaintext += chr(c ^ z)
+print(plaintext)
+\end{lstlisting}
+    \column{0.47\textwidth}
+      \stepbox{The output}{\texttt{Hello there}}
+      \stepbox{One byte by hand}{\texttt{0xA3 XOR 0xEB = 0x48}, that is 72, that is \texttt{H}.}
+  \end{columns}
+  \vfill
+  \keymsg{XOR with the keystream gives back the ASCII codes of the message.}
+  \say{Kod sprawdzony: daje dokładnie Hello there. Warto pokazać jeden bajt: pierwszy szyfrogram XOR pierwszy keystream daje 0x48, czyli 72, czyli H.}
+\end{frame}
+
+\begin{frame}{What do we get?}
+  \vfill
+  \begin{center}
+    \small
+    \renewcommand{\arraystretch}{1.6}
+    \begin{tabular}{@{}c@{\quad}l@{\qquad}l@{}}
+      \textcolor{nInk}{\faRulerHorizontal} & \textbf{Works on any number of bytes} & \textcolor{gray}{no waiting for more data} \\
+      \textcolor{nInk}{\faEquals} & \textbf{Ciphertext as long as the plaintext} & \textcolor{gray}{no padding} \\
+      \textcolor{nInk}{\faRocket} & \textbf{Fast} & \textcolor{gray}{one XOR per byte, once we have the keystream} \\
+      \textcolor{nInk}{\faBolt} & \textbf{One damaged bit in transit} & \textcolor{gray}{damages only that bit of the plaintext} \\
+    \end{tabular}
+  \end{center}
+  \vfill
+  \keymsg{Everything depends on the keystream.}
+  \say{Wrócić do czujnika: mamy dokładnie to, czego szukaliśmy.}
+\end{frame}
+
+% ======================================================================
+\section[The mistake that removes the key]{The mistake that removes the key}
+% ======================================================================
+
+% ---------- small pictures used from here on ----------
+% an intercepted envelope with ciphertext: \envelope{name}{position}{label}
+\newcommand{\envelope}[3]{%
+  \node[draw=sBrown, thick, fill=sBrown!15, minimum width=2.2cm, minimum height=1.3cm, rounded corners=1pt] (#1) at (#2) {};
+  \draw[sBrown, thick] (#1.north west) -- ([yshift=-0.45cm]#1.north) -- (#1.north east);
+  \node[circle, fill=sBrown, text=white, inner sep=1.5pt, font=\scriptsize] at ([yshift=-0.45cm]#1.north) {\faLock};
+  \node[font=\scriptsize\bfseries, text=nInk] at ([yshift=-0.28cm]#1.center) {#3};}
+% a note with plaintext on it: \papernote{name}{position}{text}
+\newcommand{\papernote}[3]{%
+  \node[draw=sViolet, thick, fill=sViolet!12, rounded corners=1pt, inner sep=6pt, font=\ttfamily\small, text=nInk,
+    rotate=3] (#1) at (#2) {#3};}
+% code drawn in TikZ, so that single lines can be marked:
+%   \codebox{number of lines}{width}  then  \cl{line}{text}, \clmark{line} (runs now), \clnote{line}{text}
+\newcommand{\codepitch}{0.36}
+\newcommand{\codebox}[2]{%
+  \begin{pgfonlayer}{codebg}
+    \fill[VSDarkBg, rounded corners=4pt] (-0.15,0.55) rectangle ({#2+0.45},{-\codepitch*#1-0.15});
+    % the gutter with the line numbers, as in an editor
+    \fill[white, opacity=0.05] (-0.15,0.12) rectangle (0.4,{-\codepitch*#1-0.06});
+  \end{pgfonlayer}
+  \foreach \d in {0,0.3,0.6} \fill[nLine] ({0.12+\d},0.33) circle (2.4pt);
+  \coordinate (codeR) at ({#2+0.45},0);}
+\newcommand{\cl}[3][VSText]{%
+  \node[anchor=east, font=\ttfamily\tiny, text=VSText!45!VSDarkBg, inner sep=1pt] at (0.34,{-\codepitch*#2+0.14}) {#2};
+  \node[anchor=west, font=\ttfamily\scriptsize, text=#1, inner sep=1pt] (L#2) at (0.5,{-\codepitch*#2+0.14}) {\strut #3};}
+% the line that runs now, as in a debugger stopped at a breakpoint: the whole line lit from edge to edge,
+% an accent on the left edge and an arrow in the gutter. The same mark on every slide that steps through code.
+\newcommand{\clmark}[1]{%
+  \begin{pgfonlayer}{codehl}
+    \fill[AccentOrange!30!VSDarkBg] (-0.15,{-\codepitch*#1+0.14-0.18}) rectangle (codeR |- 0,{-\codepitch*#1+0.14+0.18});
+    \fill[AccentOrange] (-0.15,{-\codepitch*#1+0.14-0.18}) rectangle (-0.08,{-\codepitch*#1+0.14+0.18});
+  \end{pgfonlayer}
+  \node[text=AccentOrange, font=\scriptsize, inner sep=0pt] at (0.04,{-\codepitch*#1+0.14}) {$\blacktriangleright$};}
+% a line we talk about (not running): lit a little, from edge to edge, no frame
+\newcommand{\clhl}[1]{%
+  \begin{pgfonlayer}{codehl}
+    \fill[white!14!VSDarkBg] (-0.15,{-\codepitch*#1+0.14-0.18}) rectangle (codeR |- 0,{-\codepitch*#1+0.14+0.18});
+  \end{pgfonlayer}}
+\newcommand{\clnote}[2]{%
+  \clhl{#1}
+  \draw[->, thick, AccentOrange, >=Stealth] ([xshift=0.6cm]codeR |- 0,{-\codepitch*#1+0.14}) -- ([xshift=0.08cm]codeR |- 0,{-\codepitch*#1+0.14});
+  \node[anchor=west, font=\footnotesize, text=AccentOrange, align=left] at ([xshift=0.65cm]codeR |- 0,{-\codepitch*#1+0.14}) {#2};}
+\newcommand{\kw}[1]{\textcolor{VSBlue}{\textbf{#1}}}
+\newcommand{\fn}[1]{\textcolor{VSPurple}{#1}}
+\newcommand{\cm}[1]{\textcolor{VSComment}{\textit{#1}}}
+\newcommand{\st}[1]{\textcolor{VSString}{#1}}
+\newcommand{\tb}{\phantom{xxxx}}
+
+\begin{frame}{Two messages, one keystream}
+  \begin{center}\small The sensor restarts. Its generator starts again from the key.\end{center}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \foreach \lab/\p/\c/\y in {{before restart}/P1/C1/0, {after restart}/P2/C2/-1.0} {
+        \node[rowlabel, font=\small] at (-0.3,\y) {\lab};
+        \node[actorlight=sViolet, font=\small, minimum width=2.4cm] at (1.3,\y) {plaintext \textbf{\p}};
+        \node[font=\small] at (3.25,\y) {XOR};
+        \node[actorlight=sAmber, font=\small, minimum width=2.4cm] (z\p) at (5.2,\y) {keystream \textbf{Z}};
+        \node[font=\small] at (6.85,\y) {$=$};
+        \node[actorlight=sBrown, font=\small, minimum width=2.4cm] at (8.5,\y) {ciphertext \textbf{\c}};
+      }
+      \draw[annot] ([shift={(-0.12,0.12)}]zP1.north west) rectangle ([shift={(0.12,-0.12)}]zP2.south east);
+      \node[font=\small\bfseries, text=AccentOrange, anchor=north] at ([yshift=-0.15cm]zP2.south) {the same!};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small The attacker has \textbf{C1} and \textbf{C2}, but still not the key.\end{center}
+  \vfill
+  \keymsg{Is that a problem?}
+  \say{Pytanie do sali, poczekać na odpowiedzi.}
+\end{frame}
+
+\begin{frame}{The key disappears}
+  \vfill
+  \begin{center}
+    \Large
+    \renewcommand{\arraystretch}{1.5}
+    \begin{tabular}{r@{\ \ }l}
+      C1 XOR C2 & $=$ (P1 XOR \textcolor{sAmberText}{Z}) XOR (P2 XOR \textcolor{sAmberText}{Z}) \\
+      \uncover<2->{& $=$ P1 XOR P2 XOR (\textcolor{sAmberText}{Z} XOR \textcolor{sAmberText}{Z})} \\
+      \uncover<3->{& $=$ P1 XOR P2 XOR \tikz[baseline=(z.base)]\node[annot, inner sep=2pt] (z) {0};} \\
+      \uncover<4->{& $=$ \textbf{P1 XOR P2}} \\
+    \end{tabular}
+  \end{center}
+  \vfill
+  \uncover<4->{\keymsg{The keystream cancels out. The attacker never needed it.}}
+  \note<4>{\selectlanguage{polish}Żadnego łamania szyfru: wystarczył XOR dwóch szyfrogramów.}
+\end{frame}
+
+\begin{frame}{What the attacker sees}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      % CHECKED: python3, C1 XOR C2 = 19 0D 00 74 70 04 0B 00 08 07 00 0D 11 67 7F (= P1 XOR P2)
+      \node[rowlabel] at (-0.5,0.6) {position};
+      \foreach \k in {1,...,15} \node[font=\scriptsize, text=nInk] at ({0.68*(\k-1)},0.6) {\k};
+      \node[rowlabel] at (-0.5,0) {C1};
+      \byterow{0}{0}{ctb}{A6,DA,32,D5,97,79,8F,52,E6,4D,6A,11,47,E6,0F}{0.68}
+      \node[rowlabel] at (-0.5,-0.6) {C2};
+      \byterow{0}{-0.6}{ctb}{BF,D7,32,A1,E7,7D,84,52,EE,4A,6A,1C,56,81,70}{0.68}
+      \draw[nInk, thick] (-0.4,-0.98) -- (9.9,-0.98);
+      \node[rowlabel] at (-0.5,-1.35) {C1 XOR C2};
+      \byterow{0}{-1.35}{byte}{19,0D,00,74,70,04,0B,00,08,07,00,0D,11,67,7F}{0.68}
+      \foreach \k in {2,7,10} \draw[annot] ({0.68*\k-0.3},-1.63) rectangle ({0.68*\k+0.3},-1.07);
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small \texttt{00} means: both messages have \textbf{the same character} here.\end{center}
+  \vfill
+  \keymsg{Without the key, the attacker already learns about the messages.}
+  \say{To prawdziwe dane z prawdziwego szyfru. Te same szyfrogramy studenci dostaną w zadaniu.}
+\end{frame}
+
+\begin{frame}{One known message opens the other}
+  \defbox{\textbf{Known plaintext}: the attacker knows, or guesses, one of the messages.}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \node[actorlight=sBrown, font=\small\bfseries, minimum width=1.2cm] (c1) at (0,0) {C1};
+      \node[font=\small] at (1.05,0) {XOR};
+      \node[actorlight=sViolet, font=\small\bfseries, minimum width=1.2cm] (p1) at (2.1,0) {P1};
+      \node[font=\small] at (3.1,0) {$=$};
+      \node[actorlight=sAmber, font=\small\bfseries, minimum width=1.2cm] (z) at (4.1,0) {Z};
+      \node[font=\small, text=nInk, anchor=west] at (5.0,0) {the keystream!};
+      \node[actorlight=sBrown, font=\small\bfseries, minimum width=1.2cm] (c2) at (2.0,-1.4) {C2};
+      \node[font=\small] at (3.05,-1.4) {XOR};
+      \node[actorlight=sAmber, font=\small\bfseries, minimum width=1.2cm] (z2) at (4.1,-1.4) {Z};
+      \node[font=\small] at (5.1,-1.4) {$=$};
+      \node[actorlight=sViolet, font=\small\bfseries, minimum width=1.2cm] (p2) at (6.1,-1.4) {P2};
+      \node[font=\small, text=nInk, anchor=west] at (7.0,-1.4) {the other message};
+      \draw[flow] (z.south) -- (z2.north);
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small Guesses are easy: file headers, greetings, fixed formats.\end{center}
+  \vfill
+  \keymsg{One known message reveals every message with the same keystream.}
+  \say{Formaty protokołów bardzo często mają przewidywalne początki.}
+\end{frame}
+
+\begin{frame}{Task 2: one key, two messages}
+  \taskhead{Task 2}{Somebody carelessly encrypted two messages with the same key,
+    so both use the same keystream.}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \envelope{e1}{0,0}{C1}
+      \node[font=\ttfamily\scriptsize, text=nInk, anchor=west] at (1.4,0) {A6DA32D597798F52E64D6A1147E60F};
+      \envelope{e2}{0,-1.6}{C2}
+      \node[font=\ttfamily\scriptsize, text=nInk, anchor=west] at (1.4,-1.6) {BFD732A1E77D8452EE4A6A1C568170};
+      \node[font=\scriptsize, text=nInk, align=center] at (9.0,0.55) {From a reliable source you learned\\that the first message is:};
+      \papernote{n}{9.0,-0.45}{MEET ME AT 9 PM}
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\Large\textbf{Decrypt the second message.}\end{center}
+  \vfill
+  \say{Zadanie jest samodzielne, nie trzeba znać żadnego konkretnego szyfru.}
+\end{frame}
+
+\begin{frame}[fragile]{Task 2: what to do}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.55\textwidth}
+\begin{lstlisting}[style=py]
+c1 = bytes.fromhex("A6DA32D597798F52E64D6A1147E60F")
+c2 = bytes.fromhex("BFD732A1E77D8452EE4A6A1C568170")
+p1 = b"MEET ME AT 9 PM"
+
+
+def xor_bytes(a, b):
+    pass  # TODO 1
+
+
+# TODO 2: get the keystream from c1 and p1
+
+# TODO 3: decrypt c2 and print it
+\end{lstlisting}
+    \column{0.42\textwidth}
+      \taskhead{Task 2}{Open \texttt{reuse.py} from \ghlink{Task2}.
+        Write the code in place of the \texttt{TODO} lines.}
+      \footnotesize
+      \begin{enumerate}\setlength{\itemsep}{4pt}
+        \item Write \texttt{xor\_bytes(a, b)}.
+        \item Get the keystream from \texttt{c1} and \texttt{p1}.
+        \item Decrypt \texttt{c2} and print it.
+      \end{enumerate}
+  \end{columns}
+  \say{10 minut.}
+\end{frame}
+
+\begin{frame}[fragile]{Solution: the code}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.55\textwidth}
+% CHECKED: Task2/solution/reuse.py prints exactly "THE PIN IS 4172"
+\begin{lstlisting}[style=py]
+def xor_bytes(a, b):
+    return bytes(x ^ y for x, y in zip(a, b))
+
+keystream = xor_bytes(c1, p1)
+print(xor_bytes(c2, keystream).decode())
+\end{lstlisting}
+    \column{0.42\textwidth}
+      \stepbox{The output}{\texttt{THE PIN IS 4172}}
+      \stepbox{\texttt{\textasciicircum{}} in Python}{\texttt{x \textasciicircum{} y} is XOR of two bytes.}
+  \end{columns}
+  \vfill
+  \keymsg{\texttt{\textasciicircum{}} is XOR in Python.}
+  \say{Kod jest sprawdzony i daje dokładnie ten wynik. Student ma PIN, nie znając klucza.}
+\end{frame}
+
+\begin{frame}{Solution: what did we learn?}
+  \vfill
+  \begin{center}
+    \Large
+    \renewcommand{\arraystretch}{1.5}
+    \begin{tabular}{ll}
+      \ok & We did not use the key. \\
+      \ok & We did not know the cipher. \\
+      \ok & We did not break anything. \\
+    \end{tabular}
+  \end{center}
+  \vfill
+  \begin{center}\small Only one mistake: \textbf{the keystream was used twice}.\end{center}
+  \vfill
+  \keymsg{This works against every stream cipher.}
+  \say{To najważniejszy slajd sekcji.}
+\end{frame}
+
+\begin{frame}{The rule: never twice}
+  \bigdef{A keystream must \textbf{never} be used for two messages.}
+  \vfill
+  \begin{center}\small But one key always gives the same keystream:\end{center}
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \node[actorlight=sAmber, font=\small\bfseries, minimum height=0.8cm] (k) at (0,0) {\faKey\ key};
+      \gennode{g}{2.8,0}{0}
+      \draw[data] (k) -- (g);
+      \draw[data] (g.east) -- (4.6,0);
+      \byterow{5.0}{0}{ksb}{4A,91,0E,C7,5B}{0.68}
+      \node[font=\scriptsize, text=nInk, anchor=west] at (8.0,0) {always the same keystream};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small How do we send many messages with one key? You will work it out in \textbf{Task 9}.\end{center}
+  \vfill
+  \keymsg{One keystream: one message.}
+  \say{Na razie tylko reguła. Jak ją spełnić jednym kluczem, studenci wymyślą sami w Task 9; nie zdradzać rozwiązania.}
+\end{frame}
+
+% an invoice on paper: \invoice{name}{position}{amount}
+\newcommand{\invoice}[3]{%
+  \node[draw=nLine, thick, fill=white, minimum width=2.1cm, minimum height=2.5cm, rounded corners=1pt] (#1) at (#2) {};
+  \node[font=\tiny\bfseries, text=nInk, anchor=north] at ([yshift=-0.12cm]#1.north) {INVOICE};
+  \foreach \d in {0.6,0.8,1.0} \draw[nLight, thick] ([shift={(0.25,-\d)}]#1.north west) -- ([shift={(-0.25,-\d)}]#1.north east);
+  \node[font=\tiny, text=nInk, anchor=south west] at ([shift={(0.15,0.55)}]#1.south west) {to pay:};
+  \node[font=\ttfamily\scriptsize\bfseries, text=nInk, anchor=south] at ([yshift=0.15cm]#1.south) {#3};}
+
+\begin{frame}{An invoice on the way}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \node[actor=sIndigo, minimum width=1.9cm, minimum height=0.9cm, font=\small\bfseries] (a) at (0,0) {\faUser\ party A};
+      \node[actor=sTeal, minimum width=1.9cm, minimum height=0.9cm, font=\small\bfseries] (b) at (10,0) {\faUser\ party B};
+      \draw[data] (a) -- node[above, font=\scriptsize, text=nInk] {ciphertext} (b);
+      \node[circle, fill=sPink, text=white, minimum size=1.1cm, font=\Large] (x) at (5,-1.5) {\faUserSecret};
+      \draw[data] (4.75,-0.05) -- ([xshift=-0.25cm]x.north);
+      \draw[data, line width=2.4pt] ([xshift=0.25cm]x.north) -- (5.25,-0.05);
+      \node[font=\scriptsize, text=nInk, anchor=west] at (5.75,-1.5) {reads and \textbf{CHANGES} bytes};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{columns}[c,onlytextwidth]
+    \column{0.62\textwidth}
+      \small The message says how much B must pay, in PLN.\\[3pt]
+      Everybody knows the format: \textbf{8 decimal digits}, as ASCII text.\\[3pt]
+      \texttt{00000010}\quad means\quad 10 PLN
+    \column{0.3\textwidth}
+      \centering\begin{tikzpicture}\invoice{inv}{0,0}{00000010}\end{tikzpicture}
+  \end{columns}
+  \vfill
+  \keymsg{The attacker cannot read it. Can the attacker change it?}
+  \say{Do tej pory napastnik tylko słuchał. Teraz może też zmieniać bajty w drodze (gruba strzałka w górę). ASCII to numer znaku, jak w pierwszym zadaniu.}
+\end{frame}
+
+\begin{frame}{First try: change a random byte}
+  \begin{center}\small A digit in ASCII is one of 10 values:\quad \texttt{30, 31, \ldots\ 39} (in hex).\end{center}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      % the 256 possible values of a byte; the 10 digits are 0x30 to 0x39
+      \fill[nFill] (0,0) rectangle (10.24,0.5);
+      \draw[nLine, thick] (0,0) rectangle (10.24,0.5);
+      \fill[sViolet!35] (1.92,0) rectangle (2.32,0.5);
+      \draw[annot] (1.92,-0.05) rectangle (2.32,0.55);
+      \node[font=\scriptsize, text=AccentOrange, anchor=south] at (2.12,0.6) {\textbf{10 digits}};
+      \foreach \v/\x in {00/0, 30/1.92, 80/5.12, FF/10.2} \node[font=\ttfamily\tiny, text=nInk, anchor=north] at (\x,-0.05) {\v};
+      \node[font=\scriptsize, text=nInk, anchor=west] at (10.4,0.25) {256 values};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}
+    \small A random ciphertext byte decrypts to a random plaintext byte:\\[3pt]
+    chance of a digit:\quad $10 / 256$ = about \textbf{4\%}
+  \end{center}
+  \vfill
+  \stepbox{Almost always the result is not a number.}{B sees garbage and rejects the message.}
+  \vfill
+  \keymsg{Random changes get noticed. The attacker needs a better idea.}
+  \say{Losowe zmiany nie są groźne, bo prawie zawsze psują format. Napastnik może jednak działać celowo.}
+\end{frame}
+
+\begin{frame}{Better: change exactly one digit}
+  \begin{center}\small The price is probably small, so the first digit is almost surely \texttt{0}.\end{center}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \node[rowlabel] at (-0.4,0) {plaintext};
+      \byterow{0}{0}{ptb}{0,0,0,0,0,0,1,0}{0.75}
+      \node[rowlabel] at (-0.4,-0.6) {ASCII};
+      \byterow{0}{-0.6}{ptb}{30,30,30,30,30,30,31,30}{0.75}
+      \node[rowlabel] at (-0.4,-1.6) {B decrypts};
+      \byterow{0}{-1.6}{ptb}{9,0,0,0,0,0,1,0}{0.75}
+      \draw[annot] (-0.38,-1.92) rectangle (0.38,0.32);
+      \node[font=\small, text=nInk, anchor=west] at (6.4,-0.6) {We want \texttt{9} instead of the first \texttt{0}:};
+      \node[font=\small, text=nInk, anchor=west] at (6.4,-1.1) {\texttt{30 XOR 39 = 09}};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small XOR the \textbf{first ciphertext byte} with \texttt{09}.\end{center}
+  \vfill
+  \keymsg{10 PLN became 90\,000\,010 PLN, without the key.}
+  \say{Zmiana w szyfrogramie przenosi się dokładnie na ten sam bit tekstu jawnego. Napastnik nie zna keystreamu i nie musi go znać: (P XOR Z XOR 09) to P XOR 09 po odszyfrowaniu.}
+\end{frame}
+
+\begin{frame}{Task 3: raise the price}
+  \taskhead{Task 3}{You intercepted an invoice for a small amount. Format: 8 decimal digits, as ASCII text.}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \envelope{e}{0,0}{ciphertext}
+      \node[font=\ttfamily\small, text=nInk] at (0,-1.0) {D23FBFD09C33F19D};
+      \draw[data, line width=1.6pt] (1.5,0) -- (3.4,0);
+      \invoice{inv}{4.8,0}{50000010}
+      \draw[annot] ([shift={(-0.08,0.08)}]inv.south west |- 0,-0.85) rectangle ([shift={(0.08,-0.08)}]inv.south east);
+      \node[font=\small, text=nInk, anchor=west, align=left] at (6.3,0.2) {Change the ciphertext so that party B\\accepts a price of exactly:};
+      \node[font=\Large\bfseries, text=nInk, anchor=west] at (6.3,-0.6) {50\,000\,010 PLN};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small You do \textbf{not} know the key.\end{center}
+  \vfill
+  \say{Plik server.py gra rolę strony B. Traktujemy go jak czarną skrzynkę: nie zaglądamy do środka.}
+\end{frame}
+
+\begin{frame}[fragile]{Task 3: what to do}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.5\textwidth}
+\begin{lstlisting}[style=py]
+from server import receive
+
+ciphertext = bytearray.fromhex("D23FBFD09C33F19D")
+
+# TODO: change the ciphertext
+
+receive(bytes(ciphertext))
+\end{lstlisting}
+      \vspace{0.1cm}
+      {\scriptsize\textcolor{gray}{\texttt{server.py} plays party B. Treat it as a black box.}}
+    \column{0.47\textwidth}
+      \taskhead{Task 3}{Open \texttt{tamper.py} from \ghlink{Task3}.
+        Write the code in place of the \texttt{TODO} line.}
+      \footnotesize
+      \begin{enumerate}\setlength{\itemsep}{4pt}
+        \item Which byte holds the digit you want to change?
+        \item What must you XOR it with?
+        \item Run it. Party B prints the price it accepted.
+      \end{enumerate}
+  \end{columns}
+  \say{Około 6 minut. Plik startowy i server.py są na GitHubie.}
+\end{frame}
+
+\begin{frame}[fragile]{Solution: raise the price}
+  \begin{center}\small We want \texttt{5} instead of the first \texttt{0}:\quad \texttt{30 XOR 35 = 05}\end{center}
+  \vfill
+  \begin{columns}[T,onlytextwidth]
+    \column{0.5\textwidth}
+% CHECKED: Task3/solution/tamper.py with server.py prints "Invoice accepted: 50000010 PLN"
+\begin{lstlisting}[style=py]
+ciphertext[0] ^= 0x05
+\end{lstlisting}
+    \column{0.47\textwidth}
+      \stepbox{Party B prints}{\texttt{Invoice accepted: 50000010 PLN}}
+  \end{columns}
+  \vfill
+  \keymsg{One line of code, and no key.}
+  \say{Kod sprawdzony na server.py. Pokazać, że B nie ma jak zauważyć zmiany, bo wynik jest poprawnym napisem z cyfr.}
+\end{frame}
+
+\begin{frame}{Encryption does not protect integrity}
+  \defbox{\textbf{Integrity}: the receiver can detect that the data was changed.}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \node[hw, minimum width=4.2cm, minimum height=2.4cm] (l) at (0,0) {};
+      \node[text=nInk, font=\fontsize{30}{32}\selectfont] at (0,0.35) {\faLock};
+      \node[font=\small\bfseries, text=nInk] at (0,-0.65) {encryption};
+      \node[font=\scriptsize, text=nInk, anchor=north] at (0,-1.35) {hides the content \ok};
+      \node[hw, minimum width=4.2cm, minimum height=2.4cm] (r) at (6,0) {};
+      \node[text=nInk, font=\fontsize{30}{32}\selectfont] at (6,0.35) {\faStamp};
+      \node[font=\small\bfseries, text=nInk] at (6,-0.65) {integrity};
+      \node[font=\scriptsize, text=nInk, anchor=north] at (6,-1.35) {detects changes};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small Encryption hides the content.\\ It does not tell you whether somebody changed it.\end{center}
+  \vfill
+  \keymsg{Hiding and protecting are two different jobs.}
+  \say{Wrócimy do tego przy współczesnych szyfrach.}
+\end{frame}
+
+% ======================================================================
+\section[When the pattern repeats]{When the pattern repeats}
+% ======================================================================
+
+\begin{frame}{Task 4: a cheap generator}
+  \taskhead{Task 4}{A company uses a stream cipher with a weak generator. Your analysis shows that its
+    keystream is just \textbf{4 numbers} (0 to 255), repeated:}
+  \begin{center}
+    \begin{tikzpicture}
+      \foreach \k in {0,...,11} {
+        \pgfmathtruncatemacro{\m}{mod(\k,4)+1}
+        \pgfmathsetmacro{\f}{\m==1 ? 45 : (\m==2 ? 30 : (\m==3 ? 18 : 8))}
+        \node[byte, smallbyte, fill=sAmber!\f, draw=sAmber, minimum width=0.62cm] at ({0.68*\k},0) {k\m};
+      }
+      \foreach \i in {0,1,2} \fill[sAmber] ({8.25+0.22*\i},0) circle (0.05);
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \small You intercepted this ciphertext:\\[2pt]
+  \centerline{\texttt{F6448B019B0A9108D20A9601D14FC503D84E8040DE59C5578413D44E}}
+  \vspace{0.15cm}
+  You know that the plaintext starts with the name:\quad \texttt{\textbf{Anna}}
+  \vfill
+  \begin{enumerate}\setlength{\itemsep}{2pt}
+    \item Find the 4 numbers.
+    \item Decrypt the rest of the message.
+  \end{enumerate}
+  \say{Około 5 minut. Plik startowy jest na GitHubie. Cztery odcienie keystreamu pokazują, że ten sam wzór wraca co cztery bajty.}
+\end{frame}
+
+\begin{frame}[fragile]{Task 4: what to do}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.55\textwidth}
+\begin{lstlisting}[style=py]
+ciphertext = bytes.fromhex("F6448B019B0A9108D20A9601D14F"
+                           "C503D84E8040DE59C5578413D44E")
+known = b"Anna"
+
+# TODO 1: find the 4 numbers
+
+# TODO 2: decrypt the whole ciphertext and print it
+\end{lstlisting}
+    \column{0.42\textwidth}
+      \taskhead{Task 4}{Open \texttt{cheap.py} from \ghlink{Task4}.
+        Write the code in place of the \texttt{TODO} lines.}
+      \stepbox{Hint: remember mod}{\texttt{i \% 4} goes around 0, 1, 2, 3.\\[3pt]
+        \begin{tabular}{@{}l*{8}{c}c@{}}
+          \texttt{i}     & 0 & 1 & 2 & 3 & 4 & 5 & 6 & 7 & \ldots \\
+          \texttt{i \% 4} & 0 & 1 & 2 & 3 & \textbf{0} & \textbf{1} & \textbf{2} & \textbf{3} & \ldots \\
+        \end{tabular}}
+  \end{columns}
+  \say{Pierwsze użycie mod z przypomnienia. W RC4 wróci jako mod 256.}
+\end{frame}
+
+\begin{frame}[fragile]{Solution: a cheap generator}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.55\textwidth}
+% CHECKED: Task4/solution/cheap.py prints "Anna, the safe code is 7391."
+\begin{lstlisting}[style=py, emph={print,chr,zip,enumerate}]
+numbers = [c ^ p for c, p in zip(ciphertext, known)]
+
+plaintext = ""
+for i, c in enumerate(ciphertext):
+    plaintext += chr(c ^ numbers[i % 4])
+print(plaintext)
+\end{lstlisting}
+    \column{0.42\textwidth}
+      \stepbox{The output}{\texttt{Anna, the safe code is 7391.}}
+      \stepbox{4 known bytes}{opened the whole message.}
+  \end{columns}
+  \vfill
+  \keymsg{A keystream that repeats is broken. How do we build one that does not?}
+  \say{Kod sprawdzony. Pytanie z dolnego paska prowadzi prosto do RC4 na następnym slajdzie.}
+\end{frame}
+
+% ======================================================================
+\section[RC4: preparing the key]{RC4: preparing the key}
+% ======================================================================
+
+% CHECKED (python3, the code from Task5/rc4_ready.py):
+%   key "Kangaroo": keystream starts 69 9d da 7e fe 61 73 62; "Meet m" XOR it = 24 F8 BF 0A DE 0C
+%   key "Kangarop": 97 c5 8c ab f1 d1 2e 8d, no byte in the same place is equal
+%   key [1,2,3,4,5]: the KSA steps i = 0 to 3 below; after i = 255: j = 103,
+%   S = 1 3 8 201 21 27 35 67 242 145 207 89 92 ... S[204] = 178 ... S[254] = 186, S[255] = 88
+%   PRGA: b2 39 63 05, the same as RFC 6229 for the 40-bit key 0x0102030405
+
+\begin{frame}{Meet RC4}
+  \vfill
+  \begin{columns}[c,onlytextwidth]
+    \column{0.6\textwidth}
+      \large A stream cipher from \textbf{1987}, designed by \textbf{Ron Rivest}.\\[0.4cm]
+      \normalsize For about 20 years it protected \textbf{Wi-Fi} networks
+      and the connection between your \textbf{browser} and a website.\\[0.4cm]
+      We no longer use it. But it is simple, and its mistakes teach us a lot.
+    \column{0.36\textwidth}
+      \centering
+      \begin{tikzpicture}
+        \node[hw, minimum width=1.9cm, minimum height=1.9cm] (w) at (0,0) {};
+        \node[text=nInk, font=\fontsize{28}{30}\selectfont] at (0,0.2) {\faWifi};
+        \node[font=\scriptsize\bfseries, text=nInk] at (0,-0.6) {Wi-Fi};
+        \node[hw, minimum width=1.9cm, minimum height=1.9cm] (b) at (2.3,0) {};
+        \node[text=nInk, font=\fontsize{28}{30}\selectfont] at (2.3,0.2) {\faWindowMaximize};
+        \node[font=\scriptsize\bfseries, text=nInk] at (2.3,-0.6) {browser};
+      \end{tikzpicture}
+  \end{columns}
+  \vfill
+  \keymsg{Short enough to fit on two slides.}
+  \say{Dziś RC4 jest zakazany, ale jest na tyle prosty, że zobaczymy cały algorytm. Jego błędy pokażą, czego unikać w nowych szyfrach. Historię jego końca zobaczymy na zakończenie.}
+\end{frame}
+
+\begin{frame}{RC4 from the outside}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \node[actorlight=sAmber, font=\small\bfseries, minimum height=0.7cm] (k) at (0,2.2) {\faKey\ key {\normalfont\scriptsize(1 to 256 bytes)}};
+      \node[hwmain, minimum width=2.4cm, minimum height=1.0cm] (r) at (0,0.9) {};
+      \node[text=white, font=\large] at (-0.55,0.9) {\faCogs};
+      \node[text=white, font=\normalsize\bfseries] at (0.35,0.9) {RC4};
+      \draw[data, line width=1.6pt] (k) -- (r);
+      \draw[data, line width=1.6pt] (r.south) -- (0,-0.05);
+      \node[rowlabel, font=\small] at (-0.6,-0.45) {keystream};
+      \byterow{0}{-0.45}{ksb}{69,9D,DA,7E,FE,61}{0.7}
+      \node[font=\small] at (4.3,-0.45) {\ldots};
+      \node[font=\scriptsize, text=gray, anchor=west] at (4.7,-0.45) {as many bytes as we need};
+      \node[font=\scriptsize, text=nInk] at (1.75,-0.95) {XOR};
+      \node[rowlabel, font=\small] at (-0.6,-1.45) {plaintext};
+      \byterow{0}{-1.45}{ptb}{M,e,e,t,{\textvisiblespace},m}{0.7}
+      \node[font=\small] at (4.3,-1.45) {\ldots};
+      \node[font=\scriptsize, text=nInk] at (1.75,-1.95) {$=$};
+      \node[rowlabel, font=\small] at (-0.6,-2.45) {ciphertext};
+      \byterow{0}{-2.45}{ctb}{24,F8,BF,0A,DE,0C}{0.7}
+      \node[font=\small] at (4.3,-2.45) {\ldots};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \keymsg{RC4 turns a short key into a long keystream.}
+  \say{To ten sam obrazek co na slajdzie „A stream cipher”, a generator ma po prostu nazwę. Klucz może mieć od 1 do 256 bajtów. Zanim zajrzymy do środka, użyjemy RC4 jako czarnej skrzynki.}
+\end{frame}
+
+\begin{frame}[fragile]{Task 5: use RC4}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.58\textwidth}
+\begin{lstlisting}[style=py]
+from rc4_ready import keystream
+
+key = b"Kangaroo"
+ciphertext = bytes.fromhex("24F8BF0ADE0C16426D343A28"
+                           "F5558755720EF505F96EB7C0972B61E7")
+
+# TODO 1: decrypt the ciphertext and print it
+
+# TODO 2: compare keystream(key, 8) with
+#         keystream(b"Kangarop", 8). How many bytes match?
+\end{lstlisting}
+    \column{0.39\textwidth}
+      \taskhead{Task 5}{Open \texttt{use\_rc4.py} from \ghlink{Task5}.}
+      \stepbox{\faBox\ \texttt{rc4\_ready.py}: a black box}{RC4 as a ready function:\\ \texttt{keystream(key, n)} returns \texttt{n} bytes.}
+      \stepbox{Hint}{\texttt{data.hex(" ")} prints bytes as hex with spaces.}
+  \end{columns}
+  \vfill
+  \keymsg{Decrypt first, then change one letter of the key.}
+  \say{Około 5 minut. Plik startowy jest na GitHubie. Do rc4\_ready.py można zajrzeć, ale na razie traktujemy go jak czarną skrzynkę. XOR bajt po bajcie znają już z Task 1.}
+\end{frame}
+
+\begin{frame}[fragile]{Solution: use RC4}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.58\textwidth}
+% CHECKED: Task5/solution/use_rc4.py, the three output lines below
+\begin{lstlisting}[style=py]
+ks = keystream(key, len(ciphertext))
+plaintext = bytes(c ^ k for c, k in zip(ciphertext, ks))
+print(plaintext)
+
+print(keystream(b"Kangaroo", 8).hex(" "))
+print(keystream(b"Kangarop", 8).hex(" "))
+\end{lstlisting}
+    \column{0.39\textwidth}
+      \stepbox{The output}{\texttt{\scriptsize b'Meet me at the library at 5.'}\\[2pt]
+        \texttt{\scriptsize 69 9d da 7e fe 61 73 62}\\
+        \texttt{\scriptsize 97 c5 8c ab f1 d1 2e 8d}}
+      \stepbox{The same bytes: 0}{One letter of the key changed the whole keystream.}
+  \end{columns}
+  \vfill
+  \begin{center}\small How does RC4 mix the key so well? Let us \textbf{open the box}.\end{center}
+  \keymsg{One small change in the key changes the whole keystream.}
+  \say{Kod sprawdzony. Gdyby keystream zmieniał się tylko trochę, podobne klucze dawałyby podobne szyfrogramy i napastnik mógłby zgadywać klucz po kawałku. Dolne zdanie prowadzi do następnego slajdu.}
+\end{frame}
+
+\begin{frame}{Inside RC4: two steps}
+  \vfill
+  \begin{columns}[T,onlytextwidth]
+    \column{0.48\textwidth}
+      \stepbox{\badge{1}\ \faKey\ Step 1: prepare}{Mix the key into the cipher's memory.\\ Runs \textbf{once}, before the first byte.}
+    \column{0.48\textwidth}
+      \stepbox{\badge{2}\ \faCogs\ Step 2: produce}{Use that memory to give the next keystream byte.\\ Runs again \textbf{for every byte} we need.}
+  \end{columns}
+  \vfill
+  \defbox{\textbf{Internal state}: everything the cipher keeps in its memory between one byte and the next.}
+  \vfill
+  \keymsg{First mix the key in, then produce bytes.}
+  \say{Najpierw zwykłymi słowami. Nazwy i rysunek są na następnym slajdzie.}
+\end{frame}
+
+% the two phases of RC4; #1 = 1: mark the PRGA as "now"
+\newcommand{\twophases}[1]{%
+  \begin{tikzpicture}[>=Stealth]
+    \node[actorlight=sAmber, font=\small\bfseries, minimum height=0.8cm] (k) at (0,0) {\faKey\ key};
+    \node[hwmain, minimum width=2.4cm, minimum height=1.3cm, align=center] (ksa) at (2.9,0)
+      {\textbf{KSA}\\[1pt]{\scriptsize step 1: prepare}};
+    \node[cell, minimum width=2.4cm, minimum height=0.8cm, font=\scriptsize] (st) at (6.2,0) {internal state};
+    \node[hwmain, minimum width=2.8cm, minimum height=1.5cm, align=center] (prga) at (9.6,0)
+      {\textbf{PRGA}\\[1pt]{\scriptsize step 2: produce}};
+    \node[actorlight=sAmber, font=\small\bfseries, minimum height=0.8cm] (z) at (12.6,0) {keystream};
+    \draw[data] (k) -- (ksa); \draw[data] (ksa) -- (st); \draw[data] (st) -- (prga); \draw[data] (prga) -- (z);
+    \node[font=\scriptsize\bfseries, text=nInk] at (2.9,1.0) {once};
+    \node[font=\scriptsize\bfseries, text=nInk] at (9.6,1.1) {for every byte we need};
+    \ifnum#1=1
+      \draw[annot] ([shift={(-0.12,-0.12)}]prga.south west) rectangle ([shift={(0.12,0.12)}]prga.north east);
+      \node[font=\small\bfseries, text=AccentOrange, anchor=north] at ([yshift=-0.2cm]prga.south) {$\blacktriangle$ now};
+    \fi
+  \end{tikzpicture}}
+
+\begin{frame}{Two phases}
+  \vfill
+  \begin{center}\resizebox{\textwidth}{!}{\twophases{0}}\end{center}
+  \vfill
+  \begin{center}
+    \small
+    \begin{tabular}{ll}
+      \textbf{KSA}: & \textbf{K}ey \textbf{S}cheduling \textbf{A}lgorithm \\
+      \textbf{PRGA}: & \textbf{P}seudo-\textbf{R}andom \textbf{G}eneration \textbf{A}lgorithm \\
+    \end{tabular}
+  \end{center}
+  \vfill
+  \keymsg{KSA runs once. PRGA runs for every byte.}
+  \say{To dwa kroki z poprzedniego slajdu, teraz z nazwami. Tak wygląda wnętrze czarnej skrzynki z zadania. Teraz KSA, w kolejnej sekcji PRGA.}
+\end{frame}
+
+\begin{frame}{The internal state of RC4}
+  \begin{center}\small RC4 keeps only \textbf{three variables}. This is how they start:\end{center}
+  \begin{center}
+    \begin{tikzpicture}
+      \node[font=\small\bfseries, text=nInk] at (-0.6,0) {S};
+      \foreach \v [count=\k from 0] in {0,1,2,3,4} {
+        \node[cell, minimum width=0.6cm, minimum height=0.5cm] at ({0.6*\k},0) {\v};
+        \node[font=\tiny, text=gray] at ({0.6*\k},-0.45) {\v};
+      }
+      \node[font=\small, text=nInk] at (3.25,0) {\ldots};
+      \node[cell, minimum width=0.7cm, minimum height=0.5cm] at (4.05,0) {255};
+      \node[font=\tiny, text=gray] at (4.05,-0.45) {255};
+      \node[font=\small\bfseries, text=nInk] at (6.0,0.5) {i};
+      \node[cell, minimum width=0.6cm, minimum height=0.5cm] at (6.0,0) {0};
+      \node[font=\small\bfseries, text=nInk] at (7.0,0.5) {j};
+      \node[cell, minimum width=0.6cm, minimum height=0.5cm] at (7.0,0) {0};
+    \end{tikzpicture}
+  \end{center}
+  \small
+  \begin{tabular}{@{}ll@{}}
+    \texttt{S} & a table of 256 bytes, at the start in order: 0, 1, 2, \ldots, 255 \\
+    \texttt{i}, \texttt{j} & two positions in \texttt{S}. PRGA starts them at 0. \\
+  \end{tabular}\\[0.15cm]
+  KSA uses the key to \textbf{shuffle} \texttt{S}.
+  \vfill
+  \defbox{\textbf{Permutation}: after shuffling, every number from 0 to 255 is still in \texttt{S} exactly once. Only the order changes.}
+  \keymsg{256 bytes and two indexes. Nothing more.}
+  \say{To jest internal state z poprzedniego slajdu, czyli cała pamięć szyfru. Zaczynamy od stanu początkowego: klucz jeszcze nic nie zmienił. Klucz wpływa tylko na kolejność liczb w S.}
+\end{frame}
+
+% ---------- the tables S and T during the KSA ----------
+% columns 0 to 12, a cut, 254 and 255; a list has 16 entries, the 14th is the cut (any text)
+% \ksafig{S values or none}{T values or none}{extra TikZ: marks}
+% cells are named S0 ... S15 and T0 ... T15 (14 = 254, 15 = 255); \ksax{k} is the x of column k
+\newcommand{\ksax}[1]{0.64*#1}
+\def\ksanone{none}
+\def\ksadot{.}
+\newcommand{\ksafig}[4][1.45]{%
+  \begin{tikzpicture}[>=Stealth]
+    \def\tmpS{#2}\def\tmpT{#3}%
+    \ifx\tmpS\ksanone \def\bb{-0.4}\else \ifx\tmpT\ksanone \def\bb{-0.4}\else \def\bb{-0.95}\fi\fi
+    \useasboundingbox (-1.2,\bb) rectangle (10.3,#1);
+    \node[rowlabel] at (-0.4,0.5) {index};
+    \foreach \v [count=\k from 0] in {0,1,2,3,4,5,6,7,8,9,10,11,12,cut,254,255} {
+      \ifnum\k=13 \else \node[font=\tiny, text=gray] at ({\ksax{\k}},0.5) {\v}; \fi
+    }
+    \edef\ksalistS{#2}\edef\ksalistT{#3}
+    \ifx\tmpS\ksanone \def\ty{0}\else \def\ty{-0.58}%
+      \node[rowlabel, font=\small\bfseries] at (-0.4,0) {S};
+      \foreach \v [count=\k from 0] in \ksalistS {
+        \ifnum\k=13 \node[font=\small, text=nInk] (S\k) at ({\ksax{\k}},0) {\ldots};
+        \else \node[cell, minimum width=0.56cm, minimum height=0.46cm] (S\k) at ({\ksax{\k}},0) {\v}; \fi
+      }
+    \fi
+    \ifx\tmpT\ksanone \else
+      \node[rowlabel, font=\small\bfseries] at (-0.4,\ty) {T};
+      \foreach \v [count=\k from 0] in \ksalistT {
+        \ifnum\k=13 \node[font=\small, text=nInk] (T\k) at ({\ksax{\k}},\ty) {\ldots};
+        \else
+          \ifx\v\ksadot \node[cellfree, minimum width=0.56cm, minimum height=0.46cm] (T\k) at ({\ksax{\k}},\ty) {};
+          \else \node[ksb, minimum width=0.56cm, minimum height=0.46cm] (T\k) at ({\ksax{\k}},\ty) {\v}; \fi
+        \fi
+      }
+    \fi
+    #4
+  \end{tikzpicture}}
+% marks (annotations): the two cells that will swap (a soft arc above), a cell that changed or matters now
+% \swaparc{x1}{x2}: an arc above the index row, the same height for near and far cells
+\newcommand{\swaparc}[2]{%
+  \draw[<->, thick, AccentOrange, >=Stealth, shorten <=1pt, shorten >=1pt]
+    (#1,0.74) .. controls (#1,1.2) and (#2,1.2) .. (#2,0.74);
+  \node[font=\scriptsize\bfseries, text=AccentOrange, fill=white, inner sep=1pt] at ({(#1+#2)/2},1.08) {swap};}
+\newcommand{\swapmark}[2]{\swaparc{\ksax{#1}}{\ksax{#2}}}
+\tikzset{cellmark/.style={draw=AccentOrange, thick, fill=AccentOrange, fill opacity=0.18, draw opacity=1, rounded corners=1.5pt}}
+\newcommand{\wmark}[2][S]{\draw[cellmark] (#1#2.south west) rectangle (#1#2.north east);}
+% the key as 5 tiles above the tables; \keytiles[c]: key[0] stands above column c (the key moves along T)
+\newcommand{\keytiles}[1][0]{%
+  \node[font=\scriptsize\bfseries, text=nInk, anchor=east] at ({\ksax{#1}-0.4},1.45) {key};
+  \foreach \v [count=\k from 0] in {1,2,3,4,5} {
+    \node[ksb, minimum width=0.56cm, minimum height=0.42cm] (K\k) at ({\ksax{(#1+\k)}},1.45) {\v};
+    \node[font=\tiny, text=gray, anchor=south] at ({\ksax{(#1+\k)}},1.68) {key[\k]};
+  }}
+% a straight arrow from key[#1] down to the column under it
+\newcommand{\keyto}[1]{\draw[data, thick] (K#1.south) -- ++(0,-0.5);}
+\newcommand{\Sorder}{0,1,2,3,4,5,6,7,8,9,10,11,12,cut,254,255}
+\newcommand{\Tfull}{1,2,3,4,5,1,2,3,4,5,1,2,3,cut,5,1}
+% a small dark box with one or more lines of code
+\newcommand{\pycode}[1]{%
+  \begin{beamercolorbox}[rounded=true,sep=1.6mm,wd=\linewidth]{vscodelisting}
+    \ttfamily\scriptsize\color{VSText}#1
+  \end{beamercolorbox}}
+
+\begin{frame}{KSA, step 1: S in order}
+  \begin{columns}[c,onlytextwidth]
+    \column{0.5\textwidth}
+      \pycode{key = [1, 2, 3, 4, 5]\\ S = \fn{list}(\fn{range}(256))}
+    \column{0.47\textwidth}
+      \small a key is just bytes: here \textbf{5} of them
+  \end{columns}
+  \vfill
+  \begin{center}\ksafig[1.95]{\Sorder}{none}{\keytiles}\end{center}
+  \vfill
+  \begin{center}\small The middle of \texttt{S} is cut out. It looks the same: \texttt{S[x] = x}.\end{center}
+  \vfill
+  \keymsg{At the start, every cell holds its own index.}
+  \say{Środek tablicy wycinamy tylko na slajdzie, w programie jest pełne 256 komórek. Na razie żadnego klucza.}
+\end{frame}
+
+\begin{frame}{KSA, step 1: a helper table T}
+  \defbox{\textbf{T}: a helper table, used only during KSA. It holds the key, repeated.}
+  \pycode{T = [key[i \% \fn{len}(key)] \kw{for} i \kw{in} \fn{range}(256)]\qquad \cm{\# key = [1, 2, 3, 4, 5], len(key) = 5}}
+  \vfill
+  \begin{center}\ksafig[1.95]{none}{1,2,3,4,5,.,.,.,.,.,.,.,.,cut,.,.}{\keytiles
+    \foreach \k in {0,...,4} {\keyto{\k}\wmark[T]{\k}}}\end{center}
+  \vfill
+  \begin{center}\footnotesize\ttfamily
+    T[0] = key[0 \% 5] = key[0] = 1\qquad T[1] = key[1 \% 5] = key[1] = 2\\ \ldots\\ T[4] = key[4 \% 5] = key[4] = 5
+  \end{center}
+  \keymsg{The first cells of T are the key itself.}
+  \say{T to tablica pomocnicza: nie należy do stanu, KSA wyrzuca ją po użyciu. T będzie tak długie jak S. Na razie przepisujemy klucz.}
+\end{frame}
+
+\begin{frame}{KSA, step 1: the key runs out}
+  \pycode{T = [key[i \% \fn{len}(key)] \kw{for} i \kw{in} \fn{range}(256)]\qquad \cm{\# key = [1, 2, 3, 4, 5], len(key) = 5}}
+  \vfill
+  \begin{center}\ksafig[1.95]{none}{1,2,3,4,5,1,.,.,.,.,.,.,.,cut,.,.}{\keytiles[5]
+    \keyto{0}\wmark[T]{5}
+    \node[font=\scriptsize\bfseries, text=AccentOrange, anchor=west] at ({\ksax{10}-0.2},1.45) {$\leftarrow$ the key starts again};}\end{center}
+  \vfill
+  \begin{center}\small\ttfamily T[5] = key[5 \% 5] = key[0] = 1\qquad
+    {\normalfont\textcolor{AccentOrange}{$\leftarrow$ there is no \texttt{key[5]}}}\end{center}
+  \vfill
+  \keymsg{When the key runs out, mod starts it again.}
+  \say{To jest mod z przypomnienia: 5 mod 5 = 0, więc wracamy do pierwszego bajtu klucza.}
+\end{frame}
+
+\begin{frame}{KSA, step 1: T[6]}
+  \pycode{T = [key[i \% \fn{len}(key)] \kw{for} i \kw{in} \fn{range}(256)]\qquad \cm{\# key = [1, 2, 3, 4, 5], len(key) = 5}}
+  \vfill
+  \begin{center}\ksafig[1.95]{none}{1,2,3,4,5,1,2,.,.,.,.,.,.,cut,.,.}{\keytiles[5] \keyto{1}\wmark[T]{6}}\end{center}
+  \vfill
+  \begin{center}\small\ttfamily T[5] = key[5 \% 5] = key[0] = 1\\
+    T[6] = key[6 \% 5] = key[1] = 2\qquad {\normalfont\textcolor{AccentOrange}{$\leftarrow$ new}}\end{center}
+  \vfill
+  \keymsg{mod keeps walking around the key.}
+  \say{6 mod 5 = 1, więc bierzemy drugi bajt klucza. Niech ktoś z sali powie wynik, zanim go pokażę.}
+\end{frame}
+
+\begin{frame}{KSA, step 1: T[7]}
+  \pycode{T = [key[i \% \fn{len}(key)] \kw{for} i \kw{in} \fn{range}(256)]\qquad \cm{\# key = [1, 2, 3, 4, 5], len(key) = 5}}
+  \vfill
+  \begin{center}\ksafig[1.95]{none}{1,2,3,4,5,1,2,3,.,.,.,.,.,cut,.,.}{\keytiles[5] \keyto{2}\wmark[T]{7}}\end{center}
+  \vfill
+  \begin{center}\small\ttfamily T[5] = key[5 \% 5] = key[0] = 1\\ T[6] = key[6 \% 5] = key[1] = 2\\
+    T[7] = key[7 \% 5] = key[2] = 3\qquad {\normalfont\textcolor{AccentOrange}{$\leftarrow$ new}}\end{center}
+  \vfill
+  \keymsg{Cell i of T takes the key byte at position i mod 5.}
+  \say{Widać już regułę. Dalej nie liczymy po kolei, tylko od razu pokazujemy pełne T.}
+\end{frame}
+
+\begin{frame}{KSA, step 1: T is full}
+  \vfill
+  \begin{center}\ksafig{\Sorder}{\Tfull}{\wmark[T]{15}}\end{center}
+  \vfill
+  \begin{center}\small\texttt{T[255] = key[255 \% 5] = key[0] = 1}\\[0.2cm]
+    A text key works the same way:\quad \texttt{Moon}\ is the bytes\ \texttt{77 111 111 110}.\end{center}
+  \vfill
+  \keymsg{T is only a helper. After KSA, only S, i and j remain.}
+  \say{Ta sama reguła aż do T[255]. Każda pozycja S ma teraz swój bajt klucza. To koniec przygotowań, teraz właściwe mieszanie.}
+\end{frame}
+
+% the KSA loop in TikZ; #1 = the line that runs now (1 to 3)
+\newcommand{\ksaloop}[1]{%
+  \begin{tikzpicture}
+    \codebox{3}{5.6}
+    \cl{1}{\kw{for} i \kw{in} \fn{range}(256):}
+    \cl{2}{\tb j = (j + S[i] + T[i]) \% 256}
+    \cl{3}{\tb S[i], S[j] = S[j], S[i]}
+    \clmark{#1}
+  \end{tikzpicture}}
+
+\begin{frame}{KSA, step 2: where do we swap?}
+  \small\texttt{i = 0\qquad j = 0}
+  \begin{center}\ksafig[0.75]{\Sorder}{\Tfull}{}\end{center}
+  \vspace{-0.1cm}
+  \ksaloop{2}
+  \vfill
+  \begin{center}\small\texttt{j = (0 + S[0] + T[0]) mod 256 = (0 + 0 + 1) mod 256 = \textbf{1}}\\[3pt]
+    \texttt{j} depends on: its old value, \texttt{S[i]}, and the key byte \texttt{T[i]}\end{center}
+  \keymsg{The key decides j.}
+  \say{j zaczyna od 0. KSA ma własne i oraz j; PRGA zaczyna potem z i = j = 0 od nowa. Dlatego różne klucze dają różne kolejności liczb.}
+\end{frame}
+
+\begin{frame}{KSA, step 2: swap}
+  \ksaloop{3}
+  \vfill
+  \small\texttt{i = 0\qquad j = 1}:\quad swap \texttt{S[0]} and \texttt{S[1]}
+  \begin{center}\ksafig{\Sorder}{\Tfull}{\swapmark{0}{1}}\end{center}
+  \vfill
+  \keymsg{Next: S[0] and S[1] change places.}
+  \say{Strzałki pokazują, które komórki zaraz się zamienią. T się nie zmienia.}
+\end{frame}
+
+\begin{frame}{KSA, step 2: i = 0, after the swap}
+  \small\texttt{i = 0\qquad j = 1}
+  \vfill
+  \begin{center}\ksafig{1,0,2,3,4,5,6,7,8,9,10,11,12,cut,254,255}{\Tfull}{\wmark{0}\wmark{1}}\end{center}
+  \vfill
+  \keymsg{Swapping keeps every number exactly once.}
+  \say{To był cały krok i = 0. Po wszystkich zamianach S jest nadal permutacją.}
+\end{frame}
+
+% one KSA step before the swap: #1 i, #2 old j, #3 S[i], #4 T[i], #5 new j, #6 S values, #7 column of the new j
+\newcommand{\ksastep}[7]{%
+  \small\texttt{i = #1\qquad j = #2}\quad\textcolor{gray}{(j comes from the step before)}\\[4pt]
+  \centerline{\texttt{j = (j + S[#1] + T[#1]) mod 256 = (#2 + #3 + #4) mod 256 = \textbf{#5}}}
+  \vfill
+  \begin{center}\ksafig{#6}{\Tfull}{\swapmark{#1}{#7}}\end{center}
+  \vfill}
+
+\begin{frame}{KSA, step 2: i = 1}
+  \ksastep{1}{1}{0}{2}{3}{1,0,2,3,4,5,6,7,8,9,10,11,12,cut,254,255}{3}
+  \keymsg{Every step reads the S changed by the steps before.}
+  \say{S[1] to już nie 1, tylko 0: przeniósł je tam krok i = 0.}
+\end{frame}
+
+\begin{frame}{KSA, step 2: i = 1, after the swap}
+  \small\texttt{i = 1\qquad j = 3}
+  \vfill
+  \begin{center}\ksafig{1,3,2,0,4,5,6,7,8,9,10,11,12,cut,254,255}{\Tfull}{\wmark{1}\wmark{3}}\end{center}
+  \vfill
+  \keymsg{The new j = 3 is where the next step starts.}
+  \say{Nowe j zostaje na następny krok.}
+\end{frame}
+
+\begin{frame}{KSA, step 2: i = 2}
+  \ksastep{2}{3}{2}{3}{8}{1,3,2,0,4,5,6,7,8,9,10,11,12,cut,254,255}{8}
+  \keymsg{j can land far away from i.}
+  \say{j skacze z 3 na 8. W dalszych krokach skoki są coraz większe.}
+\end{frame}
+
+\begin{frame}{KSA, step 2: i = 2, after the swap}
+  \small\texttt{i = 2\qquad j = 8}
+  \vfill
+  \begin{center}\ksafig{1,3,8,0,4,5,6,7,2,9,10,11,12,cut,254,255}{\Tfull}{\wmark{2}\wmark{8}}\end{center}
+  \vfill
+  \keymsg{Most of the middle is still in order.}
+  \say{Zmieniło się dopiero kilka komórek, reszta nadal ma S[x] = x.}
+\end{frame}
+
+\begin{frame}{KSA, step 2: i = 3}
+  \ksastep{3}{8}{0}{4}{12}{1,3,8,0,4,5,6,7,2,9,10,11,12,cut,254,255}{12}
+  \keymsg{Cells nobody has touched still hold their own index.}
+  \say{S[3] to już 0 (krok i = 1), ale S[12] ma nadal wartość 12, bo nikt jej nie ruszał.}
+\end{frame}
+
+\begin{frame}{KSA, step 2: i = 3, after the swap}
+  \small\texttt{i = 3\qquad j = 12}
+  \vfill
+  \begin{center}\ksafig{1,3,8,12,4,5,6,7,2,9,10,11,0,cut,254,255}{\Tfull}{\wmark{3}\wmark{12}}\end{center}
+  \vfill
+  \keymsg{Now it is your turn.}
+  \say{Pozostałe kroki liczą sami.}
+\end{frame}
+
+\begin{frame}{KSA: the result after i = 255}
+  \begin{center}\small The program repeats the same step for \texttt{i = 4, 5, \ldots, 255}.\\[3pt]
+    After the last step:\quad \texttt{i = 255\qquad j = 103}\end{center}
+  \vfill
+  \begin{center}\ksafig{1,3,8,201,21,27,35,67,242,145,207,89,92,cut,186,88}{none}{}\end{center}
+  \vfill
+  \stepbox{S looks shuffled, but it is still a permutation}{every number from 0 to 255 appears exactly once.}
+  \begin{center}\small \texttt{T} is thrown away. PRGA starts with this \texttt{S} and \texttt{i = j = 0}.\end{center}
+  \keymsg{Is the key really hidden in S?}
+  \say{Kolejnych 252 kroków nie liczymy ręcznie, wynik policzył program. Ten stan S jest punktem startowym dla PRGA w następnej sekcji. Pytanie z dołu slajdu prowadzi do zadania.}
+\end{frame}
+
+% a deck of cards: \deck{position}{label}
+\newcommand{\deck}[2]{%
+  \begin{scope}[shift={(#1)}]
+    \foreach \a/\d in {-12/0.0, -4/0.05, 4/0.1} \node[draw=nLine, thick, fill=white, minimum width=0.9cm,
+      minimum height=1.3cm, rounded corners=2pt, rotate=\a] at (\d,0) {};
+    \node[draw=nInk, thick, fill=nFill, minimum width=0.9cm, minimum height=1.3cm, rounded corners=2pt, rotate=10,
+      font=\ttfamily\scriptsize, text=nInk] at (0.15,0) {S[0]};
+    \node[font=\small\bfseries, text=nInk] at (0.1,-1.15) {#2};
+  \end{scope}}
+
+\begin{frame}{Task 6: does S remember the key?}
+  \taskhead{Task 6}{\texttt{rc4.py} is ready:\ \texttt{ksa(key)} returns \texttt{S} after the KSA.}
+  \begin{columns}[c,onlytextwidth]
+    \column{0.6\textwidth}
+      \footnotesize For \textbf{10\,000} random keys of 16 bytes:
+      \begin{enumerate}\setlength{\itemsep}{3pt}
+        \item \texttt{S = ksa(key)}: count how often \texttt{S[0] == key[0]}.
+        \item The same with a \textbf{random shuffle} instead of the KSA:\\
+          \texttt{S = list(range(256))}, then \texttt{random.shuffle(S)}.
+        \item Compare the two numbers.
+      \end{enumerate}
+      \textbf{Bonus:} why? Look at the step \texttt{i = 0} on our slides.
+    \column{0.37\textwidth}
+      \centering
+      \begin{tikzpicture}
+        \deck{0,0}{KSA}
+        \deck{2.3,0}{fair shuffle}
+        \node[font=\Large\bfseries, text=nInk] at (1.15,0) {?};
+      \end{tikzpicture}
+  \end{columns}
+  \vfill
+  \keymsg{A fair shuffle is the baseline: compare against it.}
+  \say{Około 5 minut. Plik startowy remember.py jest na GitHubie. Program liczy około sekundy. Najpierw niech zgadną, jaki wynik wyjdzie dla losowego tasowania.}
+\end{frame}
+
+\begin{frame}[fragile]{Task 6: what to do}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.62\textwidth}
+\begin{lstlisting}[style=py, emph={print,range,len}, basicstyle=\color{VSText}\ttfamily\fontsize{6.4}{7.2}\selectfont]
+import random
+
+from rc4 import ksa
+
+N = 10_000
+ksa_hits = 0
+shuffle_hits = 0
+
+for _ in range(N):
+    key = random.randbytes(16)
+    # TODO 1: S = ksa(key). Add 1 to ksa_hits if S[0] == key[0].
+
+    # TODO 2: S = a random shuffle of the numbers 0 to 255.
+    #         Add 1 to shuffle_hits if S[0] == key[0].
+
+print(f"KSA:     {100 * ksa_hits / N:.2f}%")
+print(f"shuffle: {100 * shuffle_hits / N:.2f}%")
+\end{lstlisting}
+    \column{0.35\textwidth}
+      \taskhead{Task 6}{Open \texttt{remember.py} from \ghlink{Task6}.
+        Write the code in place of the \texttt{TODO} lines.}
+      \stepbox{Hint}{\texttt{random.shuffle(S)} shuffles the list \texttt{S} in place.}
+  \end{columns}
+  \vfill
+  \keymsg{Count the hits, then turn them into percent.}
+  \say{ksa\_hits += S[0] == key[0] działa, bo True liczy się jako 1.}
+\end{frame}
+
+\begin{frame}[fragile]{Solution: does S remember the key?}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.5\textwidth}
+% CHECKED: Task6/solution/remember.py: KSA 37.00%, shuffle 0.41% (one run, they change a little)
+\begin{lstlisting}[style=py, emph={ksa,list,range}]
+for _ in range(N):
+    key = random.randbytes(16)
+    S = ksa(key)
+    ksa_hits += S[0] == key[0]
+    S = list(range(256))
+    random.shuffle(S)
+    shuffle_hits += S[0] == key[0]
+\end{lstlisting}
+    \column{0.47\textwidth}
+      \centering
+      \begin{tikzpicture}
+        \fill[nLine] (0,0.4) rectangle (4.44,0.8);
+        \draw[annot] (-0.05,0.35) rectangle (4.49,0.85);
+        \node[font=\scriptsize\bfseries, text=nInk, anchor=east] at (-0.1,0.6) {KSA};
+        \node[font=\scriptsize\bfseries, text=nInk, anchor=west] at (4.55,0.6) {37\%};
+        \fill[nLine] (0,-0.2) rectangle (0.05,0.2);
+        \node[font=\scriptsize\bfseries, text=nInk, anchor=east] at (-0.1,0) {shuffle};
+        \node[font=\scriptsize\bfseries, text=nInk, anchor=west] at (0.15,0) {0.4\%};
+      \end{tikzpicture}\\[2pt]
+      {\scriptsize\textcolor{gray}{your numbers will differ a little}}
+  \end{columns}
+  \vfill
+  \stepbox{Why?}{At \texttt{i = 0}:\ \texttt{j = 0 + S[0] + T[0] = key[0]}, so \texttt{S[0]} gets the value \texttt{key[0]}.\\
+    Later, \texttt{S[0]} changes only if some \texttt{j} hits 0: about 1 chance in 256 at each step.\\
+    Chance that this never happens in 255 steps:\ $(255/256)^{255}$ = about \textbf{37\%}.}
+  \keymsg{S remembers the first byte of the key.}
+  % CHECKED: (255/256)**255 = 0.3686
+  \say{Kod sprawdzony. Prawie 100 razy częściej, niż powinno. To samo dotyczy kolejnych komórek: S[1] jest równe key[0] + key[1] + 1 w około 37\% przypadków. Wrócimy do tego w sekcji o słabościach.}
+\end{frame}
+
+% ======================================================================
+\section[RC4: producing the bytes]{RC4: producing the bytes}
+% ======================================================================
+
+% a table with any columns: \arrfig[top]{column labels}{values}{extra TikZ}
+% a label "cut" is a gap (\ldots, no cell); cells are named A0, A1, ... by column; \arrx{k} is the x of column k
+\newcommand{\arrx}[1]{0.62*#1}
+\def\arrwidth{11.0}
+\def\arrcut{cut}
+\newcommand{\arrfig}[4][0.75]{%
+  \begin{tikzpicture}[>=Stealth]
+    \edef\arrlabels{#2}\edef\arrvalues{#3}
+    \useasboundingbox (-0.9,-1.05) rectangle (\arrwidth,#1);
+    \node[rowlabel] at (-0.35,0.5) {index};
+    \node[rowlabel, font=\small\bfseries] at (-0.35,0) {S};
+    \foreach \l [count=\k from 0] in \arrlabels {
+      \ifx\l\arrcut \else \node[font=\tiny, text=gray] at ({\arrx{\k}},0.5) {\l}; \fi
+    }
+    \foreach \v [count=\k from 0] in \arrvalues {
+      \ifx\v\arrcut \node[font=\small, text=nInk] (A\k) at ({\arrx{\k}},0) {\ldots};
+      \else \node[cell, minimum width=0.54cm, minimum height=0.46cm] (A\k) at ({\arrx{\k}},0) {\v}; \fi
+    }
+    #4
+  \end{tikzpicture}}
+% a pointer under column #1 with the label #2
+\newcommand{\ptr}[2]{%
+  \draw[-{Stealth}, thick, nInk] ({\arrx{#1}},-0.75) -- ({\arrx{#1}},-0.3);
+  \node[font=\scriptsize\bfseries, text=nInk, anchor=north] at ({\arrx{#1}},-0.75) {#2};}
+% the rule in the PRGA steps: the cells that i and j point at are always lit, and only they
+\newcommand{\ptrij}[2]{\ptr{#1}{#2}\amark{#1}}
+\newcommand{\amark}[1]{\draw[cellmark] (A#1.south west) rectangle (A#1.north east);}
+\newcommand{\Sprga}{1,3,8,201,21,27,cut,178,cut,88}
+\newcommand{\Sprgaswap}{1,201,8,3,21,27,cut,178,cut,88}
+\newcommand{\prgalabels}{0,1,2,3,4,5,cut,204,cut,255}
+
+\begin{frame}{Step 2: PRGA}
+  \vfill
+  \begin{center}\resizebox{0.92\textwidth}{!}{\twophases{1}}\end{center}
+  \vfill
+  \begin{center}\small Start: the \texttt{S} from the KSA, and\ \texttt{i = 0},\ \texttt{j = 0}.\end{center}
+  \begin{center}
+    \arrfig[0.7]{0,1,2,3,4,5,6,7,8,9,10,11,12,cut,204,cut,254,255}{1,3,8,201,21,27,35,67,242,145,207,89,92,cut,178,cut,186,88}{}
+  \end{center}
+  \vspace{-0.5cm}
+  \keymsg{Every loop of PRGA gives one keystream byte.}
+  \say{KSA skończone, T wyrzucone. Zostaje S, a i oraz j zaczynają od zera. Każde przejście pętli daje jeden bajt keystreamu.}
+\end{frame}
+
+% the PRGA loop in TikZ; the optional colour greys out a line
+% \prgaline{line}{colour} draws one line; all eight lines: \prgacode{colours of lines 1 to 8}
+\newcommand{\prgacode}[8]{%
+  \codebox{8}{5.3}
+  \cl[#1]{1}{i = j = 0}
+  \cl[#2]{2}{out = []}
+  \cl[#3]{3}{\kw{for} \_ \kw{in} \fn{range}(n):}
+  \cl[#4]{4}{\tb i = (i + 1) \% 256}
+  \cl[#5]{5}{\tb j = (j + S[i]) \% 256}
+  \cl[#6]{6}{\tb S[i], S[j] = S[j], S[i]}
+  \cl[#7]{7}{\tb t = (S[i] + S[j]) \% 256}
+  \cl[#8]{8}{\tb out.append(S[t])}}
+\def\on{VSText}\def\off{VSText!40!VSDarkBg}
+
+\begin{frame}{PRGA: move i and j}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \prgacode{\off}{\off}{\on}{\on}{\on}{\off}{\off}{\off}
+      \clnote{3}{one loop, one keystream byte}
+      \clnote{4}{\texttt{i} walks: 1, 2, 3, \ldots}
+      \clnote{5}{\texttt{j} jumps, by a number taken from \texttt{S}}
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \keymsg{i is predictable. j is not.}
+  \say{Jedno przejście pętli to jeden bajt keystreamu. Zmienne i oraz j zaczynają od zera.}
+\end{frame}
+
+\begin{frame}{PRGA: swap}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \prgacode{\off}{\off}{\off}{\off}{\off}{\on}{\off}{\off}
+      \clnote{6}{\texttt{S} changes before every byte}
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \keymsg{Every output byte changes the state.}
+  \say{Stan zmienia się przez cały czas, nie tylko w KSA.}
+\end{frame}
+
+\begin{frame}{PRGA: the output byte}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \prgacode{\off}{\off}{\off}{\off}{\off}{\off}{\on}{\on}
+      \clnote{7}{add the two swapped numbers}
+      \clnote{8}{that sum is an index: output \texttt{S[t]}}
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \keymsg{The output is read from a position chosen by S itself.}
+  \say{Pętla powtarza się dla każdego bajtu, którego potrzebujemy.}
+\end{frame}
+
+% one PRGA step: #1 marked lines (TikZ), #2 S values, #3 marks and pointers, #4 i, #5 j, #6 t, #7 out, #8 the calculation
+\newcommand{\prgastep}[8]{%
+  \begin{columns}[c,onlytextwidth]
+    \column{0.42\textwidth}
+      \begin{tikzpicture}[scale=0.92, every node/.append style={transform shape}]
+        \prgacode{\on}{\on}{\on}{\on}{\on}{\on}{\on}{\on}
+        #1
+      \end{tikzpicture}
+    \column{0.56\textwidth}
+      \centering
+      \def\arrwidth{5.9}\arrfig[1.3]{\prgalabels}{#2}{#3}\\[2pt]
+      \vspace{4pt}
+      \small\texttt{i = #4\qquad j = #5\qquad t = #6\qquad out = #7}
+  \end{columns}
+  \vfill
+  \plainbox{\small\texttt{#8}}}
+
+\begin{frame}{PRGA, first byte: start}
+  \prgastep{\clmark{1}\clmark{2}}{\Sprga}{\ptrij{0}{i, j}}{0}{0}{.}{[]}{S comes from the KSA. i and j start at 0.}
+  \vfill
+  \keymsg{Start: i and j both point at cell 0.}
+  \say{Obie zmienne wskazują na komórkę 0. Pomarańczowy pasek i strzałka przy kodzie pokazują linijkę, która właśnie się wykonuje, jak w debuggerze zatrzymanym na breakpoincie.}
+\end{frame}
+
+\begin{frame}{PRGA, first byte: move i}
+  \prgastep{\clmark{4}}{\Sprga}{\ptrij{0}{j}\ptrij{1}{i}}{\textbf{1}}{0}{.}{[]}{i = (0 + 1) \% 256 = 1}
+  \vfill
+  \keymsg{i moves one step forward.}
+  \say{i zawsze idzie o jeden krok.}
+\end{frame}
+
+\begin{frame}{PRGA, first byte: move j}
+  \prgastep{\clmark{5}}{\Sprga}{\ptrij{1}{i}\ptrij{3}{j}}{1}{\textbf{3}}{.}{[]}{j = (j + S[i]) \% 256 = (0 + S[1]) \% 256 = (0 + 3) \% 256 = 3}
+  \vfill
+  \keymsg{j jumps by the value it finds in S[i].}
+  \say{j skacze o wartość z komórki, na którą wskazuje i. Tu S[1] = 3.}
+\end{frame}
+
+\begin{frame}{PRGA, first byte: swap}
+  \prgastep{\clmark{6}}{\Sprgaswap}{\ptrij{1}{i}\ptrij{3}{j}\swaparc{\arrx{1}}{\arrx{3}}}
+    {1}{3}{.}{[]}{swap S[1] and S[3]:\ \ 3 and 201 change places}
+  \vfill
+  \keymsg{S changes before every output byte.}
+  \say{Zamiana działa dokładnie tak jak w KSA.}
+\end{frame}
+
+\begin{frame}{PRGA, first byte: compute t}
+  \prgastep{\clmark{7}}{\Sprgaswap}{\ptrij{1}{i}\ptrij{3}{j}\ptr{7}{t}}{1}{3}{\textbf{204}}{[]}{t = (S[i] + S[j]) \% 256 = (S[1] + S[3]) \% 256 = (201 + 3) \% 256 = 204}
+  \vfill
+  \keymsg{t is the sum of the two swapped numbers.}
+  \say{t to indeks. Komórka 204 leży daleko w środku tablicy, dlatego pokazujemy ją osobno.}
+\end{frame}
+
+\begin{frame}{PRGA, first byte: output}
+  \prgastep{\clmark{8}}{\Sprgaswap}{\ptrij{1}{i}\ptrij{3}{j}\ptr{7}{t}}{1}{3}{204}{[\textbf{178}]}{S[t] = S[204] = 178\qquad out = [178]\qquad (hex b2)}
+  \vfill
+  \keymsg{First keystream byte: \textbf{178} (hex \texttt{b2}).}
+  \say{Pierwszy bajt keystreamu gotowy. Następny obieg pętli zaczyna od i = 1 i j = 3.}
+\end{frame}
+
+\begin{frame}{PRGA: four bytes}
+  \vfill
+  \begin{center}
+    % CHECKED: python3, key [1, 2, 3, 4, 5]; RFC 6229, key 0x0102030405, offset 0: b2 39 63 05
+    \small
+    \renewcommand{\arraystretch}{1.3}
+    \begin{tabular}{c l l l c}
+      \toprule
+      \texttt{i} & \texttt{j = (j + S[i]) mod 256} & swap & \texttt{t = (S[i] + S[j]) mod 256} & output \\
+      \midrule
+      1 & (0 + 3) mod 256 = 3 & S[1] and S[3] & (201 + 3) mod 256 = 204 & \cellcolor{sAmber!25}178 (\texttt{b2}) \\
+      2 & (3 + 8) mod 256 = 11 & S[2] and S[11] & (89 + 8) mod 256 = 97 & \cellcolor{sAmber!25}57 (\texttt{39}) \\
+      3 & (11 + 3) mod 256 = 14 & S[3] and S[14] & (31 + 3) mod 256 = 34 & \cellcolor{sAmber!25}99 (\texttt{63}) \\
+      4 & (14 + 21) mod 256 = 35 & S[4] and S[35] & (26 + 21) mod 256 = 47 & \cellcolor{sAmber!25}5 (\texttt{05}) \\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+  \vfill
+  \begin{center}
+    \small keystream:\ \tikz[baseline=-0.6ex]{\byterow{0}{0}{ksb}{b2,39,63,05}{0.68}}\\[6pt]
+    These are the \textbf{official test values} for this key.
+  \end{center}
+  \vfill
+  \keymsg{Our steps give the real RC4 keystream.}
+  \say{Ten sam klucz jest w oficjalnych wektorach testowych RC4 (RFC 6229). Na tym poziomie liczymy już tylko j, t i wynik, bo stan S jest za duży, żeby go rysować.}
+\end{frame}
+
+\begin{frame}[fragile]{All of RC4 on one slide}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.48\textwidth}
+      {\small\bfseries\textcolor{nInk}{KSA: step 1, once}}\\[2pt]
+\begin{lstlisting}[style=py, emph={list,range,len}, basicstyle=\color{VSText}\ttfamily\fontsize{6.4}{7.4}\selectfont]
+def ksa(key):
+    S = list(range(256))
+    T = [key[i % len(key)] for i in range(256)]
+    j = 0
+    for i in range(256):
+        j = (j + S[i] + T[i]) % 256
+        S[i], S[j] = S[j], S[i]
+    return S
+\end{lstlisting}
+      \vspace{0.05cm}
+\begin{lstlisting}[style=py, emph={prga,ksa}, basicstyle=\color{VSText}\ttfamily\fontsize{6.4}{7.4}\selectfont]
+def keystream(key, n):
+    return prga(ksa(key), n)
+\end{lstlisting}
+    \column{0.48\textwidth}
+      {\small\bfseries\textcolor{nInk}{PRGA: step 2, for every byte}}\\[2pt]
+\begin{lstlisting}[style=py, emph={range,bytes}, basicstyle=\color{VSText}\ttfamily\fontsize{6.4}{7.4}\selectfont]
+def prga(S, n):
+    i = j = 0
+    out = []
+    for _ in range(n):
+        i = (i + 1) % 256
+        j = (j + S[i]) % 256
+        S[i], S[j] = S[j], S[i]
+        t = (S[i] + S[j]) % 256
+        out.append(S[t])
+    return bytes(out)
+\end{lstlisting}
+  \end{columns}
+  \vfill
+  \keymsg{This is the black box from Task 5.}
+  \say{Każdą linijkę już widzieliśmy. To dokładnie zawartość rc4\_ready.py z Task 5: kto chce, może teraz otworzyć ten plik.}
+\end{frame}
+
+% ======================================================================
+\section[RC4: the weaknesses]{RC4: the weaknesses}
+% ======================================================================
+
+\begin{frame}{How would you attack RC4?}
+  \begin{columns}[c,onlytextwidth]
+    \column{0.58\textwidth}
+      \small The attacker has the ciphertext and knows how the message starts. The key is secret.\\[0.3cm]
+      \textbf{First idea:} try every key.
+    \column{0.38\textwidth}
+      \centering
+      \begin{tikzpicture}
+        \node[text=nInk, font=\fontsize{30}{32}\selectfont] at (2.4,1.1) {\faLock};
+        \foreach \k/\l/\r in {0/00/0, 1/01/0, 2/02/0, 4/a7/1} {
+          \node[text=sAmberText, font=\Large] at ({0.95*\k},0) {\faKey};
+          \node[font=\ttfamily\scriptsize, text=nInk] at ({0.95*\k},-0.5) {\l};
+          \ifnum\r=1 \node at ({0.95*\k},-0.9) {\ok}; \else \node at ({0.95*\k},-0.9) {\nok}; \fi
+        }
+        \node[font=\Large, text=nInk] at (2.85,0) {\ldots};
+      \end{tikzpicture}
+  \end{columns}
+  \vfill
+  \defbox{\textbf{Brute force}: try all possible keys, one by one, until one of them gives the known start of the message.}
+  \vfill
+  \begin{center}\small A key of $n$ bytes has\ \texttt{256 ** n}\ possible values.\end{center}
+  \vfill
+  \keymsg{The simplest attack: try every key.}
+  \say{Pytanie do sali przed slajdem: jak byście się zabrali za złamanie RC4? Prawie zawsze pierwsza odpowiedź to zgadywanie klucza.}
+\end{frame}
+
+\begin{frame}{Task 7: crack a short key}
+  \taskhead{Task 7}{Two messages were encrypted with RC4 and very short keys. You know that every message starts with:\ \texttt{\textbf{Hello}}}
+  \begin{columns}[c,onlytextwidth]
+    \column{0.5\textwidth}
+      \centering
+      \begin{tikzpicture}
+        \envelope{e1}{0,0}{message 1}
+        \node[actorlight=sAmber, font=\scriptsize\bfseries, inner sep=2pt] at (0.95,0.5) {\faKey\ 1 byte};
+        \envelope{e2}{2.9,0}{message 2}
+        \node[actorlight=sAmber, font=\scriptsize\bfseries, inner sep=2pt] at (3.85,0.5) {\faKey\ 2 bytes};
+      \end{tikzpicture}\\[2pt]
+      {\scriptsize\textcolor{gray}{the length of the key}}
+    \column{0.47\textwidth}
+      \footnotesize
+      \begin{enumerate}\setlength{\itemsep}{4pt}
+        \item Find both keys by brute force.
+        \item Decrypt both messages.
+        \item The program prints the time for each key length.
+          Estimate the time for a key of \textbf{5 bytes}, and of \textbf{16 bytes}.
+      \end{enumerate}
+  \end{columns}
+  \vfill
+  \keymsg{Known plaintext tells you when a guess is right.}
+  \say{Około 8 minut. Plik startowy jest na GitHubie, rc4.py jest gotowy. Program dla 2 bajtów liczy kilka sekund.}
+\end{frame}
+
+\begin{frame}[fragile]{Task 7: what to do}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.6\textwidth}
+\begin{lstlisting}[style=py, basicstyle=\color{VSText}\ttfamily\fontsize{6.4}{7.4}\selectfont]
+known = b"Hello"
+c1 = bytes.fromhex("F3CA21A4...")   # key: 1 byte
+c2 = bytes.fromhex("C20CC3AE...")   # key: 2 bytes
+
+def crack(ciphertext, n):
+    # TODO 1: try every key of n bytes. Return a list of
+    #         all keys whose keystream turns the start
+    #         of the ciphertext into known.
+    return []
+
+# ready: runs crack(c1, 1) and crack(c2, 2), prints the times
+# TODO 2: decrypt both messages
+# TODO 3: estimate the time for 5 and for 16 bytes
+\end{lstlisting}
+      {\scriptsize\textcolor{gray}{Shortened on the slide: the hex strings and the ready loop are in the file.}}
+    \column{0.37\textwidth}
+      \taskhead{Task 7}{Open \texttt{crack.py} from \ghlink{Task7}.\\ \texttt{rc4.py} is ready:\ \texttt{keystream(key, n)}.}
+      \stepbox{Hint: all keys of n bytes}{\texttt{for k in range(256 ** n):}\\ \texttt{\ \ \ \ key = k.to\_bytes(n, "big")}}
+  \end{columns}
+  \vfill
+  \keymsg{\texttt{256 ** n} keys: the loop visits every one of them.}
+  \say{to\_bytes zamienia liczbę na n bajtów, więc jedna pętla przechodzi przez wszystkie klucze.}
+\end{frame}
+
+\begin{frame}[fragile]{Solution: crack a short key}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.56\textwidth}
+% CHECKED: Task7/solution/crack.py on the author's laptop: key a7 in 0.01 s, key c35e in 2.93 s
+\begin{lstlisting}[style=py, emph={range,bytes,zip,keystream,len}, basicstyle=\color{VSText}\ttfamily\fontsize{6.4}{7.4}\selectfont]
+def crack(ciphertext, n):
+    found = []
+    for k in range(256 ** n):
+        key = k.to_bytes(n, "big")
+        ks = keystream(key, len(known))
+        if bytes(c ^ z for c, z in zip(ciphertext, ks)) == known:
+            found.append(key)
+    return found
+\end{lstlisting}
+    \column{0.41\textwidth}
+      \stepbox{1 byte: key \texttt{a7}, 0.01 s}{\scriptsize\texttt{Hello Bob, the meeting is moved to Friday.}}
+      \stepbox{2 bytes: key \texttt{c35e}, 3 s}{\scriptsize\texttt{Hello Alice, the spare key is under the blue pot.}}
+  \end{columns}
+  \vfill
+  \begin{center}\small Only one key fits each message: 5 known bytes are enough to pick it.\end{center}
+  \keymsg{Each extra byte of key: 256 times more work.}
+  \say{Kod sprawdzony, czasy z mojego laptopa; u studentów mogą być inne, ale stosunek będzie podobny: około 256 razy.}
+\end{frame}
+
+\begin{frame}{Solution: what about longer keys?}
+  \vfill
+  \begin{center}
+    % CHECKED: 256**5 = 1.1e12, 256**16 = 3.4e38; 3 s / 65 536 keys = 4.6e-5 s per key:
+    %          5 bytes 5.0e7 s = 1.6 years, 16 bytes 1.6e34 s = 5e26 years
+    \small
+    \renewcommand{\arraystretch}{1.3}
+    \begin{tabular}{l r r l}
+      \toprule
+      key length & keys to try & time (Python, one laptop) & \\
+      \midrule
+      1 byte & 256 & 0.01 s & \textcolor{gray}{measured} \\
+      2 bytes & 65\,536 & 3 s & \textcolor{gray}{measured} \\
+      5 bytes & about $1.1 \cdot 10^{12}$ & about 1.6 years & \\
+      \rowcolor{AccentOrange!12} 16 bytes & about $3.4 \cdot 10^{38}$ & about $5 \cdot 10^{26}$ years & \\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+  \vfill
+  \begin{center}
+    \small \textcolor{nInk}{\faGlobeEurope}\ \ The universe is about $1.4 \cdot 10^{10}$ years old.\\[3pt]
+    Brute force does not work against a long key. \textbf{So is RC4 safe?}
+  \end{center}
+  \vfill
+  \keymsg{A long key stops brute force. Does it stop everything?}
+  \say{Każdy bajt to razy 256. Ciekawostka: w 1995 roku Damien Doligez złamał w ten sposób 40-bitowe (5-bajtowe) RC4 z sesji SSL przeglądarki Netscape; zajęło to 8 dni na około 120 komputerach. Dlatego dziś klucze mają co najmniej 16 bajtów. RC4 z takim kluczem nie da się zgadnąć, więc pytanie z dołu slajdu prowadzi do następnego slajdu.}
+\end{frame}
+
+\begin{frame}{Does the keystream look random?}
+  \defbox{\textbf{Uniform}: every value is equally likely.}
+  \vfill
+  \begin{columns}[c,onlytextwidth]
+    \column{0.45\textwidth}
+      \small A byte has 256 possible values.\\[3pt]
+      If keystream bytes are uniform, each value appears with chance\\[6pt]
+      \centerline{\large $1 / 256 = \mathbf{0.39\%}$}
+    \column{0.52\textwidth}
+      \centering
+      \begin{tikzpicture}
+        \foreach \x in {0,...,63} \fill[sAmber!60] ({0.09*\x},0) rectangle ({0.09*\x+0.07},1.4);
+        \draw[nLine, thick] (-0.05,0) -- (5.85,0);
+        \node[font=\tiny, text=nInk, anchor=north] at (0,-0.05) {0};
+        \node[font=\tiny, text=nInk, anchor=north] at (5.75,-0.05) {255};
+        \node[font=\scriptsize, text=nInk, anchor=north] at (2.9,-0.3) {value of a keystream byte};
+        \node[font=\scriptsize, text=nInk, rotate=90, anchor=south] at (-0.15,0.7) {how often};
+      \end{tikzpicture}
+  \end{columns}
+  \vfill
+  \begin{center}\small Let us \textbf{check} instead of trusting.\end{center}
+  \vfill
+  \keymsg{A good keystream should be uniform.}
+  \say{Mierzymy zamiast wierzyć: to najlepsza droga do zrozumienia słabości. (Rysunek pokazuje idealny, płaski rozkład; słupek to kilka wartości.)}
+\end{frame}
+
+\begin{frame}[fragile]{Task 8: measure the second byte}
+  \begin{columns}[c,onlytextwidth]
+    \column{0.62\textwidth}
+\begin{lstlisting}[style=py, emph={range,prga,ksa,print}]
+for _ in range(100_000):      # 100 000 random keys
+    key = random.randbytes(16)
+    z = prga(ksa(key), 3)
+    # TODO: count how often z[0], z[1], z[2] are 0
+
+# print each count as a percentage
+\end{lstlisting}
+      \vspace{0.1cm}
+      \taskhead{Task 8}{Open \texttt{measure.py} from \ghlink{Task8}.\ \texttt{rc4.py} is ready: \texttt{ksa} and \texttt{prga}.}
+    \column{0.35\textwidth}
+      \centering
+      {\fontsize{60}{60}\selectfont\textcolor{nLine}{?}}\\[0.2cm]
+      \small Expected: \textbf{0.39\%} each.\\ Is it?
+  \end{columns}
+  \say{5 minut. Program liczy około 4 sekund. Pętla jest taka sama jak w Task 6.}
+\end{frame}
+
+\begin{frame}{Solution: the second byte}
+  \vfill
+  \begin{center}
+    % CHECKED: checks/bias_10M.c (gcc -O2): 10 000 000 random 16-byte keys:
+    %          byte 1 0.391%, byte 2 0.784%, byte 3 0.391%. Task8/solution/measure.py (100 000 keys) gives about the same.
+    \begin{tikzpicture}
+      \node[font=\scriptsize, text=nInk, anchor=south] at (4.0,2.2) {chance that the byte is 0};
+      \foreach \lab/\v/\y in {{byte 1}/0.391/1.4, {byte 2}/0.784/0.7, {byte 3}/0.391/0} {
+        \fill[nLine] (0,{\y-0.22}) rectangle ({10*\v},{\y+0.22});
+        \node[font=\small\bfseries, text=nInk, anchor=east] at (-0.15,\y) {\lab};
+        \node[font=\small, text=nInk, anchor=west] at ({10*\v+0.15},\y) {\v\%};
+      }
+      \draw[annot] (-0.05,0.43) rectangle (7.9,0.97);
+      \draw[DeepBlue, very thick, dashed] (3.906,-0.4) -- (3.906,1.9) node[above, font=\scriptsize] {uniform: 0.39\%};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small 10\,000\,000 keys. Your result with 100\,000 keys is a little noisier.\end{center}
+  \vfill
+  \keymsg{The second byte is 0 about \textbf{twice} as often as it should be.}
+  \say{Odkryli to Mantin i Shamir w 2001 roku.}
+\end{frame}
+
+\begin{frame}{Bias}
+  \vfill
+  \bigdef{\textbf{Bias}: some values appear more often than they should.}
+  \vfill
+  \begin{center}\small RC4's \textbf{second keystream byte} has a bias towards 0.\\[0.3cm]
+    What can an attacker do with one small bias?\end{center}
+  \vfill
+  \keymsg{A tiny bias is enough, as we will see.}
+  \say{Pytanie do sali przed następnym slajdem.}
+\end{frame}
+
+\begin{frame}{The same message under many keys}
+  \begin{center}\small One secret message is sent many times, each time with a \textbf{different key}.\end{center}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      % in some copies Z2 = 0, so the second ciphertext byte equals the secret byte (drawn as plaintext)
+      % CHECKED: python3, random.seed(7), random 16-byte keys, secret byte 0x61: C2 = 0x61 XOR Z2;
+      %          the 2nd and 5th copies are keys with Z2 = 0 (picked by the script)
+      \foreach \k/\b/\z in {0/{4D}/0, 1/{61}/1, 2/{34}/0, 3/{3E}/0, 4/{61}/1, 5/{89}/0} {
+        \begin{scope}[shift={({1.75*\k},0)}]
+          \draw[sBrown, thick, fill=sBrown!8, rounded corners=1pt] (-0.75,-0.5) rectangle (0.75,0.5);
+          \draw[sBrown, thick] (-0.75,0.5) -- (0,0.15) -- (0.75,0.5);
+          \node[ctb, minimum width=0.38cm, minimum height=0.36cm, font=\tiny] at (-0.43,-0.25) {};
+          \ifnum\z=1 \node[ptb, minimum width=0.38cm, minimum height=0.36cm, font=\ttfamily\tiny] at (0,-0.25) {\b};
+          \else \node[ctb, minimum width=0.38cm, minimum height=0.36cm, font=\ttfamily\tiny] at (0,-0.25) {\b}; \fi
+          \node[ctb, minimum width=0.38cm, minimum height=0.36cm, font=\tiny] at (0.43,-0.25) {};
+        \end{scope}
+      }
+      \node[font=\small, text=nInk] at (10.5,0) {\ldots};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \small \textbf{Z2}, \textbf{C2}, \textbf{P2}: the second byte of keystream, ciphertext, plaintext.\\[3pt]
+  If \textbf{Z2 = 0}, then the ciphertext byte equals the plaintext byte:\\[3pt]
+  \centerline{C2 = P2 XOR Z2 = P2 XOR 0 = \textbf{P2}}
+  So the most common value of C2 is the secret byte P2.
+  \vfill
+  \keymsg{The attacker counts. The attacker needs no key.}
+  \say{Przeliczyć na tablicy jeden przykład. Fioletowe pola to kopie, w których Z2 = 0: tam widać sekretny bajt.}
+\end{frame}
+
+\begin{frame}{Try it: recover a byte}
+  \begin{center}\small 100\,000 messages. Secret second byte: \texttt{61} (the letter \texttt{a}).\\
+    Most common values of the second ciphertext byte:\end{center}
+  \vfill
+  \begin{center}
+    % CHECKED: checks/recover_byte.py (seed 2026): 61 780, 8C 446, DB 444, F7 440
+    \begin{tikzpicture}
+      \foreach \v/\n/\y in {61/780/1.8, 8C/446/1.2, DB/444/0.6, F7/440/0} {
+        \fill[nLine] (0,{\y-0.2}) rectangle ({\n/100},{\y+0.2});
+        \node[font=\ttfamily\small\bfseries, text=nInk, anchor=east] at (-0.15,\y) {\v};
+        \node[font=\small, text=nInk, anchor=west] at ({\n/100+0.15},\y) {\n};
+      }
+      \draw[annot] (-0.7,1.55) rectangle (8.6,2.05);
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \keymsg{The secret byte stands out, and the keys were never touched.}
+  \say{To prawdziwy pomiar. Takie zliczanie, tylko dużo większe, stało za atakami na ciasteczka przeglądarek. Bez skrzywienia każda wartość pojawiałaby się około 390 razy.}
+\end{frame}
+
+\begin{frame}[fragile]{Task 9, step 1: the same key twice}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.55\textwidth}
+\begin{lstlisting}[style=py, emph={rc4,xor}]
+key = b"our secret"   # shared with a friend
+m1  = b"Meet at noon."
+m2  = b"Bring the map"
+
+c1 = rc4(key, m1)
+c2 = rc4(key, m2)
+
+# check:
+xor(c1, c2) == xor(m1, m2)
+rc4(key, m1) == rc4(key, m1)  # sent twice
+\end{lstlisting}
+    \column{0.42\textwidth}
+      \taskhead{Task 9}{Open \texttt{one\_key.py} from \ghlink{Task9}.\\ \texttt{rc4.py} is ready:\ \texttt{rc4(key, data)} encrypts and decrypts.}
+      \centering
+      \begin{tikzpicture}
+        \envelope{a}{0,0}{m1}
+        \envelope{b}{2.5,0}{m2}
+        \node[actorlight=sAmber, font=\scriptsize\bfseries] at (1.25,1.0) {\faKey\ the same key};
+      \end{tikzpicture}\\[4pt]
+      \small\textbf{When is this dangerous?}
+  \end{columns}
+  \vfill
+  \keymsg{One key, many messages: what can go wrong?}
+  \say{Około 2 minut na kod, potem krótka dyskusja. Plik startowy one\_key.py jest na GitHubie, xor jest gotowy.}
+\end{frame}
+
+\begin{frame}[fragile]{Solution, step 1: the same key twice}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.55\textwidth}
+% CHECKED: Task9/solution/one_key.py prints True, True
+\begin{lstlisting}[style=py, emph={rc4,xor,print}]
+c1, c2 = rc4(key, m1), rc4(key, m2)
+print(xor(c1, c2) == xor(m1, m2))     # True
+print(rc4(key, m1) == rc4(key, m1))   # True
+\end{lstlisting}
+    \column{0.42\textwidth}
+      \probbox{Dangerous when}{the attacker knows or guesses one message: the other one opens (\emph{The mistake that removes the key}).}
+      \probbox{Dangerous when}{the same message is sent twice: the attacker sees that it repeats.}
+  \end{columns}
+  \vfill
+  \keymsg{One key alone always gives the same keystream.}
+  \say{Najpierw zebrać odpowiedzi z sali. Drugie zagrożenie jest mniej oczywiste: napastnik nie zna treści, ale wie, że się powtórzyła.}
+\end{frame}
+
+\begin{frame}{Task 9, step 2: a public value}
+  \taskhead{Task 9, step 2}{Fix it, and keep \textbf{one} secret key. For every message, make a new value of 3 bytes:}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.6\textwidth}
+      \footnotesize
+      \begin{itemize}\setlength{\itemsep}{1pt}
+        \item it does not have to be secret,
+        \item it is sent in the open, together with the ciphertext,
+        \item it must change the ciphertext.
+      \end{itemize}
+      \textbf{Check:}
+      \begin{enumerate}[a)]\setlength{\itemsep}{0pt}\scriptsize
+        \item \texttt{xor(c1, c2) == xor(m1, m2)}\hfill should be \texttt{False}
+        \item \texttt{m1} sent twice, with two new values:\\ are the two ciphertexts different?\hfill should be \texttt{True}
+        \item your friend decrypts \texttt{c1} with the key and the value
+      \end{enumerate}
+    \column{0.36\textwidth}
+      \centering
+      \begin{tikzpicture}
+        \envelope{a}{0,0}{c1}
+        \node[draw=nLine, thick, fill=white, rotate=-8, font=\ttfamily\scriptsize, text=nInk, inner sep=4pt] at (0.9,0.75) {3 bytes};
+        \draw[nInk, thick] (0.6,0.95) -- (0.55,0.6);
+        \node[font=\scriptsize, text=gray] at (0.2,-0.95) {a public note on the outside};
+      \end{tikzpicture}
+  \end{columns}
+  \stepbox{Hint}{\texttt{random.randbytes(3)} gives 3 random bytes.\qquad \texttt{b"ab" + b"cd" == b"abcd"}}
+  \keymsg{A public value, new for every message.}
+  \say{Około 4 minut. Nie podpowiadać, gdzie wpleść wartość; wystarczy przypomnieć, że rc4 ma tylko dwa argumenty: key i data.}
+\end{frame}
+
+\begin{frame}[fragile]{Solution, step 2: a public value}
+% CHECKED: Task9/solution/one_key.py prints False, True, b'Meet at noon.'
+\begin{lstlisting}[style=py, emph={rc4,xor,print}]
+n1, n2 = random.randbytes(3), random.randbytes(3)
+c1, c2 = rc4(n1 + key, m1), rc4(n2 + key, m2)
+print(xor(c1, c2) == xor(m1, m2))               # False
+print(rc4(n1 + key, m1) != rc4(n2 + key, m1))   # True
+print(rc4(n1 + key, c1))                        # b'Meet at noon.'
+\end{lstlisting}
+  \vspace{0.1cm}
+  \begin{center}\small RC4 has only one input, so the value has to go \textbf{into the key}.\end{center}
+  \defbox{\textbf{Nonce}: a public value, different for every message (``\textbf{n}umber used \textbf{once}'').}
+  \begin{center}\small Is gluing the nonce to the key a good idea? \textbf{Wi-Fi did just this.}\end{center}
+  \keymsg{New nonce: new keystream, with no new secret.}
+  \say{Prawie wszyscy wymyślą nonce + key: zapisać na tablicy, kto jak to zrobił. Pułapka: jeśli ktoś XOR-ował wartość z wiadomością, test a) da False, ale napastnik zna obie wartości, więc dalej policzy m1 XOR m2. Wartość musi zmieniać keystream, a ten zależy tylko od klucza. Pytania z dołu nie rozstrzygać: odpowiedź jest na następnym slajdzie.}
+\end{frame}
+
+\begin{frame}{WEP: RC4 in Wi-Fi}
+  \defbox{\textbf{WEP}: the first security standard for Wi-Fi (1997).}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \node[draw=sAmber, thick, fill=white, minimum width=2.4cm, minimum height=0.8cm, font=\small\bfseries] (iv) at (0,0) {IV {\normalfont\scriptsize(3 bytes)}};
+      \node[font=\large] at (1.65,0) {$+$};
+      \node[actorlight=sAmber, minimum width=4.6cm, minimum height=0.8cm, font=\small\bfseries] (k) at (4.4,0) {\faKey\ shared Wi-Fi key};
+      \node[font=\large] at (7.15,0) {$=$};
+      \node[actorlight=sAmber, minimum height=0.8cm, font=\small\bfseries] at (8.4,0) {\faKey\ RC4 key};
+      \node[font=\scriptsize, text=nInk, align=center, anchor=north] at (0,-0.5) {public, new\\for each packet};
+      \node[font=\scriptsize, text=nInk, align=center, anchor=north] at (4.4,-0.5) {the same\\for everybody};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \defbox{\textbf{IV}: initialisation vector. A nonce, under another name.}
+  \begin{center}\small This is exactly the fix from Task 9: \textbf{nonce + key}.\end{center}
+  \keymsg{WEP built a new RC4 key for every packet.}
+  \say{To dokładnie pomysł z Task 9: wrócić do tego, co zapisaliśmy na tablicy. Pomysł rozsądny, wykonanie katastrofalne. (IV ma białe tło: jest jawny; klucz sieci jest tajny.)}
+\end{frame}
+
+\begin{frame}{WEP, problem 1: the IV repeats}
+  \begin{columns}[c,onlytextwidth]
+    \column{0.42\textwidth}
+      \centering
+      \begin{tikzpicture}
+        \draw[container] (-0.3,-0.35) rectangle (4.35,2.45);
+        \node[font=\scriptsize\bfseries, text=nInk, anchor=north west] at (-0.25,2.42) {23 people};
+        \foreach \k in {0,...,22} {
+          \pgfmathtruncatemacro{\r}{\k/6}\pgfmathtruncatemacro{\c}{mod(\k,6)}
+          \node[text=nInk, font=\large] (p\k) at ({0.72*\c+0.15},{1.7-0.62*\r}) {\faUser};
+        }
+        \draw[annot] (p8.south west) rectangle (p8.north east);
+        \draw[annot] (p19.south west) rectangle (p19.north east);
+        \node[font=\scriptsize\bfseries, text=AccentOrange] at (2.0,-0.75) {two with the same birthday};
+      \end{tikzpicture}
+    \column{0.55\textwidth}
+      \defbox{\textbf{The birthday effect}: in a room of 23 people, two share a birthday with a chance of about 50\%. Repeats come much sooner than we expect.}
+  \end{columns}
+  \vfill
+  \begin{center}
+    % CHECKED: 2**24 = 16 777 216; 50% after about sqrt(2 ln 2 * 2**24) = 4 823 packets
+    \small
+    \begin{tabular}{ll}
+      IV has 3 bytes: & 16\,777\,216 possible values \\
+      random IVs: & about 50\% chance of a repeat after only about \textbf{4\,800 packets} \\
+    \end{tabular}
+  \end{center}
+  \vfill
+  \keymsg{Repeated IV means repeated keystream.}
+  \say{A powtórka IV to ponowne użycie keystreamu, czyli dokładnie ten sam błąd co wcześniej. Wasza wartość w Task 9 też miała 3 bajty.}
+\end{frame}
+
+\begin{frame}{WEP, problem 2: the key leaks}
+  \vfill
+  \begin{center}\small The public IV is the \textbf{first part} of the RC4 key.\\
+    The first keystream bytes depend strongly on the first key bytes.\end{center}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \foreach \k in {0,...,4} {
+        \begin{scope}[shift={(0,{0.9-0.45*\k})}]
+          \draw[nLine, thick, fill=white] (0,0) rectangle (2.6,0.38);
+          \draw[sAmber, thick, fill=white] (0.04,0.04) rectangle (0.7,0.34);
+          \node[font=\tiny\bfseries, text=nInk] at (0.37,0.19) {IV};
+          \fill[sBrown!25] (0.78,0.04) rectangle (2.56,0.34);
+        \end{scope}
+      }
+      \node[font=\scriptsize, text=nInk, anchor=north] at (1.3,-0.95) {collect enough packets};
+      \draw[data, line width=1.6pt] (3.0,0) -- (6.0,0) node[midway, above, font=\scriptsize] {compute};
+      \node[actorlight=sAmber, minimum height=0.9cm, font=\small\bfseries] at (7.6,0) {\faKey\ the shared key};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small Fluhrer, Mantin, Shamir, 2001.\end{center}
+  \vfill
+  \keymsg{The attacker recovers the key itself.}
+  \say{Tu nie chodzi już tylko o odczyt: napastnik dostaje klucz sieci. To ta sama słabość, którą zmierzyliście w Task 6: S pamięta początek klucza, a w WEP początek klucza to jawny IV.}
+\end{frame}
+
+\begin{frame}{RC4 has no nonce}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \node[font=\small\bfseries, text=nInk] at (1.6,1.5) {Modern stream cipher};
+      \node[actorlight=sAmber, font=\scriptsize\bfseries] (k1) at (0,0.5) {\faKey\ key};
+      \node[draw=sAmber, thick, fill=white, rounded corners=3pt, font=\scriptsize\bfseries, inner sep=4pt] (n1) at (0,-0.5) {nonce};
+      \node[hwmain, minimum width=1.8cm, minimum height=1.6cm, font=\small\bfseries] (c1) at (2.6,0) {cipher};
+      \draw[data] (k1) -- (c1.west |- k1); \draw[data] (n1) -- (c1.west |- n1);
+      \node[font=\small\bfseries, text=nInk] at (8.1,1.5) {RC4};
+      \node[actorlight=sAmber, font=\scriptsize\bfseries] (k2) at (6.6,0) {\faKey\ key};
+      \node[hwmain, minimum width=1.8cm, minimum height=1.6cm, font=\small\bfseries] (c2) at (9.2,0) {cipher};
+      \draw[data] (k2) -- (c2);
+      \draw[annot, dashed] (6.0,-0.75) rectangle (7.2,-0.25);
+      \node[font=\scriptsize, text=AccentOrange] at (6.6,-0.5) {no input};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small RC4 takes only a key. Everyone must invent how to add a nonce.\\
+    WEP glued it in front of the key, and that was the mistake.\end{center}
+  \vfill
+  \keymsg{RC4 makes the dangerous thing the easy thing.}
+  \say{Nonce wymyśliliście sami w Task 9, a WEP zrobił dokładnie to samo.}
+\end{frame}
+
+\begin{frame}{How others added a nonce}
+  \begin{center}\small RC4 takes only a key. Every protocol had to add the nonce its own way.\end{center}
+  \vspace{-0.2cm}
+  \begin{center}
+    \footnotesize
+    \renewcommand{\arraystretch}{1.25}
+    \begin{tabular}{l p{5.4cm} l}
+      \toprule
+      WEP (1997) & nonce + key & \nok\ broken: the nonce repeats, the key leaks \\
+      \midrule
+      WPA (2003), TKIP mode & key, sender address and a packet counter, mixed into a new RC4 key for every packet & a quick fix for WEP, still RC4 inside \\
+      \midrule
+      TLS & a new RC4 key for every connection, one long keystream for the whole talk & worked for years, until the biases \\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+  \scriptsize
+  \textbf{WPA}: the fix for WEP in Wi-Fi.\quad \textbf{TKIP}: the mode of WPA that still uses RC4.\\
+  \textbf{TLS}: the protocol that protects the connection between your browser and a website.
+  \vfill
+  \keymsg{No nonce input: everyone builds it differently, and some get it wrong.}
+  \say{WEP to wasz pomysł z Task 9. TKIP: klucz każdego pakietu powstaje przez wymieszanie klucza z adresem nadawcy i 48-bitowym licznikiem pakietów; licznik się nie powtarza, a klucz pakietu nie ma już jawnego początku. TLS: na początku połączenia obie strony wymieniają jawne liczby losowe i z nich oraz wspólnego sekretu powstaje nowy klucz RC4, osobny dla każdego kierunku; kolejne wiadomości biorą dalsze bajty tego samego keystreamu. Te jawne liczby losowe pełnią rolę nonce. TLS nie padło przez nonce, tylko przez skrzywienia, które mierzyliśmy w Task 8.}
+\end{frame}
+
+% ======================================================================
+\section[The end of RC4]{The end of RC4}
+% ======================================================================
+
+\begin{frame}{Where RC4 lived}
+  \vfill
+  \begin{center}
+    \small
+    \renewcommand{\arraystretch}{1.7}
+    \begin{tabular}{c l l}
+      \textcolor{nInk}{\Large\faWifi} & \textbf{WEP} & the first Wi-Fi security \\
+      \textcolor{nInk}{\Large\faWifi} & \textbf{WPA} & the quick fix for WEP, still RC4 inside (TKIP mode) \\
+      \textcolor{nInk}{\Large\faLock} & \textbf{SSL / TLS} & the padlock in your browser (SSL is the old name) \\
+      \textcolor{nInk}{\Large\faDesktop} & \textbf{RDP}, old & Windows remote desktop \\
+    \end{tabular}
+  \end{center}
+  \vfill
+  \stepbox{Why RC4?}{Simple, fast, needs no special hardware.}
+  \vfill
+  \keymsg{For years, RC4 was everywhere.}
+  \say{Każdą nazwę wyjaśnić jednym zdaniem.}
+\end{frame}
+
+\begin{frame}{A long goodbye}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \draw[nLine, very thick] (0,0.3) -- (0,-5.2);
+      \foreach \y/\yr/\t [count=\k] in {0/1987/RC4 designed, -0.8/1994/the algorithm leaks,
+          -1.6/2001/{WEP key recovery; the second-byte bias}, -2.4/2007/WEP broken in under a minute,
+          -3.2/2013/practical attacks on RC4 inside TLS, -4.0/2015/{TLS standard forbids RC4 (RFC 7465)},
+          -4.8/2018/TLS 1.3 has no RC4 at all} {
+        \fill[nInk] (0,\y) circle (0.09);
+        \node[font=\small\bfseries, text=nInk, anchor=east] at (-0.25,\y) {\yr};
+        \node[font=\small, text=nInk, anchor=west] at (0.25,\y) {\t};
+      }
+      \draw[decorate, decoration={brace, amplitude=6pt}, AccentOrange, thick] (6.6,-1.5) -- (6.6,-4.1)
+        node[midway, right=8pt, font=\scriptsize\bfseries, text=AccentOrange] {14 years};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \keymsg{From the first serious attack to the ban: 14 years.}
+  \say{Słabości znane od dawna, wymiana trwała długo.}
+\end{frame}
+
+\begin{frame}{Stream and block side by side}
+  \vfill
+  \begin{center}
+    \small
+    \renewcommand{\arraystretch}{1.5}
+    \begin{tabular}{l l l}
+      \toprule
+      & \textbf{STREAM CIPHER} & \textbf{BLOCK CIPHER} \\
+      \midrule
+      encrypts & any number of bytes & only full blocks \\
+      short message & nothing extra & padding, or waiting \\
+      \rowcolor{AccentOrange!12} main danger & the same keystream used twice & the same block always gives the same ciphertext \\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+  \vfill
+  \keymsg{Each family has its own way to fail.}
+  \say{Skoro RC4 odpada, czego używać? Wracamy do szyfrów blokowych z sekcji 1. Ostatni wiersz jest nowy. Szyfr blokowy z jednym kluczem działa jak bardzo duża stała tabela: ten sam blok zawsze daje ten sam wynik, więc wraca problem wzorca z pierwszej próby.}
+\end{frame}
+
+\begin{frame}{A block cipher can make a keystream}
+  \defbox{\textbf{AES}: the most widely used block cipher (16-byte blocks).}
+  \begin{columns}[c,onlytextwidth]
+    \column{0.66\textwidth}
+      \centering
+      \begin{tikzpicture}[>=Stealth, scale=0.9, every node/.append style={transform shape}]
+        \foreach \k in {1,2,3} {
+          \node[cell, font=\ttfamily\scriptsize, minimum width=1.9cm] (n\k) at ({2.4*(\k-1)},1.4) {nonce+\k};
+          \node[hwmain, minimum width=1.9cm, minimum height=0.8cm, font=\small\bfseries] (a\k) at ({2.4*(\k-1)},0.3) {AES};
+          \draw[data] (n\k) -- (a\k);
+          \node[ksb, minimum width=1.9cm, minimum height=0.5cm] (o\k) at ({2.4*(\k-1)},-0.8) {16 bytes};
+          \draw[data] (a\k) -- (o\k);
+        }
+        \node[font=\scriptsize, text=nInk, anchor=east] at (-1.05,1.4) {counter:};
+        \node[actorlight=sAmber, font=\scriptsize\bfseries] (k) at (6.4,0.3) {\faKey\ key};
+        \draw[data] (k) -- (a3);
+        \draw[decorate, decoration={brace, mirror, amplitude=5pt}, nInk] (-0.95,-1.15) -- (5.75,-1.15)
+          node[midway, below=6pt, font=\scriptsize\bfseries, text=nInk] {keystream};
+      \end{tikzpicture}
+    \column{0.31\textwidth}
+      \centering
+      \begin{tikzpicture}
+        \draw[nInk, fill=nInk, rounded corners=2pt] (0,0) rectangle (2.4,2.0);
+        \foreach \y in {0.25,0.55,...,1.8} {\draw[nLine, thick] (-0.18,\y) -- (0,\y); \draw[nLine, thick] (2.4,\y) -- (2.58,\y);}
+        \node[font=\tiny, text=white] at (1.2,1.75) {microcontroller};
+        \node[draw=white, fill=nInk!70, rounded corners=1pt, font=\tiny, text=white, minimum width=0.9cm] at (0.6,1.05) {CPU};
+        \node[draw=white, fill=nInk!70, rounded corners=1pt, font=\tiny\bfseries, text=white, minimum width=0.9cm] (aes) at (1.75,1.05) {AES};
+        \draw[annot] ([shift={(-0.08,-0.08)}]aes.south west) rectangle ([shift={(0.08,0.08)}]aes.north east);
+        \node[draw=white, fill=nInk!70, rounded corners=1pt, font=\tiny, text=white, minimum width=2.0cm] at (1.2,0.4) {radio};
+      \end{tikzpicture}
+  \end{columns}
+  \defbox{\textbf{Counter mode}: encrypt a counter and use the result as a keystream.}
+  \scriptsize Many \textbf{microcontrollers} (small computers on one chip, like the one in our sensor) have AES built in as hardware: counter mode gives no waiting and no padding.
+  \keymsg{In counter mode a block cipher acts as a stream cipher.}
+  \say{Wszystkie zasady o keystreamie nadal obowiązują, także zakaz ponownego użycia. Czujnik nie jest więc dowodem, że trzeba szyfru strumieniowego; to przykład, jak myśleć o wymaganiach.}
+\end{frame}
+
+\begin{frame}{Today: encryption and integrity together}
+  \defbox{\textbf{Authenticated encryption}: encrypts the data and also adds a short \textbf{tag} that lets the receiver detect changes.}
+  \vfill
+  \begin{columns}[T,onlytextwidth]
+    \column{0.48\textwidth}
+      \centering
+      \begin{tikzpicture}
+        \node[hw, minimum width=5.2cm, minimum height=2.3cm] at (0,0) {};
+        \node[font=\large\bfseries, text=nInk] at (0,0.65) {AES-GCM};
+        \node[font=\small, text=nInk] at (-0.3,-0.2) {AES in counter mode + tag};
+        \node[circle, fill=nInk, text=white, font=\large, minimum size=0.8cm] at (2.55,1.1) {\faStamp};
+      \end{tikzpicture}
+    \column{0.48\textwidth}
+      \centering
+      \begin{tikzpicture}
+        \node[hw, minimum width=5.2cm, minimum height=2.3cm] at (0,0) {};
+        \node[font=\large\bfseries, text=nInk] at (0,0.65) {ChaCha20-Poly1305};
+        \node[font=\small, text=nInk, align=center] at (-0.3,-0.3) {a modern stream cipher\\+ tag (next presentation)};
+        \node[circle, fill=nInk, text=white, font=\large, minimum size=0.8cm] at (2.55,1.1) {\faStamp};
+      \end{tikzpicture}
+  \end{columns}
+  \vfill
+  \keymsg{Today the real question is: which authenticated cipher?}
+  \say{Nazwy tylko sygnalizujemy, ChaCha20 będzie dokładnie omówiony w następnej prezentacji.}
+\end{frame}
+
+\begin{frame}{What replaced RC4}
+  \vfill
+  \begin{center}
+    \small
+    \renewcommand{\arraystretch}{1.6}
+    \begin{tabular}{l l l}
+      \toprule
+      & \textbf{RC4} & \textbf{AES-GCM, ChaCha20-Poly1305} \\
+      \midrule
+      nonce & \nok\ glue it yourself & \ok\ built in \\
+      integrity & \nok\ none & \ok\ built in \\
+      known biases & \nok\ yes & \ok\ none known \\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+  \vfill
+  \keymsg{Do not use RC4 in new systems.}
+  \say{Każdy wiersz to jedna słabość RC4 z dzisiejszych zajęć; w obu zamiennikach jest rozwiązana.}
+\end{frame}
+
+\begin{frame}{Summary}
+  \vfill
+  \begin{center}
+    \renewcommand{\arraystretch}{1.6}
+    \begin{tabular}{cl}
+      \bigbadge{1} & \large A stream cipher encrypts by XOR with a keystream. \\
+      \bigbadge{2} & \large Never use the same keystream twice. \\
+      \bigbadge{3} & \large Small and urgent: stream. Today: authenticated encryption. \\
+      \bigbadge{4} & \large RC4 = KSA once, then PRGA for every byte. \\
+      \bigbadge{5} & \large RC4 is biased and broken: know it, do not use it. \\
+    \end{tabular}
+  \end{center}
+  \vfill
+  \say{Po jednym zdaniu na każdy cel wykładu.}
+\end{frame}
+
+\end{document}

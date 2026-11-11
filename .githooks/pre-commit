@@ -1,0 +1,24 @@
+#!/bin/sh
+# Before every commit: if a presentation is part of the commit, rebuild the presentations
+# that changed and add the new PDFs to the same commit.
+# A presentation is part of the commit when its main.tex, its Makefile or a task file is staged
+# (the slides of Lecture 5 read code straight from the task files).
+#
+# Turn it on once in a fresh clone:   git config core.hooksPath .githooks
+# Skip it for one commit:             git commit --no-verify
+set -e
+cd "$(git rev-parse --show-toplevel)"
+
+STAGED=$(git diff --cached --name-only)
+mkdir -p build
+
+if echo "$STAGED" | grep -q '^Lecture[^/]*/\(main\.tex\|Makefile\|Task[^/]*/.*\.py\)$'; then
+  echo "pre-commit: building the presentations that changed..."
+  if ! make --no-print-directory all > build/pre-commit.log 2>&1; then
+    tail -n 20 build/pre-commit.log
+    echo "pre-commit: the build failed, the commit was stopped (full log: build/pre-commit.log)."
+    exit 1
+  fi
+  git add builded_presentation
+  echo "pre-commit: presentation PDFs are up to date and added to the commit."
+fi

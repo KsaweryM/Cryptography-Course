@@ -1,0 +1,2516 @@
+\documentclass[aspectratio=169,10pt]{beamer}
+% notes.tex defines \NOTESONLY and reads this file: then only the speaker notes are printed
+\ifdefined\NOTESONLY
+  \setbeameroption{show only notes}
+\fi
+
+\usepackage{lmodern}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[polish,english]{babel}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{colortbl}
+\usepackage{xcolor}
+\usepackage{fontawesome5}
+\usepackage{listings}
+\usepackage{etoolbox}
+\usepackage{xstring}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, calc, positioning, fit, decorations.pathreplacing, decorations.pathmorphing}
+\usepackage{pgfplots}
+% layers for the code windows drawn in TikZ: the window, then the line that runs now, then the text
+\pgfdeclarelayer{codebg}\pgfdeclarelayer{codehl}\pgfsetlayers{codebg,codehl,main}
+\pgfplotsset{compat=1.18}
+
+\usetheme{Madrid}
+\useinnertheme{rounded}
+\useoutertheme{miniframes}
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{itemize items}[circle]
+\setbeamertemplate{enumerate items}[default]
+\setbeamertemplate{blocks}[rounded][shadow=true]
+% about 105 slides: smaller dots, so that the navigation bar fits the page width
+\setbeamersize{mini frame size=.07cm,mini frame offset=.03cm}
+
+% ======================================================================
+% Colour rules for presentations (Beamer + TikZ), from Agents/colors
+% ======================================================================
+
+% ---------- template ----------
+\definecolor{DeepBlue}{HTML}{283593}      % title bar, headings, links, control-flow arrows
+\definecolor{AccentOrange}{HTML}{EB5A14}  % annotations: step numbers, "look here", code highlight, conclusions
+\definecolor{LightGray}{HTML}{F5F6FA}     % background of information blocks
+\setbeamercolor{palette primary}{bg=DeepBlue,fg=white}
+\setbeamercolor{palette secondary}{bg=DeepBlue!80!black,fg=white}
+\setbeamercolor{palette tertiary}{bg=DeepBlue!90!black,fg=white}
+\setbeamercolor{title}{bg=DeepBlue,fg=white}
+\setbeamercolor{frametitle}{bg=DeepBlue,fg=white}
+\setbeamercolor{structure}{fg=DeepBlue}
+\setbeamercolor{item}{fg=AccentOrange}
+\setbeamercolor{alerted text}{fg=AccentOrange}
+\setbeamercolor{block title}{bg=DeepBlue,fg=white}
+\setbeamercolor{block body}{bg=LightGray,fg=black}
+\setbeamercolor{block title example}{bg=AccentOrange,fg=white}
+\setbeamercolor{block body example}{bg=AccentOrange!10,fg=black}
+\setbeamercolor{enumerate item}{fg=DeepBlue}
+\setbeamerfont{enumerate item}{series=\bfseries}
+
+% ---------- actors and categories: fills only (S1 to S6) ----------
+\definecolor{sIndigo}{HTML}{5C6BC0}   % S1
+\definecolor{sPink}{HTML}{EC407A}     % S2
+\definecolor{sViolet}{HTML}{7E57C2}   % S3
+\definecolor{sAmber}{HTML}{FFB300}    % S4: black text on it
+\definecolor{sTeal}{HTML}{26A69A}     % S5
+\definecolor{sBrown}{HTML}{8D6E63}    % S6
+% text variants that stay readable on white
+\definecolor{sPinkText}{HTML}{C2185B}
+\definecolor{sAmberText}{HTML}{A06A00}
+\definecolor{sTealText}{HTML}{00796B}
+
+% ---------- actions: frames only; results: signs only ----------
+\definecolor{aExec}{HTML}{43A047}     % runs now
+\definecolor{aRead}{HTML}{1E88E5}     % is read
+\definecolor{aWrite}{HTML}{E53935}    % is written
+
+% ---------- neutral (Blue Grey) ----------
+\definecolor{nInk}{HTML}{37474F}      % text in figures, waveforms, wires, data-flow arrows
+\definecolor{nLine}{HTML}{90A4AE}     % borders, axes
+\definecolor{nLight}{HTML}{CFD8DC}    % inactive lines, grids, empty places (dashed)
+\definecolor{nFill}{HTML}{ECEFF1}     % fill of boxes and used cells
+\definecolor{nIdle}{HTML}{E0E0E0}     % time lost (idle, busy waiting, bubbles)
+
+% ---------- TikZ styles ----------
+\tikzset{
+  aexec/.style={draw=aExec, line width=1.6pt},
+  aexecm/.style={aexec, label={[text=aExec, inner sep=1pt, font=\tiny]left:$\blacktriangleright$}},
+  aread/.style={draw=aRead, line width=1.6pt, dash pattern=on 3pt off 2pt},
+  awrite/.style={draw=aWrite, line width=2.4pt},
+  hw/.style={draw=nLine, thick, fill=nFill, text=nInk, rounded corners=3pt, align=center, inner sep=4pt},
+  hwmain/.style={draw=nInk, thick, fill=nInk, text=white, rounded corners=3pt, align=center, inner sep=4pt},
+  cell/.style={draw=nLine, thick, fill=white, text=nInk, font=\ttfamily\scriptsize},
+  cellused/.style={cell, fill=nFill},
+  cellfree/.style={cell, dashed, draw=nLight},
+  container/.style={draw=nLine, thick, dashed, rounded corners=5pt},
+  actor/.style={fill=#1, draw=#1, text=white, rounded corners=3pt, align=center, font=\scriptsize\bfseries, inner sep=4pt},
+  actorlight/.style={fill=#1!15, draw=#1, thick, text=nInk, rounded corners=3pt, align=center, inner sep=4pt},
+  suspended/.style={fill=#1!30, draw=#1, dashed, line width=0.9pt, text=nInk, rounded corners=3pt, align=center, inner sep=4pt},
+  ready/.style={fill=white, draw=#1, line width=0.8pt, text=nInk, rounded corners=3pt, align=center, inner sep=4pt},
+  idle/.style={fill=nIdle, draw=none, text=nInk, rounded corners=3pt, align=center, inner sep=4pt},
+  flow/.style={-{Stealth}, very thick, DeepBlue},
+  data/.style={-{Stealth}, very thick, nInk},
+  holds/.style={-{Stealth}, very thick, nInk},
+  waits/.style={-{Stealth}, very thick, nLine, dashed},
+  annot/.style={draw=AccentOrange, line width=1.4pt, rounded corners=3pt},
+}
+\tikzset{actoramber/.style={actor=sAmber, text=black}}
+
+% ---------- signs and small helpers ----------
+\newcommand{\ok}{\textcolor{aExec}{\faCheck}}
+\newcommand{\nok}{\textcolor{aWrite}{\faTimes}}
+\newcommand{\badge}[1]{\tikz[baseline=(b.base)]\node[circle,fill=AccentOrange,text=white,
+  inner sep=1.2pt,font=\bfseries\tiny] (b) {#1};}
+\newcommand{\bigbadge}[1]{\tikz[baseline=(b.base)]\node[circle,fill=AccentOrange,text=white,
+  inner sep=2pt,font=\bfseries\small] (b) {#1};}
+% ---------- text boxes ----------
+\newcommand{\defbox}[1]{%
+  \begin{beamercolorbox}[rounded=true,sep=0.1cm,wd=\linewidth]{block body example}
+    \footnotesize #1
+  \end{beamercolorbox}\vspace{0.06cm}}
+% a large definition in the middle of the slide
+\newcommand{\bigdef}[1]{%
+  \begin{beamercolorbox}[rounded=true,sep=0.25cm,wd=\linewidth]{block body example}
+    \centering\normalsize #1
+  \end{beamercolorbox}\vspace{0.06cm}}
+\newcommand{\stepbox}[2]{%
+  \begin{beamercolorbox}[rounded=true,sep=0.09cm,wd=\linewidth]{block body}
+    \footnotesize\textbf{#1}\\ #2
+  \end{beamercolorbox}\vspace{0.06cm}}
+\newcommand{\keymsg}[1]{%
+  \begin{beamercolorbox}[rounded=true,sep=0.1cm,wd=\textwidth]{block body example}
+    \centering\footnotesize #1
+  \end{beamercolorbox}}
+% a grey box without a title
+\newcommand{\plainbox}[1]{%
+  \begin{beamercolorbox}[rounded=true,sep=0.12cm,wd=\linewidth]{block body}
+    \centering\footnotesize #1
+  \end{beamercolorbox}\vspace{0.06cm}}
+\setbeamercolor{block body problem}{bg=AccentOrange!10,fg=black}
+\newcommand{\probbox}[2]{%
+  \begin{beamercolorbox}[rounded=true,sep=0.09cm,wd=\linewidth]{block body problem}
+    \footnotesize\textbf{\textcolor{AccentOrange}{\faExclamationTriangle}\ #1}\\ #2
+  \end{beamercolorbox}\vspace{0.06cm}}
+
+% ---------- code: dark window, grey dots, syntax colours ----------
+\definecolor{VSDarkBg}{RGB}{25,25,25}
+\definecolor{VSText}{RGB}{245,245,245}
+\definecolor{VSBlue}{RGB}{80,180,255}
+\definecolor{VSPurple}{RGB}{210,110,210}
+\definecolor{VSString}{RGB}{255,140,80}
+\definecolor{VSComment}{RGB}{80,220,80}
+\setbeamercolor{vscodelisting}{bg=VSDarkBg}
+\lstdefinestyle{code}{basicstyle=\color{VSText}\ttfamily\scriptsize, keywordstyle=\color{VSBlue}\bfseries,
+  stringstyle=\color{VSString}, commentstyle=\color{VSComment}\itshape, emphstyle=\color{VSPurple},
+  numbers=none, columns=fixed, basewidth=0.52em, keepspaces=true, showstringspaces=false, xleftmargin=6pt}
+\lstdefinestyle{py}{style=code, language=Python, emph={print,chr,zip,range,len,bytes,ord,hex}}
+\BeforeBeginEnvironment{lstlisting}{%
+  \begin{beamercolorbox}[rounded=true,sep=2mm,wd=\linewidth]{vscodelisting}%
+  \begin{tikzpicture}
+    \fill[nLine] (0,0) circle (3pt); \fill[nLine] (0.35,0) circle (3pt); \fill[nLine] (0.70,0) circle (3pt);
+  \end{tikzpicture}%
+  \vspace{-0.2cm}}
+\AfterEndEnvironment{lstlisting}{\end{beamercolorbox}}
+\newcommand{\hlcode}[1]{{\setlength{\fboxsep}{1pt}\colorbox{AccentOrange}{\textcolor{white}{\bfseries #1}}}}
+\newcommand{\eol}{\tikz[remember picture, overlay]\coordinate (eol) at (0,0.08);}
+\newcommand{\codenote}[3][0pt]{%
+  \begin{tikzpicture}[remember picture, overlay, >=Stealth]
+    \node[draw=AccentOrange, very thick, fill=AccentOrange!6, rounded corners=4pt, text width=0.33\paperwidth,
+      align=left, inner sep=6pt, font=\footnotesize, anchor=west] (cal)
+      at ([yshift=#1]eol -| {$(current page.west)!0.6!(current page.east)$}) {\textbf{\textcolor{AccentOrange}{#2}}\\[3pt]#3};
+    \draw[->, very thick, AccentOrange] (eol -| cal.west) -- ([xshift=4pt]eol);
+  \end{tikzpicture}}
+% program output: a light terminal line
+\newcommand{\terminal}[1]{%
+  \begin{tikzpicture}
+    \node[draw=nLine, thick, fill=nFill, rounded corners=3pt, inner sep=5pt, font=\ttfamily\small, text=nInk]
+      {\textcolor{nLine}{\$}\ #1};
+  \end{tikzpicture}}
+
+% ======================================================================
+% Course macros
+% ======================================================================
+% task header: \taskhead{Task}{Open the template from \ghlink{Task1}.}
+\newcommand{\taskhead}[2]{%
+  \begin{beamercolorbox}[rounded=true,sep=0.12cm,wd=\linewidth]{block body example}
+    \small\textbf{#1}\\[0.04cm]
+    \footnotesize #2
+  \end{beamercolorbox}\vspace{0.1cm}}
+% the starter files of a task on GitHub: the word "GitHub" will be the link
+% TODO: the repository address is not decided yet, so the word is not a link for now
+\newcommand{\ghlink}[1]{\textcolor{DeepBlue}{\textbf{GitHub}}}
+
+% speaker notes (Polish): printed only in the notes PDF (make notes)
+\setbeamertemplate{note page}[default]
+\setbeamerfont{note page}{size=\normalsize}
+\newcommand{\say}[1]{\note{\selectlanguage{polish}#1}}
+
+% ======================================================================
+% Colour mapping for this lecture (colour rules, section 6)
+%   S1 sIndigo : the sender (the sensor)
+%   S2 sPink   : the attacker
+%   S3 sViolet : plaintext
+%   S4 sAmber  : key and keystream
+%   S5 sTeal   : the receiver (the server)
+%   S6 sBrown  : ciphertext
+%   mechanisms (generator, block cipher, XOR, RC4 itself) are neutral
+% ======================================================================
+\tikzset{
+  byte/.style={draw=nLine, thick, fill=white, text=nInk, font=\ttfamily\scriptsize,
+    minimum width=0.62cm, minimum height=0.48cm, inner sep=1pt, rounded corners=1.5pt},
+  ptb/.style={byte, fill=sViolet!15, draw=sViolet},
+  ksb/.style={byte, fill=sAmber!25, draw=sAmber},
+  ctb/.style={byte, fill=sBrown!15, draw=sBrown},
+  % the same ciphertext value always gets the same shade of S6 (lightness, not a new colour)
+  ct58/.style={ctb, fill=sBrown!12},
+  ct137/.style={ctb, fill=sBrown!35},
+  ct201/.style={ctb, fill=sBrown!70, text=white},
+  ct64/.style={ctb, fill=sBrown!100, text=white},
+  rowlabel/.style={font=\scriptsize, text=nInk, anchor=east},
+  sender/.style={actor=sIndigo, minimum width=2.4cm, minimum height=1.0cm, font=\small\bfseries},
+  receiver/.style={actor=sTeal, minimum width=2.4cm, minimum height=1.0cm, font=\small\bfseries},
+  attacker/.style={actor=sPink, minimum width=2.0cm, minimum height=0.8cm, font=\small\bfseries},
+  radio/.style={-{Stealth}, very thick, nInk, decorate,
+    decoration={snake, amplitude=1.2pt, segment length=7pt, post length=4pt}},
+}
+% a row of bytes: \byterow{x of the first cell}{y}{style}{list of values}{step between cells}
+\newcommand{\byterow}[5]{%
+  \foreach \v [count=\k from 0] in {#4} {
+    \node[#3] at ({#1+#5*\k},#2) {\v};
+  }}
+
+
+% ======================================================================
+% Helpers shared with Lecture 1 (same look in every lecture)
+% ======================================================================
+% an intercepted envelope with ciphertext: \envelope{name}{position}{label}
+\newcommand{\envelope}[3]{%
+  \node[draw=sBrown, thick, fill=sBrown!15, minimum width=2.2cm, minimum height=1.3cm, rounded corners=1pt] (#1) at (#2) {};
+  \draw[sBrown, thick] (#1.north west) -- ([yshift=-0.45cm]#1.north) -- (#1.north east);
+  \node[circle, fill=sBrown, text=white, inner sep=1.5pt, font=\scriptsize] at ([yshift=-0.45cm]#1.north) {\faLock};
+  \node[font=\scriptsize\bfseries, text=nInk] at ([yshift=-0.28cm]#1.center) {#3};}
+% a note with plaintext on it: \papernote{name}{position}{text}
+\newcommand{\papernote}[3]{%
+  \node[draw=sViolet, thick, fill=sViolet!12, rounded corners=1pt, inner sep=6pt, font=\ttfamily\small, text=nInk,
+    rotate=3] (#1) at (#2) {#3};}
+% code drawn in TikZ, so that single lines can be marked:
+%   \codebox{number of lines}{width}  then  \cl{line}{text}, \clmark{line} (runs now), \clnote{line}{text}
+\newcommand{\codepitch}{0.36}
+\newcommand{\codebox}[2]{%
+  \begin{pgfonlayer}{codebg}
+    \fill[VSDarkBg, rounded corners=4pt] (-0.15,0.55) rectangle ({#2+0.45},{-\codepitch*#1-0.15});
+    % the gutter with the line numbers, as in an editor
+    \fill[white, opacity=0.05] (-0.15,0.12) rectangle (0.4,{-\codepitch*#1-0.06});
+  \end{pgfonlayer}
+  \foreach \d in {0,0.3,0.6} \fill[nLine] ({0.12+\d},0.33) circle (2.4pt);
+  \coordinate (codeR) at ({#2+0.45},0);}
+\newcommand{\cl}[3][VSText]{%
+  \node[anchor=east, font=\ttfamily\tiny, text=VSText!45!VSDarkBg, inner sep=1pt] at (0.34,{-\codepitch*#2+0.14}) {#2};
+  \node[anchor=west, font=\ttfamily\scriptsize, text=#1, inner sep=1pt] (L#2) at (0.5,{-\codepitch*#2+0.14}) {\strut #3};}
+% the line that runs now, as in a debugger stopped at a breakpoint: the whole line lit from edge to edge,
+% an accent on the left edge and an arrow in the gutter. The same mark on every slide that steps through code.
+\newcommand{\clmark}[1]{%
+  \begin{pgfonlayer}{codehl}
+    \fill[AccentOrange!30!VSDarkBg] (-0.15,{-\codepitch*#1+0.14-0.18}) rectangle (codeR |- 0,{-\codepitch*#1+0.14+0.18});
+    \fill[AccentOrange] (-0.15,{-\codepitch*#1+0.14-0.18}) rectangle (-0.08,{-\codepitch*#1+0.14+0.18});
+  \end{pgfonlayer}
+  \node[text=AccentOrange, font=\scriptsize, inner sep=0pt] at (0.04,{-\codepitch*#1+0.14}) {$\blacktriangleright$};}
+% a line we talk about (not running): lit a little, from edge to edge, no frame
+\newcommand{\clhl}[1]{%
+  \begin{pgfonlayer}{codehl}
+    \fill[white!14!VSDarkBg] (-0.15,{-\codepitch*#1+0.14-0.18}) rectangle (codeR |- 0,{-\codepitch*#1+0.14+0.18});
+  \end{pgfonlayer}}
+\newcommand{\clnote}[2]{%
+  \clhl{#1}
+  \draw[->, thick, AccentOrange, >=Stealth] ([xshift=0.6cm]codeR |- 0,{-\codepitch*#1+0.14}) -- ([xshift=0.08cm]codeR |- 0,{-\codepitch*#1+0.14});
+  \node[anchor=west, font=\footnotesize, text=AccentOrange, align=left] at ([xshift=0.65cm]codeR |- 0,{-\codepitch*#1+0.14}) {#2};}
+\newcommand{\kw}[1]{\textcolor{VSBlue}{\textbf{#1}}}
+\newcommand{\fn}[1]{\textcolor{VSPurple}{#1}}
+\newcommand{\cm}[1]{\textcolor{VSComment}{\textit{#1}}}
+\newcommand{\st}[1]{\textcolor{VSString}{#1}}
+\newcommand{\tb}{\phantom{xxxx}}
+
+
+% the generator: a dark box with cogs, like the block cipher; \gennode{name}{position}{size: 1 large, 0 small}
+\newcommand{\gennode}[3]{%
+  \ifnum#3=1
+    \node[hwmain, minimum width=2.4cm, minimum height=1.5cm] (#1) at (#2) {};
+    \node[text=white, font=\LARGE] at ([yshift=0.22cm]#1.center) {\faCogs};
+    \node[text=white, font=\small\bfseries] at ([yshift=-0.42cm]#1.center) {generator};
+  \else
+    \node[hwmain, minimum width=1.9cm, minimum height=1.05cm] (#1) at (#2) {};
+    \node[text=white, font=\large] at ([yshift=0.16cm]#1.center) {\faCogs};
+    \node[text=white, font=\scriptsize\bfseries] at ([yshift=-0.3cm]#1.center) {generator};
+  \fi}
+\tikzset{
+  bigxor/.style={circle, draw=nInk, very thick, fill=white, inner sep=0pt, minimum size=0.8cm, font=\Large},
+  smallbyte/.style={minimum width=0.5cm, minimum height=0.45cm},
+}
+
+
+% \bytes{x of the first cell}{y}{style}{values}{label above}
+\newcommand{\bytes}[5]{%
+  \foreach \v [count=\i from 0] in {#4} \node[#3, smallbyte] at ({#1+0.55*\i},#2) {\v};
+  \node[font=\scriptsize\bfseries, text=nInk] at ({#1+0.55},{#2+0.45}) {#5};}
+
+% a small dark box with one or more lines of code
+\newcommand{\pycode}[1]{%
+  \begin{beamercolorbox}[rounded=true,sep=1.6mm,wd=\linewidth]{vscodelisting}
+    \ttfamily\scriptsize\color{VSText}#1
+  \end{beamercolorbox}}
+
+
+% an invoice on paper: \invoice{name}{position}{amount}
+\newcommand{\invoice}[3]{%
+  \node[draw=nLine, thick, fill=white, minimum width=2.1cm, minimum height=2.5cm, rounded corners=1pt] (#1) at (#2) {};
+  \node[font=\tiny\bfseries, text=nInk, anchor=north] at ([yshift=-0.12cm]#1.north) {INVOICE};
+  \foreach \d in {0.6,0.8,1.0} \draw[nLight, thick] ([shift={(0.25,-\d)}]#1.north west) -- ([shift={(-0.25,-\d)}]#1.north east);
+  \node[font=\tiny, text=nInk, anchor=south west] at ([shift={(0.15,0.55)}]#1.south west) {to pay:};
+  \node[font=\ttfamily\scriptsize\bfseries, text=nInk, anchor=south] at ([yshift=0.15cm]#1.south) {#3};}
+
+
+\title{Cryptography}
+\subtitle{Salsa20 and ChaCha20}
+\author{Ksawery Możdżyński}
+\date{}
+
+\begin{document}
+
+% ======================================================================
+% Colour mapping for the 4 by 4 state (added in Lecture 2)
+%   constants : neutral (nFill), the label says "const"
+%   key       : S4 amber, light fill (as every key)
+%   nonce     : white with a full amber frame (public, as the IV in Lecture 1)
+%   counter   : white with a dashed amber frame (public, changes by itself)
+% ======================================================================
+\tikzset{
+  wcell/.style={draw=nLine, thick, fill=white, text=nInk, font=\ttfamily\scriptsize, minimum width=1.55cm,
+    minimum height=0.55cm, inner sep=1pt},
+  st-c/.style={wcell, fill=nFill},
+  st-k/.style={wcell, fill=sAmber!25, draw=sAmber},
+  st-n/.style={wcell, draw=sAmber, line width=1pt},
+  st-t/.style={wcell, draw=sAmber, line width=1pt, dashed},
+  st-x/.style={wcell},
+}
+% a cell that changed or matters now: a light orange fill and a thin orange frame (as in Lecture 1)
+\tikzset{cellmark/.style={draw=AccentOrange, thick, fill=AccentOrange, fill opacity=0.18, draw opacity=1, rounded corners=1.5pt}}
+% the 4 by 4 state: \statefig[cell width]{value/kind, ... (16 entries)}{extra TikZ}; cells are named W0 ... W15
+\newcommand{\statefig}[3][1.65]{%
+  \begin{tikzpicture}[>=Stealth]
+    \edef\statelist{#2}
+    \foreach \v/\s [count=\i from 0] in \statelist {
+      \pgfmathtruncatemacro{\r}{\i/4}\pgfmathtruncatemacro{\c}{mod(\i,4)}
+      \node[st-\s, minimum width=#1cm] (W\i) at ({(#1+0.08)*\c},{-0.65*\r}) {\v};
+    }
+    #3
+  \end{tikzpicture}}
+\newcommand{\statelegend}{{\scriptsize
+  \tikz[baseline=-0.6ex]\node[st-c, minimum width=0.5cm, minimum height=0.3cm] {};\ constant\quad
+  \tikz[baseline=-0.6ex]\node[st-k, minimum width=0.5cm, minimum height=0.3cm] {};\ key\quad
+  \tikz[baseline=-0.6ex]\node[st-t, minimum width=0.5cm, minimum height=0.3cm] {};\ counter\quad
+  \tikz[baseline=-0.6ex]\node[st-n, minimum width=0.5cm, minimum height=0.3cm] {};\ nonce}}
+\newcommand{\markW}[1]{\draw[cellmark] (W#1.south west) rectangle (W#1.north east);}
+% a black box with three inputs (key, nonce, counter) and one block out; #1 = the name in the box
+\newcommand{\threeinputs}[1]{%
+  \begin{tikzpicture}[>=Stealth]
+    \node[actorlight=sAmber, font=\scriptsize\bfseries, minimum width=2.3cm] (k) at (0,0.9) {\faKey\ key {\normalfont(32 bytes)}};
+    \node[draw=sAmber, line width=1pt, fill=white, rounded corners=3pt, font=\scriptsize\bfseries, minimum width=2.3cm, inner sep=4pt] (n) at (0,0) {nonce};
+    \node[draw=sAmber, line width=1pt, dashed, fill=white, rounded corners=3pt, font=\scriptsize\bfseries, minimum width=2.3cm, inner sep=4pt] (t) at (0,-0.9) {counter};
+    \node[hwmain, minimum width=3.0cm, minimum height=2.3cm] (box) at (3.9,0) {};
+    \node[text=white, font=\LARGE] at (3.9,0.35) {\faCogs};
+    \node[text=white, font=\small\bfseries, align=center] at (3.9,-0.45) {#1};
+    \draw[data] (k.east) -- (box.west |- k.east); \draw[data] (n.east) -- (box.west |- n.east); \draw[data] (t.east) -- (box.west |- t.east);
+    \draw[data, line width=1.6pt] (box.east) -- (6.4,0);
+    \node[ksb, minimum width=2.2cm, minimum height=0.6cm] (o) at (7.6,0) {64 bytes};
+    \node[font=\scriptsize, text=nInk, anchor=north] at (o.south) {one block of keystream};
+  \end{tikzpicture}}
+% a horizontal bar chart row: \hbar{y}{label}{value}{scale}{text}
+\newcommand{\hbarrow}[5]{%
+  \fill[nLine] (0,{#1-0.2}) rectangle ({#3*#4},{#1+0.2});
+  \node[font=\small\bfseries, text=nInk, anchor=east] at (-0.15,#1) {#2};
+  \node[font=\small, text=nInk, anchor=west] at ({#3*#4+0.15},#1) {#5};}
+% the ChaCha20 quarter round in a code window: #1 = the line that runs now (0 = none), #2 = width
+\newcommand{\qrcode}[1]{%
+  \begin{tikzpicture}
+    \codebox{4}{5.2}
+    \cl{1}{a += b;\ \ d \textasciicircum= a;\ \ d = rotl(d, 16)}
+    \cl{2}{c += d;\ \ b \textasciicircum= c;\ \ b = rotl(b, 12)}
+    \cl{3}{a += b;\ \ d \textasciicircum= a;\ \ d = rotl(d, 8)}
+    \cl{4}{c += d;\ \ b \textasciicircum= c;\ \ b = rotl(b, 7)}
+    \ifnum#1>0 \clmark{#1}\fi
+  \end{tikzpicture}}
+% four words a, b, c, d; #5 = the changed words, as a list of letters
+\newcommand{\abcd}[5]{%
+  \begin{tikzpicture}
+    \foreach \l/\v [count=\i from 0] in {a/#1, b/#2, c/#3, d/#4} {
+      \node[font=\small\bfseries, text=nInk] at ({2.0*\i},0.5) {\l};
+      \node[wcell, minimum width=1.85cm, font=\ttfamily\small] (Q\l) at ({2.0*\i},0) {\v};
+    }
+    \foreach \l in {#5} {\draw[cellmark] (Q\l.south west) rectangle (Q\l.north east);}
+  \end{tikzpicture}}
+
+% ======================================================================
+% Opening
+% ======================================================================
+
+\begin{frame}
+  \titlepage
+  \say{Dziś: szyfr strumieniowy, który działa w przeglądarce i w telefonie każdego z nas. Zobaczymy go od środka, linijka po linijce.}
+\end{frame}
+
+\begin{frame}{Agenda For Today}
+  \vfill
+  \begin{columns}[T,onlytextwidth]
+    \column{0.52\textwidth}
+      \large
+      \begin{itemize}
+        \item[\textcolor{DeepBlue}{\faStepForward}] \textbf{1. A keystream from a counter} \\
+        \textcolor{gray}{\small Jump to any block}
+        \vspace{0.3cm}
+
+        \item[\textcolor{DeepBlue}{\faCalculator}] \textbf{2. Three simple operations} \\
+        \textcolor{gray}{\small Add, rotate, XOR}
+        \vspace{0.3cm}
+
+        \item[\textcolor{DeepBlue}{\faTh}] \textbf{3. Salsa20} \\
+        \textcolor{gray}{\small A 4 by 4 table of words}
+        \vspace{0.3cm}
+
+        \item[\textcolor{DeepBlue}{\faCogs}] \textbf{4. ChaCha20: one block} \\
+        \textcolor{gray}{\small Twenty rounds, step by step}
+      \end{itemize}
+    \column{0.46\textwidth}
+      \large
+      \begin{itemize}
+        \item[\textcolor{DeepBlue}{\faSearch}] \textbf{5. Why twenty rounds?} \\
+        \textcolor{gray}{\small Measure it, then break it}
+        \vspace{0.3cm}
+
+        \item[\textcolor{DeepBlue}{\faRocket}] \textbf{6. Fast on any processor} \\
+        \textcolor{gray}{\small No special hardware needed}
+        \vspace{0.3cm}
+
+        \item[\textcolor{DeepBlue}{\faIcon{shield-alt}}] \textbf{7. ChaCha20-Poly1305} \\
+        \textcolor{gray}{\small Where you use it every day}
+      \end{itemize}
+  \end{columns}
+  \vfill
+  \say{Siedem części. Najpierw użyjemy szyfru jak czarnej skrzynki, potem zajrzymy do środka, a na końcu zobaczymy, gdzie działa naprawdę.}
+\end{frame}
+
+\begin{frame}{Today you will need}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \foreach \ic/\t/\s [count=\k from 0] in {\faPython/Python 3/{nothing to install, no extra libraries},
+          \faEdit/An editor/{any one you like}, \faIcon{pencil-alt}/Paper and a pen/{for predictions before you run the code}} {
+        \node[hw, minimum width=3.4cm, minimum height=2.4cm] (b\k) at ({4.2*\k},0) {};
+        \node[text=nInk] at ({4.2*\k},0.35) {\fontsize{34}{36}\selectfont\ic};
+        \node[font=\normalsize\bfseries, text=nInk] at ({4.2*\k},-0.65) {\t};
+        \node[font=\scriptsize, text=gray, below=0.12cm of b\k, text width=3.6cm, align=center] {\s};
+      }
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small The tasks:\ \ghlink{}\ \ Lecture2 / Task1 \ldots\ Task9\end{center}
+  \vfill
+  \say{Wszystkie zadania działają na czystym Pythonie, bez instalowania pakietów. Każde zadanie jest samodzielne: kto nie skończy jednego, może zacząć następne.}
+\end{frame}
+
+% ======================================================================
+\section[A keystream from a counter]{A keystream from a counter}
+% ======================================================================
+
+\begin{frame}{Recall: writing bytes in hexadecimal}
+  \begin{center}\small One byte = 8 bits = two hexadecimal digits (0 to 9, then A to F).\end{center}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \node[rowlabel, font=\small] at (-0.4,0) {binary};
+      \foreach \b [count=\k from 0] in {0,1,0,0,1,0,0,0} {
+        \pgfmathsetmacro{\x}{0.55*\k + (\k>3)*0.45}
+        \node[byte, minimum width=0.48cm, font=\ttfamily\small] at (\x,0) {\b};
+      }
+      \draw[decorate, decoration={brace, amplitude=5pt}, nInk] (-0.25,0.35) -- (1.9,0.35)
+        node[midway, above=6pt, font=\large\bfseries\ttfamily, text=nInk] {4};
+      \draw[decorate, decoration={brace, amplitude=5pt}, nInk] (2.35,0.35) -- (4.5,0.35)
+        node[midway, above=6pt, font=\large\bfseries\ttfamily, text=nInk] {8};
+      \node[font=\small, text=nInk, anchor=west] at (5.0,0.5) {hex:\ \ written \texttt{\textbf{0x48}} or \texttt{\textbf{48}}};
+      \node[font=\small, text=nInk, anchor=west] at (5.0,-0.1) {decimal:\ \ 72,\ \ the letter \texttt{H}};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small A 32-bit number is 4 bytes, so 8 hex digits:\quad \texttt{0x61707865}\end{center}
+  \vfill
+  \say{Krótkie przypomnienie, bo dziś wszystko będzie w hex. Liczby 32-bitowe zobaczymy już za chwilę, to po prostu 4 bajty.}
+\end{frame}
+
+\begin{frame}{Recall: XOR}
+  \vfill
+  \begin{columns}[c,onlytextwidth]
+    \column{0.42\textwidth}
+      \centering\Large
+      \begin{tabular}{cc|c}
+        \toprule
+        $a$ & $b$ & $a$ XOR $b$ \\
+        \midrule
+        0 & 0 & 0 \\
+        0 & 1 & \textbf{1} \\
+        1 & 0 & \textbf{1} \\
+        1 & 1 & 0 \\
+        \bottomrule
+      \end{tabular}
+    \column{0.55\textwidth}
+      \stepbox{Same bits give 0, different bits give 1.}{In Python:\ \texttt{a \textasciicircum{} b}}
+      \stepbox{Twice with the same value changes nothing}{$(a \text{ XOR } k) \text{ XOR } k = a$}
+  \end{columns}
+  \vfill
+  \keymsg{XOR with the same value twice gives back what we started with.}
+  \say{Jeśli grupa pamięta XOR, wystarczy jedno zdanie. To ta sama operacja, której używamy do szyfrowania.}
+\end{frame}
+
+\begin{frame}{Recall: a stream cipher}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \node[actorlight=sAmber, font=\small\bfseries, minimum height=0.8cm] (k) at (0,1.75) {\faKey\ key};
+      \gennode{g}{3.2,1.75}{0}
+      \draw[data] (k) -- (g);
+      \draw[data] (g.east) -- (5.0,1.75);
+      \byterow{5.4}{1.75}{ksb}{4A,91,0E,C7,5B}{0.62}
+      \node[font=\scriptsize, text=nInk, anchor=west] at (8.4,1.75) {keystream \textbf{Z}\ \ (looks random)};
+      \node[bigxor] (x) at (3.2,0) {$\oplus$};
+      \draw[data] (g.south) -- (x.north);
+      \node[actorlight=sViolet, font=\small\bfseries] (p) at (0,0) {plaintext \textbf{P}};
+      \node[actorlight=sBrown, font=\small\bfseries] (c) at (6.6,0) {ciphertext \textbf{C}};
+      \draw[data, line width=1.6pt] (p) -- (x); \draw[data, line width=1.6pt] (x) -- (c);
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\large C = P XOR Z\qquad\qquad P = C XOR Z\end{center}
+  \vfill
+  \keymsg{Encryption and decryption are the same XOR with the same keystream.}
+  \say{Generator rozwija krótki klucz w długi ciąg bajtów. Szyfrowanie to XOR bajt po bajcie. Odbiorca robi dokładnie to samo.}
+\end{frame}
+
+\begin{frame}{Recall: never the same keystream twice}
+  \begin{center}\small Two messages encrypted with the same keystream Z:\end{center}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \envelope{e1}{0,0.8}{C1}
+      \envelope{e2}{0,-0.8}{C2}
+      \node[actorlight=sAmber, font=\scriptsize\bfseries] at (1.45,1.25) {Z};
+      \node[actorlight=sAmber, font=\scriptsize\bfseries] at (1.45,-0.35) {Z};
+      \draw[data, line width=1.6pt] (1.5,0) -- (2.6,0);
+      \node[font=\normalsize, text=nInk, anchor=west] at (2.7,0) {C1 XOR C2 = (P1 XOR Z) XOR (P2 XOR Z) = \textbf{P1 XOR P2}};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small The keystream disappears. Knowing P1 gives P2.\\[3pt]
+    So every message gets a public value, the \textbf{nonce}, that changes the keystream.\end{center}
+  \vfill
+  \keymsg{One key, many messages: each message needs its own nonce.}
+  \say{Nonce to jawna wartość, inna dla każdej wiadomości. Klucz zostaje ten sam, a keystream jest inny. Dziś zobaczymy, jak nonce wchodzi do środka szyfru.}
+\end{frame}
+
+% a video player: #1 = 1: also the tape of encrypted bytes under it
+\newcommand{\player}{%
+  \draw[nInk, fill=nInk, rounded corners=4pt] (0,0) rectangle (11,3.0);
+  \fill[nInk!80!black] (0.15,0.75) rectangle (10.85,2.85);
+  \node[text=white!70, font=\fontsize{30}{30}\selectfont] at (5.5,1.8) {\faPlayCircle};
+  \node[font=\scriptsize, text=white!80, anchor=north west] at (0.25,2.8) {encrypted film, 2 GB, 120 minutes};
+  \fill[nLine] (0.4,0.38) rectangle (10.6,0.48);
+  \fill[AccentOrange] (0.4,0.38) rectangle (8.05,0.48);
+  \fill[white] (8.05,0.43) circle (0.12);
+  \node[font=\tiny, text=white!80, anchor=north] at (0.4,0.33) {0 min};
+  \node[font=\tiny, text=white!80, anchor=north] at (10.6,0.33) {120 min};}
+
+\begin{frame}{A film on a server}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \player
+      \draw[->, very thick, AccentOrange] (8.05,-0.6) -- (8.05,0.25);
+      \node[font=\small\bfseries, text=AccentOrange, anchor=north] at (8.05,-0.6) {the viewer jumps here: 90 min};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \keymsg{To decrypt minute 90, we need the keystream for minute 90.}
+  \say{Zwykła sytuacja: film na serwerze jest zaszyfrowany, widz przewija. Zapytać salę, co musi policzyć odtwarzacz.}
+\end{frame}
+
+% the keystream of the film as a tape: #1 = 1 mark the part to throw away, 2 cross it out
+\newcommand{\filmtape}[1]{%
+  \begin{tikzpicture}[>=Stealth]
+    \fill[nIdle] (0,0) rectangle (8.25,0.5);
+    \draw[nLine, thick] (0,0) rectangle (11,0.5);
+    \fill[sAmber!45] (8.25,0) rectangle (8.9,0.5);
+    \draw[sAmber, thick] (8.25,0) rectangle (8.9,0.5);
+    \node[font=\scriptsize, text=nInk] at (4.1,0.25) {1.5 GB of keystream to throw away};
+    \node[font=\scriptsize\bfseries, text=sAmberText, anchor=south] at (8.57,0.55) {needed};
+    \node[font=\tiny, text=gray, anchor=north] at (0,-0.05) {0 min};
+    \node[font=\tiny, text=gray, anchor=north] at (8.25,-0.05) {90 min};
+    \node[font=\tiny, text=gray, anchor=north] at (11,-0.05) {120 min};
+    \ifnum#1=2
+      \draw[flow] (8.57,1.65) -- (8.57,0.95);
+      \node[font=\scriptsize\bfseries, text=DeepBlue, anchor=south] at (8.57,1.65) {straight there};
+    \fi
+  \end{tikzpicture}}
+
+\begin{frame}{A generator that only goes forward}
+  \begin{center}\small A generator like \textbf{RC4} gives the keystream one byte after another.\\
+    To reach minute 90 it must first produce and throw away 1.5 GB of keystream.\end{center}
+  \vfill
+  \begin{center}\filmtape{1}\end{center}
+  \vfill
+  \begin{center}
+    % CHECKED (draft, author's laptop): openssl speed, RC4 0.57 GB/s; 1.5 / 0.57 = 2.6 s
+    \small
+    \begin{tabular}{ll}
+      measured RC4 speed on a laptop: & 0.57 GB/s \\
+      time before the film can play: & about \textbf{2.6 s}, for every jump \\
+    \end{tabular}
+  \end{center}
+  \vfill
+  \say{RC4 to szyfr z poprzedniego wykładu: każdy jego bajt zależy od wszystkich wcześniejszych. 1,5 GB to trzy czwarte filmu. Prędkość RC4 zmierzyłem openssl speed na tym laptopie; przy każdym przewinięciu trzeba liczyć od początku.}
+\end{frame}
+
+\begin{frame}{What do we really need?}
+  \vfill
+  \begin{center}\Large Any piece of the keystream,\\ without computing the pieces before it.\end{center}
+  \vfill
+  \begin{center}\filmtape{2}\end{center}
+  \vfill
+  \keymsg{We want to jump straight to any part of the keystream.}
+  \say{Poczekać na pomysły z sali. Ktoś zwykle zaproponuje numerowanie kawałków.}
+\end{frame}
+
+\begin{frame}{The idea: number the blocks}
+  \begin{center}\small Cut the keystream into blocks of \textbf{64 bytes} and give each block a number.\end{center}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \foreach \n/\x in {0/0, 1/1.9, 2/3.8} {
+        \node[ksb, minimum width=1.7cm, minimum height=0.7cm] (b\n) at (\x,0) {64 bytes};
+        \node[font=\scriptsize\bfseries, text=nInk, anchor=south] at (\x,0.4) {block \n};
+      }
+      \node[font=\large, text=nInk] at (5.4,0) {\ldots};
+      \node[ksb, minimum width=1.7cm, minimum height=0.7cm] (bn) at (7.2,0) {64 bytes};
+      \node[font=\scriptsize\bfseries, text=nInk, anchor=south] at (7.2,0.4) {block 23\,437\,500};
+      \node[font=\large, text=nInk] at (8.7,0) {\ldots};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small Block $n$ is computed from three things only:\quad
+    \tikz[baseline=-0.6ex]\node[actorlight=sAmber, font=\scriptsize\bfseries, inner sep=2pt] {key};,\
+    \tikz[baseline=-0.6ex]\node[draw=sAmber, line width=1pt, rounded corners=3pt, font=\scriptsize\bfseries, inner sep=2pt] {nonce};,\
+    \tikz[baseline=-0.6ex]\node[draw=sAmber, line width=1pt, dashed, rounded corners=3pt, font=\scriptsize\bfseries, inner sep=2pt] {$n$};\end{center}
+  \vfill
+  \keymsg{Block $n$ does not depend on blocks 0 to $n - 1$.}
+  % CHECKED: 1.5e9 / 64 = 23 437 500
+  \say{1,5 GB to 23 437 500 bloków po 64 bajty. Ten numer liczymy jednym dzieleniem, a nie liczeniem bloków po kolei.}
+\end{frame}
+
+\begin{frame}{The counter}
+  \bigdef{\textbf{Counter}: the number of a 64-byte block of the keystream. It goes 0, 1, 2, \ldots\
+    for the blocks of one message. Like the nonce, it is public.}
+  \vfill
+  \begin{center}
+    \small
+    \begin{tabular}{l|c|c|c|c}
+      message: & bytes 0 to 63 & bytes 64 to 127 & bytes 128 to 191 & \ldots \\
+      \hline
+      counter: & 0 & 1 & 2 & \ldots \\
+    \end{tabular}
+  \end{center}
+  \vfill
+  \begin{center}\small Byte number \texttt{b} of the message is in block\ \texttt{\textbf{b // 64}}\end{center}
+  \vfill
+  \say{Licznik nie jest tajny: odbiorca wylicza go sam z pozycji bajtu. Tajny jest tylko klucz.}
+\end{frame}
+
+\begin{frame}{Salsa20 and ChaCha20 from the outside}
+  \vfill
+  \begin{center}\threeinputs{Salsa20 /\\ChaCha20}\end{center}
+  \vfill
+  \begin{center}\small Two ciphers built on this idea, by Daniel J. Bernstein:\\
+    \textbf{Salsa20} (2005) and \textbf{ChaCha20} (2008), an improved Salsa20.\end{center}
+  \vfill
+  \keymsg{Same key and nonce, a new counter: a new block.}
+  \say{Na razie traktujemy szyfr jak czarną skrzynkę. ChaCha20 jest następcą Salsa20, o różnicach powiemy w sekcji 3 i 4. Liczba 20 w nazwie to liczba rund, o tym w sekcji 5.}
+\end{frame}
+
+\begin{frame}{Task 1: use ChaCha20}
+  \taskhead{Task 1}{You received an encrypted message and you know the key and the nonce.}
+  \vfill
+  \begin{center}
+    \small
+    \renewcommand{\arraystretch}{1.5}
+    \begin{tabular}{l l}
+      key & \texttt{c0ffee00 c0ffee00 \ldots} (32 bytes) \\
+      nonce & \texttt{0000004a 00000000 00000007} \\
+      ciphertext & \texttt{36323fcd0cbf7202049805976e0d4afda0a2bc363f02eea05b\ldots} \\
+    \end{tabular}
+  \end{center}
+  \vfill
+  \begin{center}\large The message was encrypted starting with \textbf{counter 1}.\\[3pt] \textbf{What does it say?}\end{center}
+  \vfill
+  \say{Około 4 minut. Pierwsze zadanie tylko z użyciem gotowej funkcji, bez zaglądania do środka.}
+\end{frame}
+
+\begin{frame}[fragile]{Task 1: what to do}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.6\textwidth}
+\begin{lstlisting}[style=py, emph={chacha20,print}, basicstyle=\color{VSText}\ttfamily\fontsize{6.4}{7.4}\selectfont]
+from chacha20_ready import chacha20
+
+key = bytes.fromhex("c0ffee00" * 8)              # 32 bytes
+nonce = bytes.fromhex("0000004a0000000000000007")   # 12 bytes
+ciphertext = bytes.fromhex(
+    "36323fcd0cbf7202049805976e0d4afda0a2bc36"
+    "3f02eea05b49125427ad01f9709e3275ef98d8"
+)
+
+# TODO: decrypt the ciphertext with
+#       chacha20(key, nonce, counter, data).
+#       The message was encrypted starting with counter 1.
+#       Print the plaintext as text: plaintext.decode()
+\end{lstlisting}
+    \column{0.39\textwidth}
+      \taskhead{Task 1}{Open \texttt{use\_chacha.py} from \ghlink{Task1}.}
+      \footnotesize
+      \begin{enumerate}\setlength{\itemsep}{4pt}
+        \item Call \texttt{chacha20} with counter 1.
+        \item Print the result as text.
+      \end{enumerate}
+  \end{columns}
+  \say{chacha20\_ready.py jest w folderze zadania, nie trzeba go czytać. Szyfrowanie i odszyfrowanie to ta sama funkcja.}
+\end{frame}
+
+\begin{frame}[fragile]{Solution: use ChaCha20}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.55\textwidth}
+% CHECKED: Task1/solution/use_chacha.py prints "The meeting moves to room 204 at 15:30."
+\begin{lstlisting}[style=py, emph={chacha20,print}]
+plaintext = chacha20(key, nonce, 1, ciphertext)
+print(plaintext.decode())
+\end{lstlisting}
+    \column{0.42\textwidth}
+      \stepbox{The output}{\texttt{The meeting moves to room 204 at 15:30.}}
+  \end{columns}
+  \vfill
+  \keymsg{To decrypt, call the same function again.}
+  \say{Kod sprawdzony, daje dokładnie ten tekst. Pytanie do sali: co zmienić, żeby odszyfrować tylko koniec wiadomości?}
+\end{frame}
+
+\begin{frame}{Task 2: jump to the middle}
+  \taskhead{Task 2}{\texttt{film.bin}: an encrypted film of 1000 blocks, 64 bytes each.
+    It was encrypted starting with counter 0: block $n$ used counter $n$.}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \foreach \k in {0,...,39} {
+        \ifnum\k=28 \node[ctb, minimum width=0.22cm, minimum height=0.6cm, inner sep=0pt] at ({0.26*\k},0) {};
+          \draw[annot] ({0.26*\k-0.15},-0.37) rectangle ({0.26*\k+0.15},0.37);
+        \else \node[ctb, minimum width=0.22cm, minimum height=0.6cm, inner sep=0pt, fill=sBrown!8] at ({0.26*\k},0) {}; \fi
+      }
+      \node[font=\scriptsize\bfseries, text=AccentOrange, anchor=north] at ({0.26*28},-0.4) {block 700};
+      \node[font=\tiny, text=gray, anchor=north] at (0,-0.4) {block 0};
+      \node[font=\tiny, text=gray, anchor=north] at ({0.26*39},-0.4) {block 999};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \small The program already decrypts the whole film and prints block 700.\\[3pt]
+  \textbf{Decrypt only block 700}, without blocks 0 to 699, and compare the times.
+  \vfill
+  \say{Około 5 minut. To samo co w zadaniu 1, tylko trzeba pomyśleć o liczniku. (Rysunek pokazuje film w skrócie, nie wszystkie 1000 bloków.)}
+\end{frame}
+
+\begin{frame}[fragile]{Task 2: what to do}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.6\textwidth}
+\begin{lstlisting}[style=py, emph={chacha20,print,open}, basicstyle=\color{VSText}\ttfamily\fontsize{6.4}{7.4}\selectfont]
+film = open("film.bin", "rb").read()       # 1000 blocks of 64 bytes
+# Encrypted starting with counter 0: block n used counter n.
+
+start = time.perf_counter()
+everything = chacha20(key, nonce, 0, film)
+print("whole film:", everything[700 * 64:701 * 64].decode().strip())
+print(f"  took {1000 * (time.perf_counter() - start):.1f} ms")
+
+start = time.perf_counter()
+# TODO: decrypt ONLY block 700
+#       (bytes 700*64 to 701*64 of the film).
+#       Which counter do you need?
+one_block = b""
+\end{lstlisting}
+      {\scriptsize\textcolor{gray}{Shortened on the slide: the imports, the key, the nonce and the last two prints are in the file.}}
+    \column{0.37\textwidth}
+      \taskhead{Task 2}{Open \texttt{jump.py} from \ghlink{Task2}.}
+      \footnotesize
+      \begin{enumerate}\setlength{\itemsep}{4pt}
+        \item Cut block 700 out of the film.
+        \item Decrypt it with the right counter.
+      \end{enumerate}
+      \stepbox{In Python}{a slice of bytes:\ \texttt{film[start:end]}}
+  \end{columns}
+  \say{Pomiar czasu jest już w pliku. Fragment bajtów w Pythonie: film[od:do].}
+\end{frame}
+
+\begin{frame}[fragile]{Solution: jump to the middle}
+% CHECKED: Task2/solution/jump.py, author's laptop: 135 to 138 ms and 0.1 to 0.2 ms in three runs
+\begin{lstlisting}[style=py, emph={chacha20}]
+one_block = chacha20(key, nonce, 700, film[700 * 64:701 * 64])
+\end{lstlisting}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \hbarrow{0.6}{whole film}{136}{0.05}{136 ms}
+      \hbarrow{0}{one block}{0.1}{0.05}{0.1 ms}
+    \end{tikzpicture}\\[4pt]
+    \small both print:\ \texttt{Frame 0700: the hero finally opens the red door.}
+  \end{center}
+  \vfill
+  \keymsg{The counter lets us decrypt any block on its own.}
+  \say{Kod sprawdzony; czasy z mojego laptopa, trzy uruchomienia dały 135 do 138 ms i 0,1 do 0,2 ms. U studentów liczby będą inne, ale różnica podobna.}
+\end{frame}
+
+\begin{frame}{Nonce and counter: two different jobs}
+  \vfill
+  \begin{center}
+    \small
+    \renewcommand{\arraystretch}{1.6}
+    \begin{tabular}{l l l}
+      \toprule
+      & changes between \ldots & who chooses it \\
+      \midrule
+      \tikz[baseline=-0.6ex]\node[draw=sAmber, line width=1pt, rounded corners=3pt, font=\scriptsize\bfseries, inner sep=3pt] {nonce}; & messages sent with one key & the sender, once per message \\
+      \tikz[baseline=-0.6ex]\node[draw=sAmber, line width=1pt, dashed, rounded corners=3pt, font=\scriptsize\bfseries, inner sep=3pt] {counter}; & blocks of one message & counts 0, 1, 2, \ldots\ by itself \\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+  \vfill
+  \begin{center}\small Both are public. The \textbf{key} is the only secret.\end{center}
+  \vfill
+  \keymsg{A (nonce, counter) pair must never repeat with the same key.}
+  \say{Powtórka pary nonce i licznik to dokładnie powtórka keystreamu, czyli błąd, który usuwa klucz.}
+\end{frame}
+
+\begin{frame}{How long can one message be?}
+  \begin{center}\small In ChaCha20 as used on the internet (\textbf{RFC 8439}):\end{center}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \foreach \k in {0,...,31} \node[draw=sAmber, dashed, thick, fill=white, minimum width=0.26cm, minimum height=0.4cm, inner sep=0pt] at ({0.28*\k},0) {};
+      \node[font=\scriptsize\bfseries, text=nInk, anchor=south] at (4.34,0.3) {counter: 32 bits $\rightarrow$ $2^{32}$ blocks};
+      \draw[data] (9.2,0) -- (10.2,0);
+      \node[font=\small, text=nInk, anchor=west, align=left] at (10.3,0) {$2^{32} \times 64$ bytes\\ $=$ \textbf{256 GiB}};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small for one key and nonce\end{center}
+  \vfill
+  \keymsg{After 256 GiB, a new nonce is needed.}
+  % CHECKED: 2**32 * 64 / 2**30 = 256
+  \say{RFC to dokument z oficjalną specyfikacją standardu internetowego. Większych wiadomości w praktyce się nie wysyła; protokoły internetowe i tak dzielą dane na małe kawałki.}
+\end{frame}
+
+% ======================================================================
+\section[Three simple operations]{Three simple operations}
+% ======================================================================
+
+\begin{frame}{Inside: only 32-bit words}
+  \begin{center}\small ChaCha20 does not work on single bytes. It works on \textbf{words}.\end{center}
+  \vfill
+  \begin{columns}[c,onlytextwidth]
+    \column{0.45\textwidth}
+      \centering
+      \begin{tikzpicture}
+        \foreach \b [count=\k from 0] in {61,70,78,65} \node[byte, minimum width=0.8cm, font=\ttfamily\small] at ({0.85*\k},0) {\b};
+        \draw[decorate, decoration={brace, mirror, amplitude=5pt}, nInk] (-0.4,-0.35) -- (2.95,-0.35)
+          node[midway, below=6pt, font=\scriptsize, text=nInk] {one word = 32 bits = 4 bytes};
+        \node[font=\ttfamily\small\bfseries, text=nInk] at (1.27,0.65) {0x61707865};
+      \end{tikzpicture}
+    \column{0.5\textwidth}
+      \centering
+      \begin{tikzpicture}
+        \foreach \i in {0,...,15} {\pgfmathtruncatemacro{\r}{\i/4}\pgfmathtruncatemacro{\c}{mod(\i,4)}
+          \node[cell, minimum width=0.9cm, minimum height=0.45cm] at ({0.95*\c},{-0.5*\r}) {};}
+        \node[font=\scriptsize, text=nInk, anchor=north] at (1.42,-1.85) {the state = 16 words = 64 bytes};
+      \end{tikzpicture}
+  \end{columns}
+  \vfill
+  \begin{center}\small Everything inside happens on these 16 words.\end{center}
+  \vfill
+  \say{Stan to cała pamięć szyfru w trakcie liczenia jednego bloku. 64 bajty stanu dają 64 bajty keystreamu.}
+\end{frame}
+
+\begin{frame}{Recall: mod}
+  \vfill
+  \begin{columns}[c,onlytextwidth]
+    \column{0.45\textwidth}
+      \centering
+      \begin{tikzpicture}[>=Stealth]
+        \draw[nLine, very thick, fill=nFill] (0,0) circle (1.6);
+        \foreach \h in {1,...,12} \node[font=\small, text=nInk] at ({90-30*\h}:1.28) {\h};
+        \draw[flow] (-60:1.95) arc (-60:-210:1.95);
+        \node[font=\scriptsize\bfseries, text=DeepBlue] at (0,0) {+5 hours};
+      \end{tikzpicture}
+    \column{0.52\textwidth}
+      \stepbox{$a$ mod $n$}{the remainder after dividing $a$ by $n$.\\ \texttt{7 mod 4 = 3},\quad \texttt{8 mod 4 = 0}}
+      \stepbox{A clock}{10 o'clock + 5 hours = 3 o'clock\\ \texttt{(10 + 5) mod 12 = 3}}
+      \stepbox{In Python}{\texttt{7 \% 4}}
+  \end{columns}
+  \vfill
+  \say{Mod przyda się za chwilę: dodawanie w ChaCha20 zawija się jak zegar, tylko tarcza ma 2 do potęgi 32 pozycji.}
+\end{frame}
+
+\begin{frame}{Operation 1: addition mod $2^{32}$}
+  \begin{center}\small A word has 32 bits. A carry out of bit 31 is \textbf{lost}.\end{center}
+  \vfill
+  \begin{center}
+    \ttfamily\small
+    \begin{tabular}{r r l}
+      & 0xFFFFFFFF & \quad 1111 1111 \ldots\ 1111 \\
+      + & 0x00000001 & \quad 0000 0000 \ldots\ 0001 \\
+      \hline
+      = & 0x00000000 & \tikz[baseline=-0.6ex]{\node[inner sep=1pt, text=AccentOrange, font=\ttfamily\small] (o) {1}; \draw[AccentOrange, thick] (o.south west) -- (o.north east);}\ 0000 0000 \ldots\ 0000 \\
+    \end{tabular}\\[4pt]
+    {\normalfont\scriptsize\textcolor{AccentOrange}{the 33rd bit is dropped}}
+  \end{center}
+  \vfill
+  \begin{center}\small It is addition mod $2^{32}$: the clock has 4\,294\,967\,296 positions.\end{center}
+  \vfill
+  \say{To samo robi procesor przy zwykłym dodawaniu liczb 32-bitowych, więc ta operacja jest bardzo szybka.}
+\end{frame}
+
+\begin{frame}{Addition in Python}
+  \begin{center}\small Python integers have no limit, so we cut the result to 32 bits ourselves:\end{center}
+  \pycode{\large (a + b) \& 0xFFFFFFFF}
+  \vfill
+  \begin{center}\small \texttt{0xFFFFFFFF} is 32 ones. \texttt{\&} keeps only the lowest 32 bits.\end{center}
+  \vfill
+  \begin{center}
+    \ttfamily\small
+    \begin{tabular}{l l}
+      0xFFFFFFFF + 1 & = 0x\textcolor{AccentOrange}{\textbf{1}}00000000 \\
+      (0xFFFFFFFF + 1) \& 0xFFFFFFFF & = 0x00000000 \\
+    \end{tabular}
+  \end{center}
+  \vfill
+  \say{\& to bitowe AND: bit zostaje tylko tam, gdzie maska ma 1. W C lub w procesorze nie trzeba tego robić, ucięcie dzieje się samo.}
+\end{frame}
+
+% a row of 32 bits in groups of 4: \bitrow{y}{label}{bits as a string of 8 groups separated by spaces}
+\begin{frame}{Operation 2: XOR on words}
+  \begin{center}\small The same XOR as for bytes, on 32 bits at once:\end{center}
+  \vfill
+  \begin{center}
+    % CHECKED: 0x12131415 ^ 0x01234567 = 0x13305172
+    \ttfamily\small
+    \renewcommand{\arraystretch}{1.4}
+    \begin{tabular}{r r l}
+      & 0x12131415 & \quad 0001 0010 0001 0011 0001 0100 0001 0101 \\
+      XOR & 0x01234567 & \quad 0000 0001 0010 0011 0100 0101 0110 0111 \\
+      \hline
+      = & 0x13305172 & \quad 0001 0011 0011 0000 0101 0001 0111 0010 \\
+    \end{tabular}
+  \end{center}
+  \vfill
+  \say{Te liczby nie są przypadkowe: zobaczymy je znowu w sekcji 4.}
+\end{frame}
+
+% 32 bits as cells: \bitcells[name]{y}{bit string of 32}{label}; cells are named <name>-0 ... <name>-31
+\newcommand{\bitcells}[4][B]{%
+  \node[rowlabel, font=\ttfamily\small] at (-0.3,#2) {#4};
+  \foreach \k in {0,...,31} {
+    \pgfmathsetmacro{\bx}{0.3*\k + 0.12*floor(\k/4)}
+    \node[cell, minimum width=0.27cm, minimum height=0.36cm, inner sep=0pt, font=\ttfamily\tiny] (#1-\k) at (\bx,#2) {\StrChar{#3}{\the\numexpr\k+1\relax}};
+  }}
+
+\begin{frame}{Operation 3: rotation}
+  \defbox{\textbf{Rotate left} by $n$: the bits that fall out on the left come back on the right.}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \bitcells[X]{0}{10000000000000000000000000000001}{x}
+      \node[font=\ttfamily\small, text=nInk, anchor=west] at (10.6,0) {0x80000001};
+      \bitcells[R]{-1.6}{00000000000000000000000000000011}{rotl(x, 1)}
+      \node[font=\ttfamily\small, text=nInk, anchor=west] at (10.6,-1.6) {0x00000003};
+      \draw[cellmark] (X-0.south west) rectangle (X-0.north east);
+      \draw[cellmark] (R-31.south west) rectangle (R-31.north east);
+      \draw[->, thick, AccentOrange] (X-0.south) -- (0,-0.8) -- ({0.3*31+0.12*7},-0.8) -- (R-31.north);
+      \node[font=\scriptsize\bfseries, text=AccentOrange, fill=white, inner sep=1pt] at (5.0,-0.8) {the top bit comes back at the bottom};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small No bit is lost, the word just turns around.\end{center}
+  \vfill
+  \keymsg{Rotation moves bits to new positions without losing any.}
+  \say{Rotacja przenosi bity na inne pozycje, dzięki czemu bity z góry słowa wpływają na dół i odwrotnie. Pozostałe bity przesuwają się o jedno miejsce w lewo.}
+\end{frame}
+
+\begin{frame}{Rotation is not a shift}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \bitcells[X]{0}{10000000000000000000000000000001}{x}
+      \bitcells[S]{-0.9}{00000000000000000000000000000010}{x << 1}
+      \node[font=\scriptsize, text=nInk, anchor=west] at (10.5,-0.9) {\nok\ top bit lost};
+      \bitcells[T]{-1.8}{00000000000000000000000000000011}{rotl(x, 1)}
+      \node[font=\scriptsize, text=nInk, anchor=west] at (10.5,-1.8) {\ok\ top bit back};
+      \draw[cellmark] (T-31.south west) rectangle (T-31.north east);
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small In Python, a rotation by $n$ is built from two shifts:\end{center}
+  \pycode{\large ((x << n) | (x >> (32 - n))) \& 0xFFFFFFFF}
+  \vfill
+  \say{| to bitowe OR. Lewe przesunięcie robi miejsce, prawe przynosi bity z góry na dół. Wiele procesorów ma rotację jako jedną instrukcję.}
+\end{frame}
+
+\begin{frame}{ARX}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \foreach \ic/\t/\k in {{\textbf{+}}/Add/0, {\faRedo}/Rotate/1, {$\oplus$}/XOR/2} {
+        \node[hw, minimum width=3.2cm, minimum height=2.4cm] at ({4.0*\k},0) {};
+        \node[text=nInk, font=\fontsize{34}{36}\selectfont] at ({4.0*\k},0.3) {\ic};
+        \node[font=\large\bfseries, text=nInk] at ({4.0*\k},-0.75) {\t};
+      }
+      \node[font=\huge\bfseries, text=DeepBlue] at (0,-1.6) {A};
+      \node[font=\huge\bfseries, text=DeepBlue] at (4,-1.6) {R};
+      \node[font=\huge\bfseries, text=DeepBlue] at (8,-1.6) {X};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small Three operations that every processor does in one step.\\ No tables in memory, no special instructions.\end{center}
+  \keymsg{Salsa20 and ChaCha20 are only these three operations, repeated many times.}
+  \say{Szyfry z tej rodziny nazywa się ARX od pierwszych liter. Brak tablic okaże się ważny w sekcji 6.}
+\end{frame}
+
+\begin{frame}{Task 3: write the operations}
+  \taskhead{Task 3}{Write two functions on 32-bit words. The program checks six examples and prints OK or FAIL for each.}
+  \vfill
+  \begin{columns}[T,onlytextwidth]
+    \column{0.48\textwidth}
+      \stepbox{\texttt{add32(a, b)}}{addition mod $2^{32}$\\[2pt] \texttt{add32(0xFFFFFFFF, 0x00000001)} $\rightarrow$ \texttt{0x00000000}}
+    \column{0.48\textwidth}
+      \stepbox{\texttt{rotl32(x, n)}}{rotation left by $n$ bits\\[2pt] \texttt{rotl32(0x80000001, 1)} $\rightarrow$ \texttt{0x00000003}}
+  \end{columns}
+  \vfill
+  \say{Około 6 minut. Oba wzory były na poprzednich slajdach, ale niech spróbują bez patrzenia.}
+\end{frame}
+
+\begin{frame}[fragile]{Task 3: what to do}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.6\textwidth}
+\begin{lstlisting}[style=py]
+MASK = 0xFFFFFFFF   # 32 ones: keeps only the lowest 32 bits
+
+
+def add32(a, b):
+    # TODO: add a and b and keep only 32 bits
+    pass
+
+
+def rotl32(x, n):
+    # TODO: rotate the 32-bit word x left by n bits
+    pass
+\end{lstlisting}
+      {\scriptsize\textcolor{gray}{Shortened on the slide: the six tests and longer comments are in the file.}}
+    \column{0.37\textwidth}
+      \taskhead{Task 3}{Open \texttt{arx.py} from \ghlink{Task3}.}
+      \stepbox{One line of the output}{\scriptsize\texttt{OK \ rotl32: got 0x00000003,\\ \ \ \ \ expected 0x00000003}}
+      \footnotesize At the start all six tests give \texttt{FAIL}.
+  \end{columns}
+  \say{Testy są gotowe na dole pliku. Na początku wszystkie sześć daje FAIL.}
+\end{frame}
+
+\begin{frame}[fragile]{Solution: write the operations}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.58\textwidth}
+% CHECKED: Task3/solution/arx.py prints OK six times
+\begin{lstlisting}[style=py]
+def add32(a, b):
+    return (a + b) & MASK
+
+def rotl32(x, n):
+    return ((x << n) | (x >> (32 - n))) & MASK
+\end{lstlisting}
+    \column{0.39\textwidth}
+      \stepbox{The output}{\texttt{OK} six times}
+  \end{columns}
+  \vfill
+  \say{Kod sprawdzony. Te dwie funkcje są gotowe we wszystkich kolejnych zadaniach, więc nikt nie musi ich przepisywać.}
+\end{frame}
+
+\begin{frame}{Why mix all three?}
+  \vfill
+  \begin{columns}[T,onlytextwidth]
+    \column{0.48\textwidth}
+      \stepbox{XOR and rotation alone}{each output bit = XOR of some input bits\\[3pt]
+        \texttt{\scriptsize y5 = x2 \textasciicircum{} x9 \textasciicircum{} x30}\\[3pt]
+        the attacker can solve it like a set of equations}
+    \column{0.48\textwidth}
+      \stepbox{Addition}{the carry depends on two bits at once\\[3pt]
+        \texttt{\scriptsize carry = x \& y}\quad (1 only if both are 1)\\[3pt]
+        this is \textbf{not} a XOR of bits any more}
+  \end{columns}
+  \vfill
+  \keymsg{Addition breaks the equations. XOR and rotation spread the bits.}
+  \say{Zależność, którą da się zapisać jako XOR bitów, nazywamy liniową. Wrócimy do tego w sekcji 5. (Równanie y5 na slajdzie to tylko przykład postaci, nie konkretny bit ChaCha20.)}
+\end{frame}
+
+% ======================================================================
+\section[Salsa20]{Salsa20}
+% ======================================================================
+
+\newcommand{\positions}{0/x,1/x,2/x,3/x,4/x,5/x,6/x,7/x,8/x,9/x,10/x,11/x,12/x,13/x,14/x,15/x}
+
+\begin{frame}{The state: a 4 by 4 table}
+  \begin{center}\small The 16 words of the state are drawn as a 4 by 4 table:\end{center}
+  \vfill
+  \begin{center}\statefig[1.9]{\positions}{}\end{center}
+  \vfill
+  \begin{center}\small The numbers are the \textbf{positions} of the words, 0 to 15.\end{center}
+  \vfill
+  \say{Ten sam układ ma Salsa20 i ChaCha20. Różni się tylko to, co wpisujemy w które pole.}
+\end{frame}
+
+\begin{frame}{Salsa20: what goes where}
+  \begin{columns}[c,onlytextwidth]
+    \column{0.55\textwidth}
+      \centering
+      \statefig[1.6]{const/c,key/k,key/k,key/k,key/k,const/c,nonce/n,nonce/n,count/t,count/t,const/c,key/k,key/k,key/k,key/k,const/c}{}\\[6pt]
+      \statelegend
+    \column{0.42\textwidth}
+      \small
+      \renewcommand{\arraystretch}{1.4}
+      \begin{tabular}{l r}
+        key & 8 words = 256 bits \\
+        nonce & 2 words = 64 bits \\
+        counter & 2 words = 64 bits \\
+        const & 4 words on the diagonal \\
+      \end{tabular}
+  \end{columns}
+  \vfill
+  \say{Klucz zajmuje połowę stanu. Napastnik zna stałe, nonce i licznik, nie zna tylko 8 słów klucza.}
+\end{frame}
+
+\begin{frame}{The constants}
+  \begin{center}\small The four constant words are ASCII text:\end{center}
+  \vfill
+  \begin{center}
+    % CHECKED: python3, struct.pack("<4I", ...) of the four words = b"expand 32-byte k"
+    \begin{tikzpicture}
+      \foreach \w/\t [count=\k from 0] in {61707865/expa, 3320646e/{nd 3}, 79622d32/{2-by}, 6b206574/{te k}} {
+        \node[st-c, minimum width=2.4cm, font=\ttfamily\small] at ({2.7*\k},0) {0x\w};
+        \node[font=\ttfamily\normalsize, text=nInk] at ({2.7*\k},-0.65) {"\t"};
+      }
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\Large\texttt{"expand 32-byte k"}\end{center}
+  \vfill
+  \keymsg{A fixed part of the state that nobody can choose.}
+  \say{Bajty w słowie czytamy od końca (wyjaśnimy to w sekcji 4), stąd 0x61707865 to expa. Stałe gwarantują, że nawet przy kluczu z samych zer stan nie jest pusty, i że napastnik nie wybiera całego stanu.}
+\end{frame}
+
+% the Salsa20 quarter round in a code window: #1 = the line that runs now (0 = none)
+\newcommand{\salsacode}[1]{%
+  \begin{tikzpicture}
+    \codebox{4}{4.2}
+    \cl{1}{b \textasciicircum= rotl(a + d, 7)}
+    \cl{2}{c \textasciicircum= rotl(b + a, 9)}
+    \cl{3}{d \textasciicircum= rotl(c + b, 13)}
+    \cl{4}{a \textasciicircum= rotl(d + c, 18)}
+    \ifnum#1>0 \clmark{#1}\fi
+  \end{tikzpicture}}
+
+\begin{frame}{The Salsa20 quarter round}
+  \begin{columns}[c,onlytextwidth]
+    \column{0.45\textwidth}
+      \centering
+      {\small quarter round of four words a, b, c, d}\\[4pt]
+      \salsacode{0}
+    \column{0.52\textwidth}
+      \stepbox{Every line}{add two words, rotate, XOR into the third.}
+      \stepbox{\texttt{+}}{is addition mod $2^{32}$.}
+      \defbox{A \textbf{quarter round} mixes 4 of the 16 words.}
+  \end{columns}
+  \vfill
+  \keymsg{The quarter round mixes four words with ARX.}
+  \say{Quarter round to podstawowy klocek: działa na czterech słowach z szesnastu, stąd ćwierć. Runda Salsa20 to cztery quarter round.}
+\end{frame}
+
+\begin{frame}{Task 4: one quarter round of Salsa20}
+  \taskhead{Task 4}{Input:\ \texttt{a = 0x00000001,\ b = 0,\ c = 0,\ d = 0}.
+    Write the four lines and print the words after each line.}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \bitcells[A]{0}{00000000000000000000000000000001}{a}
+      \bitcells[Bw]{-0.5}{00000000000000000000000000000000}{b}
+      \bitcells[C]{-1.0}{00000000000000000000000000000000}{c}
+      \bitcells[D]{-1.5}{00000000000000000000000000000000}{d}
+      \draw[cellmark] (A-31.south west) rectangle (A-31.north east);
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small\textbf{Predict first:} the input has a single 1 bit.\\
+    How many 1 bits will the four words have at the end?\end{center}
+  \vfill
+  \say{Około 6 minut. Najpierw niech zapiszą przewidywanie na kartce. Można liczyć ręcznie, ale Python jest szybszy.}
+\end{frame}
+
+\begin{frame}[fragile]{Task 4: what to do}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.62\textwidth}
+\begin{lstlisting}[style=py, basicstyle=\color{VSText}\ttfamily\fontsize{6.4}{7.4}\selectfont]
+def salsa_quarter_round(a, b, c, d):
+    # TODO: the four lines of the Salsa20 quarter round
+    #   b ^= rotl(a + d, 7)
+    #   c ^= rotl(b + a, 9)
+    #   d ^= rotl(c + b, 13)
+    #   a ^= rotl(d + c, 18)
+    # use add32 for + and rotl32 for rotl;
+    # print a, b, c, d after every line
+    return a, b, c, d
+\end{lstlisting}
+    \column{0.35\textwidth}
+      \taskhead{Task 4}{Open \texttt{salsa\_qr.py} from \ghlink{Task4}.}
+      \stepbox{Ready in the file}{\texttt{add32} and \texttt{rotl32}}
+  \end{columns}
+  \say{Gotowe add32 i rotl32 są w pliku, więc zadanie nie wymaga zadania 3.}
+\end{frame}
+
+\begin{frame}{Solution: one quarter round of Salsa20}
+  \vfill
+  \begin{center}
+    % CHECKED: Task4/solution/salsa_qr.py; the same as the example in Bernstein's Salsa20 specification
+    \ttfamily\small
+    \renewcommand{\arraystretch}{1.35}
+    \begin{tabular}{l c c c c}
+      \toprule
+      & a & b & c & d \\
+      \midrule
+      start & 0x00000001 & 0x00000000 & 0x00000000 & 0x00000000 \\
+      line 1 & 0x00000001 & \cellcolor{AccentOrange!18}0x00000080 & 0x00000000 & 0x00000000 \\
+      line 2 & 0x00000001 & 0x00000080 & \cellcolor{AccentOrange!18}0x00010200 & 0x00000000 \\
+      line 3 & 0x00000001 & 0x00000080 & 0x00010200 & \cellcolor{AccentOrange!18}0x20500000 \\
+      line 4 & \cellcolor{AccentOrange!18}0x08008145 & 0x00000080 & 0x00010200 & 0x20500000 \\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+  \vfill
+  \begin{center}\small 1 bit in, \textbf{12 bits} out, after one quarter round.\end{center}
+  \vfill
+  \keymsg{One bit already reaches all four words.}
+  \say{Wynik zgadza się z przykładem w specyfikacji Salsa20 Bernsteina (6 + 1 + 2 + 3 = 12 jedynek). Po pełnych 20 rundach różnica obejmie cały blok, zmierzymy to w sekcji 5.}
+\end{frame}
+
+% the block function as a flow, top to bottom: #1 = 1 mark the final addition
+\newcommand{\blockflow}[1]{%
+  \def\flowwide{1}\ifnum#1=1 \def\flowwide{0}\fi
+  \begin{tikzpicture}[>=Stealth, node distance=0.42cm]
+    \node[cell, font=\small, minimum width=4.6cm] (in) {key + nonce + counter + constants};
+    \node[cell, fill=nFill, font=\small, minimum width=4.6cm, below=of in] (st) {initial state (16 words)};
+    \node[hwmain, font=\small\bfseries, minimum width=4.6cm, below=of st] (r) {\faCogs\ 20 rounds of quarter rounds};
+    \node[circle, draw=nInk, very thick, fill=white, font=\large, inner sep=0pt, minimum size=0.6cm, below=of r] (add) {$+$};
+    \node[ksb, font=\small, minimum width=4.6cm, minimum height=0.55cm, below=of add] (out) {64 bytes of keystream};
+    \draw[data] (in) -- (st); \draw[data] (st) -- (r); \draw[data] (r) -- (add); \draw[data] (add) -- (out);
+    \draw[data] (st.east) -- ++(1.0,0) coordinate (side) |- (add.east);
+    \ifnum\flowwide=1
+      \node[font=\scriptsize, text=nInk, anchor=west] at ($(side)!0.5!(side |- add.east)$) {add the initial state};
+      \draw[data] (out.east) -- ++(0.6,0) node[right, font=\scriptsize, text=nInk] {XOR with 64 bytes of plaintext};
+    \fi
+    \ifnum#1=1 \draw[annot] ([shift={(-0.1,-0.1)}]add.south west) rectangle ([shift={(0.1,0.1)}]add.north east); \fi
+  \end{tikzpicture}}
+
+\begin{frame}{From the state to a block}
+  \vfill
+  \begin{center}\blockflow{0}\end{center}
+  \vfill
+  \say{Ten sam przepływ ma ChaCha20. Po co jest dodanie stanu początkowego na końcu, sprawdzimy w sekcji 5 atakiem.}
+\end{frame}
+
+\begin{frame}{Salsa20 today}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \draw[nLine, very thick] (0,0) -- (10,0);
+      \foreach \x/\y/\t in {1/2005/{Salsa20 designed}, 5/2008/{eSTREAM recommends Salsa20/12}, 9/today/{NaCl, libsodium (as XSalsa20)}} {
+        \fill[nInk] (\x,0) circle (0.1);
+        \node[font=\small\bfseries, text=nInk, anchor=south] at (\x,0.2) {\y};
+        \node[font=\scriptsize, text=nInk, anchor=north, text width=3.2cm, align=center] at (\x,-0.2) {\t};
+      }
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \small \textbf{eSTREAM}: a European competition for stream ciphers. In 2008 it recommends Salsa20/12 (12 rounds) for software.\\[4pt]
+  Used in the NaCl and libsodium libraries (as XSalsa20), for example in Keybase chat.
+  \vfill
+  \keymsg{ChaCha20 keeps the idea and changes the details.}
+  \say{XSalsa20 to Salsa20 z dłuższym nonce. Salsa20 jest nadal bezpieczny, ale nowe systemy wybierają ChaCha20.}
+\end{frame}
+
+% ======================================================================
+\section[ChaCha20: one block]{ChaCha20: one block}
+% ======================================================================
+
+% CHECKED (python3, Task6/solution/block.py and a separate script, RFC 8439):
+%   2.1.1 quarter round and every step below; 2.3.2 state, state after 20 rounds, block 10f1e7e4...
+
+\begin{frame}{What ChaCha20 changes}
+  \vfill
+  \begin{columns}[T,onlytextwidth]
+    \column{0.32\textwidth}
+      \stepbox{\badge{1}\ A new quarter round}{each word changes twice, rotations 16, 12, 8, 7.}
+    \column{0.32\textwidth}
+      \stepbox{\badge{2}\ A new layout}{the constants in the first row, the key in rows 2 and 3.}
+    \column{0.32\textwidth}
+      \stepbox{\badge{3}\ Rounds alternate}{columns, then diagonals.}
+  \end{columns}
+  \vfill
+  \keymsg{More mixing per round, the same three operations.}
+  \say{Bernstein pokazał w 2008 roku, że te zmiany szybciej rozprowadzają różnice między bitami, a szyfr nie jest wolniejszy. Każdą z trzech zmian zobaczymy osobno.}
+\end{frame}
+
+\newcommand{\chachalayout}{const/c,const/c,const/c,const/c,key/k,key/k,key/k,key/k,key/k,key/k,key/k,key/k,counter/t,nonce/n,nonce/n,nonce/n}
+\newcommand{\rfcstate}{61707865/c,3320646e/c,79622d32/c,6b206574/c,03020100/k,07060504/k,0b0a0908/k,0f0e0d0c/k,13121110/k,17161514/k,1b1a1918/k,1f1e1d1c/k,00000001/t,09000000/n,4a000000/n,00000000/n}
+
+\begin{frame}{The ChaCha20 state}
+  \vfill
+  \begin{center}\statefig[1.9]{\chachalayout}{}\\[6pt] \statelegend\end{center}
+  \vfill
+  \begin{center}\small constants 128 bits\qquad key 256 bits\qquad counter 32 bits\qquad nonce 96 bits\end{center}
+  \vfill
+  \say{To wersja z RFC 8439, używana w protokołach internetowych: licznik 32 bity, nonce 96 bitów. Oryginalny ChaCha20 Bernsteina miał po 64 bity, jak Salsa20.}
+\end{frame}
+
+\begin{frame}{Little-endian}
+  \begin{center}\small Four bytes become one word with the \textbf{lowest byte first}:\end{center}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \node[rowlabel, font=\small] at (-0.6,1.2) {bytes of the key};
+      \foreach \b [count=\k from 0] in {00,01,02,03} \node[st-k, minimum width=0.9cm, font=\ttfamily\small] (y\k) at ({1.1*\k},1.2) {\b};
+      \node[rowlabel, font=\small] at (-0.6,-0.4) {word};
+      \node[font=\ttfamily\small, text=nInk, anchor=east] at (-0.18,-0.4) {0x};
+      \foreach \b [count=\k from 0] in {03,02,01,00} \node[st-k, minimum width=0.9cm, font=\ttfamily\small] (w\k) at ({1.1*\k+0.3},-0.4) {\b};
+      \foreach \k in {0,1,2,3} {\pgfmathtruncatemacro{\j}{3-\k} \draw[data, thick] (y\k.south) -- (w\j.north);}
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small In Python:\ \texttt{struct.unpack("<I", b"\textbackslash x00\textbackslash x01\textbackslash x02\textbackslash x03")}\ $\rightarrow$\ \texttt{0x03020100}\\[4pt]
+    This is the order used by most processors.\end{center}
+  \vfill
+  \say{Bez tego slajdu nikt nie odczyta stanu z RFC. < w struct oznacza little-endian, I to słowo 32-bitowe.}
+\end{frame}
+
+\begin{frame}{The state of the RFC example}
+  \begin{center}\small key = \texttt{00 01 02 \ldots\ 1f},\quad counter = 1,\quad nonce = \texttt{00 00 00 09 00 00 00 4a 00 00 00 00}\end{center}
+  \vfill
+  \begin{center}\statefig[1.9]{\rfcstate}{}\\[6pt] \statelegend\end{center}
+  \vfill
+  \say{To przykład z RFC 8439, punkt 2.3.2. Te liczby zobaczymy do końca sekcji, a w zadaniu 6 studenci dostaną dokładnie ten wynik.}
+\end{frame}
+
+\begin{frame}{The ChaCha20 quarter round}
+  \begin{columns}[c,onlytextwidth]
+    \column{0.48\textwidth}
+      \centering
+      {\small quarter round of four words a, b, c, d}\\[4pt]
+      \qrcode{0}
+    \column{0.49\textwidth}
+      \stepbox{Every line}{add, XOR, rotate.\quad \texttt{+=} is addition mod $2^{32}$.}
+      \stepbox{Each of the four words changes twice}{In Salsa20 every word changed once.}
+  \end{columns}
+  \vfill
+  \say{Porównać z Salsa20: tam każde słowo zmieniało się raz. Tu a i c dodają, b i d są mieszane XOR i rotacją. Teraz policzymy to na liczbach z RFC.}
+\end{frame}
+
+% one step of the quarter round: #1 line, #2 three lines of the calculation, #3 to #6 the words, #7 changed words
+\newcommand{\qrstep}[7]{%
+  \begin{columns}[c,onlytextwidth]
+    \column{0.47\textwidth}
+      \centering\qrcode{#1}
+    \column{0.5\textwidth}
+      \plainbox{\raggedright\ttfamily\small #2}
+  \end{columns}
+  \vfill
+  \begin{center}\abcd{#3}{#4}{#5}{#6}{#7}\end{center}
+  \vfill}
+
+\begin{frame}{Quarter round: the start}
+  \qrstep{0}{RFC 8439, section 2.1.1:\\ the test vector of the quarter round}{0x11111111}{0x01020304}{0x9b8d6f43}{0x01234567}{}
+  \say{Wektor testowy z RFC 8439, punkt 2.1.1. Liczymy linijka po linijce; Python wystarcza jako kalkulator.}
+\end{frame}
+
+\begin{frame}{Quarter round, line 1}
+  \qrstep{1}{a = 0x11111111 + 0x01020304 = 0x12131415\\ d = 0x01234567 \textasciicircum{} 0x12131415 = 0x13305172\\ d = rotl(0x13305172, 16)\ \ = 0x51721330}{0x12131415}{0x01020304}{0x9b8d6f43}{0x51721330}{a,d}
+  \say{Pierwsza linijka. XOR na 0x12131415 i 0x01234567 widzieliśmy już przy operacji 2. Rotacja o 16 zamienia połówki słowa miejscami.}
+\end{frame}
+
+\begin{frame}{Quarter round, line 2}
+  \qrstep{2}{c = 0x9b8d6f43 + 0x51721330 = 0xecff8273\\ b = 0x01020304 \textasciicircum{} 0xecff8273 = 0xedfd8177\\ b = rotl(0xedfd8177, 12)\ \ = 0xd8177edf}{0x12131415}{0xd8177edf}{0xecff8273}{0x51721330}{b,c}
+  \say{Rotacja o 12 bitów to przesunięcie o 3 cyfry hex, więc łatwo ją sprawdzić okiem: edfd8177 staje się d8177edf.}
+\end{frame}
+
+\begin{frame}{Quarter round, line 3}
+  \qrstep{3}{a = 0x12131415 + 0xd8177edf = 0xea2a92f4\\ d = 0x51721330 \textasciicircum{} 0xea2a92f4 = 0xbb5881c4\\ d = rotl(0xbb5881c4, 8)\ \ \ = 0x5881c4bb}{0xea2a92f4}{0xd8177edf}{0xecff8273}{0x5881c4bb}{a,d}
+  \say{Rotacja o 8 bitów to przesunięcie o dwie cyfry hex: bb5881c4 staje się 5881c4bb.}
+\end{frame}
+
+\begin{frame}{Quarter round, line 4}
+  \qrstep{4}{c = 0xecff8273 + 0x5881c4bb = 0x4581472e\\ \textnormal{\scriptsize\textcolor{AccentOrange}{(a carry was lost)}}\\ b = 0xd8177edf \textasciicircum{} 0x4581472e = 0x9d9639f1\\ b = rotl(0x9d9639f1, 7)\ \ \ = 0xcb1cf8ce}{0xea2a92f4}{0xcb1cf8ce}{0x4581472e}{0x5881c4bb}{b,c}
+  \keymsg{The result matches RFC 8439, section 2.1.1.}
+  \say{Przy dodawaniu wypadła jedynka poza 32 bity, to jest właśnie mod 2 do 32. Rotacji o 7 nie da się już sprawdzić okiem, bo 7 nie dzieli się przez 4.}
+\end{frame}
+
+\begin{frame}{Task 5: write the quarter round}
+  \taskhead{Task 5}{Write the ChaCha20 quarter round on four words. Test it on the example from RFC 8439:}
+  \vfill
+  \begin{center}
+    \ttfamily\small
+    \renewcommand{\arraystretch}{1.5}
+    \begin{tabular}{l l l l l}
+      \normalfont in & 0x11111111 & 0x01020304 & 0x9b8d6f43 & 0x01234567 \\
+      \normalfont out & 0xea2a92f4 & 0xcb1cf8ce & 0x4581472e & 0x5881c4bb \\
+    \end{tabular}
+  \end{center}
+  \vfill
+  \say{Około 8 minut. Wartości pośrednie są na poprzednich slajdach, przydadzą się, jeśli coś nie wyjdzie.}
+\end{frame}
+
+\begin{frame}[fragile]{Task 5: what to do}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.6\textwidth}
+\begin{lstlisting}[style=py, basicstyle=\color{VSText}\ttfamily\fontsize{6.4}{7.4}\selectfont]
+def quarter_round(a, b, c, d):
+    # TODO: the four lines of the ChaCha20 quarter round
+    #   a += b; d ^= a; d = rotl(d, 16)
+    #   c += d; b ^= c; b = rotl(b, 12)
+    #   a += b; d ^= a; d = rotl(d, 8)
+    #   c += d; b ^= c; b = rotl(b, 7)
+    # use add32 for += and rotl32 for rotl
+    return a, b, c, d
+\end{lstlisting}
+    \column{0.37\textwidth}
+      \taskhead{Task 5}{Open \texttt{quarter\_round.py} from \ghlink{Task5}.}
+      \stepbox{Ready in the file}{\texttt{add32} and \texttt{rotl32}. The program prints OK or FAIL.}
+  \end{columns}
+  \say{Częsty błąd: zwykłe + zamiast add32, wtedy liczby rosną ponad 32 bity i test daje FAIL.}
+\end{frame}
+
+\begin{frame}[fragile]{Solution: write the quarter round}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.58\textwidth}
+% CHECKED: Task5/solution/quarter_round.py prints OK
+\begin{lstlisting}[style=py, emph={add32,rotl32}]
+def quarter_round(a, b, c, d):
+    a = add32(a, b); d ^= a; d = rotl32(d, 16)
+    c = add32(c, d); b ^= c; b = rotl32(b, 12)
+    a = add32(a, b); d ^= a; d = rotl32(d, 8)
+    c = add32(c, d); b ^= c; b = rotl32(b, 7)
+    return a, b, c, d
+\end{lstlisting}
+    \column{0.39\textwidth}
+      \stepbox{The output}{\scriptsize\texttt{got:\ \ \ \ \ 0xea2a92f4 0xcb1cf8ce\\ \ \ \ \ \ \ \ \ \ \ 0x4581472e 0x5881c4bb}\\[2pt]
+        \texttt{OK}}
+  \end{columns}
+  \say{Kod sprawdzony. Cztery linijki to cały klocek ChaCha20; reszta to tylko decyzja, na których słowach go wywołać.}
+\end{frame}
+
+% the state with the four quarter rounds of one round, one of them lit: #1 = 0 column, 1 diagonal; #2 = lit group (1 to 4)
+\newcommand{\roundfig}[2]{%
+  \ifnum#1=0
+    \def\groups{0/A,1/B,2/C,3/D,4/A,5/B,6/C,7/D,8/A,9/B,10/C,11/D,12/A,13/B,14/C,15/D}
+  \else
+    \def\groups{0/A,1/B,2/C,3/D,4/D,5/A,6/B,7/C,8/C,9/D,10/A,11/B,12/B,13/C,14/D,15/A}
+  \fi
+  \begin{tikzpicture}
+    \foreach \p/\g [count=\i from 0] in \groups {
+      \pgfmathtruncatemacro{\r}{\i/4}\pgfmathtruncatemacro{\c}{mod(\i,4)}
+      \node[wcell, minimum width=1.5cm, font=\ttfamily\small] (G\i) at ({1.6*\c},{-0.65*\r}) {\p\ \textbf{\g}};
+      \edef\lit{\ifcase#2\or A\or B\or C\or D\fi}
+      \ifx\g\lit \draw[cellmark] (G\i.south west) rectangle (G\i.north east); \fi
+    }
+  \end{tikzpicture}}
+\newcommand{\qrcall}[3]{\ifnum#1=#2 \textbf{\textcolor{AccentOrange}{#3}}\else #3\fi}
+
+\begin{frame}{A column round}
+  \begin{columns}[c,onlytextwidth]
+    \column{0.5\textwidth}
+      \centering
+      \only<1>{\roundfig{0}{1}}\only<2>{\roundfig{0}{2}}\only<3>{\roundfig{0}{3}}\only<4>{\roundfig{0}{4}}
+    \column{0.47\textwidth}
+      \ttfamily\small
+      \only<1>{\qrcall{1}{1}{A: quarter\_round(0, 4, 8, 12)}}\only<2-4>{A: quarter\_round(0, 4, 8, 12)}\\[3pt]
+      \only<2>{\qrcall{1}{1}{B: quarter\_round(1, 5, 9, 13)}}\only<1,3-4>{B: quarter\_round(1, 5, 9, 13)}\\[3pt]
+      \only<3>{\qrcall{1}{1}{C: quarter\_round(2, 6, 10, 14)}}\only<1-2,4>{C: quarter\_round(2, 6, 10, 14)}\\[3pt]
+      \only<4>{\qrcall{1}{1}{D: quarter\_round(3, 7, 11, 15)}}\only<1-3>{D: quarter\_round(3, 7, 11, 15)}
+  \end{columns}
+  \vfill
+  \defbox{\textbf{Column round}: four quarter rounds, each on one column of the state.}
+  \note<4>{\selectlanguage{polish}Cztery quarter round, każda na jednej kolumnie. Po rundzie kolumnowej każde słowo zależy od słów ze swojej kolumny, ale nie od innych kolumn.}
+\end{frame}
+
+\begin{frame}{A diagonal round}
+  \begin{columns}[c,onlytextwidth]
+    \column{0.5\textwidth}
+      \centering
+      \only<1>{\roundfig{1}{1}}\only<2>{\roundfig{1}{2}}\only<3>{\roundfig{1}{3}}\only<4>{\roundfig{1}{4}}
+    \column{0.47\textwidth}
+      \ttfamily\small
+      \only<1>{\qrcall{1}{1}{A: quarter\_round(0, 5, 10, 15)}}\only<2-4>{A: quarter\_round(0, 5, 10, 15)}\\[3pt]
+      \only<2>{\qrcall{1}{1}{B: quarter\_round(1, 6, 11, 12)}}\only<1,3-4>{B: quarter\_round(1, 6, 11, 12)}\\[3pt]
+      \only<3>{\qrcall{1}{1}{C: quarter\_round(2, 7, 8, 13)}}\only<1-2,4>{C: quarter\_round(2, 7, 8, 13)}\\[3pt]
+      \only<4>{\qrcall{1}{1}{D: quarter\_round(3, 4, 9, 14)}}\only<1-3>{D: quarter\_round(3, 4, 9, 14)}
+  \end{columns}
+  \vfill
+  \defbox{\textbf{Diagonal round}: four quarter rounds, each on one diagonal; a diagonal wraps around the edge.}
+  \note<4>{\selectlanguage{polish}Przekątna zawija się na brzegu tablicy, jak mod. Każda przekątna ma po jednym słowie z każdej kolumny.}
+\end{frame}
+
+\begin{frame}{Two rounds: every word meets every other}
+  \begin{columns}[c,onlytextwidth]
+    \column{0.5\textwidth}
+      \centering
+      \begin{tikzpicture}
+        \foreach \i in {0,...,15} {
+          \pgfmathtruncatemacro{\r}{\i/4}\pgfmathtruncatemacro{\c}{mod(\i,4)}
+          \node[wcell, minimum width=1.5cm, font=\ttfamily\small] (H\i) at ({1.6*\c},{-0.65*\r}) {\i};
+        }
+        \draw[cellmark] (H0.south west) rectangle (H0.north east);
+        \foreach \i in {4,8,12} \draw[annot, dashed] (H\i.south west) rectangle (H\i.north east);
+      \end{tikzpicture}
+    \column{0.47\textwidth}
+      \stepbox{After a column round}{word 0 depends on words 0, 4, 8, 12}
+      \stepbox{After a diagonal round}{word 0 depends on \textbf{all 16 words}}
+  \end{columns}
+  \vfill
+  \defbox{A column round and a diagonal round together are a \textbf{double round}.}
+  \keymsg{One double round connects every word with every other word.}
+  \say{Słowo 0 po rundzie diagonalnej miesza się ze słowami 5, 10 i 15, a każde z nich wcześniej mieszało się ze swoją kolumną. Dlatego zależy od wszystkich szesnastu.}
+\end{frame}
+
+\begin{frame}{Twenty rounds}
+  \begin{columns}[c,onlytextwidth]
+    \column{0.42\textwidth}
+      \begin{tikzpicture}
+        \codebox{3}{5.4}
+        \cl{1}{\kw{for} \_ \kw{in} \fn{range}(10):\ \ \cm{\# 10 double rounds}}
+        \cl{2}{\tb column round}
+        \cl{3}{\tb diagonal round}
+      \end{tikzpicture}
+    \column{0.56\textwidth}
+      \centering
+      {\small The RFC example after 20 rounds:}\\[4pt]
+      \statefig[1.55]{837778ab/x,e238d763/x,a67ae21e/x,5950bb2f/x,c4f2d0c7/x,fc62bb2f/x,8fa018fc/x,3f5ec7b7/x,335271c2/x,f29489f3/x,eabda8fc/x,82e46ebd/x,d19c12b4/x,b04e16de/x,9e83d0cb/x,4e3c50a2/x}{}
+  \end{columns}
+  \vfill
+  \begin{center}\small Nothing looks like the constants or the key any more.\end{center}
+  \say{Wartości zgadzają się z RFC 8439, punkt 2.3.2. Nie widać już ani stałych, ani klucza z kolejnymi bajtami.}
+\end{frame}
+
+\begin{frame}{Add the initial state}
+  \begin{center}\small Each word: the word after 20 rounds + the same word of the initial state (mod $2^{32}$).\end{center}
+  \vfill
+  \begin{center}
+    \ttfamily\small
+    \renewcommand{\arraystretch}{1.5}
+    \begin{tabular}{l r c r c r}
+      word 0: & 0x837778ab & + & 0x61707865 & = & 0xe4e7f110 \\
+      word 1: & 0xe238d763 & + & 0x3320646e & = & 0x15593bd1 \\
+      \ldots & & & & & \\
+      word 15: & 0x4e3c50a2 & + & 0x00000000 & = & 0x4e3c50a2 \\
+    \end{tabular}
+  \end{center}
+  \vfill
+  \keymsg{Why this addition matters, we will see by attacking it.}
+  \say{To krok, który łatwo uznać za zbędny. W sekcji 5 studenci sami zobaczą, co się dzieje bez niego.}
+\end{frame}
+
+\begin{frame}{From words to bytes}
+  \begin{center}\small Each of the 16 words is written as 4 bytes, little-endian:\end{center}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \foreach \w/\bs/\y in {e4e7f110/{10,f1,e7,e4}/0, 15593bd1/{d1,3b,59,15}/-1.0} {
+        \node[wcell, minimum width=2.0cm, font=\ttfamily\small] at (0,\y) {0x\w};
+        \draw[data] (1.15,\y) -- (2.2,\y);
+        \foreach \b [count=\k from 0] in \bs \node[ksb, minimum width=0.6cm, font=\ttfamily\small] at ({2.6+0.68*\k},\y) {\b};
+      }
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small The block:\ \texttt{10 f1 e7 e4 d1 3b 59 15 50 0f dd 1f a3 20 71 c4 \ldots}\ (64 bytes)\end{center}
+  \vfill
+  \say{To dokładnie pierwszy wiersz bloku z RFC 8439. Te 64 bajty to blok keystreamu numer 1 dla tego klucza i nonce.}
+\end{frame}
+
+\begin{frame}{XOR with the plaintext}
+  \vfill
+  \begin{center}
+    % CHECKED: python3, "Ladies and" XOR 10 f1 e7 e4 d1 3b 59 15 50 0f = 5c 90 83 8d b4 48 79 74 3e 6b
+    \begin{tikzpicture}
+      \node[rowlabel, font=\small] at (-0.5,0.55) {plaintext};
+      \foreach \ch [count=\k from 0] in {L,a,d,i,e,s,{\textvisiblespace},a,n,d} \node[font=\ttfamily\small, text=sViolet] at ({0.72*\k},0.55) {\ch};
+      \byterow{0}{0}{ptb}{4c,61,64,69,65,73,20,61,6e,64}{0.72}
+      \node[rowlabel, font=\small] at (-0.5,-0.7) {keystream};
+      \byterow{0}{-0.7}{ksb}{10,f1,e7,e4,d1,3b,59,15,50,0f}{0.72}
+      \node[rowlabel, font=\small] at (-0.5,-1.4) {ciphertext};
+      \byterow{0}{-1.4}{ctb}{5c,90,83,8d,b4,48,79,74,3e,6b}{0.72}
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \keymsg{The block function makes the keystream. Encryption is still one XOR.}
+  \say{Wszystko poza tym XOR-em to tylko produkcja keystreamu. Wartości policzone moją implementacją, zgodną z RFC.}
+\end{frame}
+
+\begin{frame}{Task 6: one full block}
+  \taskhead{Task 6}{Write the whole block function of ChaCha20.}
+  \vfill
+  \begin{columns}[T,onlytextwidth]
+    \column{0.24\textwidth}\stepbox{\badge{1}}{the initial state}
+    \column{0.24\textwidth}\stepbox{\badge{2}}{10 double rounds}
+    \column{0.24\textwidth}\stepbox{\badge{3}}{add the initial state}
+    \column{0.24\textwidth}\stepbox{\badge{4}}{64 bytes, little-endian}
+  \end{columns}
+  \vfill
+  \begin{center}\small Test: the example from RFC 8439, the block must start with\ \texttt{\textbf{10 f1 e7 e4}}.\end{center}
+  \vfill
+  \say{Około 12 minut, najdłuższe zadanie. quarter\_round jest gotowe w pliku.}
+\end{frame}
+
+\begin{frame}[fragile]{Task 6: what to do}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.64\textwidth}
+\begin{lstlisting}[style=py, basicstyle=\color{VSText}\ttfamily\fontsize{6.2}{7.1}\selectfont]
+def chacha20_block(key, counter, nonce):
+    # TODO 1: the initial state, 16 words:
+    #         CONSTANTS + 8 key words + counter + 3 nonce words
+    #         struct.unpack("<8I", key) reads 8 little-endian words
+    start = []
+
+    # TODO 2: copy the state and run 10 double rounds on the copy:
+    #   a column round:
+    #     (0, 4, 8, 12) (1, 5, 9, 13) (2, 6, 10, 14) (3, 7, 11, 15)
+    #   a diagonal round:
+    #     (0, 5, 10, 15) (1, 6, 11, 12) (2, 7, 8, 13) (3, 4, 9, 14)
+    s = start[:]
+
+    # TODO 3: add the initial state to the result, word by word, with add32
+
+    # TODO 4: return the 16 words as 64 bytes: struct.pack("<16I", *s)
+    return b""
+\end{lstlisting}
+    \column{0.33\textwidth}
+      \taskhead{Task 6}{Open \texttt{block.py} from \ghlink{Task6}.}
+      \stepbox{Ready in the file}{\texttt{quarter\_round(s, a, b, c, d)}: it changes the list \texttt{s} in place.}
+  \end{columns}
+  \say{Uwaga: quarter\_round w tym pliku przyjmuje listę i cztery indeksy, a nie cztery wartości jak w zadaniu 5. Tak jest wygodniej dla całego stanu. Indeksy kolumn i przekątnych są w komentarzu w pliku.}
+\end{frame}
+
+\begin{frame}[fragile]{Solution: one full block}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.64\textwidth}
+% CHECKED: Task6/solution/block.py prints OK; the slide shows 2 of the 8 calls of quarter_round
+\begin{lstlisting}[style=py, emph={quarter_round,add32,list,zip,range}, basicstyle=\color{VSText}\ttfamily\fontsize{6.4}{7.4}\selectfont]
+start = CONSTANTS + list(struct.unpack("<8I", key)) \
+        + [counter] + list(struct.unpack("<3I", nonce))
+s = start[:]
+for _ in range(10):
+    quarter_round(s, 0, 4, 8, 12)    # column round
+    ...                               # 3 more columns
+    quarter_round(s, 0, 5, 10, 15)   # diagonal round
+    ...                               # 3 more diagonals
+s = [add32(x, y) for x, y in zip(s, start)]
+return struct.pack("<16I", *s)
+\end{lstlisting}
+    \column{0.33\textwidth}
+      \stepbox{\badge{1} to \badge{4}}{the four parts from the task, in order.}
+      \stepbox{Shortened on the slide}{the solution file has all 8 calls of \texttt{quarter\_round}.}
+  \end{columns}
+  \say{Kod sprawdzony. Na slajdzie skrócone: w pliku rozwiązania jest wszystkie osiem wywołań quarter\_round.}
+\end{frame}
+
+\begin{frame}{Solution: the output}
+  \vfill
+  \begin{center}
+    \ttfamily\small
+    \begin{tabular}{l l}
+      got: & 10f1e7e4d13b5915500fdd1fa32071c4c7d1f4c733c068030422aa9ac3d46c4e\ldots \\
+      expected: & 10f1e7e4d13b5915500fdd1fa32071c4c7d1f4c733c068030422aa9ac3d46c4e\ldots \\
+      & \ok\ \normalfont OK \\
+    \end{tabular}
+  \end{center}
+  \vfill
+  \keymsg{Your ChaCha20 gives the same block as the standard.}
+  \say{Wynik ma 64 bajty, na slajdzie pierwsze 32. Implementacja studentów zgadza się z każdą biblioteką kryptograficzną na świecie.}
+\end{frame}
+
+\begin{frame}[fragile]{All of ChaCha20 on one slide}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.5\textwidth}
+\begin{lstlisting}[style=py, emph={add32,rotl32,list,range}, basicstyle=\color{VSText}\ttfamily\fontsize{5.6}{6.6}\selectfont]
+def quarter_round(s, a, b, c, d):
+    s[a] = add32(s[a], s[b]); s[d] ^= s[a]; s[d] = rotl32(s[d], 16)
+    s[c] = add32(s[c], s[d]); s[b] ^= s[c]; s[b] = rotl32(s[b], 12)
+    s[a] = add32(s[a], s[b]); s[d] ^= s[a]; s[d] = rotl32(s[d], 8)
+    s[c] = add32(s[c], s[d]); s[b] ^= s[c]; s[b] = rotl32(s[b], 7)
+
+
+def initial_state(key, counter, nonce):
+    return ([0x61707865, 0x3320646E, 0x79622D32, 0x6B206574]
+            + list(struct.unpack("<8I", key))
+            + [counter]
+            + list(struct.unpack("<3I", nonce)))
+\end{lstlisting}
+    \column{0.48\textwidth}
+\begin{lstlisting}[style=py, emph={add32,initial_state,run_rounds,zip,range,len,bytes,block,bytearray}, basicstyle=\color{VSText}\ttfamily\fontsize{5.6}{6.6}\selectfont]
+def block(key, counter, nonce, rounds=20):
+    start = initial_state(key, counter, nonce)
+    s = start[:]
+    run_rounds(s, rounds)
+    s = [add32(x, y) for x, y in zip(s, start)]
+    return struct.pack("<16I", *s)
+
+
+def chacha20(key, nonce, counter, data):
+    out = bytearray()
+    for i in range(0, len(data), 64):
+        ks = block(key, counter + i // 64, nonce)
+        out += bytes(x ^ y for x, y in zip(data[i:i + 64], ks))
+    return bytes(out)
+\end{lstlisting}
+      {\scriptsize\textcolor{gray}{Not shown: \texttt{add32}, \texttt{rotl32} and \texttt{run\_rounds} (the column and diagonal rounds).}}
+  \end{columns}
+  \vfill
+  \keymsg{This is \texttt{chacha20\_ready.py} from Task 1.}
+  \say{Każdą linijkę już widzieliśmy. To jest prawdziwy kod z chacha20\_ready.py z zadania 1, skrócony tylko o add32, rotl32 i run\_rounds; można go teraz otworzyć.}
+\end{frame}
+
+% ======================================================================
+\section[Why twenty rounds?]{Why twenty rounds?}
+% ======================================================================
+
+\begin{frame}{How many rounds are enough?}
+  \vfill
+  \begin{columns}[c,onlytextwidth]
+    \column{0.3\textwidth}
+      \centering{\fontsize{70}{70}\selectfont\textcolor{nLine}{?\,?}}
+    \column{0.66\textwidth}
+      \Large Why 20 rounds, and not 2?\\[0.3cm]
+      Why add the initial state at the end?\\[0.3cm]
+      \normalsize Let us \textbf{measure} first, then \textbf{attack}.
+  \end{columns}
+  \vfill
+  \say{Pytanie do sali przed zadaniem: ile rund by wystarczyło i jak to sprawdzić?}
+\end{frame}
+
+\begin{frame}{Task 7: watch one bit spread}
+  \taskhead{Task 7}{Two blocks with the same key and nonce. The counters differ in \textbf{one bit}.
+    How many of the 512 output bits are different?}
+  \vfill
+  \begin{columns}[c,onlytextwidth]
+    \column{0.55\textwidth}
+      \centering
+      \begin{tikzpicture}
+        \foreach \row/\y in {0/0, 1/-0.75} {
+          \foreach \k in {0,...,31} \node[cell, minimum width=0.17cm, minimum height=0.5cm, inner sep=0pt] at ({0.19*\k},\y) {};
+        }
+        \node[rowlabel, font=\scriptsize] at (-0.2,0) {block 1};
+        \node[rowlabel, font=\scriptsize] at (-0.2,-0.75) {block 2};
+        \foreach \k in {3,9,10,17,22,28,30} \fill[AccentOrange!60] ({0.19*\k-0.085},-1.0) rectangle ({0.19*\k+0.085},-0.5);
+        \node[font=\scriptsize, text=AccentOrange, anchor=north] at (3.0,-1.1) {different bits: how many?};
+      \end{tikzpicture}
+    \column{0.42\textwidth}
+      \small
+      \begin{tabular}{ll}
+        after 1 round: & \textbf{?} \\
+        after 2 rounds: & \textbf{?} \\
+        after 20 rounds: & \textbf{?} \\
+      \end{tabular}\\[6pt]
+      \textbf{Predict first}, on paper. Then measure.
+  \end{columns}
+  \vfill
+  \say{Około 6 minut. Zebrać przewidywania od kilku osób i zapisać na tablicy, zanim uruchomią program. (Pomarańczowe kratki na rysunku to tylko ilustracja.)}
+\end{frame}
+
+\begin{frame}[fragile]{Task 7: what to do}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.66\textwidth}
+\begin{lstlisting}[style=py, emph={block,range,print}, basicstyle=\color{VSText}\ttfamily\fontsize{5.9}{6.9}\selectfont]
+for rounds in [1, 2, 3, 4, 5, 6, 8, 12, 20]:
+    total = 0
+    for _ in range(TRIALS):
+        key = random.randbytes(32)
+        nonce = random.randbytes(12)
+        counter = random.getrandbits(32)
+        out1 = block(key, counter, nonce, rounds)
+        out2 = block(key, counter ^ 1, nonce, rounds)
+        # TODO: count how many of the 512 bits differ
+        #       between out1 and out2, add it to total
+    print(f"{rounds:2} rounds: {total / TRIALS:6.1f} of 512 bits changed")
+\end{lstlisting}
+    \column{0.31\textwidth}
+      \taskhead{Task 7}{Open \texttt{avalanche.py} from \ghlink{Task7}.}
+      \stepbox{Hints}{\texttt{int.from\_bytes(out1, "big")} turns 64 bytes into one number.\\[2pt]
+        \texttt{bin(x).count("1")} counts the 1 bits of \texttt{x}.}
+  \end{columns}
+  \say{chacha.py w folderze ma parametr rounds, więc można wybrać dowolną liczbę rund. Program liczy krócej niż sekundę.}
+\end{frame}
+
+\begin{frame}[fragile]{Solution: watch one bit spread}
+% CHECKED: Task7/solution/avalanche.py, random.seed(1), 200 trials:
+%          1: 26.7, 2: 169.7, 3: 256.3, 4: 255.2, 5: 253.6, 6: 256.1, 8: 255.3, 12: 256.1, 20: 256.3
+\begin{lstlisting}[style=py, emph={bin,int}]
+diff = int.from_bytes(out1, "big") ^ int.from_bytes(out2, "big")
+total += bin(diff).count("1")
+\end{lstlisting}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \foreach \r/\v [count=\k from 0] in {1/26.7, 2/169.7, 3/256.3, 4/255.2, 8/255.3, 20/256.3}
+        \hbarrow{-0.42*\k}{\r\ \ifnum\r=1 round\else rounds\fi}{\v}{0.022}{\v}
+      \draw[DeepBlue, very thick, dashed] ({256*0.022},0.3) -- ({256*0.022},-2.4) node[below, font=\scriptsize] {256 = half of 512};
+    \end{tikzpicture}\\[2pt]
+    {\scriptsize\textcolor{gray}{average over 200 random keys, of 512 bits}}
+  \end{center}
+  \vfill
+  \say{Kod sprawdzony, random.seed(1), 200 prób. Pełne wyniki z programu: 5 rund 253,6, 6 rund 256,1, 12 rund 256,1. Porównać z przewidywaniami z tablicy.}
+\end{frame}
+
+\begin{frame}{Why exactly half?}
+  \begin{columns}[c,onlytextwidth]
+    \column{0.6\textwidth}
+      \small Two random blocks of 512 bits:\\[3pt]
+      each bit is the same with chance 1/2, different with chance 1/2\\[3pt]
+      so on average $512 / 2 = \mathbf{256}$ bits differ.
+    \column{0.36\textwidth}
+      \centering
+      \begin{tikzpicture}
+        \node[circle, draw=nInk, very thick, fill=nFill, minimum size=1.4cm, font=\large\bfseries, text=nInk] at (0,0) {0};
+        \node[circle, draw=nInk, very thick, fill=nFill, minimum size=1.4cm, font=\large\bfseries, text=nInk] at (1.8,0) {1};
+        \node[font=\scriptsize, text=nInk] at (0.9,-1.05) {a coin for every bit};
+      \end{tikzpicture}
+  \end{columns}
+  \vfill
+  \defbox{\textbf{Avalanche}: one changed input bit changes about half of the output bits.}
+  \begin{center}\small After 3 rounds, one bit of difference looks like two unrelated blocks.\end{center}
+  \keymsg{One changed input bit changes about half of the output bits.}
+  \say{Taki efekt nazywa się efektem lawiny: mała zmiana na wejściu zmienia połowę wyjścia. Więcej niż połowa też byłaby zła, bo wtedy wynik byłby przewidywalny w drugą stronę.}
+\end{frame}
+
+\begin{frame}{Looks random is not the same as secure}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \draw[nLine, very thick] (0,0) -- (11.4,0);
+      \foreach \r in {1,...,20} {
+        \draw[nLine, thick] ({0.57*\r},-0.08) -- ({0.57*\r},0.08);
+        \node[font=\tiny, text=nInk, anchor=north] at ({0.57*\r},-0.1) {\r};
+      }
+      \node[font=\scriptsize, text=nInk, anchor=north] at (5.7,-0.45) {rounds};
+      \fill[nLine] (0.57,0.35) rectangle ({0.57*3},0.65);
+      \node[font=\scriptsize, text=nInk, anchor=west] at ({0.57*3+0.1},0.5) {our measurement: after 3 rounds we see nothing};
+      \fill[nInk] (0.57,0.95) rectangle ({0.57*7},1.25);
+      \node[font=\scriptsize, text=nInk, anchor=west] at ({0.57*7+0.1},1.1) {researchers: attacks on 6 and 7 rounds (2008)};
+      \draw[annot] ({0.57*20-0.2},-0.3) rectangle ({0.57*20+0.2},0.3);
+      \node[font=\scriptsize\bfseries, text=AccentOrange, anchor=south] at ({0.57*20},0.35) {ChaCha20};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small A simple count is a lower limit. Clever attacks see much further.\end{center}
+  \vfill
+  \keymsg{Passing one test does not prove a cipher secure.}
+  \say{Aumasson, Fischer, Khazaei, Meier i Rechberger, FSE 2008: ataki na 6 i 7 rund ChaCha. Ich metody szukają różnic dużo sprytniej niż liczenie bitów.}
+\end{frame}
+
+\begin{frame}{Differential cryptanalysis: the idea}
+  \begin{columns}[c,onlytextwidth]
+    \column{0.55\textwidth}
+      \footnotesize
+      \begin{enumerate}\setlength{\itemsep}{4pt}
+        \item Choose two inputs with a chosen difference, for example one bit of the counter.
+        \item Follow the difference through the rounds.
+        \item Find an output bit that changes more often or less often than half the time.
+      \end{enumerate}
+    \column{0.42\textwidth}
+      \centering
+      \begin{tikzpicture}
+        \foreach \r/\n in {0/1, 1/3, 2/9} {
+          \foreach \k in {0,...,11} \node[cell, minimum width=0.24cm, minimum height=0.3cm, inner sep=0pt] (d\r-\k) at ({0.27*\k},{-0.7*\r}) {};
+          \node[font=\tiny, text=gray, anchor=east] at (-0.2,{-0.7*\r}) {round \r};
+        }
+        \fill[AccentOrange!60] (d0-5.south west) rectangle (d0-5.north east);
+        \foreach \k in {4,5,8} \fill[AccentOrange!60] (d1-\k.south west) rectangle (d1-\k.north east);
+        \foreach \k in {0,1,3,4,6,8,9,10,11} \fill[AccentOrange!60] (d2-\k.south west) rectangle (d2-\k.north east);
+        \draw[annot] (d2-2.south west) rectangle (d2-2.north east);
+        \node[font=\tiny, text=AccentOrange, anchor=north] at (d2-2.south) {predictable};
+      \end{tikzpicture}
+  \end{columns}
+  \vfill
+  \defbox{\textbf{Differential cryptanalysis}: if such a bit exists, the output is not random, and the attacker learns about the key.}
+  \say{Nasze zadanie 7 to bardzo prosta wersja tej metody: patrzyliśmy na sumę bitów, a nie na pojedyncze bity. Ataki z 2008 roku szukają pojedynczych przewidywalnych bitów po kilku rundach. (Rysunek jest ilustracją, nie pomiarem.)}
+\end{frame}
+
+\begin{frame}{Linear cryptanalysis: the idea}
+  \vfill
+  \defbox{\textbf{Linear cryptanalysis}: look for a XOR of a few input bits and output bits that is 0 more often than half the time.}
+  \vfill
+  \begin{columns}[T,onlytextwidth]
+    \column{0.48\textwidth}
+      \stepbox{XOR and rotation}{keep such relations exact}
+    \column{0.48\textwidth}
+      \stepbox{Addition}{breaks them, a little in every round}
+  \end{columns}
+  \vfill
+  \begin{center}\small After enough rounds, no useful relation is left.\end{center}
+  \vfill
+  \say{To tutaj przydaje się dodawanie z sekcji 2: bez niego cały szyfr byłby układem równań XOR i dałby się rozwiązać.}
+\end{frame}
+
+\begin{frame}{The best known attacks}
+  \vfill
+  \begin{center}
+    % source: Aumasson, Fischer, Khazaei, Meier, Rechberger, "New Features of Latin Dances", FSE 2008
+    \small
+    \renewcommand{\arraystretch}{1.5}
+    \begin{tabular}{c l l}
+      \toprule
+      rounds & best known attack & brute force \\
+      \midrule
+      6 & about $2^{139}$ operations (2008) & $2^{256}$ \\
+      7 & about $2^{248}$ operations (2008) & $2^{256}$ \\
+      8 & no attack known & $2^{256}$ \\
+      \rowcolor{AccentOrange!12} 20 & no attack known & $2^{256}$ \\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+  \vfill
+  \defbox{\textbf{Brute force}: try every possible key, $2^{256}$ of them.}
+  \keymsg{Even 7 rounds are far from broken in practice. 20 rounds is a safety margin.}
+  \say{2 do 139 operacji to nadal nieosiągalne, ale to jest atak: lepszy niż zgadywanie. Późniejsze prace poprawiły te liczby dla 7 rund, ale 8 rund nadal nie jest złamane.}
+\end{frame}
+
+\begin{frame}{ChaCha8, ChaCha12, ChaCha20}
+  \vfill
+  \begin{center}
+    % CHECKED (draft, author's laptop, i5-8265U): the implementation from the tasks, only the keystream, 1 MiB
+    \small
+    \renewcommand{\arraystretch}{1.5}
+    \begin{tabular}{l c c r}
+      \toprule
+      variant & rounds & rounds above the best attack & 1 MiB in plain Python \\
+      \midrule
+      ChaCha8 & 8 & 1 & 1.00 s \\
+      ChaCha12 & 12 & 5 & 1.44 s \\
+      \rowcolor{AccentOrange!12} ChaCha20 & 20 & 13 & 2.24 s \\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+  \vfill
+  \keymsg{Fewer rounds: faster. More rounds: a bigger safety margin.}
+  \say{Czas zmierzony na laptopie z i5-8265U tą samą implementacją co w zadaniach, tylko generowanie keystreamu. W C proporcje są podobne, bo rundy to prawie cały koszt. ChaCha20 wyróżniony jako standard.}
+\end{frame}
+
+\begin{frame}{Fewer rounds in real systems}
+  \vfill
+  \begin{center}
+    \small
+    \renewcommand{\arraystretch}{1.8}
+    \begin{tabular}{c l l}
+      \textcolor{nInk}{\Large\faLock} & \textbf{ChaCha20} & the standard choice on the internet \\
+      \textcolor{nInk}{\Large\faMobile} & \textbf{ChaCha12} & Adiantum: disk encryption on cheap Android phones (2019) \\
+      \textcolor{nInk}{\Large\faFile} & \textbf{ChaCha8} & proposed in ``Too Much Crypto'' (Aumasson, 2019), not used by the big standards \\
+    \end{tabular}
+  \end{center}
+  \vfill
+  \say{Adiantum Google opracował dla tanich telefonów, na których zwykłe szyfrowanie dysku było za wolne. Wybrał 12 rund, bo dysk musi być szybki. Protokoły sieciowe zostały przy 20.}
+\end{frame}
+
+\begin{frame}{Rounds can be undone}
+  \begin{center}\small Every step of a round has an inverse:\end{center}
+  \vfill
+  \begin{center}
+    \ttfamily\small
+    \renewcommand{\arraystretch}{1.6}
+    \begin{tabular}{l c l}
+      a = a + b & $\longleftrightarrow$ & a = a - b \\
+      d = d \textasciicircum{} a & $\longleftrightarrow$ & d = d \textasciicircum{} a \\
+      d = rotl(d, 16) & $\longleftrightarrow$ & d = rotr(d, 16) \\
+    \end{tabular}
+  \end{center}
+  \vfill
+  \begin{center}\small Whoever knows the state after 20 rounds can go back to the start.\end{center}
+  \vfill
+  \keymsg{The rounds hide nothing on their own.}
+  \say{Odwracalność jest potrzebna, żeby stan nie tracił informacji. Ale to znaczy też, że same rundy nie ukrywają klucza. Pytanie do sali: co by się stało bez dodania stanu początkowego?}
+\end{frame}
+
+\begin{frame}{Task 8: why add the initial state?}
+  \taskhead{Task 8}{A \textbf{broken} ChaCha20: 20 rounds, but no addition at the end. You intercepted one output block.}
+  \vfill
+  \begin{center}
+    \statefig[1.6]{ed7caf84/x,ec59ab67/x,182353f4/x,51b53075/x,afb4b0a5/x,9d9a8a93/x,dd172de6/x,23a7a16e/x,38e2e4ca/x,a52d3212/x,2d79c87f/x,382257ec/x,83607414/x,11654b3c/x,a14846fd/x,36134694/x}{}
+  \end{center}
+  \vfill
+  \begin{center}\Large\textbf{Find the secret key.}\end{center}
+  \vfill
+  \say{Około 10 minut. Napastnik zna tylko ten blok. Nie zna klucza, a mimo to go odzyska.}
+\end{frame}
+
+\begin{frame}[fragile]{Task 8: what to do}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.66\textwidth}
+\begin{lstlisting}[style=py, emph={inverse_quarter_round,range}, basicstyle=\color{VSText}\ttfamily\fontsize{5.9}{6.9}\selectfont]
+def inverse_quarter_round(s, a, b, c, d):
+    # TODO: undo the quarter round. Go through its 12 steps backwards:
+    #   a += b; d ^= a; d = rotl(d, 16)
+    #   c += d; b ^= c; b = rotl(b, 12)
+    #   a += b; d ^= a; d = rotl(d, 8)
+    #   c += d; b ^= c; b = rotl(b, 7)
+    # The last step goes first: b = rotr32(b, 7), then b ^= s[c],
+    # then c = sub32(c, d), ...
+    # Use s[a], s[b], s[c], s[d] (the list s is changed in place).
+    pass
+
+
+s = output[:]
+for _ in range(10):
+    # undo one diagonal round, then one column round
+    inverse_quarter_round(s, 3, 4, 9, 14)
+    ...                                    # 7 more calls, ready
+\end{lstlisting}
+    \column{0.31\textwidth}
+      \taskhead{Task 8}{Open \texttt{invert.py} from \ghlink{Task8}.}
+      \stepbox{Ready in the file}{\texttt{sub32} and \texttt{rotr32}, and the loop that undoes the rounds.}
+      \footnotesize The program prints rows 1 to 3 of the state.
+  \end{columns}
+  \say{Kolejność jest odwrócona dwa razy: linijki od ostatniej, a w każdej linijce kroki od ostatniego. Pętla cofająca rundy jest gotowa.}
+\end{frame}
+
+\begin{frame}[fragile]{Solution: the inverse quarter round}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.64\textwidth}
+% CHECKED: Task8/solution/invert.py prints the constants and the key below
+\begin{lstlisting}[style=py, emph={rotr32,sub32}, basicstyle=\color{VSText}\ttfamily\fontsize{6.2}{7.2}\selectfont]
+def inverse_quarter_round(s, a, b, c, d):
+    s[b] = rotr32(s[b], 7);  s[b] ^= s[c]; s[c] = sub32(s[c], s[d])
+    s[d] = rotr32(s[d], 8);  s[d] ^= s[a]; s[a] = sub32(s[a], s[b])
+    s[b] = rotr32(s[b], 12); s[b] ^= s[c]; s[c] = sub32(s[c], s[d])
+    s[d] = rotr32(s[d], 16); s[d] ^= s[a]; s[a] = sub32(s[a], s[b])
+\end{lstlisting}
+    \column{0.33\textwidth}
+      \centering
+      {\scriptsize the original, read from the bottom:}\\[3pt]
+      \begin{tikzpicture}[scale=0.8, every node/.append style={transform shape}]
+        \codebox{4}{5.0}
+        \cl{1}{a += b;\ \ d \textasciicircum= a;\ \ d = rotl(d, 16)}
+        \cl{2}{c += d;\ \ b \textasciicircum= c;\ \ b = rotl(b, 12)}
+        \cl{3}{a += b;\ \ d \textasciicircum= a;\ \ d = rotl(d, 8)}
+        \cl{4}{c += d;\ \ b \textasciicircum= c;\ \ b = rotl(b, 7)}
+        \draw[->, very thick, AccentOrange] (5.8,-1.3) -- (5.8,-0.2);
+      \end{tikzpicture}
+  \end{columns}
+  \vfill
+  \say{Porównać z quarter round: każda linijka od końca. Kod sprawdzony.}
+\end{frame}
+
+\begin{frame}{Solution: the key is back}
+  \vfill
+  \begin{center}
+    \small
+    \renewcommand{\arraystretch}{1.6}
+    \begin{tabular}{l l l}
+      constants: & \texttt{61707865 3320646e 79622d32 6b206574} & \textcolor{gray}{"expand 32-byte k"} \\
+      key: & \tikz[baseline=-0.6ex]\node[actorlight=sAmber, font=\ttfamily\small, inner sep=3pt] {b'correct horse battery staple!!!!'}; & \\
+    \end{tabular}
+  \end{center}
+  \vfill
+  \keymsg{Without the final addition, one block gives away the key.}
+  \say{Stałe na początku to potwierdzenie, że cofnęliśmy rundy poprawnie. Kod sprawdzony.}
+\end{frame}
+
+\begin{frame}{Why the addition stops the attack}
+  \begin{columns}[c,onlytextwidth]
+    \column{0.5\textwidth}
+      \centering\resizebox{!}{0.6\textheight}{\blockflow{1}}
+    \column{0.47\textwidth}
+      \begin{center}\large output = rounds(start) + start\end{center}
+      \small To go back, the attacker must remove \texttt{start} first.\\[3pt]
+      But \texttt{start} contains the key: the attacker does not know it.\\[3pt]
+      The rounds can be undone. Undoing rounds plus addition needs the key.
+      \vspace{4pt}
+      \defbox{A \textbf{one-way} function: easy to compute forward, impossible in practice to undo.}
+  \end{columns}
+  \vfill
+  \keymsg{Adding the initial state turns a reversible mixer into a one-way function.}
+  \say{Funkcja jednokierunkowa: łatwo liczyć w przód, nie da się praktycznie cofnąć. Ten sam pomysł jest w wielu funkcjach skrótu.}
+\end{frame}
+
+% ======================================================================
+\section[Fast on any processor]{Fast on any processor}
+% ======================================================================
+
+% a processor chip: \chip{position}{1 = with an AES unit}
+\newcommand{\chip}[2]{%
+  \begin{scope}[shift={(#1)}]
+    \draw[nInk, fill=nInk, rounded corners=2pt] (0,0) rectangle (2.4,1.9);
+    \foreach \y in {0.25,0.55,...,1.7} {\draw[nLine, thick] (-0.18,\y) -- (0,\y); \draw[nLine, thick] (2.4,\y) -- (2.58,\y);}
+    \node[draw=white, fill=nInk!70, rounded corners=1pt, font=\tiny, text=white, minimum width=0.9cm] at (0.6,1.2) {CPU};
+    \ifnum#2=1
+      \node[draw=white, fill=nInk!70, rounded corners=1pt, font=\tiny\bfseries, text=white, minimum width=0.9cm] (aes) at (1.75,1.2) {AES};
+      \draw[annot] ([shift={(-0.07,-0.07)}]aes.south west) rectangle ([shift={(0.07,0.07)}]aes.north east);
+    \else
+      \node[draw=white, dashed, rounded corners=1pt, font=\tiny, text=white!60, minimum width=0.9cm] at (1.75,1.2) {no AES};
+    \fi
+    \node[draw=white, fill=nInk!70, rounded corners=1pt, font=\tiny, text=white, minimum width=2.0cm] at (1.2,0.45) {memory};
+  \end{scope}}
+
+\begin{frame}{Many processors have no AES instructions}
+  \defbox{\textbf{AES}: the most used \textbf{block cipher} today (it encrypts blocks of 16 bytes).}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \chip{0,0}{1}
+      \node[font=\small, text=nInk, anchor=north] at (1.2,-0.15) {\faLaptop\ laptops, new phones};
+      \chip{6,0}{0}
+      \node[font=\small, text=nInk, anchor=north] at (7.2,-0.15) {\faMobile\ cheap phones, watches, routers};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small Laptops and new phones have special AES instructions in the processor.\\
+    Cheap phones, watches, routers and small devices often do not.\end{center}
+  \vfill
+  \say{AES to szyfr blokowy, który szyfruje bloki po 16 bajtów. Instrukcje AES na x86 nazywają się AES-NI. Na ARM są rozszerzeniem kryptograficznym, które tanie procesory często pomijają.}
+\end{frame}
+
+\begin{frame}{AES in software: tables and timing}
+  \begin{columns}[c,onlytextwidth]
+    \column{0.42\textwidth}
+      \centering
+      \begin{tikzpicture}[>=Stealth]
+        \foreach \k in {0,...,7} \node[cell, minimum width=1.6cm, minimum height=0.34cm] (t\k) at (0,{-0.36*\k}) {};
+        \node[font=\scriptsize\bfseries, text=nInk, anchor=south] at (0,0.2) {a table in memory};
+        \draw[cellmark] (t5.south west) rectangle (t5.north east);
+        \node[actorlight=sAmber, font=\scriptsize\bfseries] (k) at (-2.2,{-0.36*5}) {\faKey\ key};
+        \draw[data] (k) -- (t5.west);
+        \node[text=nInk, font=\huge] at (2.0,-1.3) {\faStopwatch};
+      \end{tikzpicture}
+    \column{0.55\textwidth}
+      \small
+      Fast AES without special instructions uses \textbf{tables in memory}.\\[3pt]
+      Which table entry is read depends on the key.\\[3pt]
+      Reading memory takes more or less time, depending on the cache.\\[3pt]
+      An attacker who measures the time can learn about the key.
+  \end{columns}
+  \vfill
+  \defbox{\textbf{Timing attack}: the attacker learns a secret by measuring how long the computation takes.}
+  \keymsg{Fast software AES can leak the key through timing.}
+  \say{Cache to mała, szybka pamięć w procesorze: dane, które w niej są, czyta się szybciej. To atak czasowy: napastnik nie łamie matematyki, mierzy czas. Bezpieczne wersje AES w programie istnieją, ale są dużo wolniejsze.}
+\end{frame}
+
+\begin{frame}{ChaCha20 needs nothing special}
+  \vfill
+  \begin{center}
+    \small
+    \renewcommand{\arraystretch}{1.9}
+    \begin{tabular}{c l l}
+      \textcolor{nInk}{\Large\faCalculator} & \textbf{only add, rotate, XOR} & every processor has them \\
+      \textcolor{nInk}{\Large\faStopwatch} & \textbf{no tables in memory} & the time does not depend on the key \\
+      \textcolor{nInk}{\Large\faTh} & \textbf{the same work on many words} & fits the vector instructions of phones \\
+    \end{tabular}
+  \end{center}
+  \vfill
+  \keymsg{ChaCha20 is fast and safe in plain software.}
+  \say{Instrukcje wektorowe wykonują to samo działanie na kilku słowach naraz, a cztery quarter round w jednej rundzie są od siebie niezależne. Ma je prawie każdy procesor w telefonie.}
+\end{frame}
+
+\begin{frame}{Measured on a laptop}
+  \vfill
+  \begin{columns}[T,onlytextwidth]
+    \column{0.5\textwidth}
+      \centering{\small\bfseries with AES instructions}\\[4pt]
+      \begin{tikzpicture}
+        \hbarrow{0.9}{AES-128-CTR}{5.7}{0.55}{5.7 GB/s}
+        \hbarrow{0.3}{ChaCha20}{3.0}{0.55}{3.0 GB/s}
+        \hbarrow{-0.3}{RC4}{0.57}{0.55}{0.57 GB/s}
+      \end{tikzpicture}
+    \column{0.48\textwidth}
+      \centering{\small\bfseries without them}\\[4pt]
+      \begin{tikzpicture}
+        \hbarrow{0.9}{AES-128-CTR}{0.58}{0.55}{0.58 GB/s}
+        \hbarrow{0.3}{ChaCha20}{1.5}{0.55}{1.5 GB/s}
+        \draw[annot] (-1.75,0.06) rectangle ({1.5*0.55+1.35},0.54);
+      \end{tikzpicture}
+  \end{columns}
+  \vfill
+  \begin{center}\scriptsize\textcolor{gray}{OpenSSL 3.0.13, Intel Core i5-8265U, AES instructions switched off by \texttt{OPENSSL\_ia32cap}}\end{center}
+  \keymsg{Without AES instructions, ChaCha20 is about 2.6 times faster than AES.}
+  % CHECKED (draft): openssl speed -evp on the author's laptop; 1.5 / 0.58 = 2.6
+  \say{Uczciwie: z instrukcjami AES jest prawie 2 razy szybszy od ChaCha20. Bez nich to ChaCha20 wygrywa. Wynik ChaCha20 też spadł po wyłączeniu, bo ta sama maska wyłącza więcej niż tylko AES; nie wpływa to na wniosek.}
+\end{frame}
+
+\begin{frame}{Faster than RC4, without its weaknesses}
+  \vfill
+  \begin{center}
+    \small
+    \renewcommand{\arraystretch}{1.6}
+    \begin{tabular}{l l l}
+      \toprule
+      & \textbf{RC4} & \textbf{ChaCha20} \\
+      \midrule
+      speed (laptop) & 0.57 GB/s & 3.0 GB/s \\
+      output bias & \nok\ yes, measurable & \ok\ none known \\
+      nonce & \nok\ none, glued on by hand & \ok\ built in \\
+      random access & \nok\ no & \ok\ yes, by counter \\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+  \vfill
+  \keymsg{ChaCha20 does what RC4 did, faster and safely.}
+  \say{Obciążenie (bias) to odchylenie wyjścia od losowości: w RC4 drugi bajt keystreamu jest zerem dwa razy częściej, niż powinien. W ChaCha20 nie jest znane żadne takie odchylenie dla pełnych 20 rund.}
+\end{frame}
+
+\begin{frame}{Why Google switched phones to ChaCha20}
+  \begin{columns}[c,onlytextwidth]
+    \column{0.3\textwidth}
+      \centering
+      \begin{tikzpicture}
+        \draw[nInk, very thick, fill=white, rounded corners=6pt] (0,0) rectangle (1.8,3.2);
+        \draw[nLine, fill=nFill] (0.15,2.55) rectangle (1.65,2.9);
+        \node[font=\tiny, text=nInk] at (0.9,2.72) {\faLock\ https://};
+        \foreach \y in {2.2,1.9,1.6,1.3} \draw[nLight, thick] (0.25,\y) -- (1.55,\y);
+        \fill[nInk] (0.9,0.25) circle (0.1);
+      \end{tikzpicture}
+    \column{0.67\textwidth}
+      \small \textbf{2014}: Chrome on Android starts to use ChaCha20 for \textbf{HTTPS} to Google.\\[6pt]
+      Reason given by Google:\\[3pt]
+      about 3 times faster than AES on devices without AES instructions, and RC4 was already broken.
+  \end{columns}
+  \vfill
+  \keymsg{Without AES instructions, ChaCha20 is the fast choice.}
+  % source: Google Security Blog, April 2014
+  \say{Wpis na blogu Google Security z kwietnia 2014 roku; Google porównywał z AES w wersji używanej w HTTPS. HTTPS to zwykłe strony WWW z kłódką w pasku adresu.}
+\end{frame}
+
+% ======================================================================
+\section[ChaCha20-Poly1305]{ChaCha20-Poly1305}
+% ======================================================================
+
+\begin{frame}{Recall: encryption does not protect integrity}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \node[rowlabel, font=\small] at (-0.5,0) {plaintext};
+      \byterow{0}{0}{ptb}{P,a,y,{\textvisiblespace},1,0,0,{\textvisiblespace},E,U,R}{0.68}
+      \node[rowlabel, font=\small] at (-0.5,-0.9) {ciphertext};
+      \foreach \k in {0,...,10} \node[ctb] (c\k) at ({0.68*\k},-0.9) {};
+      \draw[cellmark] (c4.south west) rectangle (c4.north east);
+      \node[circle, fill=sPink, text=white, minimum size=0.75cm, font=\small] (x) at ({0.68*4},-2.0) {\faUserSecret};
+      \draw[data, line width=2pt] (x) -- (c4.south);
+      \node[font=\scriptsize, text=nInk, anchor=west] at ({0.68*4+0.5},-2.0) {the attacker XORs one byte with \texttt{0x08}};
+      \node[rowlabel, font=\small] at (-0.5,-3.0) {decrypted};
+      \byterow{0}{-3.0}{ptb}{P,a,y,{\textvisiblespace},9,0,0,{\textvisiblespace},E,U,R}{0.68}
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \defbox{\textbf{Integrity}: the certainty that nobody changed the message.}
+  \keymsg{Encryption hides the message, but does not stop changes.}
+  \say{Przypomnienie: XOR szyfrogramu z wartością zmienia dokładnie ten sam bit tekstu jawnego. Odbiorca widzi poprawną wiadomość, klucz nie był potrzebny.}
+\end{frame}
+
+\begin{frame}{A tag}
+  \begin{center}\small The sender computes a short \textbf{tag} from the ciphertext and a secret key.\end{center}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \envelope{e}{0,0}{ciphertext}
+      \node[circle, fill=nInk, text=white, font=\normalsize, minimum size=0.7cm] at (1.1,0.6) {\faStamp};
+      \node[font=\scriptsize, text=nInk, anchor=north] at (0,-0.8) {+ tag (16 bytes)};
+      \draw[data, line width=1.6pt] (1.5,0) -- (3.6,0) node[midway, above, font=\scriptsize] {sent};
+      \node[actor=sTeal, font=\small\bfseries] (r) at (4.8,0) {\faServer\ receiver};
+      \node[font=\scriptsize, text=nInk, anchor=west, align=left] at (6.0,0.45) {computes the tag again:};
+      \node[font=\small, text=nInk, anchor=west] at (6.0,-0.05) {\ok\ same tag: accept and decrypt};
+      \node[font=\small, text=nInk, anchor=west] at (6.0,-0.55) {\nok\ different tag: reject, decrypt nothing};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small \textbf{Poly1305} is the function that computes such a tag.\end{center}
+  \vfill
+  \keymsg{A changed byte gives a different tag.}
+  \say{Bez klucza napastnik nie potrafi policzyć nowego znacznika dla zmienionej wiadomości. Poly1305 to funkcja, która liczy taki znacznik.}
+\end{frame}
+
+\begin{frame}{Authenticated encryption}
+  \vfill
+  \bigdef{\textbf{Authenticated encryption} (\textbf{AEAD}): encryption and a tag in one operation.\\
+    Decryption first checks the tag, and refuses to decrypt if it is wrong.}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \node[hwmain, minimum width=3.2cm, minimum height=1.2cm, font=\small\bfseries, align=center] at (0,0) {ChaCha20\\[-1pt]{\scriptsize\normalfont for secrecy}};
+      \node[font=\Large] at (2.3,0) {$+$};
+      \node[hwmain, minimum width=3.2cm, minimum height=1.2cm, font=\small\bfseries, align=center] at (4.6,0) {Poly1305\\[-1pt]{\scriptsize\normalfont for integrity}};
+      \node[font=\Large] at (6.9,0) {$=$};
+      \node[hw, minimum height=1.2cm, font=\small\bfseries] at (9.3,0) {ChaCha20-Poly1305};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \say{AEAD to skrót od authenticated encryption with associated data. Associated data to jawne dane, na przykład nagłówek, które też są chronione znacznikiem; dziś z nich nie korzystamy.}
+\end{frame}
+
+\begin{frame}{Where the Poly1305 key comes from}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \node[draw=AccentOrange, thick, fill=AccentOrange!15, minimum width=1.8cm, minimum height=0.7cm, font=\scriptsize] (b0) at (0,0) {64 bytes};
+      \node[font=\scriptsize\bfseries, text=nInk, anchor=south] at (0,0.4) {block 0};
+      \foreach \n in {1,2,3} {
+        \node[ksb, minimum width=1.8cm, minimum height=0.7cm, font=\scriptsize] at ({2.0*\n},0) {64 bytes};
+        \node[font=\scriptsize\bfseries, text=nInk, anchor=south] at ({2.0*\n},0.4) {block \n};
+      }
+      \node[font=\large, text=nInk] at (7.4,0) {\ldots};
+      \draw[data] (b0.south) -- (0,-1.0) node[below, font=\scriptsize, text=nInk, align=center] {first 32 bytes:\\ a one-time key for Poly1305};
+      \draw[decorate, decoration={brace, mirror, amplitude=5pt}, nInk] (1.1,-0.45) -- (7.0,-0.45)
+        node[midway, below=6pt, font=\scriptsize, text=nInk] {keystream for the message};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small A new nonce gives a new Poly1305 key. One key per message.\end{center}
+  \vfill
+  \keymsg{This is why ChaCha20-Poly1305 starts encrypting at counter 1.}
+  \say{Poly1305 jest bezpieczny tylko wtedy, gdy jego klucz jest użyty raz. ChaCha20 daje nowy klucz za darmo z bloku 0. To wyjaśnia licznik 1 z zadania 1.}
+\end{frame}
+
+\begin{frame}{Task 9: change one byte}
+  \taskhead{Task 9}{Message:\ \texttt{Pay 100 EUR to Anna.}\ \ Encrypted twice: only ChaCha20, and ChaCha20-Poly1305.}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \envelope{a}{0,0}{no tag}
+      \node[font=\scriptsize, text=nInk, anchor=north] at (0,-0.75) {only ChaCha20};
+      \envelope{b}{4.0,0}{with a tag}
+      \node[font=\scriptsize, text=nInk, anchor=north] at (4.0,-0.75) {ChaCha20-Poly1305};
+      \node[circle, fill=nInk, text=white, font=\normalsize, minimum size=0.7cm] at (5.1,0.6) {\faStamp};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small Change \texttt{"1"} into \texttt{"9"} in both ciphertexts (XOR byte 4 with \texttt{0x08})\\ and try to decrypt them.\end{center}
+  \vfill
+  \say{Około 5 minut. aead.py jest gotowy i napisany w czystym Pythonie, zgodny z wektorami z RFC 8439.}
+\end{frame}
+
+\begin{frame}[fragile]{Task 9: what to do}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.62\textwidth}
+\begin{lstlisting}[style=py, emph={chacha20,seal,unseal,print}, basicstyle=\color{VSText}\ttfamily\fontsize{6.0}{7.0}\selectfont]
+# Without a tag: only ChaCha20, the data starts at counter 1
+plain = chacha20(key, nonce, 1, message)
+# With a tag: ChaCha20-Poly1305
+sealed = seal(key, nonce, message)
+
+# The attacker changes "1" (0x31) into "9" (0x39): XOR 0x08 at position 4.
+# TODO 1: make changed_plain: a copy of plain with byte 4 XORed with 0x08
+#         hint: b = bytearray(plain); b[4] ^= 0x08; changed_plain = bytes(b)
+# TODO 2: make changed_sealed in the same way from sealed
+# TODO 3: decrypt changed_plain with chacha20(key, nonce, 1, ...) and print it
+# TODO 4: decrypt changed_sealed with unseal(key, nonce, ...) inside
+#         try: ... except TagError as e: print("rejected:", e)
+\end{lstlisting}
+      {\scriptsize\textcolor{gray}{Shortened on the slide: the import, the key, the nonce and one print are in the file.}}
+    \column{0.35\textwidth}
+      \taskhead{Task 9}{Open \texttt{tamper.py} from \ghlink{Task9}.}
+      \stepbox{Ready}{\texttt{aead.py}: \texttt{chacha20}, \texttt{seal}, \texttt{unseal}, \texttt{TagError}}
+  \end{columns}
+  \say{try i except łapią błąd: unseal rzuca TagError, gdy znacznik się nie zgadza.}
+\end{frame}
+
+\begin{frame}{Solution: change one byte}
+  \vfill
+  \begin{center}
+    % CHECKED: Task9/solution/tamper.py
+    \small
+    \renewcommand{\arraystretch}{1.8}
+    \begin{tabular}{l l}
+      without a tag: & \nok\ \texttt{Pay 900 EUR to Anna.} \\
+      with a tag: & \ok\ \texttt{rejected: the tag does not match: the message was changed} \\
+    \end{tabular}
+  \end{center}
+  \vfill
+  \keymsg{With Poly1305, the change is caught. Without it, the change goes through.}
+  \say{Kod sprawdzony. Odbiorca bez znacznika nie ma jak zauważyć zmiany: 900 to poprawny napis.}
+\end{frame}
+
+\begin{frame}{The nonce rule still holds}
+  \begin{center}\small The same key and nonce used twice with ChaCha20-Poly1305:\end{center}
+  \vfill
+  \begin{columns}[T,onlytextwidth]
+    \column{0.48\textwidth}
+      \probbox{the same keystream}{$\rightarrow$ P1 XOR P2 leaks}
+    \column{0.48\textwidth}
+      \probbox{the same Poly1305 key}{$\rightarrow$ the attacker can make valid tags}
+  \end{columns}
+  \vfill
+  \begin{center}\small A tag does not fix a repeated nonce. It makes the damage worse.\end{center}
+  \vfill
+  \keymsg{One key and nonce pair, one message. Always.}
+  \say{Z dwóch wiadomości z tym samym kluczem Poly1305 napastnik potrafi wyliczyć ten klucz i podrabiać znaczniki. Szczegóły matematyczne pomijamy.}
+\end{frame}
+
+\begin{frame}{Good to know: XChaCha20}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \foreach \k in {0,...,11} \node[draw=sAmber, line width=1pt, fill=white, minimum width=0.42cm, minimum height=0.45cm, inner sep=0pt] at ({0.45*\k},0) {};
+      \node[font=\small, text=nInk, anchor=west] at (5.6,0) {96 bits: choosing it at random is risky after many messages};
+      \foreach \k in {0,...,23} \node[draw=sAmber, line width=1pt, fill=white, minimum width=0.42cm, minimum height=0.45cm, inner sep=0pt] at ({0.45*\k},-0.9) {};
+      \node[font=\small, text=nInk, anchor=west] at (11.0,-0.9) {192 bits};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small \textbf{XChaCha20}: a nonce of 192 bits, so a random nonce is safe.\\
+    Used for example in libsodium and in WireGuard's cookies.\end{center}
+  \vfill
+  \say{Można pominąć. Przy losowym nonce 96-bitowym ryzyko powtórki rośnie z liczbą wiadomości, jak w paradoksie urodzin; przy 192 bitach jest pomijalne.}
+\end{frame}
+
+\begin{frame}{Where you use it: the web}
+  \vfill
+  \begin{center}
+    \small
+    \renewcommand{\arraystretch}{1.9}
+    \begin{tabular}{c l l}
+      \textcolor{nInk}{\Large\faLock} & \textbf{TLS 1.3} (2018) & \texttt{TLS\_CHACHA20\_POLY1305\_SHA256}, one of three that all should support \\
+      \textcolor{nInk}{\Large\faChrome} & \textbf{Chrome and Android} & since 2014, on devices without AES instructions \\
+    \end{tabular}
+  \end{center}
+  \vfill
+  \defbox{\textbf{TLS}: the protocol that encrypts HTTPS.}
+  \say{TLS to protokół, który szyfruje HTTPS. RFC 8446 (w 2026 roku zastąpione przez RFC 9846) zaleca, żeby każdy program z TLS 1.3 obsługiwał ChaCha20-Poly1305, obok dwóch wersji AES z uwierzytelnieniem. Przeglądarka wybiera go zwykle tam, gdzie nie ma instrukcji AES.}
+\end{frame}
+
+\begin{frame}{Where you use it: VPN and SSH}
+  \vfill
+  \begin{center}
+    \small
+    \renewcommand{\arraystretch}{1.9}
+    \begin{tabular}{c l l}
+      \textcolor{nInk}{\Large\faNetworkWired} & \textbf{WireGuard} & a VPN, uses only ChaCha20-Poly1305 for its data \\
+      \textcolor{nInk}{\Large\faTerminal} & \textbf{OpenSSH 6.5} (2014) & \texttt{chacha20-poly1305@openssh.com}, today the default \\
+    \end{tabular}
+  \end{center}
+  \vfill
+  \defbox{\textbf{VPN}: an encrypted tunnel between a computer and a network.\quad \textbf{SSH}: an encrypted login to a remote computer.}
+  \say{WireGuard celowo nie pozwala wybrać innego szyfru. ChaCha20-Poly1305 jest pierwszy na domyślnej liście szyfrów OpenSSH (man ssh\_config, sprawdzone).}
+\end{frame}
+
+\begin{frame}{Where you use it: phones and the kernel}
+  \vfill
+  \begin{center}
+    \small
+    \renewcommand{\arraystretch}{1.9}
+    \begin{tabular}{c l l}
+      \textcolor{nInk}{\Large\faMobile} & \textbf{Adiantum} (2019) & disk encryption on cheap Android phones, with ChaCha12 \\
+      \textcolor{nInk}{\Large\faLinux} & \textbf{Linux 4.8} (2016) & \texttt{/dev/urandom} produces random numbers with ChaCha20 \\
+    \end{tabular}
+  \end{center}
+  \vfill
+  \say{/dev/urandom to systemowe źródło liczb losowych w Linuksie. Generator na ChaCha20 zastąpił tam starszą konstrukcję, bo jest szybszy.}
+\end{frame}
+
+\begin{frame}{RC4 and ChaCha20 side by side}
+  \vfill
+  \begin{center}
+    \small
+    \renewcommand{\arraystretch}{1.6}
+    \begin{tabular}{l l l}
+      \toprule
+      & \textbf{RC4} & \textbf{ChaCha20-Poly1305} \\
+      \midrule
+      nonce & \nok\ none & \ok\ 96 bits, built in \\
+      random access & \nok\ no & \ok\ yes, by counter \\
+      known bias & \nok\ yes & \ok\ none for 20 rounds \\
+      integrity & \nok\ none & \ok\ Poly1305 tag \\
+      status & \nok\ forbidden in TLS & \ok\ in TLS 1.3, SSH, WireGuard \\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+  \vfill
+  \keymsg{Every weakness of RC4 is fixed in ChaCha20-Poly1305.}
+  \say{Każdy wiersz to jedna rzecz z dzisiejszych zajęć.}
+\end{frame}
+
+\begin{frame}{Summary}
+  \vfill
+  \begin{center}
+    \renewcommand{\arraystretch}{1.6}
+    \begin{tabular}{cl}
+      \bigbadge{1} & Key, nonce and counter give any 64-byte block of the keystream directly. \\
+      \bigbadge{2} & Inside are only three operations on 32-bit words: add, rotate, XOR. \\
+      \bigbadge{3} & ChaCha20: a 4 by 4 state, 20 rounds of quarter rounds, add the initial state. \\
+      \bigbadge{4} & Rounds spread every bit; the final addition stops the rounds being undone. \\
+      \bigbadge{5} & Fast without special hardware, and with Poly1305 it also protects integrity. \\
+    \end{tabular}
+  \end{center}
+  \vfill
+  \say{Po jednym zdaniu na każdy cel wykładu.}
+\end{frame}
+
+
+\end{document}
