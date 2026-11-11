@@ -185,9 +185,10 @@
     \small\textbf{#1}\\[0.04cm]
     \footnotesize #2
   \end{beamercolorbox}\vspace{0.1cm}}
-% the starter files of a task on GitHub: the word "GitHub" will be the link
-% TODO: the repository address is not decided yet, so the word is not a link for now
-\newcommand{\ghlink}[1]{\textcolor{DeepBlue}{\textbf{GitHub}}}
+% the starter files on GitHub: the word "GitHub" is the link.
+%   \ghlink{Task4} opens the folder of Task 4, \ghlink{} opens the folder of this lecture
+\newcommand{\ghbase}{https://github.com/KsaweryM/Cryptography-Course/tree/main/Lecture2}
+\newcommand{\ghlink}[1]{\href{\ghbase/#1}{\textcolor{DeepBlue}{\textbf{GitHub}}}}
 
 % speaker notes (Polish): printed only in the notes PDF (make notes)
 \setbeamertemplate{note page}[default]
