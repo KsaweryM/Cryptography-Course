@@ -29,8 +29,11 @@
 \setbeamertemplate{itemize items}[circle]
 \setbeamertemplate{enumerate items}[default]
 \setbeamertemplate{blocks}[rounded][shadow=true]
-% many slides: smaller dots, so that the navigation bar fits the page width
-\setbeamersize{mini frame size=.07cm,mini frame offset=.03cm}
+% one dot per idea, not per frame: \samedot before a frame gives it the dot of the frame before
+% (it undoes the step of the dot counter that the next frame makes)
+\newcommand{\samedot}{\addtocounter{subsectionslide}{-1}}
+% the default dot step of the circle dots (0.1 cm dots); offset -.04 keeps the old header height (-.01 made 2 slides overfull)
+\setbeamersize{mini frame size=.14cm,mini frame offset=-.04cm}
 
 % ======================================================================
 % Colour rules for presentations (Beamer + TikZ), from Agents/colors
@@ -365,6 +368,7 @@
   \say{Szyfr symetryczny: ten sam klucz szyfruje i odszyfrowuje. Pytanie o klucz zostało otwarte w poprzednim wykładzie.}
 \end{frame}
 
+\samedot
 \begin{frame}{Everybody can hear you}
   \vfill
   \begin{center}
@@ -482,6 +486,7 @@
   \say{Żółty jest jawny, każdy go zna, także Ewa.}
 \end{frame}
 
+\samedot
 \begin{frame}{Mixing paint, step 2}
   \begin{center}\paintscene{2}\end{center}
   \vfill
@@ -490,6 +495,7 @@
   \say{Czerwony i niebieski są tajne i nigdy nie opuszczają domu.}
 \end{frame}
 
+\samedot
 \begin{frame}{Mixing paint, step 3}
   \begin{center}\paintscene{3}\end{center}
   \vfill
@@ -498,6 +504,7 @@
   \say{Ewa widzi obie mieszanki: żółto-czerwoną i żółto-niebieską.}
 \end{frame}
 
+\samedot
 \begin{frame}{Mixing paint, step 4}
   \begin{center}\paintscene{4}\end{center}
   \vspace{-0.15cm}
@@ -579,6 +586,7 @@
 \end{frame}
 
 % CHECKED (python3): [pow(5, e, 23) for e in range(1, 23)]
+\samedot
 \begin{frame}{Why this g?}
   \small Powers of 5 mod 23, for exponents 1 to 22:
   \begin{center}
@@ -608,6 +616,7 @@
   \say{Taką liczbę g nazywamy generatorem. Widać też, że wyniki skaczą bez żadnego porządku; to wróci w sekcji 3.}
 \end{frame}
 
+\samedot
 \begin{frame}{A bad g}
   \vfill
   \small Powers of 2 mod 23:
@@ -690,6 +699,7 @@
   \say{Ania i Bartek wybierają tajne liczby. Ewa ich nie zna.}
 \end{frame}
 
+\samedot
 \begin{frame}{The exchange, step 2}
   \vfill
   \begin{center}\dhscene{2}\end{center}
@@ -697,6 +707,7 @@
   \say{Każdy liczy g do swojej tajnej potęgi. To są mieszanki farb.}
 \end{frame}
 
+\samedot
 \begin{frame}{The exchange, step 3}
   \vfill
   \begin{center}\dhscene{3}\end{center}
@@ -704,6 +715,7 @@
   \say{Ewa widzi 8 i 19. Zapisuje je.}
 \end{frame}
 
+\samedot
 \begin{frame}{The exchange, step 4}
   \vfill
   \begin{center}\dhscene{4}\end{center}
@@ -712,6 +724,7 @@
 \end{frame}
 
 % CHECKED (python3): pow(5,6,23) = 8, pow(5,15,23) = 19, pow(19,6,23) = 2, pow(8,15,23) = 2
+\samedot
 \begin{frame}{The exchange, step 5}
   \vfill
   \begin{center}\dhscene{5}\end{center}
@@ -720,6 +733,7 @@
   \say{Bartek robi to samo z liczbą od Ani. Ten sam wynik: 2.}
 \end{frame}
 
+\samedot
 \begin{frame}{Why are they equal?}
   \vfill
   \begin{center}
@@ -773,6 +787,7 @@
 \end{frame}
 
 % CHECKED (python3): pow(5,4,23) = 4, pow(5,3,23) = 10, pow(10,4,23) = 18, pow(4,3,23) = 18
+\samedot
 \begin{frame}{Solution: an exchange on paper}
   \vfill
   \begin{center}\small
@@ -834,6 +849,7 @@
   \say{Około 6 minut. Liczby losowe: secrets.randbits(256).}
 \end{frame}
 
+\samedot
 \begin{frame}[fragile]{Task 2: what to do}
   \begin{columns}[T,onlytextwidth]
     \column{0.62\textwidth}
@@ -854,6 +870,7 @@ G = 2
 \end{frame}
 
 % CHECKED: Task2/solution/dh.py prints "equal: True"; the author's runs: 11.8 ms and 12.2 ms
+\samedot
 \begin{frame}[fragile]{Solution: a real exchange}
   \begin{columns}[T,onlytextwidth]
     \column{0.55\textwidth}
@@ -912,6 +929,7 @@ print(pow(B, a, P) == pow(A, b, P))
   \say{Ewa ma wszystko poza tajnymi liczbami. Czy da się je odzyskać z A?}
 \end{frame}
 
+\samedot
 \begin{frame}{The discrete logarithm}
   \bigdef{\textbf{Discrete logarithm:} given $p$, $g$ and $A = g^{a} \bmod p$, find $a$.}
   \begin{columns}[T,onlytextwidth]
@@ -967,6 +985,7 @@ print(pow(B, a, P) == pow(A, b, P))
   \say{Około 6 minut. Zapisać przewidywania na tablicy. Ostatni przypadek liczy się kilka sekund.}
 \end{frame}
 
+\samedot
 \begin{frame}[fragile]{Task 3: what to do}
   \begin{columns}[T,onlytextwidth]
     \column{0.62\textwidth}
@@ -985,6 +1004,7 @@ def find_exponent(p, g, A):
 
 % CHECKED: Task3/solution/dlog.py finds a = 17773, 415826, 3465539, 60546499; times from the author's laptop
 % (on a busy machine the 28-bit case took 15 to 21 s: the times depend on the load)
+\samedot
 \begin{frame}[fragile]{Solution: find a}
   \begin{columns}[T,onlytextwidth]
     \column{0.4\textwidth}
@@ -1076,6 +1096,7 @@ return a
   \say{Grupy eksportowe to pozostałość po amerykańskich ograniczeniach z lat 90. TLS to protokół zabezpieczający HTTPS. Atak opisali Adrian i inni na konferencji CCS w 2015 roku.}
 \end{frame}
 
+\samedot
 \begin{frame}{One p for everybody}
   \begin{columns}[c,onlytextwidth]
     \column{0.5\textwidth}
@@ -1158,6 +1179,7 @@ return a
 
 % CHECKED (python3): the shared secret of the example in Task 2 (random.Random(2026)) has 616 digits;
 % hashlib.sha256(secret.to_bytes(256, "big")).hexdigest() = f1584740e2d7aa28...8fac6398
+\samedot
 \begin{frame}{From a number to a key}
   \begin{center}\small The secret has \textbf{2048 bits}. ChaCha20 needs \textbf{256}.\end{center}
   \vfill
@@ -1206,6 +1228,7 @@ return a
   \say{Ephemeral znaczy ulotny. Liczenie nowej wymiany kosztuje mniej niż milisekundę, więc można to robić przy każdym połączeniu.}
 \end{frame}
 
+\samedot
 \begin{frame}{Forward secrecy}
   \bigdef{\textbf{Forward secrecy:} a key stolen today does not open conversations recorded yesterday.}
   \vfill
@@ -1251,6 +1274,7 @@ return a
 \end{frame}
 
 % CHECKED: openssl speed ffdh2048 ffdh3072 on the author's laptop (i5-8265U)
+\samedot
 \begin{frame}{How fast?}
   \vfill
   \begin{center}
@@ -1358,6 +1382,7 @@ return a
   \say{Mallory zna m, więc policzy A\textasciicircum m: ma wspólny sekret z Anią.}
 \end{frame}
 
+\samedot
 \begin{frame}{The attack, step 2}
   \vfill
   \begin{center}\mitmscene{2}\end{center}
@@ -1367,6 +1392,7 @@ return a
   \say{Tak samo z drugiej strony: ma też wspólny sekret z Bartkiem.}
 \end{frame}
 
+\samedot
 \begin{frame}{The attack, step 3}
   \vfill
   \begin{center}\mitmscene{3}\end{center}
@@ -1376,6 +1402,7 @@ return a
   \say{Ania myśli, że jej sekret dzieli z Bartkiem. Bartek myśli to samo. Oboje się mylą.}
 \end{frame}
 
+\samedot
 \begin{frame}{What the attack gives}
   \vfill
   \begin{center}
@@ -1430,6 +1457,7 @@ return a
   \say{Około 10 minut. network.py jest gotowy i nie trzeba go zmieniać: zawiera Anię, Bartka i szyfrowanie wiadomości kluczem z SHA-256.}
 \end{frame}
 
+\samedot
 \begin{frame}[fragile]{Task 4: what to do}
   \begin{columns}[T,onlytextwidth]
     \column{0.64\textwidth}
@@ -1459,6 +1487,7 @@ class Mallory:
 \end{frame}
 
 % CHECKED: Task4/solution/mitm.py prints the two lines below
+\samedot
 \begin{frame}[fragile]{Solution: be Mallory}
 \begin{lstlisting}[style=py, emph={pow,print}]
 def change_A(self, A):
@@ -1507,6 +1536,7 @@ def change_message(self, data):
   \say{Recall z wykładu 3: podpis robi się kluczem prywatnym, sprawdza publicznym. Mallory nie ma klucza prywatnego Bartka.}
 \end{frame}
 
+\samedot
 \begin{frame}{How does Ania know Bartek's public key?}
   \begin{columns}[c,onlytextwidth]
     \column{0.42\textwidth}
@@ -1533,6 +1563,7 @@ def change_message(self, data):
   \say{Tylko pojęcie, bez szczegółów. Dlatego przeglądarka ostrzega, gdy certyfikat strony jest nieprawidłowy.}
 \end{frame}
 
+\samedot
 \begin{frame}{In TLS 1.3}
   \vfill
   \begin{center}
@@ -1614,6 +1645,7 @@ def change_message(self, data):
 \end{frame}
 
 % CHECKED (python3): pow(5, 3, 23) = 10, pow(8, 3, 23) = 6, 10 * 6 % 23 = 14
+\samedot
 \begin{frame}{Encrypt}
   \vfill
   \begin{center}
@@ -1633,6 +1665,7 @@ def change_message(self, data):
   \say{8\textasciicircum 3 = 512, a 512 mod 23 = 6, więc C2 = 60 mod 23 = 14. Wiadomość M to liczba mniejsza od p.}
 \end{frame}
 
+\samedot
 \begin{frame}{Recall: the modular inverse}
   \vfill
   \begin{center}
@@ -1652,6 +1685,7 @@ def change_message(self, data):
 \end{frame}
 
 % CHECKED (python3): pow(10, 6, 23) = 6, pow(6, -1, 23) = 4, 14 * 4 % 23 = 10
+\samedot
 \begin{frame}{Decrypt}
   \vfill
   \begin{center}
@@ -1690,6 +1724,7 @@ def change_message(self, data):
   \say{Dzielenie modulo p to mnożenie przez odwrotność.}
 \end{frame}
 
+\samedot
 \begin{frame}{Why two parts?}
   \begin{center}
     \begin{tikzpicture}[scale=1.5, transform shape]
@@ -1745,6 +1780,7 @@ def change_message(self, data):
   \say{Około 8 minut. Wzory są na poprzednich slajdach.}
 \end{frame}
 
+\samedot
 \begin{frame}[fragile]{Task 5: what to do}
   \begin{columns}[T,onlytextwidth]
     \column{0.66\textwidth}
@@ -1765,6 +1801,7 @@ def decrypt(C1, C2, x):
 \end{frame}
 
 % CHECKED: Task5/solution/elgamal.py prints the two lines below
+\samedot
 \begin{frame}[fragile]{Solution: ElGamal in Python}
   \begin{columns}[T,onlytextwidth]
     \column{0.6\textwidth}
@@ -1838,6 +1875,7 @@ def decrypt(C1, C2, x):
   \say{Około 7 minut. Nie podpowiadać od razu. Jeśli trzeba: co w obu C2 jest takie samo?}
 \end{frame}
 
+\samedot
 \begin{frame}[fragile]{Task 6: what to do}
   \begin{columns}[T,onlytextwidth]
     \column{0.68\textwidth}
@@ -1857,6 +1895,7 @@ first = "Payment approved: 250 EUR, order 1187."
 \end{frame}
 
 % CHECKED: Task6/solution/reuse.py prints the line below
+\samedot
 \begin{frame}[fragile]{Solution: k used twice}
 \begin{lstlisting}[style=py, emph={pow,print}]
 mask = C2_first * pow(text_to_number(first), -1, P) % P
@@ -1918,6 +1957,7 @@ print(number_to_text(second))
 
 % CHECKED (python3): r = pow(5, 3, 23) = 10, s = (10 - 6 * 10) * pow(3, -1, 22) % 22 = 20,
 % pow(5, 10, 23) = 9, pow(8, 10, 23) * pow(10, 20, 23) % 23 = 9
+\samedot
 \begin{frame}{Verify}
   \vfill
   \begin{center}
@@ -1965,6 +2005,7 @@ print(number_to_text(second))
   \say{Około 8 minut. pow(k, -1, p - 1) daje odwrotność k modulo p - 1.}
 \end{frame}
 
+\samedot
 \begin{frame}[fragile]{Task 7: what to do}
   \begin{columns}[T,onlytextwidth]
     \column{0.64\textwidth}
@@ -1987,6 +2028,7 @@ def verify(m, r, s):
 \end{frame}
 
 % CHECKED: Task7/solution/sign.py prints the three lines below
+\samedot
 \begin{frame}[fragile]{Solution: sign and verify}
   \begin{columns}[T,onlytextwidth]
     \column{0.62\textwidth}

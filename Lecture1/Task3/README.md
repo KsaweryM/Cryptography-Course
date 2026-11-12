@@ -1,15 +1,13 @@
-# Task 3: raise the price
+# Task 3: one key, two messages
 
-You intercepted an invoice for a small amount. The format is 8 decimal digits, as ASCII text. You do not know the key.
+Somebody carelessly encrypted two messages with the same key, so both use the same keystream. From a reliable source you learned the first message.
 
-Fill in the `TODO` in `tamper.py` so that party B accepts a price of exactly 50000010 PLN.
-
-`server.py` plays the role of party B. Treat it as a black box: do not look inside.
+Fill in the `TODO`s in `reuse.py` and print the second message.
 
 ## Run
 
 ```
-python3 tamper.py
+python3 reuse.py
 ```
 
 Python 3, no extra libraries.

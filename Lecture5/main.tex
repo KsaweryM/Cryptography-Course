@@ -29,8 +29,11 @@
 \setbeamertemplate{itemize items}[circle]
 \setbeamertemplate{enumerate items}[default]
 \setbeamertemplate{blocks}[rounded][shadow=true]
-% 59 slides: smaller dots, so that the navigation bar fits the page width
-\setbeamersize{mini frame size=.07cm,mini frame offset=.03cm}
+% one dot per idea, not per frame: \samedot before a frame gives it the dot of the frame before
+% (it undoes the step of the dot counter that the next frame makes)
+\newcommand{\samedot}{\addtocounter{subsectionslide}{-1}}
+% the default dot step of the circle dots (0.1 cm dots)
+\setbeamersize{mini frame size=.14cm,mini frame offset=-.01cm}
 
 % ======================================================================
 % Colour rules for presentations (Beamer + TikZ), from Agents/colors
@@ -396,6 +399,7 @@
   \say{Przypomnienie z dwóch poprzednich wykładów. Logarytm dyskretny: z g, p i $g^a$ mod p znaleźć a. Faktoryzacja: rozkład n na czynniki pierwsze.}
 \end{frame}
 
+\samedot
 \begin{frame}{The price: long keys}
   \begin{center}\small To be as hard to break as trying $2^{128}$ keys:\end{center}
   \vfill
@@ -422,6 +426,7 @@
   \say{128 bitów bezpieczeństwa znaczy: złamanie jest tak trudne jak sprawdzenie $2^{128}$ kluczy. AES to szyfr symetryczny; dla niego długość klucza to właśnie poziom bezpieczeństwa. Dla RSA i DH istnieją sprytne ataki, dlatego klucze muszą być dużo dłuższe.}
 \end{frame}
 
+\samedot
 \begin{frame}{Where long keys hurt}
   \vfill
   \begin{center}
@@ -520,6 +525,7 @@
   \say{Nazwa nie ma nic wspólnego z elipsą; pochodzi z historycznych obliczeń długości łuku elipsy. Krzywa jest symetryczna względem osi x, bo y i -y dają ten sam kwadrat.}
 \end{frame}
 
+\samedot
 \begin{frame}{Real numbers will not do}
   \vfill
   \begin{center}\small Computers need exact numbers. Over the reals, points have endless decimals:\end{center}
@@ -562,6 +568,7 @@
   \say{Linia zamieniła się w rozsypane kropki. Symetria została: obok punktu (x, y) zawsze leży (x, 17 - y).}
 \end{frame}
 
+\samedot
 \begin{frame}{Is (5, 1) on the curve?}
   \vfill
   \begin{center}
@@ -584,6 +591,7 @@
   \say{Każdy punkt można tak sprawdzić. (5, 2) by nie pasował: lewa strona to 4.}
 \end{frame}
 
+\samedot
 \begin{frame}{All the points}
   \begin{center}\small 18 points with $x$ and $y$ from 0 to 16, in mirror pairs $(x, y)$ and $(x, 17 - y)$:\end{center}
   \vfill
@@ -658,6 +666,7 @@
   \note<3>{\selectlanguage{polish}To geometryczna definicja, rysujemy ją nad liczbami rzeczywistymi. Wzory, które z niej wynikają, działają potem modulo p.}
 \end{frame}
 
+\samedot
 \begin{frame}{Doubling a point}
   \begin{columns}[c,onlytextwidth]
     \column{0.5\textwidth}
@@ -682,6 +691,7 @@
   \note<3>{\selectlanguage{polish}Styczna to prosta, która dotyka krzywej w jednym punkcie. Podwajanie jest potrzebne najczęściej, zobaczymy to w sekcji 4.}
 \end{frame}
 
+\samedot
 \begin{frame}{P + (-P) = O}
   \begin{columns}[c,onlytextwidth]
     \column{0.52\textwidth}
@@ -768,12 +778,14 @@
   \say{2 razy 9 to 18, czyli 1 mod 17, więc odwrotność 2 to 9.}
 \end{frame}
 
+\samedot
 \begin{frame}{Doubling G, step 2}
   \dblG{2}
   \vfill
   \say{169 - 10 = 159, a 159 = 9 · 17 + 6.}
 \end{frame}
 
+\samedot
 \begin{frame}{Doubling G, step 3}
   \dblG{3}
   \vfill
@@ -800,6 +812,7 @@
   \say{Około 6 minut. Tym razem to dodawanie dwóch różnych punktów, więc inny wzór na nachylenie.}
 \end{frame}
 
+\samedot
 \begin{frame}{Solution: G + 2G on paper}
   % CHECKED: python3 (Task2/solution/ec_toy.py): 3G = (10, 6); 36 % 17 = 2, 1022 = 60 * 17 + 2
   \begin{columns}[c,onlytextwidth]
@@ -839,6 +852,7 @@
   \say{Około 10 minut. Wzory są na slajdzie The formulas.}
 \end{frame}
 
+\samedot
 \begin{frame}{Task 2: what to do}
   \begin{columns}[T,onlytextwidth]
     \column{0.67\textwidth}
@@ -855,6 +869,7 @@
 
 % CHECKED: Task2/solution/ec_toy.py prints 1G = (5, 1) ... 18G = (5, 16), 19G = O
 \newcommand{\Gpath}{5/1,6/3,10/6,3/1,9/16,16/13,0/6,13/7,7/6,7/11,13/10,0/11,16/4,9/1,3/16,10/11,6/14,5/16}
+\samedot
 \begin{frame}{Solution: all points from G}
   \begin{columns}[c,onlytextwidth]
     \column{0.6\textwidth}
@@ -904,6 +919,7 @@
   \say{Mnożenie skalarne: liczba razy punkt. Na krzywej mnożenie skalarne zastępuje potęgowanie z Diffie-Hellmana.}
 \end{frame}
 
+\samedot
 \begin{frame}{Fast: double and add}
   \begin{center}\large $100\,G = 64G + 32G + 4G$ \qquad \normalsize\textcolor{gray}{because $100 = 64 + 32 + 4$}\end{center}
   \vfill
@@ -970,6 +986,7 @@
   \say{Około 6 minut. Ostatnia krzywa liczy się około 15 sekund.}
 \end{frame}
 
+\samedot
 \begin{frame}{Task 3: what to do}
   \vfill
   \codefile{Task3/ecdlp.py}{28-31}
@@ -984,6 +1001,7 @@
   \say{To samo co próbowanie wykładników w wykładzie 4, tylko na punktach.}
 \end{frame}
 
+\samedot
 \begin{frame}{Solution: find k}
   \begin{columns}[c,onlytextwidth]
     \column{0.42\textwidth}
@@ -1100,6 +1118,7 @@
 \end{frame}
 
 % the ECDH exchange: Ania, Bartek and Ewa; #1 = 1: the numbers of the toy curve
+\samedot
 \begin{frame}{ECDH}
   \begin{center}
     \begin{tikzpicture}[>=Stealth]
@@ -1126,6 +1145,7 @@
   \say{Ewa to podsłuchująca osoba z poprzednich wykładów. ECDH to Elliptic-Curve Diffie-Hellman.}
 \end{frame}
 
+\samedot
 \begin{frame}{ECDH on our curve}
   % CHECKED: python3 on the toy curve: 3G = (10, 6), 10G = (7, 11), 3 (7, 11) = 10 (10, 6) = (13, 10) = 11G
   \begin{columns}[c,onlytextwidth]
@@ -1182,6 +1202,7 @@
     \node[font=\scriptsize, text=gray, anchor=north] at (1.05,-0.55) {#4};
   \end{scope}}
 
+\samedot
 \begin{frame}{X25519}
   \begin{center}\small ECDH on Curve25519, as used on the internet (RFC 7748):\end{center}
   \vfill
@@ -1223,6 +1244,7 @@
   \say{Około 6 minut. Wynik można porównać z dokumentem RFC.}
 \end{frame}
 
+\samedot
 \begin{frame}{Task 4: what to do}
   \codefile{Task4/ecdh.py}{1-11}
   \vfill
@@ -1236,6 +1258,7 @@
   \say{x25519\_ready.py zawiera też funkcję hkdf, napisaną na hmac i hashlib z biblioteki standardowej.}
 \end{frame}
 
+\samedot
 \begin{frame}{Solution: X25519}
   % CHECKED: Task4/solution/ecdh.py: the secret is the one in RFC 7748, section 6.1; equal: True
   \codefile{Task4/solution/ecdh.py}{7-8,12-13,16,18}
@@ -1279,6 +1302,7 @@
   \say{d C1 = d k G = k Q, więc odejmujemy dokładnie to, co Ania dodała. Wiadomość musi najpierw stać się punktem krzywej; w praktyce szyfruje się raczej klucz przez ECDH i KDF.}
 \end{frame}
 
+\samedot
 \begin{frame}{The example on our curve}
   % CHECKED: python3 on the toy curve: 7G = (0, 6), 4G = (3, 1), 4Q = (7, 6), (13, 10) + (7, 6) = (5, 1),
   %   7 (3, 1) = (7, 6), (5, 1) + (7, 11) = (13, 10)
@@ -1326,6 +1350,7 @@
   \say{Około 7 minut.}
 \end{frame}
 
+\samedot
 \begin{frame}{Task 5: what to do}
   \vfill
   \codefile{Task5/ec_elgamal.py}{42-49}
@@ -1340,6 +1365,7 @@
   \say{mul(k, P) dodaje P k razy; na małej krzywej to wystarczy.}
 \end{frame}
 
+\samedot
 \begin{frame}{Solution: ElGamal on a curve}
   % CHECKED: Task5/solution/ec_elgamal.py prints Q = (0, 6), ciphertext ((3, 1), (5, 1)), decrypted (13, 10)
   \begin{columns}[c,onlytextwidth]
@@ -1409,6 +1435,7 @@
   \say{Prezentacja na kongresie 27C3 w grudniu 2010 roku. Producent konsoli zamiast losowej liczby k używał stałej. To zapowiedziany w wykładzie 4 przykład.}
 \end{frame}
 
+\samedot
 \begin{frame}{Two signatures, one k}
   \vfill
   \begin{center}
@@ -1462,6 +1489,7 @@
   \say{Około 8 minut. p256.py jest gotowy: sign, verify, mul, h.}
 \end{frame}
 
+\samedot
 \begin{frame}{Task 6: what to do}
   \codefile{Task6/reuse.py}{1-1,9-10,12-12,18-22}
   \vfill
@@ -1475,6 +1503,7 @@
   \say{Odwrotność modulo n: pow(x, -1, n).}
 \end{frame}
 
+\samedot
 \begin{frame}{Solution: the same k twice}
   % CHECKED: Task6/solution/reuse.py prints: private key found: True, my game accepted: True
   \codefile{Task6/solution/reuse.py}{19-25}
@@ -1535,6 +1564,7 @@
   \say{Tabela według NIST SP 800-57. Przy 256 bitach bezpieczeństwa klucz RSA miałby ponad 15 tysięcy bitów.}
 \end{frame}
 
+\samedot
 \begin{frame}{Measured on a laptop}
   % CHECKED: openssl speed on the author's laptop (i5-8265U, OpenSSL 3.0.13), from the draft
   \begin{center}\small operations per second, \texttt{openssl speed}, log scale\end{center}

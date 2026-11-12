@@ -1,18 +1,15 @@
-# Task 5: use RC4
+# Task 5: a cheap generator
 
-`rc4_ready.py` gives you RC4 as a ready function: `keystream(key, n)` returns `n` bytes of keystream. For now, treat it as a black box.
+A company uses a stream cipher with a weak generator. Your analysis shows that its keystream is just 4 numbers (0 to 255), repeated again and again. You know that the plaintext starts with the name `Anna`.
 
-Fill in the `TODO`s in `use_rc4.py`:
+Fill in the `TODO`s in `cheap.py`: find the 4 numbers, then decrypt the whole message.
 
-1. Decrypt the ciphertext with the key `Kangaroo`.
-2. Change the last letter of the key to get `Kangarop`. Print the first 8 keystream bytes for both keys. How many bytes are the same?
-
-Hint: `data.hex(" ")` prints bytes as hex with spaces.
+Hint: `i % 4` is the remainder after dividing `i` by 4, so it goes 0, 1, 2, 3, 0, 1, ...
 
 ## Run
 
 ```
-python3 use_rc4.py
+python3 cheap.py
 ```
 
 Python 3, no extra libraries.

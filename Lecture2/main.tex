@@ -30,8 +30,11 @@
 \setbeamertemplate{itemize items}[circle]
 \setbeamertemplate{enumerate items}[default]
 \setbeamertemplate{blocks}[rounded][shadow=true]
-% about 105 slides: smaller dots, so that the navigation bar fits the page width
-\setbeamersize{mini frame size=.07cm,mini frame offset=.03cm}
+% one dot per idea, not per frame: \samedot before a frame gives it the dot of the frame before
+% (it undoes the step of the dot counter that the next frame makes)
+\newcommand{\samedot}{\addtocounter{subsectionslide}{-1}}
+% the default dot step of the circle dots (0.1 cm dots)
+\setbeamersize{mini frame size=.14cm,mini frame offset=-.01cm}
 
 % ======================================================================
 % Colour rules for presentations (Beamer + TikZ), from Agents/colors
@@ -495,6 +498,7 @@
   \say{Krótkie przypomnienie, bo dziś wszystko będzie w hex. Liczby 32-bitowe zobaczymy już za chwilę, to po prostu 4 bajty.}
 \end{frame}
 
+\samedot
 \begin{frame}{Recall: XOR}
   \vfill
   \begin{columns}[c,onlytextwidth]
@@ -519,6 +523,7 @@
   \say{Jeśli grupa pamięta XOR, wystarczy jedno zdanie. To ta sama operacja, której używamy do szyfrowania.}
 \end{frame}
 
+\samedot
 \begin{frame}{Recall: a stream cipher}
   \vfill
   \begin{center}
@@ -543,6 +548,7 @@
   \say{Generator rozwija krótki klucz w długi ciąg bajtów. Szyfrowanie to XOR bajt po bajcie. Odbiorca robi dokładnie to samo.}
 \end{frame}
 
+\samedot
 \begin{frame}{Recall: never the same keystream twice}
   \begin{center}\small Two messages encrypted with the same keystream Z:\end{center}
   \vfill
@@ -608,6 +614,7 @@
     \fi
   \end{tikzpicture}}
 
+\samedot
 \begin{frame}{A generator that only goes forward}
   \begin{center}\small A generator like \textbf{RC4} gives the keystream one byte after another.\\
     To reach minute 90 it must first produce and throw away 1.5 GB of keystream.\end{center}
@@ -626,6 +633,7 @@
   \say{RC4 to szyfr z poprzedniego wykładu: każdy jego bajt zależy od wszystkich wcześniejszych. 1,5 GB to trzy czwarte filmu. Prędkość RC4 zmierzyłem openssl speed na tym laptopie; przy każdym przewinięciu trzeba liczyć od początku.}
 \end{frame}
 
+\samedot
 \begin{frame}{What do we really need?}
   \vfill
   \begin{center}\Large Any piece of the keystream,\\ without computing the pieces before it.\end{center}
@@ -662,6 +670,7 @@
   \say{1,5 GB to 23 437 500 bloków po 64 bajty. Ten numer liczymy jednym dzieleniem, a nie liczeniem bloków po kolei.}
 \end{frame}
 
+\samedot
 \begin{frame}{The counter}
   \bigdef{\textbf{Counter}: the number of a 64-byte block of the keystream. It goes 0, 1, 2, \ldots\
     for the blocks of one message. Like the nonce, it is public.}
@@ -680,6 +689,7 @@
   \say{Licznik nie jest tajny: odbiorca wylicza go sam z pozycji bajtu. Tajny jest tylko klucz.}
 \end{frame}
 
+\samedot
 \begin{frame}{Salsa20 and ChaCha20 from the outside}
   \vfill
   \begin{center}\threeinputs{Salsa20 /\\ChaCha20}\end{center}
@@ -709,6 +719,7 @@
   \say{Około 4 minut. Pierwsze zadanie tylko z użyciem gotowej funkcji, bez zaglądania do środka.}
 \end{frame}
 
+\samedot
 \begin{frame}[fragile]{Task 1: what to do}
   \begin{columns}[T,onlytextwidth]
     \column{0.6\textwidth}
@@ -738,6 +749,7 @@ ciphertext = bytes.fromhex(
   \say{chacha20\_ready.py jest w folderze zadania, nie trzeba go czytać. Szyfrowanie i odszyfrowanie to ta sama funkcja.}
 \end{frame}
 
+\samedot
 \begin{frame}[fragile]{Solution: use ChaCha20}
   \begin{columns}[T,onlytextwidth]
     \column{0.55\textwidth}
@@ -777,6 +789,7 @@ print(plaintext.decode())
   \say{Około 5 minut. To samo co w zadaniu 1, tylko trzeba pomyśleć o liczniku. (Rysunek pokazuje film w skrócie, nie wszystkie 1000 bloków.)}
 \end{frame}
 
+\samedot
 \begin{frame}[fragile]{Task 2: what to do}
   \begin{columns}[T,onlytextwidth]
     \column{0.6\textwidth}
@@ -808,6 +821,7 @@ one_block = b""
   \say{Pomiar czasu jest już w pliku. Fragment bajtów w Pythonie: film[od:do].}
 \end{frame}
 
+\samedot
 \begin{frame}[fragile]{Solution: jump to the middle}
 % CHECKED: Task2/solution/jump.py, author's laptop: 135 to 138 ms and 0.1 to 0.2 ms in three runs
 \begin{lstlisting}[style=py, emph={chacha20}]
@@ -847,6 +861,7 @@ one_block = chacha20(key, nonce, 700, film[700 * 64:701 * 64])
   \say{Powtórka pary nonce i licznik to dokładnie powtórka keystreamu, czyli błąd, który usuwa klucz.}
 \end{frame}
 
+\samedot
 \begin{frame}{How long can one message be?}
   \begin{center}\small In ChaCha20 as used on the internet (\textbf{RFC 8439}):\end{center}
   \vfill
@@ -916,6 +931,7 @@ one_block = chacha20(key, nonce, 700, film[700 * 64:701 * 64])
   \say{Mod przyda się za chwilę: dodawanie w ChaCha20 zawija się jak zegar, tylko tarcza ma 2 do potęgi 32 pozycji.}
 \end{frame}
 
+\samedot
 \begin{frame}{Operation 1: addition mod $2^{32}$}
   \begin{center}\small A word has 32 bits. A carry out of bit 31 is \textbf{lost}.\end{center}
   \vfill
@@ -935,6 +951,7 @@ one_block = chacha20(key, nonce, 700, film[700 * 64:701 * 64])
   \say{To samo robi procesor przy zwykłym dodawaniu liczb 32-bitowych, więc ta operacja jest bardzo szybka.}
 \end{frame}
 
+\samedot
 \begin{frame}{Addition in Python}
   \begin{center}\small Python integers have no limit, so we cut the result to 32 bits ourselves:\end{center}
   \pycode{\large (a + b) \& 0xFFFFFFFF}
@@ -1001,6 +1018,7 @@ one_block = chacha20(key, nonce, 700, film[700 * 64:701 * 64])
   \say{Rotacja przenosi bity na inne pozycje, dzięki czemu bity z góry słowa wpływają na dół i odwrotnie. Pozostałe bity przesuwają się o jedno miejsce w lewo.}
 \end{frame}
 
+\samedot
 \begin{frame}{Rotation is not a shift}
   \vfill
   \begin{center}
@@ -1053,6 +1071,7 @@ one_block = chacha20(key, nonce, 700, film[700 * 64:701 * 64])
   \say{Około 6 minut. Oba wzory były na poprzednich slajdach, ale niech spróbują bez patrzenia.}
 \end{frame}
 
+\samedot
 \begin{frame}[fragile]{Task 3: what to do}
   \begin{columns}[T,onlytextwidth]
     \column{0.6\textwidth}
@@ -1078,6 +1097,7 @@ def rotl32(x, n):
   \say{Testy są gotowe na dole pliku. Na początku wszystkie sześć daje FAIL.}
 \end{frame}
 
+\samedot
 \begin{frame}[fragile]{Solution: write the operations}
   \begin{columns}[T,onlytextwidth]
     \column{0.58\textwidth}
@@ -1129,6 +1149,7 @@ def rotl32(x, n):
   \say{Ten sam układ ma Salsa20 i ChaCha20. Różni się tylko to, co wpisujemy w które pole.}
 \end{frame}
 
+\samedot
 \begin{frame}{Salsa20: what goes where}
   \begin{columns}[c,onlytextwidth]
     \column{0.55\textwidth}
@@ -1149,6 +1170,7 @@ def rotl32(x, n):
   \say{Klucz zajmuje połowę stanu. Napastnik zna stałe, nonce i licznik, nie zna tylko 8 słów klucza.}
 \end{frame}
 
+\samedot
 \begin{frame}{The constants}
   \begin{center}\small The four constant words are ASCII text:\end{center}
   \vfill
@@ -1215,6 +1237,7 @@ def rotl32(x, n):
   \say{Około 6 minut. Najpierw niech zapiszą przewidywanie na kartce. Można liczyć ręcznie, ale Python jest szybszy.}
 \end{frame}
 
+\samedot
 \begin{frame}[fragile]{Task 4: what to do}
   \begin{columns}[T,onlytextwidth]
     \column{0.62\textwidth}
@@ -1236,6 +1259,7 @@ def salsa_quarter_round(a, b, c, d):
   \say{Gotowe add32 i rotl32 są w pliku, więc zadanie nie wymaga zadania 3.}
 \end{frame}
 
+\samedot
 \begin{frame}{Solution: one quarter round of Salsa20}
   \vfill
   \begin{center}
@@ -1340,6 +1364,7 @@ def salsa_quarter_round(a, b, c, d):
   \say{To wersja z RFC 8439, używana w protokołach internetowych: licznik 32 bity, nonce 96 bitów. Oryginalny ChaCha20 Bernsteina miał po 64 bity, jak Salsa20.}
 \end{frame}
 
+\samedot
 \begin{frame}{Little-endian}
   \begin{center}\small Four bytes become one word with the \textbf{lowest byte first}:\end{center}
   \vfill
@@ -1360,6 +1385,7 @@ def salsa_quarter_round(a, b, c, d):
   \say{Bez tego slajdu nikt nie odczyta stanu z RFC. < w struct oznacza little-endian, I to słowo 32-bitowe.}
 \end{frame}
 
+\samedot
 \begin{frame}{The state of the RFC example}
   \begin{center}\small key = \texttt{00 01 02 \ldots\ 1f},\quad counter = 1,\quad nonce = \texttt{00 00 00 09 00 00 00 4a 00 00 00 00}\end{center}
   \vfill
@@ -1394,26 +1420,31 @@ def salsa_quarter_round(a, b, c, d):
   \begin{center}\abcd{#3}{#4}{#5}{#6}{#7}\end{center}
   \vfill}
 
+\samedot
 \begin{frame}{Quarter round: the start}
   \qrstep{0}{RFC 8439, section 2.1.1:\\ the test vector of the quarter round}{0x11111111}{0x01020304}{0x9b8d6f43}{0x01234567}{}
   \say{Wektor testowy z RFC 8439, punkt 2.1.1. Liczymy linijka po linijce; Python wystarcza jako kalkulator.}
 \end{frame}
 
+\samedot
 \begin{frame}{Quarter round, line 1}
   \qrstep{1}{a = 0x11111111 + 0x01020304 = 0x12131415\\ d = 0x01234567 \textasciicircum{} 0x12131415 = 0x13305172\\ d = rotl(0x13305172, 16)\ \ = 0x51721330}{0x12131415}{0x01020304}{0x9b8d6f43}{0x51721330}{a,d}
   \say{Pierwsza linijka. XOR na 0x12131415 i 0x01234567 widzieliśmy już przy operacji 2. Rotacja o 16 zamienia połówki słowa miejscami.}
 \end{frame}
 
+\samedot
 \begin{frame}{Quarter round, line 2}
   \qrstep{2}{c = 0x9b8d6f43 + 0x51721330 = 0xecff8273\\ b = 0x01020304 \textasciicircum{} 0xecff8273 = 0xedfd8177\\ b = rotl(0xedfd8177, 12)\ \ = 0xd8177edf}{0x12131415}{0xd8177edf}{0xecff8273}{0x51721330}{b,c}
   \say{Rotacja o 12 bitów to przesunięcie o 3 cyfry hex, więc łatwo ją sprawdzić okiem: edfd8177 staje się d8177edf.}
 \end{frame}
 
+\samedot
 \begin{frame}{Quarter round, line 3}
   \qrstep{3}{a = 0x12131415 + 0xd8177edf = 0xea2a92f4\\ d = 0x51721330 \textasciicircum{} 0xea2a92f4 = 0xbb5881c4\\ d = rotl(0xbb5881c4, 8)\ \ \ = 0x5881c4bb}{0xea2a92f4}{0xd8177edf}{0xecff8273}{0x5881c4bb}{a,d}
   \say{Rotacja o 8 bitów to przesunięcie o dwie cyfry hex: bb5881c4 staje się 5881c4bb.}
 \end{frame}
 
+\samedot
 \begin{frame}{Quarter round, line 4}
   \qrstep{4}{c = 0xecff8273 + 0x5881c4bb = 0x4581472e\\ \textnormal{\scriptsize\textcolor{AccentOrange}{(a carry was lost)}}\\ b = 0xd8177edf \textasciicircum{} 0x4581472e = 0x9d9639f1\\ b = rotl(0x9d9639f1, 7)\ \ \ = 0xcb1cf8ce}{0xea2a92f4}{0xcb1cf8ce}{0x4581472e}{0x5881c4bb}{b,c}
   \keymsg{The result matches RFC 8439, section 2.1.1.}
@@ -1435,6 +1466,7 @@ def salsa_quarter_round(a, b, c, d):
   \say{Około 8 minut. Wartości pośrednie są na poprzednich slajdach, przydadzą się, jeśli coś nie wyjdzie.}
 \end{frame}
 
+\samedot
 \begin{frame}[fragile]{Task 5: what to do}
   \begin{columns}[T,onlytextwidth]
     \column{0.6\textwidth}
@@ -1455,6 +1487,7 @@ def quarter_round(a, b, c, d):
   \say{Częsty błąd: zwykłe + zamiast add32, wtedy liczby rosną ponad 32 bity i test daje FAIL.}
 \end{frame}
 
+\samedot
 \begin{frame}[fragile]{Solution: write the quarter round}
   \begin{columns}[T,onlytextwidth]
     \column{0.58\textwidth}
@@ -1508,6 +1541,7 @@ def quarter_round(a, b, c, d):
   \note<4>{\selectlanguage{polish}Cztery quarter round, każda na jednej kolumnie. Po rundzie kolumnowej każde słowo zależy od słów ze swojej kolumny, ale nie od innych kolumn.}
 \end{frame}
 
+\samedot
 \begin{frame}{A diagonal round}
   \begin{columns}[c,onlytextwidth]
     \column{0.5\textwidth}
@@ -1525,6 +1559,7 @@ def quarter_round(a, b, c, d):
   \note<4>{\selectlanguage{polish}Przekątna zawija się na brzegu tablicy, jak mod. Każda przekątna ma po jednym słowie z każdej kolumny.}
 \end{frame}
 
+\samedot
 \begin{frame}{Two rounds: every word meets every other}
   \begin{columns}[c,onlytextwidth]
     \column{0.5\textwidth}
@@ -1547,6 +1582,7 @@ def quarter_round(a, b, c, d):
   \say{Słowo 0 po rundzie diagonalnej miesza się ze słowami 5, 10 i 15, a każde z nich wcześniej mieszało się ze swoją kolumną. Dlatego zależy od wszystkich szesnastu.}
 \end{frame}
 
+\samedot
 \begin{frame}{Twenty rounds}
   \begin{columns}[c,onlytextwidth]
     \column{0.42\textwidth}
@@ -1584,6 +1620,7 @@ def quarter_round(a, b, c, d):
   \say{To krok, który łatwo uznać za zbędny. W sekcji 5 studenci sami zobaczą, co się dzieje bez niego.}
 \end{frame}
 
+\samedot
 \begin{frame}{From words to bytes}
   \begin{center}\small Each of the 16 words is written as 4 bytes, little-endian:\end{center}
   \vfill
@@ -1602,6 +1639,7 @@ def quarter_round(a, b, c, d):
   \say{To dokładnie pierwszy wiersz bloku z RFC 8439. Te 64 bajty to blok keystreamu numer 1 dla tego klucza i nonce.}
 \end{frame}
 
+\samedot
 \begin{frame}{XOR with the plaintext}
   \vfill
   \begin{center}
@@ -1636,6 +1674,7 @@ def quarter_round(a, b, c, d):
   \say{Około 12 minut, najdłuższe zadanie. quarter\_round jest gotowe w pliku.}
 \end{frame}
 
+\samedot
 \begin{frame}[fragile]{Task 6: what to do}
   \begin{columns}[T,onlytextwidth]
     \column{0.64\textwidth}
@@ -1665,6 +1704,7 @@ def chacha20_block(key, counter, nonce):
   \say{Uwaga: quarter\_round w tym pliku przyjmuje listę i cztery indeksy, a nie cztery wartości jak w zadaniu 5. Tak jest wygodniej dla całego stanu. Indeksy kolumn i przekątnych są w komentarzu w pliku.}
 \end{frame}
 
+\samedot
 \begin{frame}[fragile]{Solution: one full block}
   \begin{columns}[T,onlytextwidth]
     \column{0.64\textwidth}
@@ -1688,6 +1728,7 @@ return struct.pack("<16I", *s)
   \say{Kod sprawdzony. Na slajdzie skrócone: w pliku rozwiązania jest wszystkie osiem wywołań quarter\_round.}
 \end{frame}
 
+\samedot
 \begin{frame}{Solution: the output}
   \vfill
   \begin{center}
@@ -1791,6 +1832,7 @@ def chacha20(key, nonce, counter, data):
   \say{Około 6 minut. Zebrać przewidywania od kilku osób i zapisać na tablicy, zanim uruchomią program. (Pomarańczowe kratki na rysunku to tylko ilustracja.)}
 \end{frame}
 
+\samedot
 \begin{frame}[fragile]{Task 7: what to do}
   \begin{columns}[T,onlytextwidth]
     \column{0.66\textwidth}
@@ -1815,6 +1857,7 @@ for rounds in [1, 2, 3, 4, 5, 6, 8, 12, 20]:
   \say{chacha.py w folderze ma parametr rounds, więc można wybrać dowolną liczbę rund. Program liczy krócej niż sekundę.}
 \end{frame}
 
+\samedot
 \begin{frame}[fragile]{Solution: watch one bit spread}
 % CHECKED: Task7/solution/avalanche.py, random.seed(1), 200 trials:
 %          1: 26.7, 2: 169.7, 3: 256.3, 4: 255.2, 5: 253.6, 6: 256.1, 8: 255.3, 12: 256.1, 20: 256.3
@@ -1881,6 +1924,7 @@ total += bin(diff).count("1")
   \say{Aumasson, Fischer, Khazaei, Meier i Rechberger, FSE 2008: ataki na 6 i 7 rund ChaCha. Ich metody szukają różnic dużo sprytniej niż liczenie bitów.}
 \end{frame}
 
+\samedot
 \begin{frame}{Differential cryptanalysis: the idea}
   \begin{columns}[c,onlytextwidth]
     \column{0.55\textwidth}
@@ -1909,6 +1953,7 @@ total += bin(diff).count("1")
   \say{Nasze zadanie 7 to bardzo prosta wersja tej metody: patrzyliśmy na sumę bitów, a nie na pojedyncze bity. Ataki z 2008 roku szukają pojedynczych przewidywalnych bitów po kilku rundach. (Rysunek jest ilustracją, nie pomiarem.)}
 \end{frame}
 
+\samedot
 \begin{frame}{Linear cryptanalysis: the idea}
   \vfill
   \defbox{\textbf{Linear cryptanalysis}: look for a XOR of a few input bits and output bits that is 0 more often than half the time.}
@@ -1948,6 +1993,7 @@ total += bin(diff).count("1")
   \say{2 do 139 operacji to nadal nieosiągalne, ale to jest atak: lepszy niż zgadywanie. Późniejsze prace poprawiły te liczby dla 7 rund, ale 8 rund nadal nie jest złamane.}
 \end{frame}
 
+\samedot
 \begin{frame}{ChaCha8, ChaCha12, ChaCha20}
   \vfill
   \begin{center}
@@ -1969,6 +2015,7 @@ total += bin(diff).count("1")
   \say{Czas zmierzony na laptopie z i5-8265U tą samą implementacją co w zadaniach, tylko generowanie keystreamu. W C proporcje są podobne, bo rundy to prawie cały koszt. ChaCha20 wyróżniony jako standard.}
 \end{frame}
 
+\samedot
 \begin{frame}{Fewer rounds in real systems}
   \vfill
   \begin{center}
@@ -2015,6 +2062,7 @@ total += bin(diff).count("1")
   \say{Około 10 minut. Napastnik zna tylko ten blok. Nie zna klucza, a mimo to go odzyska.}
 \end{frame}
 
+\samedot
 \begin{frame}[fragile]{Task 8: what to do}
   \begin{columns}[T,onlytextwidth]
     \column{0.66\textwidth}
@@ -2045,6 +2093,7 @@ for _ in range(10):
   \say{Kolejność jest odwrócona dwa razy: linijki od ostatniej, a w każdej linijce kroki od ostatniego. Pętla cofająca rundy jest gotowa.}
 \end{frame}
 
+\samedot
 \begin{frame}[fragile]{Solution: the inverse quarter round}
   \begin{columns}[T,onlytextwidth]
     \column{0.64\textwidth}
@@ -2072,6 +2121,7 @@ def inverse_quarter_round(s, a, b, c, d):
   \say{Porównać z quarter round: każda linijka od końca. Kod sprawdzony.}
 \end{frame}
 
+\samedot
 \begin{frame}{Solution: the key is back}
   \vfill
   \begin{center}
@@ -2141,6 +2191,7 @@ def inverse_quarter_round(s, a, b, c, d):
   \say{AES to szyfr blokowy, który szyfruje bloki po 16 bajtów. Instrukcje AES na x86 nazywają się AES-NI. Na ARM są rozszerzeniem kryptograficznym, które tanie procesory często pomijają.}
 \end{frame}
 
+\samedot
 \begin{frame}{AES in software: tables and timing}
   \begin{columns}[c,onlytextwidth]
     \column{0.42\textwidth}
@@ -2182,6 +2233,7 @@ def inverse_quarter_round(s, a, b, c, d):
   \say{Instrukcje wektorowe wykonują to samo działanie na kilku słowach naraz, a cztery quarter round w jednej rundzie są od siebie niezależne. Ma je prawie każdy procesor w telefonie.}
 \end{frame}
 
+\samedot
 \begin{frame}{Measured on a laptop}
   \vfill
   \begin{columns}[T,onlytextwidth]
@@ -2276,6 +2328,7 @@ def inverse_quarter_round(s, a, b, c, d):
   \say{Przypomnienie: XOR szyfrogramu z wartością zmienia dokładnie ten sam bit tekstu jawnego. Odbiorca widzi poprawną wiadomość, klucz nie był potrzebny.}
 \end{frame}
 
+\samedot
 \begin{frame}{A tag}
   \begin{center}\small The sender computes a short \textbf{tag} from the ciphertext and a secret key.\end{center}
   \vfill
@@ -2298,6 +2351,7 @@ def inverse_quarter_round(s, a, b, c, d):
   \say{Bez klucza napastnik nie potrafi policzyć nowego znacznika dla zmienionej wiadomości. Poly1305 to funkcja, która liczy taki znacznik.}
 \end{frame}
 
+\samedot
 \begin{frame}{Authenticated encryption}
   \vfill
   \bigdef{\textbf{Authenticated encryption} (\textbf{AEAD}): encryption and a tag in one operation.\\
@@ -2316,6 +2370,7 @@ def inverse_quarter_round(s, a, b, c, d):
   \say{AEAD to skrót od authenticated encryption with associated data. Associated data to jawne dane, na przykład nagłówek, które też są chronione znacznikiem; dziś z nich nie korzystamy.}
 \end{frame}
 
+\samedot
 \begin{frame}{Where the Poly1305 key comes from}
   \vfill
   \begin{center}
@@ -2357,6 +2412,7 @@ def inverse_quarter_round(s, a, b, c, d):
   \say{Około 5 minut. aead.py jest gotowy i napisany w czystym Pythonie, zgodny z wektorami z RFC 8439.}
 \end{frame}
 
+\samedot
 \begin{frame}[fragile]{Task 9: what to do}
   \begin{columns}[T,onlytextwidth]
     \column{0.62\textwidth}
@@ -2382,6 +2438,7 @@ sealed = seal(key, nonce, message)
   \say{try i except łapią błąd: unseal rzuca TagError, gdy znacznik się nie zgadza.}
 \end{frame}
 
+\samedot
 \begin{frame}{Solution: change one byte}
   \vfill
   \begin{center}
@@ -2414,6 +2471,7 @@ sealed = seal(key, nonce, message)
   \say{Z dwóch wiadomości z tym samym kluczem Poly1305 napastnik potrafi wyliczyć ten klucz i podrabiać znaczniki. Szczegóły matematyczne pomijamy.}
 \end{frame}
 
+\samedot
 \begin{frame}{Good to know: XChaCha20}
   \vfill
   \begin{center}
@@ -2446,6 +2504,7 @@ sealed = seal(key, nonce, message)
   \say{TLS to protokół, który szyfruje HTTPS. RFC 8446 (w 2026 roku zastąpione przez RFC 9846) zaleca, żeby każdy program z TLS 1.3 obsługiwał ChaCha20-Poly1305, obok dwóch wersji AES z uwierzytelnieniem. Przeglądarka wybiera go zwykle tam, gdzie nie ma instrukcji AES.}
 \end{frame}
 
+\samedot
 \begin{frame}{Where you use it: VPN and SSH}
   \vfill
   \begin{center}
@@ -2461,6 +2520,7 @@ sealed = seal(key, nonce, message)
   \say{WireGuard celowo nie pozwala wybrać innego szyfru. ChaCha20-Poly1305 jest pierwszy na domyślnej liście szyfrów OpenSSH (man ssh\_config, sprawdzone).}
 \end{frame}
 
+\samedot
 \begin{frame}{Where you use it: phones and the kernel}
   \vfill
   \begin{center}

@@ -30,8 +30,11 @@
 \setbeamertemplate{itemize items}[circle]
 \setbeamertemplate{enumerate items}[default]
 \setbeamertemplate{blocks}[rounded][shadow=true]
-% about 85 slides: smaller dots, so that the navigation bar fits the page width
-\setbeamersize{mini frame size=.07cm,mini frame offset=.03cm}
+% one dot per idea, not per frame: \samedot before a frame gives it the dot of the frame before
+% (it undoes the step of the dot counter that the next frame makes)
+\newcommand{\samedot}{\addtocounter{subsectionslide}{-1}}
+% the default dot step of the circle dots (0.1 cm dots)
+\setbeamersize{mini frame size=.14cm,mini frame offset=-.01cm}
 
 % ======================================================================
 % Colour rules for presentations (Beamer + TikZ), from Agents/colors
@@ -365,6 +368,7 @@
     \foreach \i in {0,...,4} \node[person=nInk, minimum size=0.7cm, font=\normalsize] at (P\i) {\faUser};
   \end{tikzpicture}}
 
+\samedot
 \begin{frame}{Task 1: how many keys?}
   \taskhead{Task 1}{On paper, about 3 minutes.}
   \begin{columns}[c,onlytextwidth]
@@ -382,6 +386,7 @@
   \say{Podpowiedź dla wolniejszych: narysować 5 osób i połączyć każdą z każdą.}
 \end{frame}
 
+\samedot
 \begin{frame}{Solution: how many keys?}
   \begin{columns}[c,onlytextwidth]
     \column{0.4\textwidth}
@@ -496,6 +501,7 @@
   \say{Wszystkie cztery wynikają z tego, że klucz do zamykania i do otwierania jest jeden i ten sam.}
 \end{frame}
 
+\samedot
 \begin{frame}{What if the key for locking were public?}
   \vfill
   \begin{center}
@@ -541,6 +547,7 @@
   \say{Ania nie musi znać żadnego sekretu Bartka. Ewa może mieć tyle kłódek, ile chce, i nic jej to nie daje.}
 \end{frame}
 
+\samedot
 \begin{frame}{A key pair}
   \bigdef{\textbf{Public key}: locks (encrypts). Everybody may know it.\\
     \textbf{Private key}: unlocks (decrypts). Only its owner knows it.\\
@@ -612,9 +619,13 @@
   \say{#2}
 \end{frame}}
 \flowframe{1}{Bartek robi to raz, a nie dla każdej wiadomości.}{}
+\samedot
 \flowframe{2}{Klucz publiczny może być na stronie internetowej albo w stopce e-maila.}{}
+\samedot
 \flowframe{3}{Ania nie potrzebuje żadnego sekretu.}{}
+\samedot
 \flowframe{4}{Ewa widzi szyfrogram, tak jak przy szyfrach symetrycznych.}{}
+\samedot
 \flowframe{5}{Tylko Bartek ma klucz prywatny. Nawet Ania nie odszyfruje już swojej wiadomości.}{\keymsg{Ewa saw the public key and the ciphertext. Neither helps her.}}
 
 % a horizontal bar on a log scale: \logbar{y}{log10 of the value}{style}{label}; 1.3 cm per power of ten
@@ -669,6 +680,7 @@
   \say{Około 6 minut. Klucze mają 2048 bitów, czyli liczby po około 617 cyfr; wystarczy je przekazać funkcjom.}
 \end{frame}
 
+\samedot
 \begin{frame}[fragile]{Task 2: what to do}
   \begin{columns}[c,onlytextwidth]
     \column{0.6\textwidth}
@@ -691,6 +703,7 @@ ciphertext = ...          # from Ania
   \say{rsa\_ready.py jest w folderze zadania. Do środka zajrzymy w sekcji 5.}
 \end{frame}
 
+\samedot
 \begin{frame}[fragile]{Solution: use RSA}
   \begin{columns}[c,onlytextwidth]
     \column{0.6\textwidth}
@@ -736,6 +749,7 @@ print(decrypt(reply, my_private_key))
   \node[draw=#5, very thick, fill=#5!12, minimum width=#3, minimum height=#4, rounded corners=2pt] (#1) at (#2) {};
   \draw[#5, very thick, line join=round] (#1.north west) -- ([yshift=-0.42*#4]#1.north) -- (#1.north east);
   \draw[#5!60, thick] (#1.south west) -- ([yshift=0.3*#4]#1.center) (#1.south east) -- ([yshift=0.3*#4]#1.center);}
+\samedot
 \begin{frame}{Hybrid encryption}
   \vfill
   \begin{center}
@@ -784,6 +798,7 @@ print(decrypt(reply, my_private_key))
   \say{Punkt 3 rozwiążemy w sekcji 6. Punkt 4 tylko częściowo: kradzież klucza prywatnego nadal pozwala czytać wiadomości do tej osoby.}
 \end{frame}
 
+\samedot
 \begin{frame}{But why can nobody compute the private key?}
   \vfill
   \begin{center}
@@ -826,6 +841,7 @@ print(decrypt(reply, my_private_key))
   \say{Klucz publiczny pozwala liczyć w przód, klucz prywatny to furtka, która pozwala cofnąć.}
 \end{frame}
 
+\samedot
 \begin{frame}{Multiplying is easy}
   \vfill
   \begin{center}
@@ -838,6 +854,7 @@ print(decrypt(reply, my_private_key))
   \say{Mnożenie liczb po 300 cyfr to dla komputera nic.}
 \end{frame}
 
+\samedot
 \begin{frame}{Factoring is hard}
   \vfill
   \begin{center}
@@ -874,6 +891,7 @@ print(decrypt(reply, my_private_key))
   \say{Około 7 minut. Ostatnia liczba liczy się około 10 sekund. Zapisać przewidywania na tablicy.}
 \end{frame}
 
+\samedot
 \begin{frame}[fragile]{Task 3: what to do}
   \begin{columns}[c,onlytextwidth]
     \column{0.6\textwidth}
@@ -893,6 +911,7 @@ def smallest_factor(n):
   \say{Jeśli n ma dzielnik większy od pierwiastka, to ma też mniejszy, więc wystarczy szukać do pierwiastka.}
 \end{frame}
 
+\samedot
 \begin{frame}[fragile]{Solution: factor it}
   \begin{columns}[c,onlytextwidth]
     \column{0.42\textwidth}
@@ -945,6 +964,7 @@ while f * f <= n:
   \say{2\textsuperscript{1023} to liczba z ponad 300 cyframi. Atomów we wszechświecie jest około 10\textsuperscript{80}.}
 \end{frame}
 
+\samedot
 \begin{frame}{Better methods exist}
   \begin{center}\small The best known method is the \textbf{number field sieve}. It is much faster, but still not enough.\end{center}
   \vfill
@@ -986,6 +1006,7 @@ while f * f <= n:
   \say{Przypomnienie z poprzednich wykładów. Za chwilę i w całym RSA liczymy modulo.}
 \end{frame}
 
+\samedot
 \begin{frame}{Another hard problem: the discrete logarithm}
   \vfill
   \begin{center}
@@ -1075,6 +1096,7 @@ while f * f <= n:
   \say{Wynik nie rośnie: niezależnie od liczb zostaje mniejszy od n.}
 \end{frame}
 
+\samedot
 \begin{frame}{Powers modulo n}
   \begin{columns}[c,onlytextwidth]
     \column{0.45\textwidth}
@@ -1127,6 +1149,7 @@ while f * f <= n:
     \bottomrule
   \end{tabular}}
 
+\samedot
 \begin{frame}{Euclid's algorithm}
   \begin{center}\small $\gcd(a, b) = \gcd(b,\ a \bmod b)$, until the remainder is 0:\end{center}
   \vfill
@@ -1149,6 +1172,7 @@ while f * f <= n:
   \say{To odpowiednik dzielenia w świecie modulo. W Pythonie pow(7, -1, 160) daje 23.}
 \end{frame}
 
+\samedot
 \begin{frame}{Why not just try every d?}
   \vfill
   \begin{center}
@@ -1186,10 +1210,12 @@ while f * f <= n:
   \vfill\extstep{1}\vfill
   \say{Zaczynamy od wiersza z resztą 1 i zapisujemy 1 jako różnicę.}
 \end{frame}
+\samedot
 \begin{frame}{Extended Euclid, step 2}
   \vfill\extstep{2}\vfill
   \say{Szóstkę bierzemy z wiersza wyżej, też jako różnicę.}
 \end{frame}
+\samedot
 \begin{frame}{Extended Euclid, step 3}
   \vfill\extstep{3}\vfill
   \begin{center}$23 \times 7 = 1 + 160$, so $23 \times 7 \bmod 160 = 1$: \ the inverse of 7 is \textbf{23}.\end{center}
@@ -1225,6 +1251,7 @@ while f * f <= n:
   \say{Około 8 minut. Jeśli wyjdzie liczba ujemna, dodać 120.}
 \end{frame}
 
+\samedot
 \begin{frame}{Solution: an inverse by hand}
   \begin{columns}[c,onlytextwidth]
     \column{0.4\textwidth}
@@ -1294,6 +1321,7 @@ while f * f <= n:
   \say{W prawdziwym RSA każda ma 1024 bity. Przykład z podręcznika Stallingsa.}
 \end{frame}
 
+\samedot
 \begin{frame}{Making the keys, step 2}
   \vfill
   \begin{center}
@@ -1314,6 +1342,7 @@ while f * f <= n:
   \say{Żeby wrócić od n do p i q, trzeba rozłożyć n: to trudny problem z sekcji 3.}
 \end{frame}
 
+\samedot
 \begin{frame}{Making the keys, step 3}
   \vfill
   \begin{center}
@@ -1334,6 +1363,7 @@ while f * f <= n:
   \say{Phi to funkcja Eulera: ile liczb mniejszych od n jest względnie pierwszych z n. Z p i q liczymy ją od razu; bez nich trzeba by rozłożyć n.}
 \end{frame}
 
+\samedot
 \begin{frame}{Making the keys, step 4}
   \vfill
   \begin{center}
@@ -1354,6 +1384,7 @@ while f * f <= n:
   \say{W praktyce prawie zawsze e = 65537: liczba pierwsza z tylko dwiema jedynkami w zapisie binarnym, więc szyfrowanie jest szybkie.}
 \end{frame}
 
+\samedot
 \begin{frame}{Making the keys, step 5}
   \vfill
   \begin{center}
@@ -1376,6 +1407,7 @@ while f * f <= n:
 
 % source: W. Stallings, "Cryptography and Network Security", example p = 17, q = 11, e = 7, d = 23, M = 88
 
+\samedot
 \begin{frame}{The two keys}
   \vfill
   \begin{center}
@@ -1434,6 +1466,7 @@ while f * f <= n:
   \say{Liczymy potęgi przez kwadraty i po każdym kroku bierzemy resztę, żeby liczby były małe. Wynik zgadza się z przykładem Stallingsa.}
 \end{frame}
 
+\samedot
 \begin{frame}{The example: decrypt 11}
   \begin{columns}[c,onlytextwidth]
     \column{0.58\textwidth}
@@ -1481,6 +1514,7 @@ while f * f <= n:
   \say{Około 8 minut. Wzory są na poprzednich slajdach. Odwrotność: pow(e, -1, phi).}
 \end{frame}
 
+\samedot
 \begin{frame}[fragile]{Task 5: what to do}
   \begin{columns}[c,onlytextwidth]
     \column{0.58\textwidth}
@@ -1503,6 +1537,7 @@ message = 2026
   \say{Liczby po 20 cyfr, żeby wynik mieścił się na ekranie. Prawdziwe klucze mają po około 309 cyfr na p i q.}
 \end{frame}
 
+\samedot
 \begin{frame}[fragile]{Solution: your own RSA}
   \begin{columns}[c,onlytextwidth]
     \column{0.42\textwidth}
@@ -1542,6 +1577,7 @@ P = pow(C, d, n)
   \say{Około 4 minut. Większość powie, że 17 nie zadziała, bo dzieli n.}
 \end{frame}
 
+\samedot
 \begin{frame}[fragile]{Task 6: what to do}
   \begin{columns}[c,onlytextwidth]
     \column{0.58\textwidth}
@@ -1560,6 +1596,7 @@ print(wrong)
   \say{Jedna pętla i jedno porównanie.}
 \end{frame}
 
+\samedot
 \begin{frame}[fragile]{Solution: does it always work?}
   \begin{columns}[c,onlytextwidth]
     \column{0.45\textwidth}
@@ -1619,6 +1656,7 @@ for P in range(n):
   \say{Około 7 minut. Nie podpowiadać od razu. Jeśli nikt nie ma pomysłu: klucz publiczny jest publiczny, każdy może nim szyfrować.}
 \end{frame}
 
+\samedot
 \begin{frame}[fragile]{Task 7: what to do}
   \begin{columns}[c,onlytextwidth]
     \column{0.58\textwidth}
@@ -1637,6 +1675,7 @@ C = ...    # the encrypted PIN
   \say{Pomiar czasu jest gotowy w pliku.}
 \end{frame}
 
+\samedot
 \begin{frame}[fragile]{Solution: guess the PIN}
   \begin{columns}[c,onlytextwidth]
     \column{0.5\textwidth}
@@ -1710,6 +1749,7 @@ for guess in range(10000):
   \say{Ta sama matematyka, tylko kolejność kluczy odwrócona. Podpis to liczba dołączona do wiadomości.}
 \end{frame}
 
+\samedot
 \begin{frame}{Why this gives non-repudiation}
   \begin{center}\small Only the owner of the private key could compute S.\end{center}
   \vfill
@@ -1783,6 +1823,7 @@ for guess in range(10000):
   \say{Około 5 minut. Wiadomość zamieniamy na liczbę, jak w zadaniu 2.}
 \end{frame}
 
+\samedot
 \begin{frame}[fragile]{Task 8: what to do}
   \begin{columns}[c,onlytextwidth]
     \column{0.6\textwidth}
@@ -1803,6 +1844,7 @@ def verify(message, signature):
   \say{Funkcja text\_to\_number jest gotowa w pliku.}
 \end{frame}
 
+\samedot
 \begin{frame}[fragile]{Solution: which one is genuine?}
 \begin{lstlisting}[style=py]
 def verify(message, signature):
@@ -1885,6 +1927,7 @@ def verify(message, signature):
   \say{112 bitów bezpieczeństwa znaczy: złamanie jest tak trudne jak sprawdzenie 2\textsuperscript{112} kluczy. Czasy z openssl speed na tym laptopie. NIST to amerykański instytut standardów, jego zalecenia stosuje cały świat.}
 \end{frame}
 
+\samedot
 \begin{frame}{Where RSA lives}
   \vfill
   \begin{center}
