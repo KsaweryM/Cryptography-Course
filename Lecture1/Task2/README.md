@@ -1,6 +1,6 @@
 # Task 2: use RC4
 
-`rc4_ready.py` gives you RC4 as a ready function: `keystream(key, n)` returns `n` bytes of keystream. For now, treat it as a black box.
+`rc4.py` gives you RC4 as a ready function: `keystream(key, n)` returns `n` bytes of keystream. For now, treat it as a black box.
 
 Fill in the `TODO`s in `use_rc4.py`:
 

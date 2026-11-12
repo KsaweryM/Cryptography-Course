@@ -1,4 +1,4 @@
-from rc4_ready import keystream
+from rc4 import keystream
 
 key = b"Kangaroo"
 ciphertext = bytes.fromhex("24F8BF0ADE0C16426D343A28"

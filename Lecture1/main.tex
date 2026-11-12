@@ -1072,7 +1072,7 @@ print(plaintext)
   \begin{columns}[T,onlytextwidth]
     \column{0.58\textwidth}
 \begin{lstlisting}[style=py]
-from rc4_ready import keystream
+from rc4 import keystream
 
 key = b"Kangaroo"
 ciphertext = bytes.fromhex("24F8BF0ADE0C16426D343A28"
@@ -1085,12 +1085,12 @@ ciphertext = bytes.fromhex("24F8BF0ADE0C16426D343A28"
 \end{lstlisting}
     \column{0.39\textwidth}
       \taskhead{Task 2}{Open \texttt{use\_rc4.py} from \ghlink{Task2}.}
-      \stepbox{\faBox\ \texttt{rc4\_ready.py}: a black box}{RC4 as a ready function:\\ \texttt{keystream(key, n)} returns \texttt{n} bytes.}
+      \stepbox{\faBox\ \texttt{rc4.py}: a black box}{RC4 as a ready function:\\ \texttt{keystream(key, n)} returns \texttt{n} bytes.}
       \stepbox{Hint}{\texttt{data.hex(" ")} prints bytes as hex with spaces.}
   \end{columns}
   \vfill
   \keymsg{Decrypt first, then change one letter of the key.}
-  \say{Około 5 minut. Plik startowy jest na GitHubie. Do rc4\_ready.py można zajrzeć, ale na razie traktujemy go jak czarną skrzynkę. XOR bajt po bajcie znają już z Task 1.}
+  \say{Około 5 minut. Plik startowy jest na GitHubie. Do rc4.py można zajrzeć, ale na razie traktujemy go jak czarną skrzynkę. XOR bajt po bajcie znają już z Task 1.}
 \end{frame}
 
 \samedot
@@ -1633,7 +1633,7 @@ print(plaintext)
 \section[RC4: preparing the key]{RC4: preparing the key}
 % ======================================================================
 
-% CHECKED (python3, the code from Task2/rc4_ready.py):
+% CHECKED (python3, the code from Task2/rc4.py):
 %   key "Kangaroo": keystream starts 69 9d da 7e fe 61 73 62; "Meet m" XOR it = 24 F8 BF 0A DE 0C
 %   key "Kangarop": 97 c5 8c ab f1 d1 2e 8d, no byte in the same place is equal
 %   key [1,2,3,4,5]: the KSA steps i = 0 to 3 below; after i = 255: j = 103,
@@ -2321,7 +2321,7 @@ def prga(S, n):
   \end{columns}
   \vfill
   \keymsg{This is the black box from Task 2.}
-  \say{Każdą linijkę już widzieliśmy. To dokładnie zawartość rc4\_ready.py z Task 2: kto chce, może teraz otworzyć ten plik.}
+  \say{Każdą linijkę już widzieliśmy. To dokładnie zawartość rc4.py z Task 2: kto chce, może teraz otworzyć ten plik.}
 \end{frame}
 
 % ======================================================================
