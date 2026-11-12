@@ -4,7 +4,10 @@ from rc4 import rc4
 
 
 def xor(a, b):
-    return bytes(x ^ y for x, y in zip(a, b))
+    out = []
+    for i in range(len(a)):
+        out.append(a[i] ^ b[i])
+    return bytes(out)
 
 
 key = b"our secret"

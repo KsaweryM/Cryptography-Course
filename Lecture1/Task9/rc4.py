@@ -1,6 +1,3 @@
-# RC4, ready to use: rc4(key, data) encrypts and decrypts.
-
-
 def ksa(key):
     S = list(range(256))
     T = [key[i % len(key)] for i in range(256)]
@@ -21,13 +18,3 @@ def prga(S, n):
         t = (S[i] + S[j]) % 256
         out.append(S[t])
     return bytes(out)
-
-
-def keystream(key, n):
-    """Return n bytes of RC4 keystream for the given key (bytes)."""
-    return prga(ksa(key), n)
-
-
-def rc4(key, data):
-    """Encrypt or decrypt data (bytes) with RC4: XOR with the keystream."""
-    return bytes(d ^ k for d, k in zip(data, keystream(key, len(data))))

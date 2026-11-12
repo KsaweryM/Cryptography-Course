@@ -1,4 +1,4 @@
-# RC4, ready to use: ksa(key) returns S after the KSA, prga(S, n) returns n keystream bytes.
+# RC4, ready to use: rc4(key, data) encrypts and decrypts.
 
 
 def ksa(key):
@@ -26,3 +26,8 @@ def prga(S, n):
 def keystream(key, n):
     """Return n bytes of RC4 keystream for the given key (bytes)."""
     return prga(ksa(key), n)
+
+
+def rc4(key, data):
+    """Encrypt or decrypt data (bytes) with RC4: XOR with the keystream."""
+    return bytes(d ^ k for d, k in zip(data, keystream(key, len(data))))

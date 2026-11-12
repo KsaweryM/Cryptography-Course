@@ -32,6 +32,12 @@
 % one dot per idea, not per frame: \samedot before a frame gives it the dot of the frame before
 % (it undoes the step of the dot counter that the next frame makes)
 \newcommand{\samedot}{\addtocounter{subsectionslide}{-1}}
+% "RC4 mistake N/3": an orange label at the right end of the title bar, on the slide where the mistake is found
+\newcommand{\mistaketag}[1]{%
+  \begin{tikzpicture}[remember picture, overlay]
+    \node[fill=AccentOrange, text=white, font=\scriptsize\bfseries, rounded corners=3pt, inner sep=3pt, anchor=east]
+      at ([xshift=-0.35cm, yshift=-1.1cm]current page.north east) {RC4 mistake #1/3};
+  \end{tikzpicture}}
 % the default dot step of the circle dots (0.1 cm dots)
 \setbeamersize{mini frame size=.14cm,mini frame offset=-.01cm}
 
@@ -257,29 +263,25 @@
         \textcolor{gray}{\small Small data, sent at once}
         \vspace{0.3cm}
 
-        \item[\textcolor{DeepBlue}{\faUnlock}] \textbf{2. The mistake that removes the key} \\
-        \textcolor{gray}{\small One rule that must never be broken}
+        \item[\textcolor{DeepBlue}{\faUnlock}] \textbf{2. How stream ciphers fail} \\
+        \textcolor{gray}{\small Three mistakes that open the message}
         \vspace{0.3cm}
 
-        \item[\textcolor{DeepBlue}{\faRedo}] \textbf{3. When the pattern repeats} \\
-        \textcolor{gray}{\small A cheap generator and its cycle}
-        \vspace{0.3cm}
-
-        \item[\textcolor{DeepBlue}{\faRandom}] \textbf{4. RC4: preparing the key} \\
+        \item[\textcolor{DeepBlue}{\faRandom}] \textbf{3. RC4: preparing the key} \\
         \textcolor{gray}{\small Mixing a table with the key}
       \end{itemize}
     \column{0.44\textwidth}
       \large
       \begin{itemize}
-        \item[\textcolor{DeepBlue}{\faCogs}] \textbf{5. RC4: producing the bytes} \\
+        \item[\textcolor{DeepBlue}{\faCogs}] \textbf{4. RC4: producing the bytes} \\
         \textcolor{gray}{\small One byte at a time}
         \vspace{0.3cm}
 
-        \item[\textcolor{DeepBlue}{\faBug}] \textbf{6. RC4: the weaknesses} \\
+        \item[\textcolor{DeepBlue}{\faBug}] \textbf{5. RC4: the weaknesses} \\
         \textcolor{gray}{\small How it was broken}
         \vspace{0.3cm}
 
-        \item[\textcolor{DeepBlue}{\faHistory}] \textbf{7. The end of RC4} \\
+        \item[\textcolor{DeepBlue}{\faHistory}] \textbf{6. The end of RC4} \\
         \textcolor{gray}{\small Where it was used and what came next}
       \end{itemize}
   \end{columns}
@@ -1021,7 +1023,8 @@ print(plaintext)
       \large A stream cipher from \textbf{1987}, designed by \textbf{Ron Rivest}.\\[0.4cm]
       \normalsize For about 20 years it protected \textbf{Wi-Fi} networks
       and the connection between your \textbf{browser} and a website.\\[0.4cm]
-      We no longer use it. But it is simple, and its mistakes teach us a lot.
+      We no longer use it. It is simple, and it has \textbf{three design mistakes} that every modern cipher avoids.
+      We will find all three today.
     \column{0.36\textwidth}
       \centering
       \begin{tikzpicture}
@@ -1035,7 +1038,7 @@ print(plaintext)
   \end{columns}
   \vfill
   \keymsg{Short enough to fit on two slides.}
-  \say{Dziś RC4 jest zakazany, ale jest na tyle prosty, że zobaczymy cały algorytm. Jego błędy pokażą, czego unikać w nowych szyfrach. Historię jego końca zobaczymy na zakończenie.}
+  \say{Dziś RC4 jest zakazany, ale jest na tyle prosty, że zobaczymy cały algorytm. Ma trzy błędy projektowe: słabe mieszanie klucza, skrzywiony keystream i brak wejścia na nonce. Każdy znajdziemy po drodze, slajd z błędem ma pomarańczową etykietę RC4 mistake, a na koniec zbierzemy z nich lekcje. Historię jego końca zobaczymy na zakończenie.}
 \end{frame}
 
 \samedot
@@ -1128,7 +1131,7 @@ print(keystream(b"Kangarop", 8).hex(" "))
 \end{frame}
 
 % ======================================================================
-\section[The mistake that removes the key]{The mistake that removes the key}
+\section[How stream ciphers fail]{How stream ciphers fail}
 % ======================================================================
 
 % ---------- small pictures used from here on ----------
@@ -1180,27 +1183,57 @@ print(keystream(b"Kangarop", 8).hex(" "))
 \newcommand{\tb}{\phantom{xxxx}}
 
 \begin{frame}{Two messages, one keystream}
-  \begin{center}\small The sensor restarts. Its generator starts again from the key.\end{center}
-  \vfill
   \begin{center}
     \begin{tikzpicture}[>=Stealth]
-      \foreach \lab/\p/\c/\y in {{before restart}/P1/C1/0, {after restart}/P2/C2/-1.0} {
-        \node[rowlabel, font=\small] at (-0.3,\y) {\lab};
-        \node[actorlight=sViolet, font=\small, minimum width=2.4cm] at (1.3,\y) {plaintext \textbf{\p}};
-        \node[font=\small] at (3.25,\y) {XOR};
-        \node[actorlight=sAmber, font=\small, minimum width=2.4cm] (z\p) at (5.2,\y) {keystream \textbf{Z}};
-        \node[font=\small] at (6.85,\y) {$=$};
-        \node[actorlight=sBrown, font=\small, minimum width=2.4cm] at (8.5,\y) {ciphertext \textbf{\c}};
+      % CHECKED: 15^4A=5F, 15^91=84, 14^0E=1A; 13^4A=59, 13^91=82, 12^0E=1C
+      %          (21, 21, 20, 19, 19, 18 degrees = 15 15 14 13 13 12 hex; keystream 4A 91 0E from the slide "Decision")
+      \useasboundingbox (-1.6,-2.25) rectangle (11.2,2.8);
+      % the scene from the start of the lecture: sensor, radio, server, attacker
+      \begin{scope}[shift={(0.4,1.85)}, scale=0.7, transform shape]\sensordevice{0}{0}\end{scope}
+      \node[font=\scriptsize\bfseries, text=sIndigo, align=center] at (0.4,1.0) {sensor\\[-1pt]{\normalfont\faKey\ key + generator}};
+      \begin{scope}[shift={(9.6,1.8)}, scale=0.6, transform shape]\serverrack{0}{0}\end{scope}
+      \node[font=\scriptsize\bfseries, text=sTealText, align=center] at (9.6,0.85) {server\\[-1pt]{\normalfont\faKey\ key + generator}};
+      \draw[radio] (1.05,2.3) -- (9.0,2.3);
+      \node[font=\scriptsize, text=nInk] at (3.2,2.6) {\faWifi\ radio};
+      \draw[data, dashed] (5.0,2.2) -- (5.0,1.75);
+      \node[circle, fill=sPink, text=white, minimum size=0.75cm, font=\normalsize] at (5.0,1.4) {\faUserSecret};
+      \node[font=\scriptsize\bfseries, text=sPinkText, anchor=west, align=left] at (5.45,1.4) {\only<1-2>{attacker records everything}\only<3->{attacker has both ciphertexts,\\ but not the key}};
+      % Monday
+      \node[font=\small\bfseries, text=nInk, anchor=east] at (0.7,0.05) {Monday};
+      \foreach \t [count=\k from 0] in {21,21,20} \node[font=\scriptsize, text=sViolet] at ({1.2+0.7*\k},0.45) {\t$^\circ$C};
+      \byterow{1.2}{0.05}{ptb}{15,15,14}{0.7}
+      \node[font=\small] at (3.35,0.05) {XOR};
+      \byterow{4.2}{0.05}{ksb}{4A,91,0E}{0.7}
+      \node[font=\scriptsize, text=sAmberText] at (4.9,0.45) {keystream};
+      \node[font=\small] at (6.25,0.05) {$=$};
+      \byterow{7.0}{0.05}{ctb}{5F,84,1A}{0.7}
+      \node[font=\scriptsize, text=sTealText, anchor=west] at (8.7,0.05) {\faCheck\ decrypted};
+      % the restart
+      \only<2->{
+        \node[font=\small, text=nInk, align=center] at (4.8,-0.7)
+          {\faBatteryFull\ \textbf{Battery changed}: the sensor restarts and connects again.\\
+           Sensor and server both start the generator \textbf{from the key}.};
       }
-      \draw[annot] ([shift={(-0.12,0.12)}]zP1.north west) rectangle ([shift={(0.12,-0.12)}]zP2.south east);
-      \node[font=\small\bfseries, text=AccentOrange, anchor=north] at ([yshift=-0.15cm]zP2.south) {the same!};
+      % Tuesday
+      \only<3->{
+        \node[font=\small\bfseries, text=nInk, anchor=east] at (0.7,-1.55) {Tuesday};
+        \foreach \t [count=\k from 0] in {19,19,18} \node[font=\scriptsize, text=sViolet] at ({1.2+0.7*\k},-1.17) {\t$^\circ$C};
+        \byterow{1.2}{-1.55}{ptb}{13,13,12}{0.7}
+        \node[font=\small] at (3.35,-1.55) {XOR};
+        \byterow{4.2}{-1.55}{ksb}{4A,91,0E}{0.7}
+        \node[font=\small] at (6.25,-1.55) {$=$};
+        \byterow{7.0}{-1.55}{ctb}{59,82,1C}{0.7}
+        \node[font=\scriptsize, text=sTealText, anchor=west] at (8.7,-1.55) {\faCheck\ decrypted};
+        \draw[annot] (3.8,-1.85) rectangle (6.0,-1.25);
+        \node[font=\scriptsize\bfseries, text=AccentOrange] at (4.9,-2.08) {the same bytes as on Monday!};
+      }
     \end{tikzpicture}
   \end{center}
   \vfill
-  \begin{center}\small The attacker has \textbf{C1} and \textbf{C2}, but still not the key.\end{center}
-  \vfill
-  \keymsg{Is that a problem?}
-  \say{Pytanie do sali, poczekać na odpowiedzi.}
+  \uncover<3->{\keymsg{Everything still works. Is that a problem?}}
+  \note<1>{\selectlanguage{polish}Wracamy do czujnika z początku: co minutę wysyła temperaturę, keystream zużywa się bajt po bajcie, a ktoś cały czas nagrywa radio.}
+  \note<2>{\selectlanguage{polish}Ktoś wymienia baterię. Czujnik pamięta tylko klucz, więc łączy się z serwerem od nowa i obie strony uruchamiają generator od początku. Tak robi najprostszy protokół.}
+  \note<3>{\selectlanguage{polish}Serwer odszyfrowuje wszystko poprawnie, nikt nie widzi błędu. Ale keystream jest ten sam co w poniedziałek. Pytanie do sali, poczekać na odpowiedzi.}
 \end{frame}
 
 \samedot
@@ -1223,6 +1256,7 @@ print(keystream(b"Kangarop", 8).hex(" "))
 
 \samedot
 \begin{frame}{What the attacker sees}
+  \begin{center}\small The same mistake with longer messages: two text messages, the same keystream.\end{center}
   \vfill
   \begin{center}
     \begin{tikzpicture}
@@ -1252,26 +1286,59 @@ print(keystream(b"Kangarop", 8).hex(" "))
   \vfill
   \begin{center}
     \begin{tikzpicture}[>=Stealth]
-      \node[actorlight=sBrown, font=\small\bfseries, minimum width=1.2cm] (c1) at (0,0) {C1};
-      \node[font=\small] at (1.05,0) {XOR};
-      \node[actorlight=sViolet, font=\small\bfseries, minimum width=1.2cm] (p1) at (2.1,0) {P1};
-      \node[font=\small] at (3.1,0) {$=$};
-      \node[actorlight=sAmber, font=\small\bfseries, minimum width=1.2cm] (z) at (4.1,0) {Z};
-      \node[font=\small, text=nInk, anchor=west] at (5.0,0) {the keystream!};
-      \node[actorlight=sBrown, font=\small\bfseries, minimum width=1.2cm] (c2) at (2.0,-1.4) {C2};
-      \node[font=\small] at (3.05,-1.4) {XOR};
-      \node[actorlight=sAmber, font=\small\bfseries, minimum width=1.2cm] (z2) at (4.1,-1.4) {Z};
-      \node[font=\small] at (5.1,-1.4) {$=$};
-      \node[actorlight=sViolet, font=\small\bfseries, minimum width=1.2cm] (p2) at (6.1,-1.4) {P2};
-      \node[font=\small, text=nInk, anchor=west] at (7.0,-1.4) {the other message};
-      \draw[flow] (z.south) -- (z2.north);
+      % CHECKED: 5F^15=4A, 84^15=91, 1A^14=0E; 59^4A=13, 82^91=13, 1C^0E=12 (the data of "Two messages, one keystream")
+      \useasboundingbox (-0.2,-1.85) rectangle (13.2,2.2);
+      % what the attacker has: two boxes
+      \draw[container] (0,0.15) rectangle (6.0,2.05);
+      \node[anchor=north west, font=\small\bfseries, text=nInk] at (0.1,1.98) {\badge{1}\ Monday};
+      \node[anchor=north west, font=\scriptsize, text=nInk, align=left] at (0.15,1.5)
+        {\faWrench\ He was in the flat as a plumber\\ and saw the display: 21, 21, 20\,$^\circ$C.};
+      \node[rowlabel, font=\small\bfseries] at (0.95,0.5) {P1};
+      \byterow{1.3}{0.5}{ptb}{15,15,14}{0.68}
+      \node[rowlabel, font=\small\bfseries] at (3.85,0.5) {C1};
+      \byterow{4.2}{0.5}{ctb}{5F,84,1A}{0.68}
+      \draw[container] (6.6,0.15) rectangle (12.6,2.05);
+      \node[anchor=north west, font=\small\bfseries, text=nInk] at (6.7,1.98) {\badge{2}\ Tuesday, after the restart};
+      \node[anchor=north west, font=\scriptsize, text=nInk, align=left] at (6.75,1.5)
+        {\faWifi\ He recorded the radio again.};
+      \node[rowlabel, font=\small\bfseries] at (7.55,0.5) {C2};
+      \byterow{7.9}{0.5}{ctb}{59,82,1C}{0.68}
+      \node[rowlabel, font=\small\bfseries] at (10.45,0.5) {P2};
+      \foreach \k in {0,1,2} \node[ptb, fill=white, dashed, text=sViolet] at ({10.8+0.68*\k},0.5) {?};
+      % step 1: the keystream from the known pair
+      \only<2->{
+        \node[font=\small\bfseries, text=nInk, anchor=west] at (-0.1,-0.45) {Step 1};
+        \node[rowlabel, font=\small\bfseries] at (2.1,-0.45) {C1};
+        \byterow{2.45}{-0.45}{ctb}{5F,84,1A}{0.68}
+        \node[font=\small] at (4.75,-0.45) {XOR};
+        \node[rowlabel, font=\small\bfseries] at (5.95,-0.45) {P1};
+        \byterow{6.3}{-0.45}{ptb}{15,15,14}{0.68}
+        \node[font=\small] at (8.2,-0.45) {$=$};
+        \node[rowlabel, font=\small\bfseries] at (9.2,-0.45) {Z};
+        \byterow{9.55}{-0.45}{ksb}{4A,91,0E}{0.68}
+        \draw[annot] (9.15,-0.75) rectangle (11.26,-0.15);
+        \node[font=\scriptsize\bfseries, text=AccentOrange, anchor=west] at (11.4,-0.45) {the keystream!};
+      }
+      % step 2: the keystream opens the other message
+      \only<3->{
+        \node[font=\small\bfseries, text=nInk, anchor=west] at (-0.1,-1.4) {Step 2};
+        \node[rowlabel, font=\small\bfseries] at (2.1,-1.4) {C2};
+        \byterow{2.45}{-1.4}{ctb}{59,82,1C}{0.68}
+        \node[font=\small] at (4.75,-1.4) {XOR};
+        \node[rowlabel, font=\small\bfseries] at (5.95,-1.4) {Z};
+        \byterow{6.3}{-1.4}{ksb}{4A,91,0E}{0.68}
+        \node[font=\small] at (8.2,-1.4) {$=$};
+        \node[rowlabel, font=\small\bfseries] at (9.2,-1.4) {P2};
+        \byterow{9.55}{-1.4}{ptb}{13,13,12}{0.68}
+        \node[font=\scriptsize, text=sViolet, anchor=west] at (11.4,-1.4) {$\rightarrow$ 19, 19, 18\,$^\circ$C};
+      }
     \end{tikzpicture}
   \end{center}
   \vfill
-  \begin{center}\small Guesses are easy: file headers, greetings, fixed formats.\end{center}
-  \vfill
   \keymsg{One known message reveals every message with the same keystream.}
-  \say{Formaty protokołów bardzo często mają przewidywalne początki.}
+  \note<1>{\selectlanguage{polish}Napastnik zna jedną wiadomość z innego źródła: był w mieszkaniu i widział wyświetlacz. Takie źródła są łatwe: nagłówki plików, powitania, stałe formaty, albo wyświetlacz widoczny przez okno.}
+  \note<2>{\selectlanguage{polish}Klucza nie zna i nie musi go znać: z pary C1 i P1 dostaje sam keystream.}
+  \note<3>{\selectlanguage{polish}Ten keystream otwiera każdą wiadomość zaszyfrowaną po restarcie. To samo zrobicie zaraz w Task 3, na tekście.}
 \end{frame}
 
 \begin{frame}{Task 3: one key, two messages}
@@ -1317,7 +1384,8 @@ def xor_bytes(a, b):
         Write the code in place of the \texttt{TODO} lines.}
       \footnotesize
       \begin{enumerate}\setlength{\itemsep}{4pt}
-        \item Write \texttt{xor\_bytes(a, b)}.
+        \item Write \texttt{xor\_bytes(a, b)}: XOR byte \texttt{i} of \texttt{a} with byte \texttt{i} of \texttt{b}.\\
+          \texttt{bytes(numbers)} turns a list of numbers into bytes.
         \item Get the keystream from \texttt{c1} and \texttt{p1}.
         \item Decrypt \texttt{c2} and print it.
       \end{enumerate}
@@ -1332,14 +1400,17 @@ def xor_bytes(a, b):
 % CHECKED: Task3/solution/reuse.py prints exactly "THE PIN IS 4172"
 \begin{lstlisting}[style=py]
 def xor_bytes(a, b):
-    return bytes(x ^ y for x, y in zip(a, b))
+    out = []
+    for i in range(len(a)):
+        out.append(a[i] ^ b[i])
+    return bytes(out)
 
 keystream = xor_bytes(c1, p1)
 print(xor_bytes(c2, keystream).decode())
 \end{lstlisting}
     \column{0.42\textwidth}
       \stepbox{The output}{\texttt{THE PIN IS 4172}}
-      \stepbox{\texttt{\textasciicircum{}} in Python}{\texttt{x \textasciicircum{} y} is XOR of two bytes.}
+      \stepbox{\texttt{\textasciicircum{}} in Python}{\texttt{a[i] \textasciicircum{} b[i]} is XOR of two bytes.}
   \end{columns}
   \vfill
   \keymsg{\texttt{\textasciicircum{}} is XOR in Python.}
@@ -1347,22 +1418,33 @@ print(xor_bytes(c2, keystream).decode())
 \end{frame}
 
 \samedot
-\begin{frame}{Solution: what did we learn?}
+% one line in the "needed / not needed" lists: \needitem{y}{x of the container}{colour}{icon}{text}{small text}
+\newcommand{\needitem}[6]{%
+  \node[text=#3, font=\LARGE] at ({#2+0.7},#1) {#4};
+  \node[anchor=west, font=\small\bfseries, text=nInk] at ({#2+1.35},{#1+0.17}) {#5};
+  \node[anchor=west, font=\scriptsize, text=gray] at ({#2+1.35},{#1-0.2}) {#6};}
+
+\begin{frame}{Solution: what did the attacker need?}
   \vfill
   \begin{center}
-    \Large
-    \renewcommand{\arraystretch}{1.5}
-    \begin{tabular}{ll}
-      \ok & We did not use the key. \\
-      \ok & We did not know the cipher. \\
-      \ok & We did not break anything. \\
-    \end{tabular}
+    \begin{tikzpicture}
+      \draw[container] (0,-2.75) rectangle (6.0,1.0);
+      \node[anchor=west, font=\normalsize\bfseries, text=nInk] at (0.2,0.62) {\ok\ Needed};
+      \needitem{-0.15}{0}{sBrown}{\faWifi}{two ciphertexts, C1 and C2}{recorded from the air}
+      \needitem{-1.1}{0}{sViolet}{\faFile*}{one known message, P1}{\texttt{MEET ME AT 9 PM}}
+      \needitem{-2.05}{0}{nInk}{$\oplus$}{XOR}{nothing else}
+      \draw[container] (6.6,-2.75) rectangle (12.6,1.0);
+      \node[anchor=west, font=\normalsize\bfseries, text=nInk] at (6.8,0.62) {\nok\ Not needed};
+      \needitem{-0.15}{6.6}{sAmber}{\faKey}{the key}{he got the keystream: C1 XOR P1}
+      \needitem{-1.1}{6.6}{nInk}{\faCogs}{the name of the cipher}{RC4, ChaCha20: it does not matter}
+      \needitem{-2.05}{6.6}{nInk}{\faLaptop}{computing power}{two XORs, under a second}
+    \end{tikzpicture}
   \end{center}
   \vfill
-  \begin{center}\small Only one mistake: \textbf{the keystream was used twice}.\end{center}
+  \begin{center}\small The only mistake was the sender's: \textbf{one keystream for two messages}.\end{center}
   \vfill
   \keymsg{This works against every stream cipher.}
-  \say{To najważniejszy slajd sekcji.}
+  \say{Popatrzcie, jak mało było trzeba. Szyfr mógł być najlepszy na świecie, klucz 256-bitowy: nic by to nie zmieniło. Cały atak to dwa XOR-y.}
 \end{frame}
 
 \begin{frame}{The rule: never twice}
@@ -1380,10 +1462,111 @@ print(xor_bytes(c2, keystream).decode())
     \end{tikzpicture}
   \end{center}
   \vfill
-  \begin{center}\small How do we send many messages with one key? You will work it out in \textbf{Task 9}.\end{center}
+  \begin{center}\small How do we send many messages with one key? You work it out \textbf{now}, in Task 4.\end{center}
   \vfill
   \keymsg{One keystream: one message.}
-  \say{Na razie tylko reguła. Jak ją spełnić jednym kluczem, studenci wymyślą sami w Task 9; nie zdradzać rozwiązania.}
+  \say{Reguła jest prosta, trudniej ją spełnić jednym kluczem: to od razu zadanie, Task 4 na następnym slajdzie. Nie zdradzać rozwiązania.}
+\end{frame}
+
+\begin{frame}[fragile]{Task 4, step 1: the same key twice}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.55\textwidth}
+\begin{lstlisting}[style=py, emph={rc4,xor}]
+key = b"our secret"   # shared with a friend
+m1  = b"Meet at noon."
+m2  = b"Bring the map"
+
+c1 = rc4(key, m1)
+c2 = rc4(key, m2)
+
+# check:
+xor(c1, c2) == xor(m1, m2)
+rc4(key, m1) == rc4(key, m1)  # sent twice
+\end{lstlisting}
+    \column{0.42\textwidth}
+      \taskhead{Task 4}{Open \texttt{one\_key.py} from \ghlink{Task4}.\\ \texttt{rc4.py} is ready:\ \texttt{rc4(key, data)} encrypts and decrypts.}
+      \centering
+      \begin{tikzpicture}
+        \envelope{a}{0,0}{m1}
+        \envelope{b}{2.5,0}{m2}
+        \node[actorlight=sAmber, font=\scriptsize\bfseries] at (1.25,1.0) {\faKey\ the same key};
+      \end{tikzpicture}\\[4pt]
+      \small\textbf{When is this dangerous?}
+  \end{columns}
+  \vfill
+  \keymsg{One key, many messages: what can go wrong?}
+  \say{Około 2 minut na kod, potem krótka dyskusja. Plik startowy one\_key.py jest na GitHubie, xor jest gotowy. RC4 jako czarną skrzynkę znają z Task 2.}
+\end{frame}
+
+\samedot
+\begin{frame}[fragile]{Solution, step 1: the same key twice}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.55\textwidth}
+% CHECKED: Task4/solution/one_key.py prints True, True
+\begin{lstlisting}[style=py, emph={rc4,xor,print}]
+c1 = rc4(key, m1)
+c2 = rc4(key, m2)
+print(xor(c1, c2) == xor(m1, m2))     # True
+print(rc4(key, m1) == rc4(key, m1))   # True
+\end{lstlisting}
+    \column{0.42\textwidth}
+      \probbox{Dangerous when}{the attacker knows or guesses one message: the other one opens (as in Task 3).}
+      \probbox{Dangerous when}{the same message is sent twice: the attacker sees that it repeats.}
+  \end{columns}
+  \vfill
+  \keymsg{One key alone always gives the same keystream.}
+  \say{Najpierw zebrać odpowiedzi z sali. Drugie zagrożenie jest mniej oczywiste: napastnik nie zna treści, ale wie, że się powtórzyła.}
+\end{frame}
+
+\samedot
+\begin{frame}{Task 4, step 2: a public value}
+  \taskhead{Task 4, step 2}{Fix it, and keep \textbf{one} secret key. For every message, make a new value of 3 bytes:}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.6\textwidth}
+      \footnotesize
+      \begin{itemize}\setlength{\itemsep}{1pt}
+        \item it does not have to be secret,
+        \item it is sent in the open, together with the ciphertext,
+        \item it must change the ciphertext.
+      \end{itemize}
+      \textbf{Check:}
+      \begin{enumerate}[a)]\setlength{\itemsep}{0pt}\scriptsize
+        \item \texttt{xor(c1, c2) == xor(m1, m2)}\hfill should be \texttt{False}
+        \item \texttt{m1} sent twice, with two new values:\\ are the two ciphertexts different?\hfill should be \texttt{True}
+        \item your friend decrypts \texttt{c1} with the key and the value
+      \end{enumerate}
+    \column{0.36\textwidth}
+      \centering
+      \begin{tikzpicture}
+        \envelope{a}{0,0}{c1}
+        \node[draw=nLine, thick, fill=white, rotate=-8, font=\ttfamily\scriptsize, text=nInk, inner sep=4pt] at (0.9,0.75) {3 bytes};
+        \draw[nInk, thick] (0.6,0.95) -- (0.55,0.6);
+        \node[font=\scriptsize, text=gray] at (0.2,-0.95) {a public note on the outside};
+      \end{tikzpicture}
+  \end{columns}
+  \stepbox{Hint}{\texttt{random.randbytes(3)} gives 3 random bytes.\qquad \texttt{b"ab" + b"cd" == b"abcd"}}
+  \keymsg{A public value, new for every message.}
+  \say{Około 4 minut. Nie podpowiadać, gdzie wpleść wartość; wystarczy przypomnieć, że rc4 ma tylko dwa argumenty: key i data.}
+\end{frame}
+
+\samedot
+\begin{frame}[fragile]{Solution, step 2: a public value}
+% CHECKED: Task4/solution/one_key.py prints False, True, b'Meet at noon.'
+\begin{lstlisting}[style=py, emph={rc4,xor,print}]
+n1 = random.randbytes(3)
+n2 = random.randbytes(3)
+c1 = rc4(n1 + key, m1)
+c2 = rc4(n2 + key, m2)
+print(xor(c1, c2) == xor(m1, m2))               # False
+print(rc4(n1 + key, m1) != rc4(n2 + key, m1))   # True
+print(rc4(n1 + key, c1))                        # b'Meet at noon.'
+\end{lstlisting}
+  \vspace{0.1cm}
+  \begin{center}\small RC4 has only one input, so the value has to go \textbf{into the key}.\end{center}
+  \defbox{\textbf{Nonce}: a public value, different for every message (``\textbf{n}umber used \textbf{once}'').}
+  \begin{center}\small Later today: what \textbf{Wi-Fi} did with exactly this idea.\end{center}
+  \keymsg{New nonce: new keystream, with no new secret.}
+  \say{Prawie wszyscy wymyślą nonce + key: zapisać na tablicy, kto jak to zrobił. Pułapka: jeśli ktoś XOR-ował wartość z wiadomością, test a) da False, ale napastnik zna obie wartości, więc dalej policzy m1 XOR m2. Wartość musi zmieniać keystream, a ten zależy tylko od klucza. Zdanie z dołu to zapowiedź: do pomysłu nonce + key wrócimy przy WEP, pod koniec sekcji o słabościach RC4.}
 \end{frame}
 
 % an invoice on paper: \invoice{name}{position}{amount}
@@ -1473,8 +1656,8 @@ print(xor_bytes(c2, keystream).decode())
   \say{Zmiana w szyfrogramie przenosi się dokładnie na ten sam bit tekstu jawnego. Napastnik nie zna keystreamu i nie musi go znać: (P XOR Z XOR 09) to P XOR 09 po odszyfrowaniu.}
 \end{frame}
 
-\begin{frame}{Task 4: raise the price}
-  \taskhead{Task 4}{You intercepted an invoice for a small amount. Format: 8 decimal digits, as ASCII text.}
+\begin{frame}{Task 5: raise the price}
+  \taskhead{Task 5}{You intercepted an invoice for a small amount. Format: 8 decimal digits, as ASCII text.}
   \vfill
   \begin{center}
     \begin{tikzpicture}[>=Stealth]
@@ -1494,7 +1677,7 @@ print(xor_bytes(c2, keystream).decode())
 \end{frame}
 
 \samedot
-\begin{frame}[fragile]{Task 4: what to do}
+\begin{frame}[fragile]{Task 5: what to do}
   \begin{columns}[T,onlytextwidth]
     \column{0.5\textwidth}
 \begin{lstlisting}[style=py]
@@ -1509,7 +1692,7 @@ receive(bytes(ciphertext))
       \vspace{0.1cm}
       {\scriptsize\textcolor{gray}{\texttt{server.py} plays party B. Treat it as a black box.}}
     \column{0.47\textwidth}
-      \taskhead{Task 4}{Open \texttt{tamper.py} from \ghlink{Task4}.
+      \taskhead{Task 5}{Open \texttt{tamper.py} from \ghlink{Task5}.
         Write the code in place of the \texttt{TODO} line.}
       \footnotesize
       \begin{enumerate}\setlength{\itemsep}{4pt}
@@ -1527,7 +1710,7 @@ receive(bytes(ciphertext))
   \vfill
   \begin{columns}[T,onlytextwidth]
     \column{0.5\textwidth}
-% CHECKED: Task4/solution/tamper.py with server.py prints "Invoice accepted: 50000010 PLN"
+% CHECKED: Task5/solution/tamper.py with server.py prints "Invoice accepted: 50000010 PLN"
 \begin{lstlisting}[style=py]
 ciphertext[0] ^= 0x05
 \end{lstlisting}
@@ -1561,12 +1744,8 @@ ciphertext[0] ^= 0x05
   \say{Wrócimy do tego przy współczesnych szyfrach.}
 \end{frame}
 
-% ======================================================================
-\section[When the pattern repeats]{When the pattern repeats}
-% ======================================================================
-
-\begin{frame}{Task 5: a cheap generator}
-  \taskhead{Task 5}{A company uses a stream cipher with a weak generator. Your analysis shows that its
+\begin{frame}{Task 6: a cheap generator}
+  \taskhead{Task 6}{A company uses a stream cipher with a weak generator. Your analysis shows that its
     keystream is just \textbf{4 numbers} (0 to 255), repeated:}
   \begin{center}
     \begin{tikzpicture}
@@ -1592,7 +1771,7 @@ ciphertext[0] ^= 0x05
 \end{frame}
 
 \samedot
-\begin{frame}[fragile]{Task 5: what to do}
+\begin{frame}[fragile]{Task 6: what to do}
   \begin{columns}[T,onlytextwidth]
     \column{0.55\textwidth}
 \begin{lstlisting}[style=py]
@@ -1605,7 +1784,7 @@ known = b"Anna"
 # TODO 2: decrypt the whole ciphertext and print it
 \end{lstlisting}
     \column{0.42\textwidth}
-      \taskhead{Task 5}{Open \texttt{cheap.py} from \ghlink{Task5}.
+      \taskhead{Task 6}{Open \texttt{cheap.py} from \ghlink{Task6}.
         Write the code in place of the \texttt{TODO} lines.}
       \stepbox{Hint: remember mod}{\texttt{i \% 4} goes around 0, 1, 2, 3.\\[3pt]
         \begin{tabular}{@{}l*{8}{c}c@{}}
@@ -1620,7 +1799,7 @@ known = b"Anna"
 \begin{frame}[fragile]{Solution: a cheap generator}
   \begin{columns}[T,onlytextwidth]
     \column{0.55\textwidth}
-% CHECKED: Task5/solution/cheap.py prints "Anna, the safe code is 7391."
+% CHECKED: Task6/solution/cheap.py prints "Anna, the safe code is 7391."
 \begin{lstlisting}[style=py, emph={print,chr,zip,enumerate}]
 numbers = [c ^ p for c, p in zip(ciphertext, known)]
 
@@ -2001,8 +2180,8 @@ print(plaintext)
     \node[font=\small\bfseries, text=nInk] at (0.1,-1.15) {#2};
   \end{scope}}
 
-\begin{frame}{Task 6: does S remember the key?}
-  \taskhead{Task 6}{\texttt{rc4.py} is ready:\ \texttt{ksa(key)} returns \texttt{S} after the KSA.}
+\begin{frame}{Task 7: does S remember the key?}
+  \taskhead{Task 7}{\texttt{rc4.py} is ready:\ \texttt{ksa(key)} returns \texttt{S} after the KSA.}
   \begin{columns}[c,onlytextwidth]
     \column{0.6\textwidth}
       \footnotesize For \textbf{10\,000} random keys of 16 bytes:
@@ -2027,7 +2206,7 @@ print(plaintext)
 \end{frame}
 
 \samedot
-\begin{frame}[fragile]{Task 6: what to do}
+\begin{frame}[fragile]{Task 7: what to do}
   \begin{columns}[T,onlytextwidth]
     \column{0.62\textwidth}
 \begin{lstlisting}[style=py, emph={print,range,len}, basicstyle=\color{VSText}\ttfamily\fontsize{6.4}{7.2}\selectfont]
@@ -2050,7 +2229,7 @@ print(f"KSA:     {100 * ksa_hits / N:.2f}%")
 print(f"shuffle: {100 * shuffle_hits / N:.2f}%")
 \end{lstlisting}
     \column{0.35\textwidth}
-      \taskhead{Task 6}{Open \texttt{remember.py} from \ghlink{Task6}.
+      \taskhead{Task 7}{Open \texttt{remember.py} from \ghlink{Task7}.
         Write the code in place of the \texttt{TODO} lines.}
       \stepbox{Hint}{\texttt{random.shuffle(S)} shuffles the list \texttt{S} in place.}
   \end{columns}
@@ -2063,7 +2242,7 @@ print(f"shuffle: {100 * shuffle_hits / N:.2f}%")
 \begin{frame}[fragile]{Solution: does S remember the key?}
   \begin{columns}[T,onlytextwidth]
     \column{0.5\textwidth}
-% CHECKED: Task6/solution/remember.py: KSA 37.00%, shuffle 0.41% (one run, they change a little)
+% CHECKED: Task7/solution/remember.py: KSA 37.00%, shuffle 0.41% (one run, they change a little)
 \begin{lstlisting}[style=py, emph={ksa,list,range}]
 for _ in range(N):
     key = random.randbytes(16)
@@ -2090,9 +2269,10 @@ for _ in range(N):
   \stepbox{Why?}{At \texttt{i = 0}:\ \texttt{j = 0 + S[0] + T[0] = key[0]}, so \texttt{S[0]} gets the value \texttt{key[0]}.\\
     Later, \texttt{S[0]} changes only if some \texttt{j} hits 0: about 1 chance in 256 at each step.\\
     Chance that this never happens in 255 steps:\ $(255/256)^{255}$ = about \textbf{37\%}.}
+  \mistaketag{1}%
   \keymsg{S remembers the first byte of the key.}
   % CHECKED: (255/256)**255 = 0.3686
-  \say{Kod sprawdzony. Prawie 100 razy częściej, niż powinno. To samo dotyczy kolejnych komórek: S[1] jest równe key[0] + key[1] + 1 w około 37\% przypadków. Wrócimy do tego w sekcji o słabościach.}
+  \say{Kod sprawdzony. Prawie 100 razy częściej, niż powinno. To samo dotyczy kolejnych komórek: S[1] jest równe key[0] + key[1] + 1 w około 37\% przypadków. Wrócimy do tego w sekcji o słabościach. To pierwszy z trzech błędów RC4: KSA słabo miesza klucz.}
 \end{frame}
 
 % ======================================================================
@@ -2357,14 +2537,15 @@ def prga(S, n):
   \vfill
   \defbox{\textbf{Brute force}: try all possible keys, one by one, until one of them gives the known start of the message.}
   \vfill
-  \begin{center}\small A key of $n$ bytes has\ \texttt{256 ** n}\ possible values.\end{center}
+  \begin{center}\small A key of $n$ bytes has\ $256^n$\ possible values\quad
+    \textcolor{gray}{($256 \cdot 256 \cdot \ldots \cdot 256$, $n$ times)}.\end{center}
   \vfill
   \keymsg{The simplest attack: try every key.}
   \say{Pytanie do sali przed slajdem: jak byście się zabrali za złamanie RC4? Prawie zawsze pierwsza odpowiedź to zgadywanie klucza.}
 \end{frame}
 
-\begin{frame}{Task 7: crack a short key}
-  \taskhead{Task 7}{Two messages were encrypted with RC4 and very short keys. You know that every message starts with:\ \texttt{\textbf{Hello}}}
+\begin{frame}{Task 8: crack a short key}
+  \taskhead{Task 8}{Two messages were encrypted with RC4 and very short keys. You know that every message starts with:\ \texttt{\textbf{Hello}}}
   \begin{columns}[c,onlytextwidth]
     \column{0.5\textwidth}
       \centering
@@ -2390,7 +2571,7 @@ def prga(S, n):
 \end{frame}
 
 \samedot
-\begin{frame}[fragile]{Task 7: what to do}
+\begin{frame}[fragile]{Task 8: what to do}
   \begin{columns}[T,onlytextwidth]
     \column{0.6\textwidth}
 \begin{lstlisting}[style=py, basicstyle=\color{VSText}\ttfamily\fontsize{6.4}{7.4}\selectfont]
@@ -2410,11 +2591,12 @@ def crack(ciphertext, n):
 \end{lstlisting}
       {\scriptsize\textcolor{gray}{Shortened on the slide: the hex strings and the ready loop are in the file.}}
     \column{0.37\textwidth}
-      \taskhead{Task 7}{Open \texttt{crack.py} from \ghlink{Task7}.\\ \texttt{rc4.py} is ready:\ \texttt{keystream(key, n)}.}
-      \stepbox{Hint: all keys of n bytes}{\texttt{for k in range(256 ** n):}\\ \texttt{\ \ \ \ key = k.to\_bytes(n, "big")}}
+      \taskhead{Task 8}{Open \texttt{crack.py} from \ghlink{Task8}.\\ \texttt{rc4.py} is ready:\ \texttt{keystream(key, n)}.}
+      \stepbox{Hint: all keys of n bytes}{\texttt{for k in range(256 ** n):}\\ \texttt{\ \ \ \ key = k.to\_bytes(n, "big")}\\[2pt]
+        {\scriptsize In Python, $256^n$ is written \texttt{256 ** n}.}}
   \end{columns}
   \vfill
-  \keymsg{\texttt{256 ** n} keys: the loop visits every one of them.}
+  \keymsg{$256^n$ keys: the loop visits every one of them.}
   \say{to\_bytes zamienia liczbę na n bajtów, więc jedna pętla przechodzi przez wszystkie klucze.}
 \end{frame}
 
@@ -2422,7 +2604,7 @@ def crack(ciphertext, n):
 \begin{frame}[fragile]{Solution: crack a short key}
   \begin{columns}[T,onlytextwidth]
     \column{0.56\textwidth}
-% CHECKED: Task7/solution/crack.py on the author's laptop: key a7 in 0.01 s, key c35e in 2.93 s
+% CHECKED: Task8/solution/crack.py on the author's laptop: key a7 in 0.01 s, key c35e in 2.93 s
 \begin{lstlisting}[style=py, emph={range,bytes,zip,keystream,len}, basicstyle=\color{VSText}\ttfamily\fontsize{6.4}{7.4}\selectfont]
 def crack(ciphertext, n):
     found = []
@@ -2499,7 +2681,7 @@ def crack(ciphertext, n):
 \end{frame}
 
 \samedot
-\begin{frame}[fragile]{Task 8: measure the second byte}
+\begin{frame}[fragile]{Task 9: measure the second byte}
   \begin{columns}[c,onlytextwidth]
     \column{0.62\textwidth}
 \begin{lstlisting}[style=py, emph={range,prga,ksa,print}]
@@ -2511,13 +2693,13 @@ for _ in range(100_000):      # 100 000 random keys
 # print each count as a percentage
 \end{lstlisting}
       \vspace{0.1cm}
-      \taskhead{Task 8}{Open \texttt{measure.py} from \ghlink{Task8}.\ \texttt{rc4.py} is ready: \texttt{ksa} and \texttt{prga}.}
+      \taskhead{Task 9}{Open \texttt{measure.py} from \ghlink{Task9}.\ \texttt{rc4.py} is ready: \texttt{ksa} and \texttt{prga}.}
     \column{0.35\textwidth}
       \centering
       {\fontsize{60}{60}\selectfont\textcolor{nLine}{?}}\\[0.2cm]
       \small Expected: \textbf{0.39\%} each.\\ Is it?
   \end{columns}
-  \say{5 minut. Program liczy około 4 sekund. Pętla jest taka sama jak w Task 6.}
+  \say{5 minut. Program liczy około 4 sekund. Pętla jest taka sama jak w Task 7.}
 \end{frame}
 
 \samedot
@@ -2525,7 +2707,7 @@ for _ in range(100_000):      # 100 000 random keys
   \vfill
   \begin{center}
     % CHECKED: checks/bias_10M.c (gcc -O2): 10 000 000 random 16-byte keys:
-    %          byte 1 0.391%, byte 2 0.784%, byte 3 0.391%. Task8/solution/measure.py (100 000 keys) gives about the same.
+    %          byte 1 0.391%, byte 2 0.784%, byte 3 0.391%. Task9/solution/measure.py (100 000 keys) gives about the same.
     \begin{tikzpicture}
       \node[font=\scriptsize, text=nInk, anchor=south] at (4.0,2.2) {chance that the byte is 0};
       \foreach \lab/\v/\y in {{byte 1}/0.391/1.4, {byte 2}/0.784/0.7, {byte 3}/0.391/0} {
@@ -2552,8 +2734,9 @@ for _ in range(100_000):      # 100 000 random keys
   \begin{center}\small RC4's \textbf{second keystream byte} has a bias towards 0.\\[0.3cm]
     What can an attacker do with one small bias?\end{center}
   \vfill
+  \mistaketag{2}%
   \keymsg{A tiny bias is enough, as we will see.}
-  \say{Pytanie do sali przed następnym slajdem.}
+  \say{Pytanie do sali przed następnym slajdem. To drugi błąd RC4: keystream nie wygląda losowo.}
 \end{frame}
 
 \begin{frame}{The same message under many keys}
@@ -2608,104 +2791,6 @@ for _ in range(100_000):      # 100 000 random keys
   \say{To prawdziwy pomiar. Takie zliczanie, tylko dużo większe, stało za atakami na ciasteczka przeglądarek. Bez skrzywienia każda wartość pojawiałaby się około 390 razy.}
 \end{frame}
 
-\begin{frame}[fragile]{Task 9, step 1: the same key twice}
-  \begin{columns}[T,onlytextwidth]
-    \column{0.55\textwidth}
-\begin{lstlisting}[style=py, emph={rc4,xor}]
-key = b"our secret"   # shared with a friend
-m1  = b"Meet at noon."
-m2  = b"Bring the map"
-
-c1 = rc4(key, m1)
-c2 = rc4(key, m2)
-
-# check:
-xor(c1, c2) == xor(m1, m2)
-rc4(key, m1) == rc4(key, m1)  # sent twice
-\end{lstlisting}
-    \column{0.42\textwidth}
-      \taskhead{Task 9}{Open \texttt{one\_key.py} from \ghlink{Task9}.\\ \texttt{rc4.py} is ready:\ \texttt{rc4(key, data)} encrypts and decrypts.}
-      \centering
-      \begin{tikzpicture}
-        \envelope{a}{0,0}{m1}
-        \envelope{b}{2.5,0}{m2}
-        \node[actorlight=sAmber, font=\scriptsize\bfseries] at (1.25,1.0) {\faKey\ the same key};
-      \end{tikzpicture}\\[4pt]
-      \small\textbf{When is this dangerous?}
-  \end{columns}
-  \vfill
-  \keymsg{One key, many messages: what can go wrong?}
-  \say{Około 2 minut na kod, potem krótka dyskusja. Plik startowy one\_key.py jest na GitHubie, xor jest gotowy.}
-\end{frame}
-
-\samedot
-\begin{frame}[fragile]{Solution, step 1: the same key twice}
-  \begin{columns}[T,onlytextwidth]
-    \column{0.55\textwidth}
-% CHECKED: Task9/solution/one_key.py prints True, True
-\begin{lstlisting}[style=py, emph={rc4,xor,print}]
-c1, c2 = rc4(key, m1), rc4(key, m2)
-print(xor(c1, c2) == xor(m1, m2))     # True
-print(rc4(key, m1) == rc4(key, m1))   # True
-\end{lstlisting}
-    \column{0.42\textwidth}
-      \probbox{Dangerous when}{the attacker knows or guesses one message: the other one opens (\emph{The mistake that removes the key}).}
-      \probbox{Dangerous when}{the same message is sent twice: the attacker sees that it repeats.}
-  \end{columns}
-  \vfill
-  \keymsg{One key alone always gives the same keystream.}
-  \say{Najpierw zebrać odpowiedzi z sali. Drugie zagrożenie jest mniej oczywiste: napastnik nie zna treści, ale wie, że się powtórzyła.}
-\end{frame}
-
-\samedot
-\begin{frame}{Task 9, step 2: a public value}
-  \taskhead{Task 9, step 2}{Fix it, and keep \textbf{one} secret key. For every message, make a new value of 3 bytes:}
-  \begin{columns}[T,onlytextwidth]
-    \column{0.6\textwidth}
-      \footnotesize
-      \begin{itemize}\setlength{\itemsep}{1pt}
-        \item it does not have to be secret,
-        \item it is sent in the open, together with the ciphertext,
-        \item it must change the ciphertext.
-      \end{itemize}
-      \textbf{Check:}
-      \begin{enumerate}[a)]\setlength{\itemsep}{0pt}\scriptsize
-        \item \texttt{xor(c1, c2) == xor(m1, m2)}\hfill should be \texttt{False}
-        \item \texttt{m1} sent twice, with two new values:\\ are the two ciphertexts different?\hfill should be \texttt{True}
-        \item your friend decrypts \texttt{c1} with the key and the value
-      \end{enumerate}
-    \column{0.36\textwidth}
-      \centering
-      \begin{tikzpicture}
-        \envelope{a}{0,0}{c1}
-        \node[draw=nLine, thick, fill=white, rotate=-8, font=\ttfamily\scriptsize, text=nInk, inner sep=4pt] at (0.9,0.75) {3 bytes};
-        \draw[nInk, thick] (0.6,0.95) -- (0.55,0.6);
-        \node[font=\scriptsize, text=gray] at (0.2,-0.95) {a public note on the outside};
-      \end{tikzpicture}
-  \end{columns}
-  \stepbox{Hint}{\texttt{random.randbytes(3)} gives 3 random bytes.\qquad \texttt{b"ab" + b"cd" == b"abcd"}}
-  \keymsg{A public value, new for every message.}
-  \say{Około 4 minut. Nie podpowiadać, gdzie wpleść wartość; wystarczy przypomnieć, że rc4 ma tylko dwa argumenty: key i data.}
-\end{frame}
-
-\samedot
-\begin{frame}[fragile]{Solution, step 2: a public value}
-% CHECKED: Task9/solution/one_key.py prints False, True, b'Meet at noon.'
-\begin{lstlisting}[style=py, emph={rc4,xor,print}]
-n1, n2 = random.randbytes(3), random.randbytes(3)
-c1, c2 = rc4(n1 + key, m1), rc4(n2 + key, m2)
-print(xor(c1, c2) == xor(m1, m2))               # False
-print(rc4(n1 + key, m1) != rc4(n2 + key, m1))   # True
-print(rc4(n1 + key, c1))                        # b'Meet at noon.'
-\end{lstlisting}
-  \vspace{0.1cm}
-  \begin{center}\small RC4 has only one input, so the value has to go \textbf{into the key}.\end{center}
-  \defbox{\textbf{Nonce}: a public value, different for every message (``\textbf{n}umber used \textbf{once}'').}
-  \begin{center}\small Is gluing the nonce to the key a good idea? \textbf{Wi-Fi did just this.}\end{center}
-  \keymsg{New nonce: new keystream, with no new secret.}
-  \say{Prawie wszyscy wymyślą nonce + key: zapisać na tablicy, kto jak to zrobił. Pułapka: jeśli ktoś XOR-ował wartość z wiadomością, test a) da False, ale napastnik zna obie wartości, więc dalej policzy m1 XOR m2. Wartość musi zmieniać keystream, a ten zależy tylko od klucza. Pytania z dołu nie rozstrzygać: odpowiedź jest na następnym slajdzie.}
-\end{frame}
-
 \begin{frame}{WEP: RC4 in Wi-Fi}
   \defbox{\textbf{WEP}: the first security standard for Wi-Fi (1997).}
   \vfill
@@ -2722,9 +2807,9 @@ print(rc4(n1 + key, c1))                        # b'Meet at noon.'
   \end{center}
   \vfill
   \defbox{\textbf{IV}: initialisation vector. A nonce, under another name.}
-  \begin{center}\small This is exactly the fix from Task 9: \textbf{nonce + key}.\end{center}
+  \begin{center}\small This is exactly your fix from Task 4: \textbf{nonce + key}. Is gluing the nonce to the key a good idea?\end{center}
   \keymsg{WEP built a new RC4 key for every packet.}
-  \say{To dokładnie pomysł z Task 9: wrócić do tego, co zapisaliśmy na tablicy. Pomysł rozsądny, wykonanie katastrofalne. (IV ma białe tło: jest jawny; klucz sieci jest tajny.)}
+  \say{To dokładnie wasz pomysł z Task 4: wrócić do tego, co zapisaliśmy wtedy na tablicy. Pytanie z dołu zostawić otwarte: odpowiedź dają dwa następne slajdy. Pomysł rozsądny, wykonanie katastrofalne. (IV ma białe tło: jest jawny; klucz sieci jest tajny.)}
 \end{frame}
 
 \samedot
@@ -2757,7 +2842,7 @@ print(rc4(n1 + key, c1))                        # b'Meet at noon.'
   \end{center}
   \vfill
   \keymsg{Repeated IV means repeated keystream.}
-  \say{A powtórka IV to ponowne użycie keystreamu, czyli dokładnie ten sam błąd co wcześniej. Wasza wartość w Task 9 też miała 3 bajty.}
+  \say{A powtórka IV to ponowne użycie keystreamu, czyli dokładnie ten sam błąd co wcześniej. Wasza wartość w Task 4 też miała 3 bajty.}
 \end{frame}
 
 \samedot
@@ -2785,7 +2870,7 @@ print(rc4(n1 + key, c1))                        # b'Meet at noon.'
   \begin{center}\small Fluhrer, Mantin, Shamir, 2001.\end{center}
   \vfill
   \keymsg{The attacker recovers the key itself.}
-  \say{Tu nie chodzi już tylko o odczyt: napastnik dostaje klucz sieci. To ta sama słabość, którą zmierzyliście w Task 6: S pamięta początek klucza, a w WEP początek klucza to jawny IV.}
+  \say{Tu nie chodzi już tylko o odczyt: napastnik dostaje klucz sieci. To ta sama słabość, którą zmierzyliście w Task 7: S pamięta początek klucza, a w WEP początek klucza to jawny IV.}
 \end{frame}
 
 \begin{frame}{RC4 has no nonce}
@@ -2809,8 +2894,9 @@ print(rc4(n1 + key, c1))                        # b'Meet at noon.'
   \begin{center}\small RC4 takes only a key. Everyone must invent how to add a nonce.\\
     WEP glued it in front of the key, and that was the mistake.\end{center}
   \vfill
+  \mistaketag{3}%
   \keymsg{RC4 makes the dangerous thing the easy thing.}
-  \say{Nonce wymyśliliście sami w Task 9, a WEP zrobił dokładnie to samo.}
+  \say{Nonce wymyśliliście sami w Task 4, a WEP zrobił dokładnie to samo. To trzeci błąd RC4: brak wejścia na nonce, więc bezpieczne użycie nie jest tym najłatwiejszym.}
 \end{frame}
 
 \samedot
@@ -2835,7 +2921,7 @@ print(rc4(n1 + key, c1))                        # b'Meet at noon.'
   \textbf{TLS}: the protocol that protects the connection between your browser and a website.
   \vfill
   \keymsg{No nonce input: everyone builds it differently, and some get it wrong.}
-  \say{WEP to wasz pomysł z Task 9. TKIP: klucz każdego pakietu powstaje przez wymieszanie klucza z adresem nadawcy i 48-bitowym licznikiem pakietów; licznik się nie powtarza, a klucz pakietu nie ma już jawnego początku. TLS: na początku połączenia obie strony wymieniają jawne liczby losowe i z nich oraz wspólnego sekretu powstaje nowy klucz RC4, osobny dla każdego kierunku; kolejne wiadomości biorą dalsze bajty tego samego keystreamu. Te jawne liczby losowe pełnią rolę nonce. TLS nie padło przez nonce, tylko przez skrzywienia, które mierzyliśmy w Task 8.}
+  \say{WEP to wasz pomysł z Task 4. TKIP: klucz każdego pakietu powstaje przez wymieszanie klucza z adresem nadawcy i 48-bitowym licznikiem pakietów; licznik się nie powtarza, a klucz pakietu nie ma już jawnego początku. TLS: na początku połączenia obie strony wymieniają jawne liczby losowe i z nich oraz wspólnego sekretu powstaje nowy klucz RC4, osobny dla każdego kierunku; kolejne wiadomości biorą dalsze bajty tego samego keystreamu. Te jawne liczby losowe pełnią rolę nonce. TLS nie padło przez nonce, tylko przez skrzywienia, które mierzyliśmy w Task 8.}
 \end{frame}
 
 % ======================================================================
@@ -2969,24 +3055,36 @@ print(rc4(n1 + key, c1))                        # b'Meet at noon.'
 \end{frame}
 
 \samedot
-\begin{frame}{What replaced RC4}
+\begin{frame}{Three lessons from RC4}
   \vfill
   \begin{center}
-    \small
-    \renewcommand{\arraystretch}{1.6}
-    \begin{tabular}{l l l}
+    \scriptsize
+    \renewcommand{\arraystretch}{1.35}
+    \begin{tabular}{@{}p{3.0cm} p{3.3cm} p{3.3cm} p{3.25cm}@{}}
       \toprule
-      & \textbf{RC4} & \textbf{AES-GCM, ChaCha20-Poly1305} \\
+      \textbf{RC4 mistake} & \textbf{What happened} & \textbf{Lesson} & \textbf{In ChaCha20, AES-GCM} \\
       \midrule
-      nonce & \nok\ glue it yourself & \ok\ built in \\
-      integrity & \nok\ none & \ok\ built in \\
-      known biases & \nok\ yes & \ok\ none known \\
+      \raggedright\textcolor{AccentOrange}{\textbf{1}}\ \textbf{weak key mixing}: S remembers the start of the key (Task 7)
+        & \raggedright WEP: the IV is the start of the key, so the Wi-Fi key leaks
+        & \raggedright mix the whole key; related keys must give unrelated keystreams
+        & \ok\ every output depends on the whole key and nonce (many rounds) \\
+      \raggedright\textcolor{AccentOrange}{\textbf{2}}\ \textbf{biased keystream}: the 2nd byte is 0 twice as often (Task 9)
+        & \raggedright the same cookie, encrypted many times, leaks
+        & \raggedright the keystream must look random: a tiny bias is enough
+        & \ok\ no known biases \\
+      \raggedright\textcolor{AccentOrange}{\textbf{3}}\ \textbf{no nonce input}: only a key (Task 4)
+        & \raggedright everyone glues the nonce in their own way; in WEP, with mistake 1: a disaster
+        & make the safe use the easy one
+        & \ok\ the nonce is an input: key, nonce, counter \\
       \bottomrule
     \end{tabular}
   \end{center}
   \vfill
+  \begin{center}\scriptsize Dropping the first bytes (RC4-drop[$n$]) does not help: the whole stream has small biases (Fluhrer and McGrew, 2000).\\
+    They power the TLS attacks of 2013 and RC4 NOMORE (2015): a cookie in about 75 hours.\end{center}
+  \vfill
   \keymsg{Do not use RC4 in new systems.}
-  \say{Każdy wiersz to jedna słabość RC4 z dzisiejszych zajęć; w obu zamiennikach jest rozwiązana.}
+  \say{Każdy wiersz to jeden z trzech błędów RC4 z dzisiejszych zajęć; w obu zamiennikach każdy jest rozwiązany. Integralności nie ma w tabeli, bo to problem każdego szyfru strumieniowego (faktura), nie tylko RC4. Dodatki: słabe klucze (Roos 1995, Bar Mitzvah 2015) to kolejna twarz błędu 1. Atak na WEP poprawili potem Klein (2005) i PTW (2007), stąd WEP w minutę. W 2013 dokumenty Snowdena wzbudziły podejrzenia, niepotwierdzone, że RC4 w TLS da się łamać na bieżąco: to tło szybkiego zakazu. I lekcja spoza algorytmu: od pierwszego poważnego ataku (2001) do zakazu (2015) minęło 14 lat.}
 \end{frame}
 
 \begin{frame}{Summary}
@@ -2998,7 +3096,7 @@ print(rc4(n1 + key, c1))                        # b'Meet at noon.'
       \bigbadge{2} & \large Never use the same keystream twice. \\
       \bigbadge{3} & \large Small and urgent: stream. Today: authenticated encryption. \\
       \bigbadge{4} & \large RC4 = KSA once, then PRGA for every byte. \\
-      \bigbadge{5} & \large RC4 is biased and broken: know it, do not use it. \\
+      \bigbadge{5} & \large Lessons from RC4: mix the key well, no bias, the nonce belongs to the cipher. \\
     \end{tabular}
   \end{center}
   \vfill

@@ -48,7 +48,7 @@ $(foreach l,$(LECTURES),$(eval $(call LECTURE_RULES,$(l))))
 FORCE:
 
 notes:
-	@$(foreach l,$(LECTURES),$(MAKE) --no-print-directory -C $(l) notes &&) true
+	@$(foreach l,$(LECTURES),{ [ ! -f $(l)/notes.tex ] || $(MAKE) --no-print-directory -C $(l) notes; } &&) true
 
 rebuild:
 	$(MAKE) clean

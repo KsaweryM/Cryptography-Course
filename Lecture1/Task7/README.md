@@ -1,24 +1,16 @@
-# Task 7: crack a short key
+# Task 7: does S remember the key?
 
-Two messages were encrypted with RC4 and very short keys: the first with a key of 1 byte, the second with a key of 2 bytes. You know that every message starts with `Hello`.
+`rc4.py` is ready: `ksa(key)` returns the table `S` after the KSA. Fill in the `TODO`s in `remember.py`:
 
-`rc4.py` is ready: `keystream(key, n)` returns `n` bytes of keystream. Fill in the `TODO`s in `crack.py`:
+1. For 10 000 random keys of 16 bytes, run `S = ksa(key)` and count how often `S[0] == key[0]`.
+2. Do the same with a fair random shuffle instead of the KSA: `S = list(range(256))`, then `random.shuffle(S)`.
 
-1. Find both keys by brute force: try every possible key.
-2. Decrypt both messages.
-3. The program prints the time for each key length. Estimate how long the same search would take for a key of 5 bytes, and of 16 bytes.
-
-Hint: all keys of `n` bytes:
-
-```python
-for k in range(256 ** n):
-    key = k.to_bytes(n, "big")
-```
+Compare the two percentages. Bonus: why is the first one so high? Look at the step `i = 0` of the KSA.
 
 ## Run
 
 ```
-python3 crack.py
+python3 remember.py
 ```
 
-The 2-byte search takes a few seconds. Python 3, no extra libraries.
+It takes about a second. Python 3.9 or newer (for `random.randbytes`), no extra libraries.

@@ -1,26 +1,13 @@
-# Task 9: one key, many messages
+# Task 9: measure the keystream
 
-You and a friend share one secret key, `our secret`, and you want to send many messages. `rc4.py` is ready: `rc4(key, data)` encrypts and decrypts. `xor(a, b)` is ready in `one_key.py`.
+`rc4.py` is ready. Fill in the `TODO` in `measure.py`: for 100 000 random keys of 16 bytes, count how often each of the first three keystream bytes is 0.
 
-**Step 1.** Encrypt two messages with the same key and check:
-
-- `xor(c1, c2) == xor(m1, m2)`
-- `rc4(key, m1) == rc4(key, m1)` (the same message, sent twice)
-
-When is this dangerous?
-
-**Step 2.** Fix it, and keep one secret key. For every message, make a new value of 3 bytes (`random.randbytes(3)`). It does not have to be secret: it is sent in the open, together with the ciphertext. It must change the ciphertext. Check:
-
-1. `xor(c1, c2) == xor(m1, m2)` should be `False`.
-2. `m1` sent twice, with two new values, should give two different ciphertexts.
-3. Your friend, who knows the key and the value, can decrypt `c1`.
-
-Hint: `b"ab" + b"cd" == b"abcd"`
+If every value were equally likely, each percentage would be close to 0.39%. It takes a few seconds.
 
 ## Run
 
 ```
-python3 one_key.py
+python3 measure.py
 ```
 
-Python 3.9 or newer (for `random.randbytes`), no extra libraries.
+Python 3, no extra libraries.

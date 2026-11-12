@@ -1,4 +1,4 @@
-# RC4, ready to use: keystream(key, n) returns n bytes of keystream.
+# RC4, ready to use: ksa(key) returns S after the KSA, prga(S, n) returns n keystream bytes.
 
 
 def ksa(key):

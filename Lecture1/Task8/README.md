@@ -1,13 +1,24 @@
-# Task 8: measure the keystream
+# Task 8: crack a short key
 
-`rc4.py` is ready. Fill in the `TODO` in `measure.py`: for 100 000 random keys of 16 bytes, count how often each of the first three keystream bytes is 0.
+Two messages were encrypted with RC4 and very short keys: the first with a key of 1 byte, the second with a key of 2 bytes. You know that every message starts with `Hello`.
 
-If every value were equally likely, each percentage would be close to 0.39%. It takes a few seconds.
+`rc4.py` is ready: `keystream(key, n)` returns `n` bytes of keystream. Fill in the `TODO`s in `crack.py`:
+
+1. Find both keys by brute force: try every possible key.
+2. Decrypt both messages.
+3. The program prints the time for each key length. Estimate how long the same search would take for a key of 5 bytes, and of 16 bytes.
+
+Hint: all keys of `n` bytes:
+
+```python
+for k in range(256 ** n):
+    key = k.to_bytes(n, "big")
+```
 
 ## Run
 
 ```
-python3 measure.py
+python3 crack.py
 ```
 
-Python 3, no extra libraries.
+The 2-byte search takes a few seconds. Python 3, no extra libraries.

@@ -1,16 +1,15 @@
-# Task 6: does S remember the key?
+# Task 6: a cheap generator
 
-`rc4.py` is ready: `ksa(key)` returns the table `S` after the KSA. Fill in the `TODO`s in `remember.py`:
+A company uses a stream cipher with a weak generator. Your analysis shows that its keystream is just 4 numbers (0 to 255), repeated again and again. You know that the plaintext starts with the name `Anna`.
 
-1. For 10 000 random keys of 16 bytes, run `S = ksa(key)` and count how often `S[0] == key[0]`.
-2. Do the same with a fair random shuffle instead of the KSA: `S = list(range(256))`, then `random.shuffle(S)`.
+Fill in the `TODO`s in `cheap.py`: find the 4 numbers, then decrypt the whole message.
 
-Compare the two percentages. Bonus: why is the first one so high? Look at the step `i = 0` of the KSA.
+Hint: `i % 4` is the remainder after dividing `i` by 4, so it goes 0, 1, 2, 3, 0, 1, ...
 
 ## Run
 
 ```
-python3 remember.py
+python3 cheap.py
 ```
 
-It takes about a second. Python 3.9 or newer (for `random.randbytes`), no extra libraries.
+Python 3, no extra libraries.
