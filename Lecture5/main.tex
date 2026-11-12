@@ -218,7 +218,7 @@
 %   S3 sViolet : public values: points such as G, Q, A, B
 %   S4 sAmber  : private values: d, k, a, b and the keys made from them
 %   S5 sTeal   : Bartek
-%   S6 sBrown  : ciphertext C1, C2 and signatures
+%   S6 sBrown  : ciphertext C1, C2
 %   the curve itself, formulas and mechanisms (KDF, the console) are neutral
 % ======================================================================
 \tikzset{
@@ -333,8 +333,8 @@
         \textcolor{gray}{\small ECDH, X25519, HKDF}
         \vspace{0.3cm}
 
-        \item[\textcolor{DeepBlue}{\faSignature}] \textbf{6. Encrypting and signing} \\
-        \textcolor{gray}{\small ElGamal and ECDSA on a curve}
+        \item[\textcolor{DeepBlue}{\faEnvelope}] \textbf{6. Encrypting on a curve} \\
+        \textcolor{gray}{\small ElGamal with points}
         \vspace{0.3cm}
 
         \item[\textcolor{DeepBlue}{\faGlobe}] \textbf{7. ECC in the real world} \\
@@ -361,7 +361,7 @@
   \end{center}
   \vfill
   \begin{center}
-    \small Nothing to install. Starter files for Task 2 to Task 6: \ghlink{}
+    \small Nothing to install. Starter files for Task 2 to Task 5: \ghlink{}
   \end{center}
   \vfill
   \say{Każde zadanie jest samodzielne: potrzebne funkcje są gotowe w folderze zadania.}
@@ -443,7 +443,7 @@
     \end{tikzpicture}
   \end{center}
   \vfill
-  \say{HTTPS to zwykłe strony WWW z kłódką. Certyfikat to klucz publiczny serwera podpisany przez zaufaną firmę i wysyłany przy każdym połączeniu.}
+  \say{HTTPS to zwykłe strony WWW z kłódką. Certyfikat to klucz publiczny serwera, za który ręczy zaufana firma; jest wysyłany przy każdym połączeniu.}
 \end{frame}
 
 \begin{frame}{The idea: a harder group}
@@ -1063,7 +1063,7 @@
   \vfill
   \begin{columns}[T,onlytextwidth]
     \column{0.48\textwidth}
-      % CHECKED: b of P-256 as in Task6/p256.py (FIPS 186-4, D.1.2.3)
+      % CHECKED: b of P-256 (FIPS 186-4, D.1.2.3)
       \begin{tikzpicture}
         \node[hw, text width=6.1cm, align=left, minimum height=3.3cm] (c) {
           \textbf{P-256} \textcolor{gray}{(NIST, 2000)}\\[4pt]
@@ -1276,7 +1276,7 @@
 \end{frame}
 
 % ======================================================================
-\section[Encrypting and signing]{Encrypting and signing}
+\section[Encrypting on a curve]{Encrypting on a curve}
 % ======================================================================
 
 \begin{frame}{ElGamal on a curve}
@@ -1379,144 +1379,6 @@
   \say{Kod sprawdzony, wynik jak na slajdzie z przykładem.}
 \end{frame}
 
-\begin{frame}{ECDSA: signing with a curve}
-  \begin{center}\small private \priv{$d$}, \; public \pub{$Q = d\,G$}, \; $n$ = the order of $G$\end{center}
-  \vfill
-  \begin{center}
-    \begin{tikzpicture}
-      \node[hw, text width=10.2cm, align=left, inner sep=10pt] (s) {
-        \textbf{sign} \; a message $m$:\\[6pt]
-        \quad a random \priv{$k$}, \qquad $r$ = the $x$-coordinate of $\priv{k}\,G \bmod n$\\[6pt]
-        \quad $s = \priv{k}^{-1}\,(\mathrm{hash}(m) + r\,\priv{d}) \bmod n$ \qquad signature \ctx{$(r, s)$}};
-      \node[hw, text width=10.2cm, align=left, inner sep=10pt, below=0.3cm of s] (v) {
-        \textbf{verify}: \; with \pub{$Q$} only, checks that $r$ matches};
-      \node[text=sBrown, font=\fontsize{30}{32}\selectfont] at ([xshift=1.0cm]s.east) {\faSignature};
-      \node[text=sViolet, font=\fontsize{26}{28}\selectfont] at ([xshift=1.0cm]v.east) {\faCheckCircle};
-    \end{tikzpicture}
-  \end{center}
-  \vfill
-  \bigdef{\textbf{ECDSA}: the elliptic-curve digital signature algorithm.}
-  \say{ECDSA to wersja podpisu DSA na krzywej, a DSA pochodzi od podpisu ElGamala. Wzoru weryfikacji nie rozpisujemy, jest gotowy w zadaniu.}
-\end{frame}
-
-% a games console, centred at (#1)
-\newcommand{\console}[1]{%
-  \begin{scope}[shift={(#1)}]
-    \fill[nInk, rounded corners=6pt] (-1.6,-0.55) rectangle (1.6,0.55);
-    \fill[nLine, rounded corners=2pt] (-1.2,0.12) rectangle (0.6,0.22);
-    \fill[aExec] (1.2,0.17) circle (0.06);
-    \draw[white!40!nInk, thick] (-1.45,-0.3) -- (1.45,-0.3);
-    \node[text=white, font=\scriptsize\bfseries] at (-0.3,-0.12) {CONSOLE};
-    \node[text=nInk, font=\Large] at (0,-1.1) {\faGamepad};
-  \end{scope}}
-% a signed file: \signedfile{x,y}{name}{r}{s}{style of r}
-\newcommand{\signedfile}[5]{%
-  \node[hw, text width=4.9cm, align=left, font=\scriptsize] at (#1) {
-    \textbf{\faFile*\ #2}\\[3pt]
-    \ttfamily r = {#5 #3}\\ s = #4};}
-
-\begin{frame}{A famous case: the PS3}
-  \begin{center}\small A games console runs only programs signed with ECDSA by its maker.\end{center}
-  \vfill
-  % CHECKED: r1 = r2 = 0xa35b8338...c4eb in Task6/reuse.py
-  \begin{center}
-    \begin{tikzpicture}
-      \console{0,0}
-      \signedfile{5.6,0.85}{update 3.55}{a35b8338f3ace0c2\ldots c4eb}{ca379bba0dd209d5\ldots 9c51}{\color{aWrite}\bfseries}
-      \signedfile{5.6,-0.85}{system menu 3.55}{a35b8338f3ace0c2\ldots c4eb}{2ea3793df38a5265\ldots 1b7f}{\color{aWrite}\bfseries}
-      \draw[annot, aWrite] (9.2,1.0) -- (9.6,1.0) -- node[right, font=\scriptsize\bfseries, text=aWrite, align=left] {the same\\$r$} (9.6,-0.7) -- (9.2,-0.7);
-      \draw[data] (3.0,0.85) -- (1.7,0.25);
-      \draw[data] (3.0,-0.85) -- (1.7,-0.25);
-    \end{tikzpicture}
-  \end{center}
-  \vfill
-  \begin{center}\small 2010: researchers (fail0verflow) notice that every signature has the same $r$.\end{center}
-  \probbox{The same $r$ means the same $k$. Every time.}{}
-  \say{Prezentacja na kongresie 27C3 w grudniu 2010 roku. Producent konsoli zamiast losowej liczby k używał stałej. To zapowiedziany w wykładzie 4 przykład.}
-\end{frame}
-
-\samedot
-\begin{frame}{Two signatures, one k}
-  \vfill
-  \begin{center}
-    \large
-    \renewcommand{\arraystretch}{1.6}
-    \begin{tabular}{@{}r@{\;}l@{}}
-      $s_1 =$ & \tikz[baseline=(a.base)]\node[annot, inner sep=2pt] (a) {$\priv{k}^{-1}$}; $(h_1 + \tikz[baseline=(b.base)]\node[annot, inner sep=2pt] (b) {$r\,\priv{d}$};)$ \\
-      $s_2 =$ & \tikz[baseline=(a.base)]\node[annot, inner sep=2pt] (a) {$\priv{k}^{-1}$}; $(h_2 + \tikz[baseline=(b.base)]\node[annot, inner sep=2pt] (b) {$r\,\priv{d}$};)$ \qquad \normalsize$(\bmod n)$
-    \end{tabular}
-  \end{center}
-  \vfill
-  \begin{center}
-    \renewcommand{\arraystretch}{1.5}
-    \begin{tabular}{@{}l@{\quad}l@{}}
-      \textbf{subtract}: & $s_1 - s_2 = k^{-1}\,(h_1 - h_2)$ \quad $\rightarrow$ \quad $\priv{k} = (h_1 - h_2)\,/\,(s_1 - s_2)$ \\
-      \textbf{then}: & $\priv{d} = (s_1\,k - h_1)\,/\,r$
-    \end{tabular}
-  \end{center}
-  \vfill
-  \keymsg{A repeated $k$ gives away the private key.}
-  \say{h1 i h2 to skróty dwóch wiadomości. Dwie niewiadome, k i d, i dwa równania: zwykła algebra, tylko modulo n.}
-\end{frame}
-
-\begin{frame}{Task 6: the same k twice}
-  \taskhead{Task 6}{The maker's public key and two signed updates with the same $r$, on the real curve P-256.}
-  \begin{columns}[c,onlytextwidth]
-    \column{0.52\textwidth}
-      \begin{enumerate}\setlength{\itemsep}{8pt}
-        \item Compute $k$.
-        \item Compute the private key $d$ and check it against the public key.
-        \item Sign your own game so that the console accepts it.
-      \end{enumerate}
-    \column{0.46\textwidth}
-      \centering
-      \begin{tikzpicture}[>=Stealth]
-        \foreach \y/\n in {0.75/update, -0.75/menu} {
-          \node[text=nInk, font=\fontsize{24}{26}\selectfont] (f) at (0,\y) {\faFile*};
-          \node[text=sBrown, font=\small, anchor=west] at (0.35,\y-0.25) {\faSignature};
-          \node[font=\tiny, text=gray, anchor=north] at (0,\y-0.42) {\n};
-        }
-        \draw[data] (0.9,0.6) -- (1.9,0.1);
-        \draw[data] (0.9,-0.6) -- (1.9,-0.1);
-        \node[circle, fill=sPink, text=white, font=\Large, minimum size=1.0cm] (k) at (2.5,0) {\faKey};
-        \node[font=\tiny\bfseries, text=sPinkText, anchor=north] at (2.5,-0.55) {$d$ leaks};
-        \draw[data] (3.1,0) -- (3.9,0);
-        \node[text=nInk, font=\fontsize{24}{26}\selectfont] at (4.4,0) {\faFile*};
-        \node[text=aWrite, font=\small] at (4.75,-0.25) {\faSignature};
-        \node[font=\tiny, text=gray, anchor=north] at (4.4,-0.42) {my game};
-      \end{tikzpicture}
-  \end{columns}
-  \say{Około 8 minut. p256.py jest gotowy: sign, verify, mul, h.}
-\end{frame}
-
-\samedot
-\begin{frame}{Task 6: what to do}
-  \codefile{Task6/reuse.py}{1-1,9-10,12-12,18-22}
-  \vfill
-  \begin{columns}[T,onlytextwidth]
-    \column{0.5\textwidth}
-      \taskhead{Task 6}{Open \texttt{reuse.py} from \ghlink{Task6}. Write the code in place of the \texttt{TODO} lines.}
-    \column{0.47\textwidth}
-      \stepbox{Ready in \texttt{p256.py}}{\texttt{G}, \texttt{n}, \texttt{mul}, \texttt{h} (SHA-256 as a number), \texttt{sign}, \texttt{verify}.
-        Inverse mod $n$: \texttt{pow(x, -1, n)}}
-  \end{columns}
-  \say{Odwrotność modulo n: pow(x, -1, n).}
-\end{frame}
-
-\samedot
-\begin{frame}{Solution: the same k twice}
-  % CHECKED: Task6/solution/reuse.py prints: private key found: True, my game accepted: True
-  \codefile{Task6/solution/reuse.py}{19-25}
-  \vspace{0.15cm}
-  \begin{center}
-    \terminal{private key found: \textcolor{aWrite}{\textbf{True}}}\qquad
-    \terminal{my game accepted: \textcolor{aWrite}{\textbf{True}}}
-  \end{center}
-  \vfill
-  \keymsg{Two signatures with one $k$, and anybody can sign as the maker.}
-  \say{Kod sprawdzony na P-256. Dziś biblioteki liczą k deterministycznie ze skrótu wiadomości i klucza prywatnego (RFC 6979), żeby tego błędu nie dało się popełnić.}
-\end{frame}
-
 \begin{frame}{ECC and ElGamal side by side}
   \vfill
   \begin{center}
@@ -1577,7 +1439,7 @@
       }
       % \v is in thousands per second: pgfmath cannot read numbers above 16383
       \foreach \name/\v/\shown/\ecc [count=\k from 0] in {X25519 key agreement/29.6/29\,600/1, ECDH on P-256/19.9/19\,900/1,
-          {Diffie-Hellman, 3072 bits}/1.39/1\,390/0, ECDSA P-256 sign/43.8/43\,800/1, RSA-3072 sign/0.566/566/0} {
+          {Diffie-Hellman, 3072 bits}/1.39/1\,390/0, {RSA-3072 decryption}/0.566/566/0} {
         \pgfmathsetmacro{\y}{-0.78*\k}
         \pgfmathsetmacro{\w}{log10(\v)+1}
         \node[font=\small, text=nInk, anchor=east] at (-0.05,\y) {\name};
@@ -1587,8 +1449,8 @@
       }
     \end{tikzpicture}
   \end{center}
-  \keymsg{At the same security, ECC is 20 to 80 times faster at private-key work.}
-  \say{openssl speed na laptopie z i5-8265U, OpenSSL 3.0.13. Uczciwie: weryfikacja RSA jest szybka (27 100 na sekundę), szybsza niż ECDSA (14 900), bo RSA używa małego e.}
+  \keymsg{At the same security, ECC key agreement is 14 to 50 times faster than DH or RSA.}
+  \say{openssl speed na laptopie z i5-8265U, OpenSSL 3.0.13. RSA-3072: operacja kluczem prywatnym, czyli odszyfrowanie (openssl mierzy ją pod nazwą rsa3072). Szyfrowanie RSA kluczem publicznym jest dużo szybsze, bo RSA używa małego e.}
 \end{frame}
 
 \begin{frame}{Where ECC lives}
@@ -1596,10 +1458,10 @@
   \begin{center}
     \begin{tikzpicture}
       \foreach \ic/\name/\sub [count=\k from 0] in {
-          \faLock/HTTPS/{TLS 1.3 key agreement,\\mostly X25519;\\ECDSA certificates},
+          \faLock/HTTPS/{TLS 1.3 key agreement,\\mostly X25519},
           \faIcon{mobile-alt}/phones/{short keys and fast\\operations save battery},
-          \faBitcoin/cryptocurrency/{Bitcoin signs transactions\\on the curve secp256k1},
-          \faCommentDots/messengers/{Signal: X25519 for keys,\\XEdDSA for signatures},
+          \faBitcoin/cryptocurrency/{Bitcoin keys live\\on the curve secp256k1},
+          \faCommentDots/messengers/{Signal: X25519\\to agree on keys},
           \faCreditCard/smart cards/{small chips\\with little memory},
           \faMicrochip/IoT/{sensors and\\small devices}} {
         \pgfmathsetmacro{\x}{4.75*mod(\k,3)}
@@ -1635,11 +1497,11 @@
   \vfill
   \begin{tikzpicture}
     \foreach \t [count=\k] in {
-        {ECC gives the same tools as DH, ElGamal and DSA with keys about \textbf{12 times shorter}.},
+        {ECC gives the same tools as DH and ElGamal with keys about \textbf{12 times shorter}.},
         {A curve mod $p$ is a set of points; we \textbf{add} them with lines and simple formulas.},
         {$kG$ is fast by \textbf{double and add}; finding $k$ is the \textbf{ECDLP}; $G$ needs a large prime order.},
         {\textbf{ECDH} (X25519) agrees on a point; a \textbf{KDF} such as HKDF turns it into a key.},
-        {ElGamal and \textbf{ECDSA} work on curves too; a \textbf{repeated $k$} gives everything away.}} {
+        {ElGamal works on curves too; a \textbf{repeated $k$} gives away the message.}} {
       \node[hw, text width=12.6cm, align=left, minimum height=0.95cm, anchor=west, font=\small] at (0.8,{-1.1*\k}) {\t};
       \node[circle, fill=AccentOrange, text=white, font=\bfseries, minimum size=0.7cm] at (0.4,{-1.1*\k}) {\k};
     }

@@ -290,28 +290,24 @@
 
         \item[\textcolor{DeepBlue}{\faSearch}] \textbf{3. Why is it safe?} \\
         \textcolor{gray}{\small The discrete logarithm}
-        \vspace{0.3cm}
-
-        \item[\textcolor{DeepBlue}{\faKey}] \textbf{4. A key, not a cipher} \\
-        \textcolor{gray}{\small Where DH is used}
       \end{itemize}
     \column{0.48\textwidth}
       \large
       \begin{itemize}
+        \item[\textcolor{DeepBlue}{\faKey}] \textbf{4. A key, not a cipher} \\
+        \textcolor{gray}{\small Where DH is used}
+        \vspace{0.3cm}
+
         \item[\textcolor{DeepBlue}{\faUserSecret}] \textbf{5. The man in the middle} \\
         \textcolor{gray}{\small When nobody checks who is who}
         \vspace{0.3cm}
 
         \item[\textcolor{DeepBlue}{\faEnvelope}] \textbf{6. ElGamal encryption} \\
         \textcolor{gray}{\small Diffie-Hellman with a message}
-        \vspace{0.3cm}
-
-        \item[\textcolor{DeepBlue}{\faBalanceScale}] \textbf{7. Signatures and RSA} \\
-        \textcolor{gray}{\small ElGamal side by side with RSA}
       \end{itemize}
   \end{columns}
   \vfill
-  \say{Pierwsza połowa to wymiana klucza, druga to szyfr i podpis zbudowane na tym samym pomyśle.}
+  \say{Pierwsza połowa to wymiana klucza, druga to szyfr zbudowany na tym samym pomyśle.}
 \end{frame}
 
 \begin{frame}{Today you will need}
@@ -330,7 +326,7 @@
   \end{center}
   \vfill
   \begin{center}
-    \small The tasks: \ghlink{}\ \texttt{Lecture4 / Task2 \dots\ Task7}
+    \small The tasks: \ghlink{}\ \texttt{Lecture4 / Task2 \dots\ Task6}
   \end{center}
   \vfill
   \say{Każde zadanie jest samodzielne. Zadanie 1 robimy na kartce, małymi liczbami.}
@@ -1521,7 +1517,7 @@ def change_message(self, data):
       \node[pub, font=\Large, minimum width=2.2cm, minimum height=1.3cm] at (0,0) {$B$};
       \seal{0.95}{-0.55}{sTeal}{Bartek}
       \node[text=aExec, font=\Large] at (0,-1.4) {\faCheck};
-      \node[capt] at (0,-1.95) {signed by Bartek};
+      \node[capt] at (0,-1.95) {sealed by Bartek};
       \node[pub, font=\Large, minimum width=2.2cm, minimum height=1.3cm, text=sPinkText] at (5,0) {$M$};
       \node[circle, draw=nLight, very thick, dashed, minimum size=1.0cm] at (5.95,-0.55) {};
       \node[text=aWrite, font=\Large] at (5,-1.4) {\faTimes};
@@ -1530,12 +1526,13 @@ def change_message(self, data):
   \end{center}
   \vfill
   \begin{center}
-    Bartek \textbf{signs} his $B$ with his private key.\\
-    Ania checks the signature with Bartek's public key.\\[6pt]
-    Mallory can replace $B$, but she \textbf{cannot sign} her $M$ as Bartek.
+    Bartek adds to his $B$ a \textbf{seal} that only his private key can make.\\
+    Ania checks the seal with Bartek's public key.\\[6pt]
+    Mallory can replace $B$, but she \textbf{cannot seal} her $M$ as Bartek.\\[4pt]
+    \small\textcolor{gray}{Such a seal is a digital signature: a topic of its own, not covered here.}
   \end{center}
   \vfill
-  \say{Recall z wykładu 3: podpis robi się kluczem prywatnym, sprawdza publicznym. Mallory nie ma klucza prywatnego Bartka.}
+  \say{Tylko idea: pieczęć robi się kluczem prywatnym, sprawdza publicznym, a Mallory nie ma klucza prywatnego Bartka. Jak dokładnie działają podpisy cyfrowe, to osobny temat, którego tu nie omawiamy.}
 \end{frame}
 
 \samedot
@@ -1551,11 +1548,11 @@ def change_message(self, data):
         \node[font=\scriptsize, text=nInk, anchor=west] at (0.4,1.65) {public key: \textbf{Bartek's $y$}};
         \node[circle, draw=AccentOrange, very thick, fill=AccentOrange!15, text=AccentOrange, minimum size=1.2cm,
           font=\tiny\bfseries, align=center] at (3.6,0.85) {\faCertificate\\trusted};
-        \node[font=\tiny, text=gray, anchor=west] at (0.4,0.6) {signed by a trusted party};
+        \node[font=\tiny, text=gray, anchor=west] at (0.4,0.6) {sealed by a trusted party};
       \end{tikzpicture}
       \end{center}
     \column{0.55\textwidth}
-      A \textbf{certificate}: Bartek's public key, signed by a party that Ania already trusts.
+      A \textbf{certificate}: Bartek's public key, sealed by a party that Ania already trusts.
       \vspace{0.4cm}
 
       \textcolor{DeepBlue}{\faGlobe}\ Browsers come with a list of trusted parties.
@@ -1571,7 +1568,7 @@ def change_message(self, data):
   \begin{center}
     \begin{tikzpicture}
       \foreach \y/\n/\ic/\a/\b in {1.3/1/\faHandshake/Ephemeral Diffie-Hellman/a fresh shared key,
-                                0/2/\faStamp/The server's signature/proves who sent the server's value,
+                                0/2/\faStamp/The server's seal/proves who sent the server's value,
                                 -1.3/3/\faCertificate/The certificate/proves whose public key that is} {
         \node[hw, minimum width=5.6cm, minimum height=1.05cm, anchor=west, align=left] at (0,\y) {};
         \node[anchor=west] at (0.15,\y) {\bigbadge{\n}};
@@ -1585,7 +1582,7 @@ def change_message(self, data):
     \end{tikzpicture}
   \end{center}
   \vfill
-  \say{To dokładnie ten przepis: wymiana daje tajność, podpis i certyfikat dają pewność, z kim rozmawiamy.}
+  \say{To dokładnie ten przepis: wymiana daje tajność, pieczęć serwera i certyfikat dają pewność, z kim rozmawiamy.}
 \end{frame}
 
 % ======================================================================
@@ -1933,154 +1930,6 @@ print(number_to_text(second))
   \say{Keystream i nonce to pojęcia z wykładów o szyfrach strumieniowych: tam też powtórka jednorazowej wartości otwierała wiadomość.}
 \end{frame}
 
-% ======================================================================
-\section[Signatures and RSA]{Signatures and RSA}
-% ======================================================================
-
-\begin{frame}{The ElGamal signature}
-  \vfill
-  \begin{center}
-    \renewcommand{\arraystretch}{2.0}
-    \Large
-    \begin{tabular}{l}
-      1. pick a random $k$ with $\gcd(k, p - 1) = 1$ \\
-      2. $r = g^{k} \bmod p$ \\
-      3. $s = (m - \textcolor{sAmberText}{\mathbf{x}}\, r) \times k^{-1} \bmod (p - 1)$ \\
-    \end{tabular}
-  \end{center}
-  \vfill
-  \begin{center}
-    The signature is the pair\quad \tikz[baseline=(n.base)]\node[pub, font=\large] (n) {$(r, s)$};
-    \qquad\small\textcolor{sAmberText}{\faKey\ $x$ = the private key}
-  \end{center}
-  \vfill
-  \say{Podpisuje się kluczem prywatnym x. Liczymy modulo p - 1, a nie p, bo tak działają wykładniki. gcd to największy wspólny dzielnik; k musi być względnie pierwsze z p - 1, żeby miało odwrotność.}
-\end{frame}
-
-% CHECKED (python3): r = pow(5, 3, 23) = 10, s = (10 - 6 * 10) * pow(3, -1, 22) % 22 = 20,
-% pow(5, 10, 23) = 9, pow(8, 10, 23) * pow(10, 20, 23) % 23 = 9
-\samedot
-\begin{frame}{Verify}
-  \vfill
-  \begin{center}
-    \Large check:\quad $g^{m} \bmod p \;\;==\;\; y^{r} \times r^{s} \bmod p$
-  \end{center}
-  \vfill
-  \begin{center}
-    \small example: $p = 23,\ g = 5,\ x = 6,\ y = 8,\ m = 10,\ k = 3$\qquad gives\qquad $r = 10,\ s = 20$
-  \end{center}
-  \vfill
-  \begin{center}
-    \begin{tikzpicture}
-      \node[pub, font=\large, minimum width=4.0cm, minimum height=1.2cm] (l) at (0,0) {$5^{10} \bmod 23 = \mathbf{9}$};
-      \node[pub, font=\large, minimum width=5.2cm, minimum height=1.2cm] (r) at (7,0) {$8^{10} \times 10^{20} \bmod 23 = \mathbf{9}$};
-      \node[font=\Large\bfseries, text=aExec] at (3.25,0) {$=$};
-      \node[font=\large\bfseries, text=aExec, anchor=west] at (9.8,0) {\faCheck\ valid};
-    \end{tikzpicture}
-  \end{center}
-  \vfill
-  \keymsg{Signed with the private key x, checked with the public key y.}
-  \say{Liczby sprawdzone w Pythonie. Ciekawostka: dla k = 5 wychodzi s = 0, a takiego podpisu nie wolno użyć, dlatego w przykładzie k = 3.}
-\end{frame}
-
-\begin{frame}{Task 7: sign and verify}
-  \taskhead{Task 7}{Small numbers, as on the last slide.}
-  \begin{columns}[c,onlytextwidth]
-    \column{0.55\textwidth}
-      \footnotesize
-      \begin{enumerate}\setlength{\itemsep}{6pt}
-        \item Write \texttt{sign(m, k)}.
-        \item Write \texttt{verify(m, r, s)}.
-        \item Check the signature for $m = 10$, then for $m = 11$.
-      \end{enumerate}
-    \column{0.42\textwidth}
-      \begin{center}
-      \begin{tikzpicture}
-        \draw[nLine, thick, fill=white] (0,0) rectangle (2.6,3.0);
-        \foreach \y in {2.5,2.15,...,1.0} \draw[nLight, thick] (0.3,\y) -- (2.3,\y);
-        \node[font=\scriptsize\bfseries, text=nInk] at (1.3,2.75) {$m = 10$};
-        \node[circle, draw=sTeal, very thick, fill=sTeal!15, text=sTeal, minimum size=0.9cm, font=\small] at (1.9,0.5) {\faStamp};
-        \node[text=DeepBlue, font=\fontsize{30}{30}\selectfont] at (3.3,0.6) {\faSearch};
-      \end{tikzpicture}
-      \end{center}
-  \end{columns}
-  \say{Około 8 minut. pow(k, -1, p - 1) daje odwrotność k modulo p - 1.}
-\end{frame}
-
-\samedot
-\begin{frame}[fragile]{Task 7: what to do}
-  \begin{columns}[T,onlytextwidth]
-    \column{0.64\textwidth}
-\begin{lstlisting}[style=py, emph={pow}]
-p, g, x = 23, 5, 6
-y = pow(g, x, p)
-
-def sign(m, k):
-    # TODO 1: r = g^k mod p,  s = (m - x r) k^-1 mod (p - 1)
-    return None
-
-def verify(m, r, s):
-    # TODO 2: g^m mod p == y^r * r^s mod p
-    return None
-\end{lstlisting}
-    \column{0.33\textwidth}
-      \taskhead{Task 7}{Open \texttt{sign.py} from \ghlink{Task7}. Write the code in place of the \texttt{TODO} lines.}
-  \end{columns}
-  \say{Sprawdzenie gcd jest w komentarzu w pliku.}
-\end{frame}
-
-% CHECKED: Task7/solution/sign.py prints the three lines below
-\samedot
-\begin{frame}[fragile]{Solution: sign and verify}
-  \begin{columns}[T,onlytextwidth]
-    \column{0.62\textwidth}
-\begin{lstlisting}[style=py, emph={pow}]
-def sign(m, k):
-    r = pow(g, k, p)
-    s = (m - x * r) * pow(k, -1, p - 1) % (p - 1)
-    return r, s
-
-def verify(m, r, s):
-    return pow(g, m, p) == pow(y, r, p) * pow(r, s, p) % p
-\end{lstlisting}
-    \column{0.35\textwidth}
-      \terminal{signature (r, s): (10, 20)}\\[0.2cm]
-      \terminal{valid for m = 10: \textcolor{aExec}{\textbf{True}}}\\[0.2cm]
-      \terminal{valid for m = 11: \textcolor{aWrite}{\textbf{False}}}
-  \end{columns}
-  \vfill
-  \keymsg{A changed message no longer matches the signature.}
-  \say{Kod sprawdzony. Dla m = 11 lewa strona daje 22, prawa nadal 9.}
-\end{frame}
-
-\begin{frame}{Good to know: k in signatures}
-  \vfill
-  \begin{center}
-    \begin{tikzpicture}[>=Stealth]
-      \foreach \x/\m in {0/1, 3.2/2} {
-        \draw[nLine, thick, fill=white] (\x,0) rectangle ({\x+2.2},2.6);
-        \foreach \y in {2.1,1.8,...,1.0} \draw[nLight, thick] ({\x+0.25},\y) -- ({\x+1.95},\y);
-        \node[font=\scriptsize\bfseries, text=nInk] at ({\x+1.1},2.35) {message \m};
-        \node[circle, draw=sTeal, very thick, fill=sTeal!15, text=nInk, minimum size=0.85cm, font=\scriptsize\bfseries]
-          at ({\x+1.55},0.5) {$k$};
-      }
-      \draw[annot] (1.05,0.0) rectangle (5.25,1.0);
-      \node[font=\scriptsize\bfseries, text=AccentOrange, anchor=north] at (3.15,-0.05) {the same $k$};
-      \draw[data] (5.5,1.3) -- (7.0,1.3);
-      \node[sec, font=\large] at (8.0,1.3) {\faKey\ $x$};
-      \node[font=\scriptsize, text=aWrite] at (8.0,0.6) {the private key falls out};
-    \end{tikzpicture}
-  \end{center}
-  \vfill
-  \begin{center}
-    A $k$ used for two signatures \textbf{gives away the private key $x$}.\\[4pt]
-    Today's DSA and ECDSA signatures come from the ElGamal signature\\
-    and have exactly the same weakness. A famous case comes in the next lecture.
-  \end{center}
-  \vfill
-  \say{Można pominąć. Z dwóch równań na s z tym samym k da się wyliczyć k, a potem x. DSA i ECDSA to standardowe algorytmy podpisu.}
-\end{frame}
-
 \begin{frame}{ElGamal and RSA side by side}
   \vfill
   \begin{center}
@@ -2092,7 +1941,6 @@ def verify(m, r, s):
       hard problem & discrete logarithm & factoring \\
       ciphertext & two numbers $(C_1, C_2)$ & one number \\
       randomness & built in (a new $k$) & needs padding (OAEP) \\
-      signatures & $(r, s)$, family of DSA & $S = M^{d} \bmod n$ \\
       \textcolor{aWrite}{\faExclamationTriangle}\ danger & \textcolor{aWrite}{a repeated $k$} & \textcolor{aWrite}{textbook use without padding} \\
       \bottomrule
     \end{tabular}
@@ -2106,17 +1954,16 @@ def verify(m, r, s):
   \vfill
   \begin{center}
     \begin{tikzpicture}
-      \foreach \y/\ic/\name/\txt in {0/\faEnvelope/OpenPGP and GnuPG/{ElGamal encryption keys; DSA + ElGamal was GnuPG's default for many years},
-                                     -1.3/\faStamp/{DSA, ECDSA}/signatures descended from the ElGamal signature} {
+      \foreach \y/\ic/\name/\txt in {0/\faEnvelope/OpenPGP and GnuPG/{ElGamal encryption keys, GnuPG's default for many years}} {
         \node[hw, minimum width=1.3cm, minimum height=1.0cm, font=\Large] at (0,\y) {\ic};
         \node[anchor=west, font=\normalsize\bfseries, text=nInk] at (1.0,\y) {\name};
         \node[anchor=west, font=\small, text=nInk, text width=7.6cm] at (5.0,\y) {\txt};
       }
       % a small curve for the third row
-      \node[hw, minimum width=1.3cm, minimum height=1.0cm] at (0,-2.6) {};
-      \draw[DeepBlue, thick, domain=-0.9:0.9, samples=40, smooth] plot ({0.3*\x*\x-0.25}, {0.4*\x-2.6});
-      \node[anchor=west, font=\normalsize\bfseries, text=nInk] at (1.0,-2.6) {elliptic curves};
-      \node[anchor=west, font=\small, text=nInk, text width=7.6cm] at (5.0,-2.6) {the same ideas with shorter keys: next lecture};
+      \node[hw, minimum width=1.3cm, minimum height=1.0cm] at (0,-1.3) {};
+      \draw[DeepBlue, thick, domain=-0.9:0.9, samples=40, smooth] plot ({0.3*\x*\x-0.25}, {0.4*\x-1.3});
+      \node[anchor=west, font=\normalsize\bfseries, text=nInk] at (1.0,-1.3) {elliptic curves};
+      \node[anchor=west, font=\small, text=nInk, text width=7.6cm] at (5.0,-1.3) {the same ideas with shorter keys: next lecture};
     \end{tikzpicture}
   \end{center}
   \vfill
@@ -2132,7 +1979,7 @@ def verify(m, r, s):
       \bigbadge{2} & It is safe while the discrete logarithm is hard: $p$ of at least 2048 bits. \\
       \bigbadge{3} & DH agrees on a key; ephemeral keys give forward secrecy; it needs authentication. \\
       \bigbadge{4} & ElGamal: $C_1 = g^{k}$, $C_2 = M\,y^{k}$; the two parts are a DH exchange and the message; never reuse $k$. \\
-      \bigbadge{5} & ElGamal signs too; compared with RSA it is randomised but its ciphertext is twice as long. \\
+      \bigbadge{5} & Compared with RSA, ElGamal is randomised, but its ciphertext is twice as long. \\
     \end{tabular}
   \end{center}
   \vfill
