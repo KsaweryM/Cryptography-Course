@@ -4,10 +4,11 @@
 
 Fill in the `TODO`s in `use_rc4.py`:
 
-1. Decrypt the ciphertext with the key `Kangaroo`.
-2. Change the last letter of the key to get `Kangarop`. Print the first 8 keystream bytes for both keys. How many bytes are the same?
+1. Make a keystream as long as the ciphertext, with the key `Kangaroo`. Print its length.
+2. Decrypt: XOR each ciphertext byte with its keystream byte, turn each result into a character (`chr`), print the message.
+3. Change the last letter of the key to get `Kangarop`. Print the first 8 keystream bytes for both keys. How many bytes are the same?
 
-Hint: `data.hex(" ")` prints bytes as hex with spaces.
+Hints: `len(ciphertext)` is the number of bytes. `data.hex(" ")` prints bytes as hex with spaces.
 
 ## Run
 

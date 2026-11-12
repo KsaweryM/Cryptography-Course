@@ -1078,36 +1078,45 @@ key = b"Kangaroo"
 ciphertext = bytes.fromhex("24F8BF0ADE0C16426D343A28"
                            "F5558755720EF505F96EB7C0972B61E7")
 
-# TODO 1: decrypt the ciphertext and print it
+# TODO 1: make a keystream as long as the ciphertext
+#         and print its length
 
-# TODO 2: compare keystream(key, 8) with
-#         keystream(b"Kangarop", 8). How many bytes match?
+# TODO 2: XOR each ciphertext byte with its keystream byte,
+#         turn each result into a character, print the message
+
+# TODO 3: print keystream(key, 8) and keystream(b"Kangarop", 8)
+#         in hex. How many bytes are the same?
 \end{lstlisting}
     \column{0.39\textwidth}
       \taskhead{Task 2}{Open \texttt{use\_rc4.py} from \ghlink{Task2}.}
       \stepbox{\faBox\ \texttt{rc4.py}: a black box}{RC4 as a ready function:\\ \texttt{keystream(key, n)} returns \texttt{n} bytes.}
-      \stepbox{Hint}{\texttt{data.hex(" ")} prints bytes as hex with spaces.}
+      \stepbox{Hints}{\texttt{len(ciphertext)} is the number of bytes.\\ \texttt{data.hex(" ")} prints bytes as hex with spaces.}
   \end{columns}
   \vfill
-  \keymsg{Decrypt first, then change one letter of the key.}
-  \say{Około 5 minut. Plik startowy jest na GitHubie. Do rc4.py można zajrzeć, ale na razie traktujemy go jak czarną skrzynkę. XOR bajt po bajcie znają już z Task 1.}
+  \keymsg{Make the keystream, decrypt, then change one letter of the key.}
+  \say{Około 5 minut. Plik startowy jest na GitHubie. Do rc4.py można zajrzeć, ale na razie traktujemy go jak czarną skrzynkę. XOR bajt po bajcie znają już z Task 1: TODO 2 to ta sama pętla, tylko pad zastępuje keystream z RC4.}
 \end{frame}
 
 \samedot
 \begin{frame}[fragile]{Solution: use RC4}
   \begin{columns}[T,onlytextwidth]
     \column{0.58\textwidth}
-% CHECKED: Task2/solution/use_rc4.py, the three output lines below
+% CHECKED: Task2/solution/use_rc4.py, the four output lines below
 \begin{lstlisting}[style=py]
 ks = keystream(key, len(ciphertext))
-plaintext = bytes(c ^ k for c, k in zip(ciphertext, ks))
+print(len(ks))
+
+plaintext = ""
+for i in range(len(ciphertext)):
+    plaintext += chr(ciphertext[i] ^ ks[i])
 print(plaintext)
 
-print(keystream(b"Kangaroo", 8).hex(" "))
+print(keystream(key, 8).hex(" "))
 print(keystream(b"Kangarop", 8).hex(" "))
 \end{lstlisting}
     \column{0.39\textwidth}
-      \stepbox{The output}{\texttt{\scriptsize b'Meet me at the library at 5.'}\\[2pt]
+      \stepbox{The output}{\texttt{\scriptsize 28}\\[2pt]
+        \texttt{\scriptsize Meet me at the library at 5.}\\[2pt]
         \texttt{\scriptsize 69 9d da 7e fe 61 73 62}\\
         \texttt{\scriptsize 97 c5 8c ab f1 d1 2e 8d}}
       \stepbox{The same bytes: 0}{One letter of the key changed the whole keystream.}
