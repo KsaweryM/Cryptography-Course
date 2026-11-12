@@ -40,15 +40,17 @@ def block(key, counter, nonce, rounds=20):
     start = initial_state(key, counter, nonce)
     s = start[:]
     run_rounds(s, rounds)
-    s = [add32(x, y) for x, y in zip(s, start)]
+    for i in range(16):
+        s[i] = add32(s[i], start[i])
     return struct.pack("<16I", *s)
 
 
 def chacha20(key, nonce, counter, data):
     out = bytearray()
-    for i in range(0, len(data), 64):
-        ks = block(key, counter + i // 64, nonce)
-        out += bytes(x ^ y for x, y in zip(data[i:i + 64], ks))
+    for i in range(len(data)):
+        if i % 64 == 0:
+            ks = block(key, counter + i // 64, nonce)
+        out.append(data[i] ^ ks[i % 64])
     return bytes(out)
 
 

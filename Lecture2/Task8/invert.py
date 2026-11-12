@@ -45,5 +45,5 @@ for _ in range(10):
     inverse_quarter_round(s, 1, 5, 9, 13)
     inverse_quarter_round(s, 0, 4, 8, 12)
 
-print("constants:", " ".join(f"{w:08x}" for w in s[0:4]))
+print("constants:", f"{s[0]:08x} {s[1]:08x} {s[2]:08x} {s[3]:08x}")
 print("key:      ", struct.pack("<8I", *s[4:12]))

@@ -724,7 +724,7 @@
   \begin{columns}[T,onlytextwidth]
     \column{0.6\textwidth}
 \begin{lstlisting}[style=py, emph={chacha20,print}, basicstyle=\color{VSText}\ttfamily\fontsize{6.4}{7.4}\selectfont]
-from chacha20_ready import chacha20
+from chacha import chacha20
 
 key = bytes.fromhex("c0ffee00" * 8)              # 32 bytes
 nonce = bytes.fromhex("0000004a0000000000000007")   # 12 bytes
@@ -733,10 +733,11 @@ ciphertext = bytes.fromhex(
     "3f02eea05b49125427ad01f9709e3275ef98d8"
 )
 
-# TODO: decrypt the ciphertext with
-#       chacha20(key, nonce, counter, data).
-#       The message was encrypted starting with counter 1.
-#       Print the plaintext as text: plaintext.decode()
+# TODO 1: decrypt the ciphertext with
+#         chacha20(key, nonce, counter, data).
+#         The message was encrypted starting with counter 1.
+
+# TODO 2: print the plaintext as text: plaintext.decode()
 \end{lstlisting}
     \column{0.39\textwidth}
       \taskhead{Task 1}{Open \texttt{use\_chacha.py} from \ghlink{Task1}.}
@@ -746,7 +747,7 @@ ciphertext = bytes.fromhex(
         \item Print the result as text.
       \end{enumerate}
   \end{columns}
-  \say{chacha20\_ready.py jest w folderze zadania, nie trzeba go czytać. Szyfrowanie i odszyfrowanie to ta sama funkcja.}
+  \say{chacha.py jest w folderze zadania, nie trzeba go czytać. Szyfrowanie i odszyfrowanie to ta sama funkcja.}
 \end{frame}
 
 \samedot
@@ -803,9 +804,11 @@ print("whole film:", everything[700 * 64:701 * 64].decode().strip())
 print(f"  took {1000 * (time.perf_counter() - start):.1f} ms")
 
 start = time.perf_counter()
-# TODO: decrypt ONLY block 700
-#       (bytes 700*64 to 701*64 of the film).
-#       Which counter do you need?
+# TODO 1: cut block 700 out of the film
+#         (bytes 700*64 to 701*64 of the film).
+
+# TODO 2: decrypt ONLY that block.
+#         Which counter do you need?
 one_block = b""
 \end{lstlisting}
       {\scriptsize\textcolor{gray}{Shortened on the slide: the imports, the key, the nonce and the last two prints are in the file.}}
@@ -825,7 +828,8 @@ one_block = b""
 \begin{frame}[fragile]{Solution: jump to the middle}
 % CHECKED: Task2/solution/jump.py, author's laptop: 135 to 138 ms and 0.1 to 0.2 ms in three runs
 \begin{lstlisting}[style=py, emph={chacha20}]
-one_block = chacha20(key, nonce, 700, film[700 * 64:701 * 64])
+piece = film[700 * 64:701 * 64]
+one_block = chacha20(key, nonce, 700, piece)
 \end{lstlisting}
   \vfill
   \begin{center}
@@ -1080,12 +1084,12 @@ MASK = 0xFFFFFFFF   # 32 ones: keeps only the lowest 32 bits
 
 
 def add32(a, b):
-    # TODO: add a and b and keep only 32 bits
+    # TODO 1: add a and b and keep only 32 bits
     pass
 
 
 def rotl32(x, n):
-    # TODO: rotate the 32-bit word x left by n bits
+    # TODO 2: rotate the 32-bit word x left by n bits
     pass
 \end{lstlisting}
       {\scriptsize\textcolor{gray}{Shortened on the slide: the six tests and longer comments are in the file.}}
@@ -1709,7 +1713,7 @@ def chacha20_block(key, counter, nonce):
   \begin{columns}[T,onlytextwidth]
     \column{0.64\textwidth}
 % CHECKED: Task6/solution/block.py prints OK; the slide shows 2 of the 8 calls of quarter_round
-\begin{lstlisting}[style=py, emph={quarter_round,add32,list,zip,range}, basicstyle=\color{VSText}\ttfamily\fontsize{6.4}{7.4}\selectfont]
+\begin{lstlisting}[style=py, emph={quarter_round,add32,list,range}, basicstyle=\color{VSText}\ttfamily\fontsize{6.4}{7.4}\selectfont]
 start = CONSTANTS + list(struct.unpack("<8I", key)) \
         + [counter] + list(struct.unpack("<3I", nonce))
 s = start[:]
@@ -1718,7 +1722,8 @@ for _ in range(10):
     ...                               # 3 more columns
     quarter_round(s, 0, 5, 10, 15)   # diagonal round
     ...                               # 3 more diagonals
-s = [add32(x, y) for x, y in zip(s, start)]
+for i in range(16):
+    s[i] = add32(s[i], start[i])
 return struct.pack("<16I", *s)
 \end{lstlisting}
     \column{0.33\textwidth}
@@ -1762,27 +1767,28 @@ def initial_state(key, counter, nonce):
             + list(struct.unpack("<3I", nonce)))
 \end{lstlisting}
     \column{0.48\textwidth}
-\begin{lstlisting}[style=py, emph={add32,initial_state,run_rounds,zip,range,len,bytes,block,bytearray}, basicstyle=\color{VSText}\ttfamily\fontsize{5.6}{6.6}\selectfont]
+\begin{lstlisting}[style=py, emph={add32,initial_state,run_rounds,range,len,bytes,block,bytearray}, basicstyle=\color{VSText}\ttfamily\fontsize{5.6}{6.6}\selectfont]
 def block(key, counter, nonce, rounds=20):
     start = initial_state(key, counter, nonce)
     s = start[:]
     run_rounds(s, rounds)
-    s = [add32(x, y) for x, y in zip(s, start)]
+    for i in range(16):
+        s[i] = add32(s[i], start[i])
     return struct.pack("<16I", *s)
-
 
 def chacha20(key, nonce, counter, data):
     out = bytearray()
-    for i in range(0, len(data), 64):
-        ks = block(key, counter + i // 64, nonce)
-        out += bytes(x ^ y for x, y in zip(data[i:i + 64], ks))
+    for i in range(len(data)):
+        if i % 64 == 0:
+            ks = block(key, counter + i // 64, nonce)
+        out.append(data[i] ^ ks[i % 64])
     return bytes(out)
 \end{lstlisting}
       {\scriptsize\textcolor{gray}{Not shown: \texttt{add32}, \texttt{rotl32} and \texttt{run\_rounds} (the column and diagonal rounds).}}
   \end{columns}
   \vfill
-  \keymsg{This is \texttt{chacha20\_ready.py} from Task 1.}
-  \say{Każdą linijkę już widzieliśmy. To jest prawdziwy kod z chacha20\_ready.py z zadania 1, skrócony tylko o add32, rotl32 i run\_rounds; można go teraz otworzyć.}
+  \keymsg{This is \texttt{chacha.py} from Task 1.}
+  \say{Każdą linijkę już widzieliśmy. To jest prawdziwy kod z chacha.py z zadania 1, skrócony tylko o add32, rotl32 i run\_rounds; można go teraz otworzyć.}
 \end{frame}
 
 % ======================================================================
@@ -1851,19 +1857,21 @@ for rounds in [1, 2, 3, 4, 5, 6, 8, 12, 20]:
 \end{lstlisting}
     \column{0.31\textwidth}
       \taskhead{Task 7}{Open \texttt{avalanche.py} from \ghlink{Task7}.}
-      \stepbox{Hints}{\texttt{int.from\_bytes(out1, "big")} turns 64 bytes into one number.\\[2pt]
-        \texttt{bin(x).count("1")} counts the 1 bits of \texttt{x}.}
+      \stepbox{Hints}{\texttt{out1[i] \textasciicircum{} out2[i]} has a 1 where the two bytes differ.\\[2pt]
+        \texttt{(x >{}> k) \& 1} is bit \texttt{k} of \texttt{x}.}
   \end{columns}
-  \say{chacha.py w folderze ma parametr rounds, więc można wybrać dowolną liczbę rund. Program liczy krócej niż sekundę.}
+  \say{chacha.py w folderze ma parametr rounds, więc można wybrać dowolną liczbę rund. Program liczy krócej niż sekundę. (x >{}> k) \& 1: przesuwamy x o k bitów w prawo i bierzemy najmłodszy bit, czyli bit numer k.}
 \end{frame}
 
 \samedot
 \begin{frame}[fragile]{Solution: watch one bit spread}
 % CHECKED: Task7/solution/avalanche.py, random.seed(1), 200 trials:
 %          1: 26.7, 2: 169.7, 3: 256.3, 4: 255.2, 5: 253.6, 6: 256.1, 8: 255.3, 12: 256.1, 20: 256.3
-\begin{lstlisting}[style=py, emph={bin,int}]
-diff = int.from_bytes(out1, "big") ^ int.from_bytes(out2, "big")
-total += bin(diff).count("1")
+\begin{lstlisting}[style=py, emph={range}]
+for i in range(64):
+    x = out1[i] ^ out2[i]
+    for k in range(8):
+        total += (x >> k) & 1
 \end{lstlisting}
   \vfill
   \begin{center}

@@ -9,7 +9,10 @@ def add(P, Q):
         return Q
     if Q is O:
         return P
-    (x1, y1), (x2, y2) = P, Q
+    x1 = P[0]
+    y1 = P[1]
+    x2 = Q[0]
+    y2 = Q[1]
     if x1 == x2 and (y1 + y2) % p == 0:
         return O
     # TODO 1: the slope s

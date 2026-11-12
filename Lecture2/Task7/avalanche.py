@@ -15,6 +15,6 @@ for rounds in [1, 2, 3, 4, 5, 6, 8, 12, 20]:
         out2 = block(key, counter ^ 1, nonce, rounds)   # the same, one bit of the counter changed
         # TODO: count how many of the 512 bits differ between out1 and out2
         #       and add that number to total
-        #       hint: int.from_bytes(out1, "big") turns 64 bytes into one number,
-        #             bin(x).count("1") counts the 1 bits of x
+        #       hint: out1[i] ^ out2[i] has a 1 where the two bytes differ,
+        #             (x >> k) & 1 is bit k of x (k = 0 to 7)
     print(f"{rounds:2} rounds: {total / TRIALS:6.1f} of 512 bits changed")

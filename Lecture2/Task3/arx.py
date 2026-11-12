@@ -2,13 +2,13 @@ MASK = 0xFFFFFFFF   # 32 ones: keeps only the lowest 32 bits
 
 
 def add32(a, b):
-    # TODO: add a and b and keep only 32 bits (addition mod 2**32)
+    # TODO 1: add a and b and keep only 32 bits (addition mod 2**32)
     pass
 
 
 def rotl32(x, n):
-    # TODO: rotate the 32-bit word x left by n bits
-    #       the bits that fall out on the left come back on the right
+    # TODO 2: rotate the 32-bit word x left by n bits
+    #         the bits that fall out on the left come back on the right
     pass
 
 

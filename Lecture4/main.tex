@@ -861,7 +861,8 @@ G = 2
 # TODO 1: a and b: secrets.randbits(256)
 # TODO 2: A = G^a mod P,  B = G^b mod P
 # TODO 3: B^a mod P and A^b mod P
-# TODO 4: print whether they are equal
+# TODO 4: print whether they are equal,
+#         and the first 20 digits: str(x)[:20]
 \end{lstlisting}
     \column{0.35\textwidth}
       \taskhead{Task 2}{Open \texttt{dh.py} from \ghlink{Task2}. Write the code in place of the \texttt{TODO} lines.}
@@ -1009,7 +1010,8 @@ def find_exponent(p, g, A):
   \begin{columns}[T,onlytextwidth]
     \column{0.4\textwidth}
 \begin{lstlisting}[style=py]
-a, value = 1, g
+a = 1
+value = g
 while value != A:
     value = value * g % p
     a += 1
@@ -1041,7 +1043,7 @@ return a
   \say{Kod sprawdzony na moim laptopie. Czasy zależą też od tego, jak duże było losowe a, dlatego wzrost nie jest równy; średnio około 16 razy na 4 bity.}
 \end{frame}
 
-\begin{frame}{2048 bits}
+\begin{frame}{How long for 2048 bits?}
   \vfill
   \begin{center}
     \begin{tikzpicture}
@@ -1275,7 +1277,7 @@ return a
 
 % CHECKED: openssl speed ffdh2048 ffdh3072 on the author's laptop (i5-8265U)
 \samedot
-\begin{frame}{How fast?}
+\begin{frame}{How fast is Diffie-Hellman?}
   \vfill
   \begin{center}
     \begin{tikzpicture}
@@ -1913,7 +1915,7 @@ print(number_to_text(second))
   \say{Kod sprawdzony. Klucz prywatny Bartka nie był potrzebny ani przez chwilę.}
 \end{frame}
 
-\begin{frame}{The rule}
+\begin{frame}{The rule: a new k for every message}
   \vfill
   \begin{center}
     \begin{tikzpicture}

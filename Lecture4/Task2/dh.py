@@ -21,5 +21,6 @@ start = time.perf_counter()
 # TODO 2: A = G^a mod P (Ania sends it), B = G^b mod P (Bartek sends it)
 # TODO 3: Ania computes B^a mod P, Bartek computes A^b mod P
 # TODO 4: print whether both results are equal, and the first 20 digits of the secret
+#         (str(x)[:20] gives the first 20 digits of x)
 
 print(f"took {1000 * (time.perf_counter() - start):.1f} ms")

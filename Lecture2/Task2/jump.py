@@ -1,6 +1,6 @@
 import time
 
-from chacha20_ready import chacha20
+from chacha import chacha20
 
 key = bytes.fromhex("5eed" * 16)
 nonce = bytes.fromhex("000000000000000000000002")
@@ -13,9 +13,11 @@ print("whole film:", everything[700 * 64:701 * 64].decode().strip())
 print(f"  took {1000 * (time.perf_counter() - start):.1f} ms")
 
 start = time.perf_counter()
-# TODO: decrypt ONLY block 700
-#       (bytes 700*64 to 701*64 of the film).
-#       Which counter do you need?
+# TODO 1: cut block 700 out of the film
+#         (bytes 700*64 to 701*64 of the film).
+
+# TODO 2: decrypt ONLY that block.
+#         Which counter do you need?
 one_block = b""
 print("one block:  ", one_block.decode().strip())
 print(f"  took {1000 * (time.perf_counter() - start):.1f} ms")
