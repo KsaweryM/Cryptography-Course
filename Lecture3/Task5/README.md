@@ -1,19 +1,14 @@
-# Task 5: your own RSA
+# Task 5: does it always work?
 
-`my_rsa.py` gives two primes p and q and the public exponent e = 65537. Fill in the `TODO`s:
+`always.py` uses the small key n = 187, e = 7, d = 23. Fill in the `TODO`: encrypt and decrypt every P from 0 to 186
+and collect the values that do not come back.
 
-1. n = p · q
-2. phi = (p - 1)(q - 1)
-3. d, the inverse of e mod phi: in Python `pow(e, -1, phi)`
-4. C = message^e mod n: in Python `pow(message, e, n)`
-5. P = C^d mod n
-
-Print n, d, C and P. P must be the original message, 2026.
+Predict first: does it also work for P = 17, which divides n?
 
 ## Run
 
 ```
-python3 my_rsa.py
+python3 always.py
 ```
 
-Python 3.8 or newer (for `pow(e, -1, phi)`), no extra libraries.
+Python 3, no extra libraries.

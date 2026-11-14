@@ -192,6 +192,12 @@
 %   \ghlink{Task4} opens the folder of Task 4, \ghlink{} opens the folder of this lecture
 \newcommand{\ghbase}{https://github.com/KsaweryM/Cryptography-Course/tree/main/Lecture3}
 \newcommand{\ghlink}[1]{\href{\ghbase/#1}{\textcolor{DeepBlue}{\textbf{GitHub}}}}
+% a page of the simulator website, printed in full so that students can type it:
+%   \simlink{math/extended-euclid/} prints and links ksawerym.github.io/Cryptography-simulators/math/extended-euclid/
+\newcommand{\simbase}{ksawerym.github.io/Cryptography-simulators}
+\newcommand{\simlink}[1]{\href{https://\simbase/#1}{\textcolor{DeepBlue}{\texttt{\simbase/#1}}}}
+% "For the curious" line under a frame: \curious{math/extended-euclid/}
+\newcommand{\curious}[1]{{\footnotesize\textcolor{gray}{\faSearch\ For the curious:}\ \simlink{#1}}}
 
 % speaker notes (Polish): printed only in the notes PDF (make notes)
 \setbeamertemplate{note page}[default]
@@ -272,7 +278,7 @@
       \large
       \begin{itemize}
         \item[\textcolor{DeepBlue}{\faCalculator}] \textbf{4. Arithmetic modulo n} \\
-        \textcolor{gray}{\small Euclid and the inverse}
+        \textcolor{gray}{\small Powers and the inverse}
         \vspace{0.3cm}
 
         \item[\textcolor{DeepBlue}{\faCogs}] \textbf{5. RSA: keys and encryption} \\
@@ -292,7 +298,7 @@
   \begin{center}
     \begin{tikzpicture}
       \foreach \x/\ic/\t/\s in {0/\faPython/Python 3/version 3.8 or newer, 4.2/\faEdit/an editor/any one you like,
-                               8.4/\faPencil*/paper and a pen/Task 1 and Task 4} {
+                               8.4/\faPencil*/paper and a pen/Task 1} {
         \node[hw, minimum width=3.4cm, minimum height=2.5cm] (n) at (\x,0) {};
         \node[text=nInk] at (\x,0.35) {\fontsize{34}{36}\selectfont\ic};
         \node[font=\large\bfseries, text=nInk] at (\x,-0.65) {\t};
@@ -301,7 +307,7 @@
     \end{tikzpicture}
   \end{center}
   \vfill
-  \begin{center}\small Starter files for the tasks: \ghlink{}, folders Task2 to Task7. Nothing to install.\end{center}
+  \begin{center}\small Starter files for the tasks: \ghlink{}, folders Task2 to Task6. Nothing to install.\end{center}
   \vfill
   \say{Python 3.8 albo nowszy, bo od tej wersji pow liczy odwrotność modularną. Każde zadanie jest samodzielne.}
 \end{frame}
@@ -1079,30 +1085,8 @@ while f * f <= n:
   \say{NWD po angielsku to gcd. Względnie pierwsze znaczy: nie mają wspólnego dzielnika poza 1.}
 \end{frame}
 
-% Euclid's table for gcd(160, 7); #1 = row to mark (0 = none)
-\newcommand{\eucltable}[1]{%
-  \renewcommand{\arraystretch}{1.3}
-  \begin{tabular}{cccc}
-    \toprule
-    a & b & a = q $\times$ b + r & r \\
-    \midrule
-    \ifnum#1=1\rowcolor{AccentOrange!15}\fi 160 & 7 & 160 = 22 $\times$ 7 + 6 & 6 \\
-    \ifnum#1=2\rowcolor{AccentOrange!15}\fi 7 & 6 & 7 = 1 $\times$ 6 + 1 & 1 \\
-    6 & 1 & 6 = 6 $\times$ 1 + 0 & 0 \\
-    \bottomrule
-  \end{tabular}}
-
-\samedot
-\begin{frame}{Euclid's algorithm}
-  \begin{center}\small $\gcd(a, b) = \gcd(b,\ a \bmod b)$, until the remainder is 0:\end{center}
-  \vfill
-  \begin{center}\Large\eucltable{0}\end{center}
-  \vfill
-  \begin{center}The last non-zero remainder is the gcd:\quad $\gcd(160, 7) = \textbf{1}$\end{center}
-  \vfill
-  \say{Algorytm ma ponad 2000 lat. Każdy krok bardzo szybko zmniejsza liczby, dlatego działa także dla liczb po 600 cyfr.}
-\end{frame}
-
+% CHECKED: python3: pow(7, -1, 160) = 23; Euclid on two random 2048-bit numbers: 1131 to 1262 divisions
+%          (200 pairs, mean 1196)
 \begin{frame}{The modular inverse}
   \bigdef{The \textbf{inverse of e modulo m}: the number d with \ $e \times d \bmod m = 1$.\\ It exists only if gcd(e, m) = 1.}
   \vfill
@@ -1111,132 +1095,18 @@ while f * f <= n:
     {\large because \ $7 \times 23 = 161 = 160 + \tikz[baseline=(o.base)]\node[annot, inner sep=2pt] (o) {1};$}
   \end{center}
   \vfill
-  \keymsg{The inverse undoes a multiplication modulo m.}
-  \say{To odpowiednik dzielenia w świecie modulo. W Pythonie pow(7, -1, 160) daje 23.}
-\end{frame}
-
-\samedot
-\begin{frame}{Why not just try every d?}
-  \vfill
-  \begin{center}
-    \begin{tikzpicture}
-      \foreach \k in {1,...,8} \node[numcell, minimum width=0.8cm] at ({0.95*\k},0) {\k};
-      \node[font=\Large, text=nInk] at (9.0,0) {\dots};
-      \node[numcell, minimum width=0.8cm, draw=aExec, line width=1.6pt] at (10.2,0) {23};
-      \node[font=\scriptsize, text=aExec] at (10.2,-0.6) {\faCheck\ m = 160};
-    \end{tikzpicture}\\[0.6cm]
-    For m = 160 we can try d = 1, 2, 3, \dots\ and stop at 23.\\
-    In RSA, m has about \textbf{617 digits}. Trying every d would never end.\\[0.3cm]
-    \textbf{We need a shortcut.}
-  \end{center}
-  \vfill
-  \say{Skrót to ten sam rachunek co przed chwilą, tylko czytany od dołu.}
-\end{frame}
-
-% the three steps of the extended Euclid: \extstep{step}
-\newcommand{\extrow}[4]{\ifnum#1=#2\rowcolor{AccentOrange!15}\fi #3 & #4 \\}
-\newcommand{\extstep}[1]{%
-  \begin{columns}[c,onlytextwidth]
-    \column{0.38\textwidth}
-      \begin{center}\footnotesize\eucltable{\ifnum#1=1 2\else\ifnum#1=2 1\else 0\fi\fi}\end{center}
-    \column{0.6\textwidth}
-      \small\renewcommand{\arraystretch}{1.5}\setlength{\tabcolsep}{3pt}
-      \begin{tabular}{ll}
-        \extrow{#1}{1}{\bigbadge{1} take the row with remainder 1:}{$1 = 7 - 1 \times 6$}
-        \ifnum#1>1 \extrow{#1}{2}{\bigbadge{2} write 6 from the row above:}{$6 = 160 - 22 \times 7$}\fi
-        \ifnum#1>2 \extrow{#1}{3}{\bigbadge{3} put it in, collect the 7s:}{$1 = 7 - (160 - 22 \times 7)$}
-                   \extrow{#1}{3}{}{$1 = \mathbf{23} \times 7 - 1 \times 160$}\fi
-      \end{tabular}
-  \end{columns}}
-
-\begin{frame}{Extended Euclid, step 1}
-  \vfill\extstep{1}\vfill
-  \say{Zaczynamy od wiersza z resztą 1 i zapisujemy 1 jako różnicę.}
-\end{frame}
-\samedot
-\begin{frame}{Extended Euclid, step 2}
-  \vfill\extstep{2}\vfill
-  \say{Szóstkę bierzemy z wiersza wyżej, też jako różnicę.}
-\end{frame}
-\samedot
-\begin{frame}{Extended Euclid, step 3}
-  \vfill\extstep{3}\vfill
-  \begin{center}$23 \times 7 = 1 + 160$, so $23 \times 7 \bmod 160 = 1$: \ the inverse of 7 is \textbf{23}.\end{center}
-  \vfill
-  \keymsg{The inverse falls out of Euclid's table, read from the bottom.}
-  \say{Wstawiamy i zbieramy siódemki. Liczba przy 7 to odwrotność, a przy 160 nas nie obchodzi.}
-\end{frame}
-
-\begin{frame}{Task 4: an inverse by hand}
-  \taskhead{Task 4}{On paper: find the inverse of 23 modulo 120. About 8 minutes.}
-  \vfill
-  \begin{columns}[c,onlytextwidth]
-    \column{0.5\textwidth}
-      \begin{enumerate}
-        \item Euclid's table for gcd(120, 23). It takes 4 rows before the remainder 0.
-        \item Read it from the bottom, as on the last slides.
-        \item Check: \ $23 \times d \bmod 120$ must be 1.
-      \end{enumerate}
+  \begin{columns}[T,onlytextwidth]
     \column{0.48\textwidth}
-      \begin{center}
-        \renewcommand{\arraystretch}{1.35}
-        \begin{tabular}{ccc}
-          \toprule a & b & a = q $\times$ b + r \\ \midrule
-          120 & 23 & \textcolor{nLight}{\rule{2.6cm}{0.4pt}} \\
-          \textcolor{nLight}{\rule{0.6cm}{0.4pt}} & \textcolor{nLight}{\rule{0.6cm}{0.4pt}} & \textcolor{nLight}{\rule{2.6cm}{0.4pt}} \\
-          \textcolor{nLight}{\rule{0.6cm}{0.4pt}} & \textcolor{nLight}{\rule{0.6cm}{0.4pt}} & \textcolor{nLight}{\rule{2.6cm}{0.4pt}} \\
-          \textcolor{nLight}{\rule{0.6cm}{0.4pt}} & \textcolor{nLight}{\rule{0.6cm}{0.4pt}} & \textcolor{nLight}{\rule{2.6cm}{0.4pt}} \\
-          \bottomrule
-        \end{tabular}
-      \end{center}
+      \stepbox{How to find d}{Trying d = 1, 2, 3, \dots\ never ends for a 617-digit m.
+        The \textbf{extended Euclidean algorithm} needs only about 1200 divisions.}
+    \column{0.48\textwidth}
+      \stepbox{In Python}{\texttt{pow(e, -1, m)}\\ \texttt{pow(7, -1, 160)}\ gives 23}
   \end{columns}
   \vfill
-  \say{Około 8 minut. Jeśli wyjdzie liczba ujemna, dodać 120.}
-\end{frame}
-
-\samedot
-\begin{frame}{Solution: an inverse by hand}
-  \begin{columns}[c,onlytextwidth]
-    \column{0.4\textwidth}
-      \begin{center}
-        \small\renewcommand{\arraystretch}{1.25}
-        \begin{tabular}{ccc}
-          \toprule a & b & a = q $\times$ b + r \\ \midrule
-          120 & 23 & 120 = 5 $\times$ 23 + 5 \\
-          23 & 5 & 23 = 4 $\times$ 5 + 3 \\
-          5 & 3 & 5 = 1 $\times$ 3 + 2 \\
-          3 & 2 & 3 = 1 $\times$ 2 + 1 \\
-          2 & 1 & 2 = 2 $\times$ 1 + 0 \\
-          \bottomrule
-        \end{tabular}
-      \end{center}
-    \column{0.58\textwidth}
-      \small
-      $1 = 3 - 2 = 3 - (5 - 3) = 2 \times 3 - 5$\\[2pt]
-      $\phantom{1} = 2 \times (23 - 4 \times 5) - 5 = 2 \times 23 - 9 \times 5$\\[2pt]
-      $\phantom{1} = 2 \times 23 - 9 \times (120 - 5 \times 23) = \mathbf{47} \times 23 - 9 \times 120$\\[0.4cm]
-      \stepbox{d = 47}{$23 \times 47 = 1081 = 9 \times 120 + 1$}
-      \stepbox{In Python}{\texttt{pow(23, -1, 120)}\ gives 47}
-  \end{columns}
-  % CHECKED: python3: pow(23, -1, 120) = 47; 23 * 47 = 1081 = 9 * 120 + 1
-  \say{Sprawdzone: pow(23, -1, 120) daje 47. W kodzie zawsze używamy pow, ręcznie liczymy tylko po to, żeby wiedzieć, co się dzieje w środku.}
-\end{frame}
-
-\begin{frame}{Good to know: fast powers}
+  \curious{math/extended-euclid/}
   \vfill
-  \begin{center}
-    \begin{tikzpicture}[>=Stealth]
-      \foreach \e [count=\k from 0] in {1,2,4,8,16} {
-        \node[numcell, minimum width=1.3cm] (p\k) at ({2.3*\k},0) {$3^{\e}$};
-      }
-      \foreach \k [evaluate=\k as \n using int(\k+1)] in {0,...,3} \draw[flow] (p\k) -- node[above, font=\tiny, text=DeepBlue] {square} (p\n);
-    \end{tikzpicture}\\[0.5cm]
-    $3^{16} = ((((3^2)^2)^2)^2)$: \ \textbf{4 squarings}, not 15 multiplications.\\[0.2cm]
-    A 2048-bit exponent: about 2048 squarings, not $2^{2048}$ multiplications.\\[0.3cm]
-    This is why \texttt{pow(m, e, n)} is fast.
-  \end{center}
-  \vfill
-  \say{Można pominąć. To potęgowanie przez podnoszenie do kwadratu; pow robi to za nas.}
+  \keymsg{The inverse undoes a multiplication modulo m.}
+  \say{To odpowiednik dzielenia w świecie modulo. W RSA d będzie kluczem prywatnym. Algorytmu nie liczymy ręcznie: pow robi to za nas. Kogo ciekawi, jak to działa krok po kroku, ma link do symulatora.}
 \end{frame}
 
 % ======================================================================
@@ -1436,8 +1306,50 @@ while f * f <= n:
   \say{Sprawdzone pow(11, 23, 187) = 88.}
 \end{frame}
 
-\begin{frame}{Task 5: your own RSA}
-  \taskhead{Task 5}{Two primes with about 20 digits each are given, and e = 65537. About 8 minutes.}
+% the operations for one power, bit by bit: S = square, M = multiply; the exponent 23 = 10111 of the last slide
+% CHECKED: square-and-multiply does one squaring per bit and one multiplication per 1 bit; the Montgomery ladder
+%          does one squaring and one multiplication for every bit (fast-exponentiation simulator, self-test)
+\newcommand{\opS}[1]{\node[numcell, minimum width=0.55cm, minimum height=0.5cm, font=\ttfamily\scriptsize, fill=sTeal!15, draw=sTeal] at (#1) {S};}
+\newcommand{\opM}[1]{\node[numcell, minimum width=0.55cm, minimum height=0.5cm, font=\ttfamily\scriptsize, fill=AccentOrange!20, draw=AccentOrange] at (#1) {M};}
+\begin{frame}{Good to know: fast powers}
+  \begin{center}
+    \small $C^{d} \bmod n$ is never computed with d - 1 multiplications. For a 2048-bit d that is about $2^{2048}$ of them.
+  \end{center}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \node[font=\scriptsize\bfseries, text=nInk, anchor=east] at (-0.3,0) {bits of d = 23};
+      \foreach \b [count=\k from 0] in {1,0,1,1,1} {
+        \node[numcell, minimum width=1.5cm, minimum height=0.5cm, font=\ttfamily\small] at ({1.8*\k+0.6},0) {\b};
+      }
+      % square-and-multiply: S for every bit, M only for a 1 bit
+      \node[font=\scriptsize\bfseries, text=nInk, anchor=east] at (-0.3,-0.8) {square-and-multiply};
+      \foreach \b [count=\k from 0] in {1,0,1,1,1} {
+        \opS{{1.8*\k+0.3},-0.8}
+        \ifnum\b=1 \opM{{1.8*\k+0.9},-0.8}\fi
+      }
+      \node[font=\scriptsize, text=gray, anchor=west] at (9.0,-0.8) {\faClock\ time depends on the bits};
+      % Montgomery ladder: S and M for every bit
+      \node[font=\scriptsize\bfseries, text=nInk, anchor=east] at (-0.3,-1.5) {Montgomery ladder};
+      \foreach \k in {0,...,4} { \opS{{1.8*\k+0.3},-1.5} \opM{{1.8*\k+0.9},-1.5} }
+      \node[font=\scriptsize, text=aExec, anchor=west] at (9.0,-1.5) {\faCheck\ the same for every key};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{columns}[T,onlytextwidth]
+    \column{0.48\textwidth}
+      \stepbox{Square-and-multiply}{Square for every bit, multiply for every 1 bit. For 2048 bits: about 3000 operations.}
+    \column{0.48\textwidth}
+      \stepbox{Montgomery ladder}{Both operations for every bit. Eve cannot read the bits of d from the time it takes.}
+  \end{columns}
+  \vfill
+  {\footnotesize On elliptic curves the same idea is called \textbf{double-and-add} (Lecture 5).}\\[0.15cm]
+  \curious{math/fast-exponentiation/}
+  \say{Można pominąć. Dwa poprzednie slajdy to właśnie square-and-multiply. Python w pow robi to za nas. Pomiar czasu to atak bocznym kanałem: jeśli mnożenie jest tylko przy bitach 1, czas zdradza bity klucza prywatnego. Drabina Montgomery'ego robi to samo przy każdym bicie. Na krzywych eliptycznych zamiast potęgowania jest mnożenie punktu przez liczbę i ten sam pomysł nazywa się double-and-add.}
+\end{frame}
+
+\begin{frame}{Task 4: your own RSA}
+  \taskhead{Task 4}{Two primes with about 20 digits each are given, and e = 65537. About 8 minutes.}
   \vfill
   \begin{center}
     \begin{tikzpicture}
@@ -1458,7 +1370,7 @@ while f * f <= n:
 \end{frame}
 
 \samedot
-\begin{frame}[fragile]{Task 5: what to do}
+\begin{frame}[fragile]{Task 4: what to do}
   \begin{columns}[c,onlytextwidth]
     \column{0.58\textwidth}
 \begin{lstlisting}[style=py]
@@ -1474,7 +1386,7 @@ message = 2026
 # TODO 5: P = ...
 \end{lstlisting}
     \column{0.39\textwidth}
-      \taskhead{Task 5}{Open my\_rsa.py from \ghlink{Task5}. Write the code in place of the TODO lines.}
+      \taskhead{Task 4}{Open my\_rsa.py from \ghlink{Task4}. Write the code in place of the TODO lines.}
       \footnotesize Numbers with 20 digits, so that the result fits on the screen.
   \end{columns}
   \say{Liczby po 20 cyfr, żeby wynik mieścił się na ekranie. Prawdziwe klucze mają po około 309 cyfr na p i q.}
@@ -1497,12 +1409,12 @@ P = pow(C, d, n)
   \end{columns}
   \vfill
   \keymsg{All of RSA is five lines of Python.}
-  % CHECKED: Task5/solution/my_rsa.py, python3 3.12: the output is exactly as above
+  % CHECKED: Task4/solution/my_rsa.py, python3 3.12: the output is exactly as above
   \say{Kod sprawdzony. Szyfrogram nie przypomina 2026 w żaden sposób.}
 \end{frame}
 
-\begin{frame}{Task 6: does it always work?}
-  \taskhead{Task 6}{Key: n = 187, e = 7, d = 23. About 4 minutes.}
+\begin{frame}{Task 5: does it always work?}
+  \taskhead{Task 5}{Key: n = 187, e = 7, d = 23. About 4 minutes.}
   \vfill
   \begin{center}
     \begin{tikzpicture}
@@ -1521,7 +1433,7 @@ P = pow(C, d, n)
 \end{frame}
 
 \samedot
-\begin{frame}[fragile]{Task 6: what to do}
+\begin{frame}[fragile]{Task 5: what to do}
   \begin{columns}[c,onlytextwidth]
     \column{0.58\textwidth}
 \begin{lstlisting}[style=py]
@@ -1533,7 +1445,7 @@ wrong = []
 print(wrong)
 \end{lstlisting}
     \column{0.39\textwidth}
-      \taskhead{Task 6}{Open always.py from \ghlink{Task6}.}
+      \taskhead{Task 5}{Open always.py from \ghlink{Task5}.}
       \footnotesize One loop and one comparison.
   \end{columns}
   \say{Jedna pętla i jedno porównanie.}
@@ -1562,12 +1474,12 @@ for P in range(n):
   \end{columns}
   \vfill
   \keymsg{RSA works for every P from 0 to n - 1.}
-  % CHECKED: Task6/solution/always.py: wrong is empty; 17 -> 85 -> 17
+  % CHECKED: Task5/solution/always.py: wrong is empty; 17 -> 85 -> 17
   \say{Kod sprawdzony. Dlaczego zawsze działa, wynika z twierdzenia Eulera; dowód pomijamy. W prawdziwym RSA P dzielące n praktycznie się nie zdarza.}
 \end{frame}
 
-\begin{frame}{Task 7: guess the PIN}
-  \taskhead{Task 7}{A bank encrypts 4-digit PINs with RSA, exactly as on the last slides, with a 2048-bit key. About 7 minutes.}
+\begin{frame}{Task 6: guess the PIN}
+  \taskhead{Task 6}{A bank encrypts 4-digit PINs with RSA, exactly as on the last slides, with a 2048-bit key. About 7 minutes.}
   \vfill
   \begin{center}
     \begin{tikzpicture}[>=Stealth]
@@ -1595,12 +1507,12 @@ for P in range(n):
   \end{center}
   \vfill
   \begin{center}\textbf{Find the PIN without the private key.}\end{center}
-  % CHECKED: C from Task7/pin.py starts with 73320723855296 and has 616 digits; the card number is made up
+  % CHECKED: C from Task6/pin.py starts with 73320723855296 and has 616 digits; the card number is made up
   \say{Około 7 minut. Nie podpowiadać od razu. Jeśli nikt nie ma pomysłu: klucz publiczny jest publiczny, każdy może nim szyfrować.}
 \end{frame}
 
 \samedot
-\begin{frame}[fragile]{Task 7: what to do}
+\begin{frame}[fragile]{Task 6: what to do}
   \begin{columns}[c,onlytextwidth]
     \column{0.58\textwidth}
 \begin{lstlisting}[style=py]
@@ -1612,7 +1524,7 @@ C = ...    # the encrypted PIN
 #       Hint: you can encrypt any number yourself.
 \end{lstlisting}
     \column{0.39\textwidth}
-      \taskhead{Task 7}{Open pin.py from \ghlink{Task7}.}
+      \taskhead{Task 6}{Open pin.py from \ghlink{Task6}.}
       \footnotesize The time measurement is ready in the file.
   \end{columns}
   \say{Pomiar czasu jest gotowy w pliku.}
@@ -1634,11 +1546,11 @@ for guess in range(10000):
   \end{columns}
   \vfill
   \keymsg{Textbook RSA: the same message always gives the same ciphertext.}
-  % CHECKED: Task7/solution/pin.py, python3 3.12, i5-8265U: PIN 4821 found in 0.40 s; all 10 000 about 0.9 s
+  % CHECKED: Task6/solution/pin.py, python3 3.12, i5-8265U: PIN 4821 found in 0.40 s; all 10 000 about 0.9 s
   \say{Kod sprawdzony. Wszystkie 10 000 PIN-ów to około 0,9 s. Ta sama słabość dotyczy każdej wiadomości z małej liczby możliwości: tak, nie, kwota przelewu.}
 \end{frame}
 
-% CHECKED: textbook C starts with 7332072385 (Task7/pin.py); the three OAEP ciphertexts on the right are only an
+% CHECKED: textbook C starts with 7332072385 (Task6/pin.py); the three OAEP ciphertexts on the right are only an
 %          illustration of "different every time", not computed values
 \begin{frame}{Real RSA adds randomness: OAEP}
   \vfill
@@ -1792,7 +1704,7 @@ for guess in range(10000):
     \item A shared key brings two problems: sharing it and too many keys.
     \item A key pair solves sharing; in practice it moves a symmetric key (hybrid encryption).
     \item RSA is safe because factoring is hard; DH, ElGamal and ECC use the discrete logarithm.
-    \item Euclid's algorithm gives the modular inverse d.
+    \item The private key d is the inverse of e modulo phi: \texttt{pow(e, -1, phi)}.
     \item RSA encrypts with one power mod n; real RSA adds random padding (OAEP).
     \item A leaked private key opens the past: forward secrecy fixes it.
   \end{enumerate}
