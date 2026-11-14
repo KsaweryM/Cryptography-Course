@@ -40,7 +40,7 @@ def decrypt(key, data):
     return bytes(x ^ y for x, y in zip(data, _stream(key, len(data)))).decode(errors="replace")
 
 
-class Ania:
+class Alice:
     def start(self):
         self.a = secrets.randbits(256)
         return pow(G, self.a, P)
@@ -52,20 +52,20 @@ class Ania:
         return encrypt(self.key, "My new card PIN is 7314. Please keep it secret.")
 
 
-class Bartek:
+class Bob:
     def receive_A(self, A):
         b = secrets.randbits(256)
         self.key = key_from_secret(pow(A, b, P))
         return pow(G, b, P)
 
     def receive_message(self, data):
-        print("Bartek reads:", decrypt(self.key, data))
+        print("Bob reads:", decrypt(self.key, data))
 
 
 def run(mallory):
-    ania, bartek = Ania(), Bartek()
-    A = ania.start()
-    B = bartek.receive_A(mallory.change_A(A))
-    ania.finish(mallory.change_B(B))
-    message = ania.send()
-    bartek.receive_message(mallory.change_message(message))
+    alice, bob = Alice(), Bob()
+    A = alice.start()
+    B = bob.receive_A(mallory.change_A(A))
+    alice.finish(mallory.change_B(B))
+    message = alice.send()
+    bob.receive_message(mallory.change_message(message))

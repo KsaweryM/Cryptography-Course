@@ -37,8 +37,8 @@ def neg(P):
     return (P[0], -P[1] % p)
 
 
-d = 7              # Bartek's private key
-Q = mul(d, G)      # Bartek's public key
+d = 7              # Bob's private key
+Q = mul(d, G)      # Bob's public key
 M = (13, 10)       # the message, already turned into a point of the curve
 
 

@@ -4,28 +4,28 @@ from network import P, G, run, key_from_secret, encrypt, decrypt
 
 
 class Mallory:
-    """Mallory sits on the cable. Every value sent between Ania and Bartek passes through her."""
+    """Mallory sits on the cable. Every value sent between Alice and Bob passes through her."""
 
     def __init__(self):
         self.m = secrets.randbits(256)       # Mallory's own secret
         self.M = pow(G, self.m, P)           # and her public value
 
     def change_A(self, A):
-        # Ania sends A to Bartek.
-        # TODO 1: compute the secret Mallory will share with Ania, A^m mod P,
-        #         keep the key: self.key_ania = key_from_secret(...)
-        #         and send Mallory's own value to Bartek instead of A
+        # Alice sends A to Bob.
+        # TODO 1: compute the secret Mallory will share with Alice, A^m mod P,
+        #         keep the key: self.key_alice = key_from_secret(...)
+        #         and send Mallory's own value to Bob instead of A
         return A
 
     def change_B(self, B):
-        # Bartek sends B to Ania.
-        # TODO 2: the same for Bartek: self.key_bartek, and send M to Ania instead of B
+        # Bob sends B to Alice.
+        # TODO 2: the same for Bob: self.key_bob, and send M to Alice instead of B
         return B
 
     def change_message(self, data):
-        # Ania sends an encrypted message to Bartek.
-        # TODO 3: decrypt it with the key shared with Ania and print it,
-        #         then encrypt it again with the key shared with Bartek and pass it on
+        # Alice sends an encrypted message to Bob.
+        # TODO 3: decrypt it with the key shared with Alice and print it,
+        #         then encrypt it again with the key shared with Bob and pass it on
         return data
 
 

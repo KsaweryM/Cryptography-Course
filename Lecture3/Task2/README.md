@@ -3,10 +3,10 @@
 `rsa_ready.py` is ready: treat it as a black box. It has `encrypt(text, public_key)` and
 `decrypt(number, private_key)`.
 
-You are Bartek. `use_rsa.py` holds your private key, Ania's public key and a message from Ania.
+You are Bob. `use_rsa.py` holds your private key, Alice's public key and a message from Alice.
 
-1. Decrypt Ania's message with your private key.
-2. Encrypt the reply "Yes, at 5 pm." with Ania's public key.
+1. Decrypt Alice's message with your private key.
+2. Encrypt the reply "Yes, at 5 pm." with Alice's public key.
 3. Try to decrypt your own reply with your private key. What do you get, and why?
 
 ## Run

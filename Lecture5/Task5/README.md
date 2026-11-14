@@ -1,6 +1,6 @@
 # Task 5: ElGamal on a curve
 
-`ec_elgamal.py` uses the small curve from the slides. `add`, `mul` and `neg` are ready, and so are Bartek's keys
+`ec_elgamal.py` uses the small curve from the slides. `add`, `mul` and `neg` are ready, and so are Bob's keys
 (d = 7, Q = 7G) and the message point M = (13, 10). Fill in the `TODO`s:
 
 1. `encrypt`: C1 = kG and C2 = M + kQ.

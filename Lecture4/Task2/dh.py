@@ -17,9 +17,9 @@ G = 2
 
 start = time.perf_counter()
 
-# TODO 1: Ania's secret a and Bartek's secret b: random 256-bit numbers, secrets.randbits(256)
-# TODO 2: A = G^a mod P (Ania sends it), B = G^b mod P (Bartek sends it)
-# TODO 3: Ania computes B^a mod P, Bartek computes A^b mod P
+# TODO 1: Alice's secret a and Bob's secret b: random 256-bit numbers, secrets.randbits(256)
+# TODO 2: A = G^a mod P (Alice sends it), B = G^b mod P (Bob sends it)
+# TODO 3: Alice computes B^a mod P, Bob computes A^b mod P
 # TODO 4: print whether both results are equal, and the first 20 digits of the secret
 #         (str(x)[:20] gives the first 20 digits of x)
 

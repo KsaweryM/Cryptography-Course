@@ -21,7 +21,7 @@ def number_to_text(number):
     return number.to_bytes((number.bit_length() + 7) // 8, "big").decode(errors="replace")
 
 
-# Two ElGamal ciphertexts for Bartek. The sender used THE SAME k twice, so C1 is the same.
+# Two ElGamal ciphertexts for Bob. The sender used THE SAME k twice, so C1 is the same.
 C1 = int(
     "2683898939585196152588501752342762533307408785193113022180010043013715039205485763528685"
     "6167192892735235439745109785634804974119712070067948146666026952439932861592746245093942"

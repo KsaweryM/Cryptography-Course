@@ -203,11 +203,11 @@
 
 % ======================================================================
 % Colour mapping for this lecture (colour rules, section 6)
-%   S1 sIndigo : Ania
-%   S2 sPink   : the attackers (Ewa listens, Mallory changes)
+%   S1 sIndigo : Alice
+%   S2 sPink   : the attackers (Eve listens, Mallory changes)
 %   S3 sViolet : the message M
 %   S4 sAmber  : secret values: a, b, x, k, m and the shared secret
-%   S5 sTeal   : Bartek
+%   S5 sTeal   : Bob
 %   S6 sBrown  : ciphertext (C1, C2)
 %   public values (p, g, A, B, y) are neutral: grey boxes
 %   paint colours in the mixing story are pictures of paint, not roles
@@ -233,9 +233,9 @@
 \newcommand{\who}[6]{%
   \node[circle, fill=#3, minimum size=1.1cm, inner sep=0pt, text=white, font=\Large] (#5) at (#1,#2) {#6};
   \node[font=\small\bfseries, text=#4, below=1pt of #5] (#5name) {#5};}
-\newcommand{\ania}[2]{\who{#1}{#2}{sIndigo}{sIndigo}{Ania}{\faUser}}
-\newcommand{\bartek}[2]{\who{#1}{#2}{sTeal}{sTealText}{Bartek}{\faUser}}
-\newcommand{\ewa}[2]{\who{#1}{#2}{sPink}{sPinkText}{Ewa}{\faUserSecret}}
+\newcommand{\alice}[2]{\who{#1}{#2}{sIndigo}{sIndigo}{Alice}{\faUser}}
+\newcommand{\bob}[2]{\who{#1}{#2}{sTeal}{sTealText}{Bob}{\faUser}}
+\newcommand{\eve}[2]{\who{#1}{#2}{sPink}{sPinkText}{Eve}{\faUserSecret}}
 \newcommand{\mallory}[2]{\who{#1}{#2}{sPink}{sPinkText}{Mallory}{\faUserNinja}}
 % an envelope: \envpic{x}{y}{fill}{border}
 \newcommand{\envpic}[4]{%
@@ -340,24 +340,24 @@
   \vfill
   \begin{center}
     \begin{tikzpicture}[>=Stealth]
-      \ania{0}{0}
-      \bartek{10}{0}
+      \alice{0}{0}
+      \bob{10}{0}
       \node[hwmain, minimum width=3.4cm, minimum height=1.1cm, font=\small\bfseries] (ciph) at (5,0)
         {\faBolt\ ChaCha20 / AES};
-      \draw[data] (Ania) -- (ciph);
-      \draw[data] (ciph) -- (Bartek);
+      \draw[data] (Alice) -- (ciph);
+      \draw[data] (ciph) -- (Bob);
       \node[capt, below=0.15cm of ciph] {gigabytes per second};
       % the missing key
       \node[draw=sAmber, very thick, dashed, rounded corners=3pt, minimum width=1.6cm, minimum height=1.0cm,
         text=sAmberText, font=\Large] (key) at (5,1.9) {\faKey\,?};
-      \draw[waits] (key.west) -| (Ania.north);
-      \draw[waits] (key.east) -| (Bartek.north);
+      \draw[waits] (key.west) -| (Alice.north);
+      \draw[waits] (key.east) -| (Bob.north);
     \end{tikzpicture}
   \end{center}
   \vfill
   \begin{center}
     ChaCha20 and AES encrypt gigabytes per second.\\[2pt]
-    But Ania and Bartek must first have the \textbf{same secret key}.\\[8pt]
+    But Alice and Bob must first have the \textbf{same secret key}.\\[8pt]
     \large\textcolor{AccentOrange}{\textbf{Where does that key come from?}}
   \end{center}
   \vfill
@@ -369,37 +369,37 @@
   \vfill
   \begin{center}
     \begin{tikzpicture}[>=Stealth]
-      \ania{0}{0}
-      \bartek{11}{0}
-      \draw[net] (Ania.east) -- (Bartek.west);
+      \alice{0}{0}
+      \bob{11}{0}
+      \draw[net] (Alice.east) -- (Bob.west);
       \node[capt, fill=white] at (5.5,0.35) {\faGlobe\ internet};
-      \ewa{5.5}{-2.1}
-      \draw[data, dashed] (5.5,-0.15) -- (Ewa.north);
-      \node[font=\small, text=sPinkText, anchor=west] at (6.3,-2.0) {\faAssistiveListeningSystems\ Ewa hears every message};
+      \eve{5.5}{-2.1}
+      \draw[data, dashed] (5.5,-0.15) -- (Eve.north);
+      \node[font=\small, text=sPinkText, anchor=west] at (6.3,-2.0) {\faAssistiveListeningSystems\ Eve hears every message};
     \end{tikzpicture}
   \end{center}
   \vfill
-  \begin{center}\small They share no secret yet. Everything they say, Ewa hears too.\end{center}
+  \begin{center}\small They share no secret yet. Everything they say, Eve hears too.\end{center}
   \vfill
-  \keymsg{Can two people agree on a secret that Ewa hears in full?}
+  \keymsg{Can two people agree on a secret that Eve hears in full?}
   \say{Pytanie do sali. Większość powie, że to niemożliwe. Za chwilę się okaże, że jednak można.}
 \end{frame}
 
 \begin{frame}{Recall: one way from the last lecture}
   \begin{columns}[c,onlytextwidth]
     \column{0.5\textwidth}
-      \stepbox{Hybrid encryption with RSA}{Ania picks a random key and encrypts it with Bartek's \textbf{public key}.\\
-        Only Bartek's \textbf{private key} opens it.}
+      \stepbox{Hybrid encryption with RSA}{Alice picks a random key and encrypts it with Bob's \textbf{public key}.\\
+        Only Bob's \textbf{private key} opens it.}
       \vspace{0.3cm}
       \plainbox{Today a different way: \textbf{nobody sends the key at all}.\\ Both sides compute it.}
     \column{0.46\textwidth}
       \begin{center}
       \begin{tikzpicture}[>=Stealth]
-        % the last lecture: a key inside an envelope locked for Bartek
+        % the last lecture: a key inside an envelope locked for Bob
         \envpic{0}{1.6}{sBrown!15}{sBrown}
         \node[text=sAmberText, font=\large] at (-0.25,1.5) {\faKey};
         \node[circle, fill=sTeal, text=white, inner sep=2pt, font=\small] at (0.45,1.35) {\faLock};
-        \node[capt] at (0,0.75) {last lecture: the key travels,\\locked with Bartek's public key};
+        \node[capt] at (0,0.75) {last lecture: the key travels,\\locked with Bob's public key};
         % today: no key on the wire
         \draw[data] (-1.3,-0.6) -- (1.3,-0.6);
         \node[text=sAmberText, font=\large, fill=white] at (0,-0.6) {\faKey};
@@ -425,9 +425,9 @@
 \newcommand{\paintscene}[1]{%
   \begin{tikzpicture}[>=Stealth, scale=0.78, transform shape]
     \useasboundingbox (-1.2,-2.6) rectangle (14.6,2.3);
-    \ania{0}{-0.6}
-    \bartek{13.4}{-0.6}
-    \ewa{6.7}{1.55}
+    \alice{0}{-0.6}
+    \bob{13.4}{-0.6}
+    \eve{6.7}{1.55}
     \draw[nLight, very thick, dashed] (6.7,0.85) -- (6.7,-2.4);
     \node[capt, text=gray] at (6.7,-2.55) {public channel};
     % step 1: the public yellow
@@ -445,13 +445,13 @@
       \paintcup{8.5}{0.5}{paintG}{mixture}
     \fi
     \ifnum#1>2
-      % step 3: the mixtures cross the channel, Ewa sees them
+      % step 3: the mixtures cross the channel, Eve sees them
       \draw[flow] (5.4,0.1) to[out=-20, in=160] (11.4,-1.45);
       \draw[flow] (8.0,0.1) to[out=200, in=20] (2.0,-1.45);
-      \paintcup{1.5}{-1.7}{paintG}{from Bartek}
-      \paintcup{11.9}{-1.7}{paintO}{from Ania}
+      \paintcup{1.5}{-1.7}{paintG}{from Bob}
+      \paintcup{11.9}{-1.7}{paintO}{from Alice}
       \node[draw=sPink, thick, fill=white, rounded corners=3pt, font=\tiny, text=sPinkText, anchor=west, inner sep=3pt]
-        at (7.45,1.75) {Ewa sees: \tikz[baseline=-0.5ex]{\fill[paintY] (0,0) circle (0.12);}
+        at (7.45,1.75) {Eve sees: \tikz[baseline=-0.5ex]{\fill[paintY] (0,0) circle (0.12);}
           \tikz[baseline=-0.5ex]{\fill[paintO] (0,0) circle (0.12);}
           \tikz[baseline=-0.5ex]{\fill[paintG] (0,0) circle (0.12);}};
     \fi
@@ -470,7 +470,7 @@
 \newcommand{\paintsteps}[1]{%
   \footnotesize
   \stepitem{1}{#1}{Both start with a public colour: yellow.}
-  \stepitem{2}{#1}{Each adds a secret colour: Ania red, Bartek blue.}
+  \stepitem{2}{#1}{Each adds a secret colour: Alice red, Bob blue.}
   \stepitem{3}{#1}{They swap the mixtures in public.}
   \stepitem{4}{#1}{Each adds their own secret colour again.}}
 
@@ -479,7 +479,7 @@
   \vfill
   \begin{center}\begin{minipage}{0.62\textwidth}\paintsteps{1}\end{minipage}\end{center}
   \vfill
-  \say{Żółty jest jawny, każdy go zna, także Ewa.}
+  \say{Żółty jest jawny, każdy go zna, także Eve.}
 \end{frame}
 
 \samedot
@@ -497,7 +497,7 @@
   \vfill
   \begin{center}\begin{minipage}{0.62\textwidth}\paintsteps{3}\end{minipage}\end{center}
   \vfill
-  \say{Ewa widzi obie mieszanki: żółto-czerwoną i żółto-niebieską.}
+  \say{Eve widzi obie mieszanki: żółto-czerwoną i żółto-niebieską.}
 \end{frame}
 
 \samedot
@@ -508,7 +508,7 @@
     \vspace{2pt}\phantom{$\blacktriangleright$}\ \ Both now have yellow + red + blue: \textbf{the same colour}.\end{minipage}\end{center}
   \vfill
   \keymsg{Mixing is easy, unmixing is hard.}
-  \say{Kolejność mieszania nie ma znaczenia, więc obie strony mają ten sam kolor. Ewa ma tylko mieszanki, a rozdzielić farby się nie da.}
+  \say{Kolejność mieszania nie ma znaczenia, więc obie strony mają ten sam kolor. Eve ma tylko mieszanki, a rozdzielić farby się nie da.}
 \end{frame}
 
 \begin{frame}{Diffie and Hellman, 1976}
@@ -574,7 +574,7 @@
   \end{center}
   \vfill
   \begin{center}
-    Both are \textbf{public}: everybody may know them, Ewa too.\\[2pt]
+    Both are \textbf{public}: everybody may know them, Eve too.\\[2pt]
     They play the role of the \tikz[baseline=-0.6ex]{\fill[paintY] (0,0) circle (0.13);} \textbf{yellow paint}.
   \end{center}
   \vfill
@@ -632,7 +632,7 @@
     \end{tikzpicture}
   \end{center}
   \vfill
-  \begin{center}Only \textbf{11 different values}: half as many for Ewa to try.\end{center}
+  \begin{center}Only \textbf{11 different values}: half as many for Eve to try.\end{center}
   \vfill
   \say{Wybór g należy do twórców standardu, nie do użytkownika. Gotowe grupy z oficjalnych standardów mają sprawdzone p i g.}
 \end{frame}
@@ -650,10 +650,10 @@
   \begin{tikzpicture}[>=Stealth, scale=0.97, transform shape]
     \useasboundingbox (-0.4,-4.25) rectangle (14.4,1.55);
     \node[circle, fill=sIndigo, text=white, minimum size=0.75cm, inner sep=0pt] (an) at (4.6,1.0) {\faUser};
-    \node[font=\small\bfseries, text=sIndigo, right=2pt of an] {Ania};
+    \node[font=\small\bfseries, text=sIndigo, right=2pt of an] {Alice};
     \node[circle, fill=sTeal, text=white, minimum size=0.75cm, inner sep=0pt] (bt) at (11.6,1.0) {\faUser};
-    \node[font=\small\bfseries, text=sTealText, right=2pt of bt] {Bartek};
-    % Ewa's notebook over the channel
+    \node[font=\small\bfseries, text=sTealText, right=2pt of bt] {Bob};
+    % Eve's notebook over the channel
     \node[circle, fill=sPink, text=white, minimum size=0.75cm, inner sep=0pt] (ew) at (8.25,1.0) {\faUserSecret};
     \ifnum#1>2
       \node[draw=sPink, thick, fill=white, rounded corners=2pt, font=\scriptsize, text=sPinkText, anchor=west, align=left]
@@ -678,11 +678,11 @@
       \draw[netarrow] (11.0,-1.8) -- node[below=3pt, font=\scriptsize, text=nInk, fill=white, inner sep=1pt] {sends $B = 19$} (5.6,-1.8);
     \fi
     \ifnum#1>3
-      \dhlabel{4}{#1}{-2.4}{Ania computes}
+      \dhlabel{4}{#1}{-2.4}{Alice computes}
       \node[sec] at (5.1,-2.4) {$B^{a} = 19^{6} \bmod 23 = \mathbf{2}$};
     \fi
     \ifnum#1>4
-      \dhlabel{5}{#1}{-3.2}{Bartek computes}
+      \dhlabel{5}{#1}{-3.2}{Bob computes}
       \node[sec] at (12.1,-3.2) {$A^{b} = 8^{15} \bmod 23 = \mathbf{2}$};
     \fi
     \node[pub, font=\small] at (5.1,-4.0) {$p = 23,\; g = 5$\quad (public)};
@@ -692,7 +692,7 @@
   \vfill
   \begin{center}\dhscene{1}\end{center}
   \vfill
-  \say{Ania i Bartek wybierają tajne liczby. Ewa ich nie zna.}
+  \say{Alice i Bob wybierają tajne liczby. Eve ich nie zna.}
 \end{frame}
 
 \samedot
@@ -708,7 +708,7 @@
   \vfill
   \begin{center}\dhscene{3}\end{center}
   \vfill
-  \say{Ewa widzi 8 i 19. Zapisuje je.}
+  \say{Eve widzi 8 i 19. Zapisuje je.}
 \end{frame}
 
 \samedot
@@ -716,7 +716,7 @@
   \vfill
   \begin{center}\dhscene{4}\end{center}
   \vfill
-  \say{Ania bierze liczbę od Bartka i podnosi do swojej tajnej potęgi.}
+  \say{Alice bierze liczbę od Boba i podnosi do swojej tajnej potęgi.}
 \end{frame}
 
 % CHECKED (python3): pow(5,6,23) = 8, pow(5,15,23) = 19, pow(19,6,23) = 2, pow(8,15,23) = 2
@@ -725,8 +725,8 @@
   \vfill
   \begin{center}\dhscene{5}\end{center}
   \vfill
-  \keymsg{Both have 2. Ewa saw only 23, 5, 8 and 19.}
-  \say{Bartek robi to samo z liczbą od Ani. Ten sam wynik: 2.}
+  \keymsg{Both have 2. Eve saw only 23, 5, 8 and 19.}
+  \say{Bob robi to samo z liczbą od Alice. Ten sam wynik: 2.}
 \end{frame}
 
 \samedot
@@ -734,9 +734,9 @@
   \vfill
   \begin{center}
     \begin{tikzpicture}
-      \node[anchor=east, font=\large\bfseries, text=sIndigo] at (0,0.7) {Ania:};
+      \node[anchor=east, font=\large\bfseries, text=sIndigo] at (0,0.7) {Alice:};
       \node[anchor=west, font=\Large] at (0.2,0.7) {$B^{a} \;=\; (g^{b})^{a} \;=\; g^{\,b a}$};
-      \node[anchor=east, font=\large\bfseries, text=sTealText] at (0,-0.7) {Bartek:};
+      \node[anchor=east, font=\large\bfseries, text=sTealText] at (0,-0.7) {Bob:};
       \node[anchor=west, font=\Large] at (0.2,-0.7) {$A^{b} \;=\; (g^{a})^{b} \;=\; g^{\,a b}$};
       \node[sec, font=\Large, minimum height=2.5cm, minimum width=3.2cm] (r) at (8.8,0) {$g^{ab} \bmod p$};
       \draw[data] (5.6,0.7) -- (r.west |- 0,0.7);
@@ -759,21 +759,21 @@
     \midrule
     $A$ & \ifnum#1=1 $5^4 \bmod 23 = 625 \bmod 23$\else \rule{4.2cm}{0pt}\fi & \ifnum#1=1 $4$\fi \\
     $B$ & \ifnum#1=1 $5^3 \bmod 23 = 125 \bmod 23$\fi & \ifnum#1=1 $10$\fi \\
-    \textcolor{sIndigo}{\textbf{Ania}}: $B^a$ & \ifnum#1=1 $10^4 \bmod 23 = 10000 \bmod 23$\fi &
+    \textcolor{sIndigo}{\textbf{Alice}}: $B^a$ & \ifnum#1=1 $10^4 \bmod 23 = 10000 \bmod 23$\fi &
       \ifnum#1=1 \colorbox{AccentOrange!20}{\textbf{18}}\fi \\
-    \textcolor{sTealText}{\textbf{Bartek}}: $A^b$ & \ifnum#1=1 $4^3 \bmod 23 = 64 \bmod 23$\fi &
+    \textcolor{sTealText}{\textbf{Bob}}: $A^b$ & \ifnum#1=1 $4^3 \bmod 23 = 64 \bmod 23$\fi &
       \ifnum#1=1 \colorbox{AccentOrange!20}{\textbf{18}}\fi \\
     \bottomrule
   \end{tabular}}
 
 \begin{frame}{Task 1: an exchange on paper}
-  \taskhead{Task 1}{On paper. $p = 23$,\quad $g = 5$,\quad Ania's secret $a = 4$,\quad Bartek's secret $b = 3$}
+  \taskhead{Task 1}{On paper. $p = 23$,\quad $g = 5$,\quad Alice's secret $a = 4$,\quad Bob's secret $b = 3$}
   \begin{columns}[T,onlytextwidth]
     \column{0.42\textwidth}
       \footnotesize
       \begin{enumerate}\setlength{\itemsep}{6pt}
         \item Compute $A$ and $B$.
-        \item Compute the shared secret as Ania, and again as Bartek.
+        \item Compute the shared secret as Alice, and again as Bob.
         \item Check that both are the same.
       \end{enumerate}
     \column{0.56\textwidth}
@@ -791,8 +791,8 @@
     \begin{tabular}{rl}
       $A$ =& $5^4 \bmod 23 = 625 \bmod 23 = 4$ \\
       $B$ =& $5^3 \bmod 23 = 125 \bmod 23 = 10$ \\
-      \textcolor{sIndigo}{\textbf{Ania}}:\ \ $B^a$ =& $10^4 \bmod 23 = 10000 \bmod 23 = \colorbox{AccentOrange!20}{\textbf{18}}$ \\
-      \textcolor{sTealText}{\textbf{Bartek}}:\ \ $A^b$ =& $4^3 \bmod 23 = 64 \bmod 23 = \colorbox{AccentOrange!20}{\textbf{18}}$ \\
+      \textcolor{sIndigo}{\textbf{Alice}}:\ \ $B^a$ =& $10^4 \bmod 23 = 10000 \bmod 23 = \colorbox{AccentOrange!20}{\textbf{18}}$ \\
+      \textcolor{sTealText}{\textbf{Bob}}:\ \ $A^b$ =& $4^3 \bmod 23 = 64 \bmod 23 = \colorbox{AccentOrange!20}{\textbf{18}}$ \\
     \end{tabular}
   \end{center}
   \vfill
@@ -833,12 +833,12 @@
     \column{0.48\textwidth}
       \begin{center}
       \begin{tikzpicture}[>=Stealth, scale=0.85, transform shape]
-        \ania{0}{0}
-        \bartek{5.4}{0}
+        \alice{0}{0}
+        \bob{5.4}{0}
         \node[pub, font=\tiny\ttfamily, text width=2.8cm, align=left] at (2.7,0.75) {A = 25222448494279\dots{} (617 digits)};
         \node[pub, font=\tiny\ttfamily, text width=2.8cm, align=left] at (2.7,-0.75) {B = 64186192558273\dots{} (616 digits)};
-        \draw[data] (Ania.east) ++(0,0.3) -- ++(0.35,0.45);
-        \draw[data] (Bartek.west) ++(0,-0.3) -- ++(-0.35,-0.45);
+        \draw[data] (Alice.east) ++(0,0.3) -- ++(0.35,0.45);
+        \draw[data] (Bob.west) ++(0,-0.3) -- ++(-0.35,-0.45);
       \end{tikzpicture}
       \end{center}
   \end{columns}
@@ -892,16 +892,16 @@ print(pow(B, a, P) == pow(A, b, P))
 \section[Why is it safe?]{Why is it safe?}
 % ======================================================================
 
-\begin{frame}{What Ewa knows}
+\begin{frame}{What Eve knows}
   \vfill
   \begin{columns}[c,onlytextwidth]
     \column{0.4\textwidth}
       \begin{center}
       \begin{tikzpicture}
-        % Ewa's notebook
+        % Eve's notebook
         \draw[sPink, thick, fill=white, rounded corners=3pt] (0,0) rectangle (4.4,4.3);
         \fill[sPink] (0,3.75) rectangle (4.4,4.3);
-        \node[text=white, font=\small\bfseries] at (2.2,4.02) {\faUserSecret\ Ewa's notebook};
+        \node[text=white, font=\small\bfseries] at (2.2,4.02) {\faUserSecret\ Eve's notebook};
         \foreach \y in {0.4,0.95,...,3.3} \draw[nLight] (0.25,\y) -- (4.15,\y);
         \node[anchor=west, font=\small, text=nInk] at (0.3,3.3) {$p = 23,\; g = 5$};
         \node[anchor=west, font=\small, text=nInk] at (0.3,2.6) {$A = 8$};
@@ -923,7 +923,7 @@ print(pow(B, a, P) == pow(A, b, P))
       To compute the secret $g^{ab}$, she needs \textcolor{sAmberText}{\textbf{$a$ or $b$}}.
   \end{columns}
   \vfill
-  \say{Ewa ma wszystko poza tajnymi liczbami. Czy da się je odzyskać z A?}
+  \say{Eve ma wszystko poza tajnymi liczbami. Czy da się je odzyskać z A?}
 \end{frame}
 
 \samedot
@@ -1138,7 +1138,7 @@ return a
   \end{center}
   \vfill
   \begin{center}
-    Ewa does not really need $a$. She needs $g^{ab}$ from $g^{a}$ and $g^{b}$.\\[2pt]
+    Eve does not really need $a$. She needs $g^{ab}$ from $g^{a}$ and $g^{b}$.\\[2pt]
     Nobody knows a way to do that faster than computing a discrete logarithm.
   \end{center}
   \vfill
@@ -1296,17 +1296,17 @@ return a
   \vfill
   \begin{center}
     \begin{tikzpicture}
-      \ania{0}{0}
+      \alice{0}{0}
       \node[sec, font=\small] at (1.6,0.9) {\faKey};
-      \draw[net] (Ania.east) -- (8.8,0);
+      \draw[net] (Alice.east) -- (8.8,0);
       \node[circle, fill=nLight, text=white, minimum size=1.1cm, font=\Large] (q) at (9.5,0) {\faUser};
       \node[font=\Huge\bfseries, text=AccentOrange] at (10.6,0.3) {?};
     \end{tikzpicture}
   \end{center}
   \vfill
   \begin{center}
-    Ania computed a secret \textbf{with somebody}.\\[4pt]
-    \large How does she know it was Bartek?
+    Alice computed a secret \textbf{with somebody}.\\[4pt]
+    \large How does she know it was Bob?
   \end{center}
   \vfill
   \say{Pytanie do sali przed następną sekcją.}
@@ -1320,14 +1320,14 @@ return a
   \vfill
   \begin{center}
     \begin{tikzpicture}[>=Stealth]
-      \ania{0}{0}
-      \bartek{12}{0}
-      \draw[net] (Ania.east) -- (5.4,0);
-      \draw[net] (6.6,0) -- (Bartek.west);
+      \alice{0}{0}
+      \bob{12}{0}
+      \draw[net] (Alice.east) -- (5.4,0);
+      \draw[net] (6.6,0) -- (Bob.west);
       \mallory{6}{0}
       \node[text=sPinkText, font=\Large] at (6,1.0) {\faCut};
-      \ewa{3}{-1.7}
-      \draw[data, dashed] (3,-0.15) -- (Ewa.north);
+      \eve{3}{-1.7}
+      \draw[data, dashed] (3,-0.15) -- (Eve.north);
       \node[text=sPinkText, font=\large, anchor=west] at (3.75,-1.7) {\faAssistiveListeningSystems};
     \end{tikzpicture}
   \end{center}
@@ -1335,22 +1335,22 @@ return a
   \renewcommand{\arraystretch}{1.25}
   \begin{center}
     \begin{tabular}{ll}
-      \textcolor{sPinkText}{\textbf{Ewa}} & listens \\
+      \textcolor{sPinkText}{\textbf{Eve}} & listens \\
       \textcolor{sPinkText}{\textbf{Mallory}} & sits on the cable: catches every message and sends what she wants \\
       & \small\textcolor{gray}{Like a router or a public Wi-Fi under her control.} \\
     \end{tabular}
   \end{center}
   \vfill
-  \say{Ewa jest bierna, Mallory aktywna. Taki atak nazywa się man-in-the-middle, człowiek pośrodku.}
+  \say{Eve jest bierna, Mallory aktywna. Taki atak nazywa się man-in-the-middle, człowiek pośrodku.}
 \end{frame}
 
 % the attack, one picture in three steps
 \newcommand{\mitmscene}[1]{%
   \begin{tikzpicture}[>=Stealth]
     \useasboundingbox (-1,-2.3) rectangle (13,1.3);
-    \ania{0}{0}
+    \alice{0}{0}
     \mallory{6}{0}
-    \bartek{12}{0}
+    \bob{12}{0}
     \draw[netarrow] (0.7,0.25) -- node[above, font=\small] {$A$} (5.3,0.25);
     \draw[netarrow] (6.7,0.25) -- node[above, font=\small, text=sPinkText] {$M$} (11.3,0.25);
     \node[sec, font=\scriptsize] at (6,1.05) {$m$};
@@ -1367,9 +1367,9 @@ return a
   \end{tikzpicture}}
 \newcommand{\mitmsteps}[1]{%
   \footnotesize
-  \stepitem{1}{#1}{Ania sends $A$. Mallory keeps it and sends her own $M$ to Bartek.}
-  \stepitem{2}{#1}{Bartek sends $B$. Mallory keeps it and sends $M$ to Ania.}
-  \stepitem{3}{#1}{Ania shares a secret with Mallory. Bartek shares another one with Mallory.}}
+  \stepitem{1}{#1}{Alice sends $A$. Mallory keeps it and sends her own $M$ to Bob.}
+  \stepitem{2}{#1}{Bob sends $B$. Mallory keeps it and sends $M$ to Alice.}
+  \stepitem{3}{#1}{Alice shares a secret with Mallory. Bob shares another one with Mallory.}}
 
 \begin{frame}{The attack, step 1}
   \vfill
@@ -1377,7 +1377,7 @@ return a
   \vfill
   \begin{center}\begin{minipage}{0.8\textwidth}\mitmsteps{1}\end{minipage}\end{center}
   \vfill
-  \say{Mallory zna m, więc policzy A\textasciicircum m: ma wspólny sekret z Anią.}
+  \say{Mallory zna m, więc policzy A\textasciicircum m: ma wspólny sekret z Alice.}
 \end{frame}
 
 \samedot
@@ -1387,7 +1387,7 @@ return a
   \vfill
   \begin{center}\begin{minipage}{0.8\textwidth}\mitmsteps{2}\end{minipage}\end{center}
   \vfill
-  \say{Tak samo z drugiej strony: ma też wspólny sekret z Bartkiem.}
+  \say{Tak samo z drugiej strony: ma też wspólny sekret z Bobem.}
 \end{frame}
 
 \samedot
@@ -1397,7 +1397,7 @@ return a
   \vfill
   \begin{center}\begin{minipage}{0.8\textwidth}\mitmsteps{3}\end{minipage}\end{center}
   \vfill
-  \say{Ania myśli, że jej sekret dzieli z Bartkiem. Bartek myśli to samo. Oboje się mylą.}
+  \say{Alice myśli, że jej sekret dzieli z Bobem. Bob myśli to samo. Oboje się mylą.}
 \end{frame}
 
 \samedot
@@ -1405,10 +1405,10 @@ return a
   \vfill
   \begin{center}
     \begin{tikzpicture}[>=Stealth]
-      \ania{0}{0}
+      \alice{0}{0}
       \envpic{2.7}{0}{sBrown!15}{sBrown}
       \node[capt, below=0.55cm] at (2.7,0) {encrypted with key 1};
-      \draw[data] (Ania) -- (1.9,0);
+      \draw[data] (Alice) -- (1.9,0);
       \draw[data] (3.5,0) -- (5.0,0);
       \mallory{6}{0}
       \node[draw=sPink, thick, fill=white, rounded corners=3pt, font=\scriptsize, text=nInk, align=left, anchor=south]
@@ -1417,7 +1417,7 @@ return a
       \envpic{9.3}{0}{sBrown!15}{sBrown}
       \node[capt, below=0.55cm] at (9.3,0) {encrypted with key 2};
       \draw[data] (10.1,0) -- (11.4,0);
-      \bartek{12.1}{0}
+      \bob{12.1}{0}
       \node[text=aExec, font=\large] at (12.1,1.0) {\faCheck};
     \end{tikzpicture}
   \end{center}
@@ -1429,30 +1429,30 @@ return a
 \end{frame}
 
 \begin{frame}{Task 4: be Mallory}
-  \taskhead{Task 4}{A simulated network: Ania and Bartek do a Diffie-Hellman exchange,
-    then Ania sends one encrypted message. \textbf{Every value goes through you.}}
+  \taskhead{Task 4}{A simulated network: Alice and Bob do a Diffie-Hellman exchange,
+    then Alice sends one encrypted message. \textbf{Every value goes through you.}}
   \begin{columns}[c,onlytextwidth]
     \column{0.5\textwidth}
       \footnotesize
       \begin{enumerate}\setlength{\itemsep}{6pt}
-        \item Replace Ania's $A$ and Bartek's $B$ with your own value.
-        \item Read Ania's message.
-        \item Pass it on, so that Bartek notices nothing.
+        \item Replace Alice's $A$ and Bob's $B$ with your own value.
+        \item Read Alice's message.
+        \item Pass it on, so that Bob notices nothing.
       \end{enumerate}
     \column{0.48\textwidth}
       \begin{center}
       \begin{tikzpicture}[scale=0.8, transform shape]
-        \ania{0}{0}
-        \bartek{6}{0}
-        \draw[net] (Ania.east) -- (2.4,0);
-        \draw[net] (3.6,0) -- (Bartek.west);
+        \alice{0}{0}
+        \bob{6}{0}
+        \draw[net] (Alice.east) -- (2.4,0);
+        \draw[net] (3.6,0) -- (Bob.west);
         \mallory{3}{0}
         \node[text=nInk, font=\Large] at (3,1.0) {\faLaptop};
         \node[capt, text=sPinkText] at (3,-1.25) {you};
       \end{tikzpicture}
       \end{center}
   \end{columns}
-  \say{Około 10 minut. network.py jest gotowy i nie trzeba go zmieniać: zawiera Anię, Bartka i szyfrowanie wiadomości kluczem z SHA-256.}
+  \say{Około 10 minut. network.py jest gotowy i nie trzeba go zmieniać: zawiera Alice, Boba i szyfrowanie wiadomości kluczem z SHA-256.}
 \end{frame}
 
 \samedot
@@ -1466,22 +1466,22 @@ class Mallory:
         self.M = pow(G, self.m, P)
 
     def change_A(self, A):
-        # TODO 1: keep the key shared with Ania, send M instead
+        # TODO 1: keep the key shared with Alice, send M instead
         return A
 
     def change_B(self, B):
-        # TODO 2: the same for Bartek
+        # TODO 2: the same for Bob
         return B
 
     def change_message(self, data):
-        # TODO 3: decrypt, print, encrypt again for Bartek
+        # TODO 3: decrypt, print, encrypt again for Bob
         return data
 \end{lstlisting}
     \column{0.33\textwidth}
       \taskhead{Task 4}{Open \texttt{mitm.py} from \ghlink{Task4}. Write the code in place of the \texttt{TODO} lines.}
       \stepbox{Ready in network.py}{\texttt{key\_from\_secret}, \texttt{encrypt}, \texttt{decrypt}}
   \end{columns}
-  \say{key\_from\_secret, encrypt i decrypt są gotowe w network.py. Bez zmian program wypisuje tylko to, co czyta Bartek.}
+  \say{key\_from\_secret, encrypt i decrypt są gotowe w network.py. Bez zmian program wypisuje tylko to, co czyta Bob.}
 \end{frame}
 
 % CHECKED: Task4/solution/mitm.py prints the two lines below
@@ -1489,21 +1489,21 @@ class Mallory:
 \begin{frame}[fragile]{Solution: be Mallory}
 \begin{lstlisting}[style=py, emph={pow,print}]
 def change_A(self, A):
-    self.key_ania = key_from_secret(pow(A, self.m, P))
+    self.key_alice = key_from_secret(pow(A, self.m, P))
     return self.M
 
 def change_message(self, data):
-    text = decrypt(self.key_ania, data)
+    text = decrypt(self.key_alice, data)
     print("Mallory reads:", text)
-    return encrypt(self.key_bartek, text)
+    return encrypt(self.key_bob, text)
 \end{lstlisting}
   \vfill
   \begin{center}
     \terminal{\textcolor{sPinkText}{Mallory reads:} My new card PIN is 7314. Please keep it secret.}\\[0.15cm]
-    \terminal{\textcolor{sTealText}{Bartek reads:}\ \ My new card PIN is 7314. Please keep it secret.}
+    \terminal{\textcolor{sTealText}{Bob reads:}\ \ My new card PIN is 7314. Please keep it secret.}
   \end{center}
   \vfill
-  \say{Kod sprawdzony. change\_B wygląda tak samo jak change\_A, z kluczem dla Bartka. Bartek dostał poprawną wiadomość i niczego nie zauważył.}
+  \say{Kod sprawdzony. change\_B wygląda tak samo jak change\_A, z kluczem dla Boba. Bob dostał poprawną wiadomość i niczego nie zauważył.}
 \end{frame}
 
 % a seal: \seal{x}{y}{colour}{text}
@@ -1515,28 +1515,28 @@ def change_message(self, data):
   \begin{center}
     \begin{tikzpicture}
       \node[pub, font=\Large, minimum width=2.2cm, minimum height=1.3cm] at (0,0) {$B$};
-      \seal{0.95}{-0.55}{sTeal}{Bartek}
+      \seal{0.95}{-0.55}{sTeal}{Bob}
       \node[text=aExec, font=\Large] at (0,-1.4) {\faCheck};
-      \node[capt] at (0,-1.95) {sealed by Bartek};
+      \node[capt] at (0,-1.95) {sealed by Bob};
       \node[pub, font=\Large, minimum width=2.2cm, minimum height=1.3cm, text=sPinkText] at (5,0) {$M$};
       \node[circle, draw=nLight, very thick, dashed, minimum size=1.0cm] at (5.95,-0.55) {};
       \node[text=aWrite, font=\Large] at (5,-1.4) {\faTimes};
-      \node[capt] at (5,-1.95) {Mallory has no seal of Bartek};
+      \node[capt] at (5,-1.95) {Mallory has no seal of Bob};
     \end{tikzpicture}
   \end{center}
   \vfill
   \begin{center}
-    Bartek adds to his $B$ a \textbf{seal} that only his private key can make.\\
-    Ania checks the seal with Bartek's public key.\\[6pt]
-    Mallory can replace $B$, but she \textbf{cannot seal} her $M$ as Bartek.\\[4pt]
+    Bob adds to his $B$ a \textbf{seal} that only his private key can make.\\
+    Alice checks the seal with Bob's public key.\\[6pt]
+    Mallory can replace $B$, but she \textbf{cannot seal} her $M$ as Bob.\\[4pt]
     \small\textcolor{gray}{Such a seal is a digital signature: a topic of its own, not covered here.}
   \end{center}
   \vfill
-  \say{Tylko idea: pieczęć robi się kluczem prywatnym, sprawdza publicznym, a Mallory nie ma klucza prywatnego Bartka. Jak dokładnie działają podpisy cyfrowe, to osobny temat, którego tu nie omawiamy.}
+  \say{Tylko idea: pieczęć robi się kluczem prywatnym, sprawdza publicznym, a Mallory nie ma klucza prywatnego Boba. Jak dokładnie działają podpisy cyfrowe, to osobny temat, którego tu nie omawiamy.}
 \end{frame}
 
 \samedot
-\begin{frame}{How does Ania know Bartek's public key?}
+\begin{frame}{How does Alice know Bob's public key?}
   \begin{columns}[c,onlytextwidth]
     \column{0.42\textwidth}
       \begin{center}
@@ -1544,15 +1544,15 @@ def change_message(self, data):
         \draw[nLine, thick, fill=white, drop shadow={opacity=0.25}] (0,0) rectangle (4.6,3.2);
         \draw[DeepBlue, thick] (0.15,0.15) rectangle (4.45,3.05);
         \node[font=\small\bfseries, text=DeepBlue] at (2.3,2.65) {Certificate};
-        \node[font=\scriptsize, text=nInk, anchor=west] at (0.4,2.1) {name: \textbf{Bartek}};
-        \node[font=\scriptsize, text=nInk, anchor=west] at (0.4,1.65) {public key: \textbf{Bartek's $y$}};
+        \node[font=\scriptsize, text=nInk, anchor=west] at (0.4,2.1) {name: \textbf{Bob}};
+        \node[font=\scriptsize, text=nInk, anchor=west] at (0.4,1.65) {public key: \textbf{Bob's $y$}};
         \node[circle, draw=AccentOrange, very thick, fill=AccentOrange!15, text=AccentOrange, minimum size=1.2cm,
           font=\tiny\bfseries, align=center] at (3.6,0.85) {\faCertificate\\trusted};
         \node[font=\tiny, text=gray, anchor=west] at (0.4,0.6) {sealed by a trusted party};
       \end{tikzpicture}
       \end{center}
     \column{0.55\textwidth}
-      A \textbf{certificate}: Bartek's public key, sealed by a party that Ania already trusts.
+      A \textbf{certificate}: Bob's public key, sealed by a party that Alice already trusts.
       \vspace{0.4cm}
 
       \textcolor{DeepBlue}{\faGlobe}\ Browsers come with a list of trusted parties.
@@ -1596,8 +1596,8 @@ def change_message(self, data):
       \vspace{0.2cm}
 
       \begin{itemize}\setlength{\itemsep}{6pt}
-        \item Bartek publishes his half of the exchange, $y = g^{x}$, \textbf{once and for all}.
-        \item For every message, Ania does her half \textbf{on the spot}
+        \item Bob publishes his half of the exchange, $y = g^{x}$, \textbf{once and for all}.
+        \item For every message, Alice does her half \textbf{on the spot}
           and uses the shared value to hide the message.
       \end{itemize}
     \column{0.46\textwidth}
@@ -1609,8 +1609,8 @@ def change_message(self, data):
         \node[pub, font=\large, rotate=-4] (y) at (1.7,1.25) {$y = g^{x}$};
         \fill[aWrite] (1.7,1.75) circle (0.08);
         \node[font=\tiny\bfseries, text=nInk] at (1.7,2.15) {notice board};
-        \bartek{4.4}{1.3}
-        \ania{-1.2}{-1.1}
+        \bob{4.4}{1.3}
+        \alice{-1.2}{-1.1}
         \node[msgb, font=\small] (m) at (0.6,-1.1) {\faEnvelope\ message};
         \draw[data] (m.east) -- (2.3,-1.1);
       \end{tikzpicture}
@@ -1640,7 +1640,7 @@ def change_message(self, data):
     \end{tabular}
   \end{center}
   \vfill
-  \say{Ten sam przykład co wcześniej: y = 8 to dokładnie A Ani z wymiany.}
+  \say{Ten sam przykład co wcześniej: y = 8 to dokładnie A Alice z wymiany.}
 \end{frame}
 
 % CHECKED (python3): pow(5, 3, 23) = 10, pow(8, 3, 23) = 6, 10 * 6 % 23 = 14
@@ -1707,9 +1707,9 @@ def change_message(self, data):
   \vfill
   \begin{center}
     \begin{tikzpicture}
-      \node[anchor=east, font=\large\bfseries, text=sTealText] at (0,0.7) {Bartek computes};
+      \node[anchor=east, font=\large\bfseries, text=sTealText] at (0,0.7) {Bob computes};
       \node[anchor=west, font=\Large] at (0.2,0.7) {$C_1^{\,x} \;=\; (g^{k})^{x} \;=\; g^{\,kx}$};
-      \node[anchor=east, font=\large\bfseries, text=sIndigo] at (0,-0.7) {Ania used};
+      \node[anchor=east, font=\large\bfseries, text=sIndigo] at (0,-0.7) {Alice used};
       \node[anchor=west, font=\Large] at (0.2,-0.7) {$y^{k} \;=\; (g^{x})^{k} \;=\; g^{\,xk}$};
       \node[sec, font=\Large, minimum height=2.5cm, minimum width=2.6cm] (r) at (8.0,0) {$g^{kx} \bmod p$};
       \draw[data] (5.0,0.7) -- (r.west |- 0,0.7);
@@ -1719,7 +1719,7 @@ def change_message(self, data):
   \vfill
   \begin{center}The same value: a Diffie-Hellman secret between $k$ and $x$.\end{center}
   \vfill
-  \keymsg{Ania multiplies by the shared secret. Bartek divides by it.}
+  \keymsg{Alice multiplies by the shared secret. Bob divides by it.}
   \say{Dzielenie modulo p to mnożenie przez odwrotność.}
 \end{frame}
 
@@ -1739,18 +1739,18 @@ def change_message(self, data):
   \begin{center}
     \renewcommand{\arraystretch}{1.5}
     \begin{tabular}{ll}
-      $C_1 = g^{k}$ & Ania's half of the exchange: Bartek needs it to compute the secret \\
+      $C_1 = g^{k}$ & Alice's half of the exchange: Bob needs it to compute the secret \\
       $C_2 = M \times y^{k}$ & the message, hidden by the secret \\
     \end{tabular}
   \end{center}
-  \begin{center}\small Without $C_1$, Bartek cannot find $y^{k}$. Without $C_2$, there is no message.\end{center}
+  \begin{center}\small Without $C_1$, Bob cannot find $y^{k}$. Without $C_2$, there is no message.\end{center}
   \vfill
-  \keymsg{C1 is Ania's half of a Diffie-Hellman exchange. C2 is the message.}
+  \keymsg{C1 is Alice's half of a Diffie-Hellman exchange. C2 is the message.}
   \say{To odpowiedź na pytanie z zakresu: dlaczego szyfrogram ma dwa składniki.}
 \end{frame}
 
 \begin{frame}{Task 5: ElGamal in Python}
-  \taskhead{Task 5}{The real 2048-bit group, Bartek's keys are ready.}
+  \taskhead{Task 5}{The real 2048-bit group, Bob's keys are ready.}
   \begin{columns}[c,onlytextwidth]
     \column{0.5\textwidth}
       \footnotesize
@@ -1854,7 +1854,7 @@ def decrypt(C1, C2, x):
 
 % the first digits of the values in Task6/reuse.py
 \begin{frame}{Task 6: k used twice}
-  \taskhead{Task 6}{Two ciphertexts for Bartek, made with \textbf{the same $k$}: their $C_1$ is the same.}
+  \taskhead{Task 6}{Two ciphertexts for Bob, made with \textbf{the same $k$}: their $C_1$ is the same.}
   \begin{center}
     \begin{tikzpicture}
       \node[anchor=east, font=\small, text=nInk] at (-0.2,0.5) {first:};
@@ -1869,7 +1869,7 @@ def decrypt(C1, C2, x):
   \footnotesize
   \begin{itemize}
     \item You know the first message: it was printed on a public receipt.
-    \item \textbf{Recover the second message} without Bartek's private key.
+    \item \textbf{Recover the second message} without Bob's private key.
   \end{itemize}
   \say{Około 7 minut. Nie podpowiadać od razu. Jeśli trzeba: co w obu C2 jest takie samo?}
 \end{frame}
@@ -1909,7 +1909,7 @@ print(number_to_text(second))
     \end{tikzpicture}
   \end{center}
   \vfill
-  \say{Kod sprawdzony. Klucz prywatny Bartka nie był potrzebny ani przez chwilę.}
+  \say{Kod sprawdzony. Klucz prywatny Boba nie był potrzebny ani przez chwilę.}
 \end{frame}
 
 \begin{frame}{The rule: a new k for every message}

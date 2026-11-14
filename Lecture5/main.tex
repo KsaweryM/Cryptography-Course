@@ -213,11 +213,11 @@
 
 % ======================================================================
 % Colour mapping for this lecture (colour rules, section 6)
-%   S1 sIndigo : Ania
-%   S2 sPink   : Ewa, the attacker (and the console maker's leaked secret)
+%   S1 sIndigo : Alice
+%   S2 sPink   : Eve, the attacker (and the console maker's leaked secret)
 %   S3 sViolet : public values: points such as G, Q, A, B
 %   S4 sAmber  : private values: d, k, a, b and the keys made from them
-%   S5 sTeal   : Bartek
+%   S5 sTeal   : Bob
 %   S6 sBrown  : ciphertext C1, C2
 %   the curve itself, formulas and mechanisms (KDF, the console) are neutral
 % ======================================================================
@@ -1117,32 +1117,32 @@
   \say{Klucz prywatny to liczba, publiczny to punkt. Na Curve25519 oba mają po 32 bajty.}
 \end{frame}
 
-% the ECDH exchange: Ania, Bartek and Ewa; #1 = 1: the numbers of the toy curve
+% the ECDH exchange: Alice, Bob and Eve; #1 = 1: the numbers of the toy curve
 \samedot
 \begin{frame}{ECDH}
   \begin{center}
     \begin{tikzpicture}[>=Stealth]
-      \personnode{ania}{0,1.3}{sIndigo}{Ania}
-      \personnode{bartek}{11,1.3}{sTeal}{Bartek}
+      \personnode{alice}{0,1.3}{sIndigo}{Alice}
+      \personnode{bob}{11,1.3}{sTeal}{Bob}
       \node[privval, anchor=north] (sa) at (0,0.15) {secret $a$};
       \node[privval, anchor=north] (sb) at (11,0.15) {secret $b$};
       \node[pubval, font=\small] at (5.5,2.3) {public: the curve and $G$};
-      \draw[data, sViolet] (ania.east) ++(0.3,0.15) -- node[above, font=\small, text=nInk] {$A = a\,G$} ($(bartek.west)+(-0.3,0.15)$);
-      \draw[data, sViolet] ($(bartek.west)+(-0.3,-0.25)$) -- node[below, font=\small, text=nInk] {$B = b\,G$} ($(ania.east)+(0.3,-0.25)$);
+      \draw[data, sViolet] (alice.east) ++(0.3,0.15) -- node[above, font=\small, text=nInk] {$A = a\,G$} ($(bob.west)+(-0.3,0.15)$);
+      \draw[data, sViolet] ($(bob.west)+(-0.3,-0.25)$) -- node[below, font=\small, text=nInk] {$B = b\,G$} ($(alice.east)+(0.3,-0.25)$);
       \node[hw, anchor=north, font=\small] (ca) at (0,-0.65) {$a\,B = a\,b\,G$};
       \node[hw, anchor=north, font=\small] (cb) at (11,-0.65) {$b\,A = b\,a\,G$};
       \node[privval, font=\small\bfseries] (s) at (5.5,-1.6) {the same point $a\,b\,G$};
       \draw[data] (ca.south) |- (s.west);
       \draw[data] (cb.south) |- (s.east);
-      \node[person=sPink] (ewa) at (5.5,-0.3) {\faUserSecret};
-      \node[font=\scriptsize\bfseries, text=sPinkText, anchor=west] at (6.15,-0.3) {Ewa listens};
-      \draw[waits] (5.5,0.75) -- (ewa.north);
+      \node[person=sPink] (eve) at (5.5,-0.3) {\faUserSecret};
+      \node[font=\scriptsize\bfseries, text=sPinkText, anchor=west] at (6.15,-0.3) {Eve listens};
+      \draw[waits] (5.5,0.75) -- (eve.north);
     \end{tikzpicture}
   \end{center}
   \vspace{-0.1cm}
-  \begin{center}\small Both get the same point $a\,b\,G$. Ewa saw only $G$, $A$ and $B$.\end{center}
+  \begin{center}\small Both get the same point $a\,b\,G$. Eve saw only $G$, $A$ and $B$.\end{center}
   \keymsg{ECDH is Diffie-Hellman with points instead of powers.}
-  \say{Ewa to podsłuchująca osoba z poprzednich wykładów. ECDH to Elliptic-Curve Diffie-Hellman.}
+  \say{Eve to podsłuchująca osoba z poprzednich wykładów. ECDH to Elliptic-Curve Diffie-Hellman.}
 \end{frame}
 
 \samedot
@@ -1153,10 +1153,10 @@
       \large
       \renewcommand{\arraystretch}{1.5}\setlength{\tabcolsep}{0pt}
       \begin{tabular}{@{}l@{\quad}l@{}}
-        \textcolor{sIndigo}{\textbf{Ania}}: \priv{$a = 3$} & $A = 3G = \pub{(10, 6)}$ \\
-        \textcolor{sTealText}{\textbf{Bartek}}: \priv{$b = 10$} & $B = 10G = \pub{(7, 11)}$ \\[6pt]
-        \textcolor{sIndigo}{\textbf{Ania}}: & $3\,B = 3 \times (7, 11) = \priv{(13, 10)}$ \\
-        \textcolor{sTealText}{\textbf{Bartek}}: & $10\,A = 10 \times (10, 6) = \priv{(13, 10)}$
+        \textcolor{sIndigo}{\textbf{Alice}}: \priv{$a = 3$} & $A = 3G = \pub{(10, 6)}$ \\
+        \textcolor{sTealText}{\textbf{Bob}}: \priv{$b = 10$} & $B = 10G = \pub{(7, 11)}$ \\[6pt]
+        \textcolor{sIndigo}{\textbf{Alice}}: & $3\,B = 3 \times (7, 11) = \priv{(13, 10)}$ \\
+        \textcolor{sTealText}{\textbf{Bob}}: & $10\,A = 10 \times (10, 6) = \priv{(13, 10)}$
       \end{tabular}
     \column{0.4\textwidth}
       \centering
@@ -1177,7 +1177,7 @@
       \node[text=white, font=\small\bfseries] at (4.4,0.62) {KDF};
       \node[text=white, font=\small] at (4.4,-0.35) {\faCogs};
       \draw[data] (p.east) -- (3.55,0.62);
-      \foreach \y/\lbl in {0.7/key 1: Ania $\rightarrow$ Bartek, -0.7/key 2: Bartek $\rightarrow$ Ania} {
+      \foreach \y/\lbl in {0.7/key 1: Alice $\rightarrow$ Bob, -0.7/key 2: Bob $\rightarrow$ Alice} {
         \draw[data] (4.9,-0.3) -- (6.6,\y);
         \foreach \i in {0,...,7} \node[keybyte, minimum width=0.42cm, minimum height=0.42cm] at ({6.95+0.44*\i},\y) {};
         \node[font=\scriptsize, text=nInk, anchor=west] at (10.4,\y) {\lbl};
@@ -1224,7 +1224,7 @@
   \begin{columns}[c,onlytextwidth]
     \column{0.55\textwidth}
       \begin{enumerate}\setlength{\itemsep}{8pt}
-        \item Compute Ania's and Bartek's public keys.
+        \item Compute Alice's and Bob's public keys.
         \item Compute the shared secret on both sides.
         \item Derive a ChaCha20 key with HKDF.
       \end{enumerate}
@@ -1233,8 +1233,8 @@
     \column{0.43\textwidth}
       \centering
       \begin{tikzpicture}[scale=0.62, transform shape]
-        \personnode{ania}{0,0}{sIndigo}{Ania}
-        \personnode{bartek}{5.2,0}{sTeal}{Bartek}
+        \personnode{alice}{0,0}{sIndigo}{Alice}
+        \personnode{bob}{5.2,0}{sTeal}{Bob}
         \bytecube{-1.05,-4.3}{sAmber}{}{}
         \bytecube{4.15,-4.3}{sAmber}{}{}
         \draw[data, <->] (1,0) -- node[above, font=\small] {public keys} (4.2,0);
@@ -1280,7 +1280,7 @@
 % ======================================================================
 
 \begin{frame}{ElGamal on a curve}
-  \begin{center}\small \textcolor{sTealText}{\textbf{Bartek}}: private \priv{$d$}, \; public \pub{$Q = d\,G$}\end{center}
+  \begin{center}\small \textcolor{sTealText}{\textbf{Bob}}: private \priv{$d$}, \; public \pub{$Q = d\,G$}\end{center}
   \vfill
   \begin{center}
     \begin{tikzpicture}[>=Stealth]
@@ -1299,7 +1299,7 @@
   \vfill
   \begin{center}\small Encrypt a point $M$: a random \priv{$k$}, \; $C_1 = k\,G$, \; $C_2 = M + k\,Q$. \qquad Decrypt: $M = C_2 - d\,C_1$.\end{center}
   \keymsg{Exactly ElGamal: powers became multiples, products became sums.}
-  \say{d C1 = d k G = k Q, więc odejmujemy dokładnie to, co Ania dodała. Wiadomość musi najpierw stać się punktem krzywej; w praktyce szyfruje się raczej klucz przez ECDH i KDF.}
+  \say{d C1 = d k G = k Q, więc odejmujemy dokładnie to, co Alice dodała. Wiadomość musi najpierw stać się punktem krzywej; w praktyce szyfruje się raczej klucz przez ECDH i KDF.}
 \end{frame}
 
 \samedot
@@ -1328,7 +1328,7 @@
 \end{frame}
 
 \begin{frame}{Task 5: ElGamal on a curve}
-  \taskhead{Task 5}{The small curve, Bartek's keys \priv{$d = 7$} and \pub{$Q = 7G$}, the message $M = (13, 10)$.}
+  \taskhead{Task 5}{The small curve, Bob's keys \priv{$d = 7$} and \pub{$Q = 7G$}, the message $M = (13, 10)$.}
   \begin{columns}[c,onlytextwidth]
     \column{0.5\textwidth}
       \begin{enumerate}\setlength{\itemsep}{8pt}

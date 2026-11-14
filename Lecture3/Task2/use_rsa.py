@@ -1,6 +1,6 @@
 from rsa_ready import encrypt, decrypt
 
-# You are Bartek. This is your PRIVATE key (d, n): keep it secret.
+# You are Bob. This is your PRIVATE key (d, n): keep it secret.
 my_private_key = (
     int(
         "2353625773078744066055930751006538317550581297378578132105569277429225231942964987589807"
@@ -23,8 +23,8 @@ my_private_key = (
     ),
 )
 
-# This is Ania's PUBLIC key (e, n): everybody may know it.
-ania_public_key = (
+# This is Alice's PUBLIC key (e, n): everybody may know it.
+alice_public_key = (
     65537,
     int(
         "1753594952623316436428113106418560047633170150137427692896299455639536665920607236556563"
@@ -38,7 +38,7 @@ ania_public_key = (
     ),
 )
 
-# Ania encrypted a message with YOUR public key and sent you this number:
+# Alice encrypted a message with YOUR public key and sent you this number:
 ciphertext = int(
     "1053622129302080913162440961573124300725406744918702131197625043381147015460003962364243"
     "8478278214483057305379808860710178834563436161963897418403237851010735307581639655816351"
@@ -51,6 +51,6 @@ ciphertext = int(
 )
 
 # TODO 1: decrypt the ciphertext with decrypt(ciphertext, key) and print it
-# TODO 2: encrypt the reply "Yes, at 5 pm." with encrypt(text, key) for Ania
+# TODO 2: encrypt the reply "Yes, at 5 pm." with encrypt(text, key) for Alice
 #         and print the first 30 digits of the result: str(reply)[:30]
 # TODO 3: try to decrypt your own reply with YOUR private key. What do you get?

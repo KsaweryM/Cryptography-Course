@@ -1,6 +1,6 @@
 # Task 5: ElGamal in Python
 
-`elgamal.py` holds the 2048-bit group from RFC 3526 and Bartek's keys (private x, public y = G^x mod P).
+`elgamal.py` holds the 2048-bit group from RFC 3526 and Bob's keys (private x, public y = G^x mod P).
 Fill in the two `TODO`s:
 
 1. `encrypt(M, y)`: a new random k, then C1 = G^k mod P and C2 = M · y^k mod P.
