@@ -10,6 +10,28 @@ def xor(a, b):
     return bytes(out)
 
 
+# Ready: the attacker's test for check d). You only call it.
+# The attacker sees only the two packets. Does a simple trick give him m1 XOR m2?
+def attacker_learns_xor(p1, p2, m1, m2):
+    target = xor(m1, m2)
+    n1 = p1[0:3]
+    n2 = p2[0:3]
+    for skip in range(4):                 # the ciphertext may start right after n, or later
+        c1 = p1[3 + skip:]
+        c2 = p2[3 + skip:]
+        if len(c1) < len(target):
+            continue
+        both = xor(c1, c2)
+        if both[0:len(target)] == target:
+            return True
+        removed = []                      # the same, with the public values XOR-ed away
+        for i in range(len(target)):
+            removed.append(both[i] ^ n1[i % 3] ^ n2[i % 3])
+        if bytes(removed) == target:
+            return True
+    return False
+
+
 key = b"our secret"
 m1 = b"Meet at noon."
 m2 = b"Bring the map"
@@ -21,10 +43,31 @@ m2 = b"Bring the map"
 #         When is this dangerous?
 
 # Step 2: a public value, new for every message
-# TODO 2: for every message make a new 3-byte value: random.randbytes(3)
-#         It does not have to be secret: it is sent together with the ciphertext.
-#         Use it so that:
-#         a) xor(c1, c2) == xor(m1, m2) is False
-#         b) m1 sent twice, with two new values, gives two different ciphertexts
-#         c) your friend, who knows the key and the value, can decrypt c1
-# Hint: b"ab" + b"cd" == b"abcd"
+# Step 1 showed: one key gives one keystream.
+# Goal: keep ONE secret key, but get a different keystream for every message.
+
+
+def encrypt(key, m):
+    # TODO 2: make a new 3-byte value: n = random.randbytes(3)
+    #         It does not have to be secret: it travels in the open.
+    #         Use n with rc4 so that it changes the keystream.
+    #         Return the packet: n + c (first n, then the ciphertext c).
+    pass
+
+
+def decrypt(key, packet):
+    # TODO 3: take n from the first 3 bytes of the packet,
+    #         the ciphertext from the rest, and give back the message.
+    pass
+
+
+# TODO 4: check, print four lines:
+#   a) p1 = encrypt(key, m1) and p2 = encrypt(key, m2);
+#      xor of the ciphertext parts (packet[3:]) == xor(m1, m2)   should be False
+#   b) encrypt(key, m1) twice: are the two packets different?    should be True
+#   c) decrypt(key, p1)                                          b'Meet at noon.'
+#   d) attacker_learns_xor(p1, p2, m1, m2)                       should be False
+#      (a ready test: the attacker sees only the packets)
+# Hints: rc4 takes only two things: key and data.
+#        packet[0:3] = the first 3 bytes, packet[3:] = the rest.
+#        b"ab" + b"cd" == b"abcd"

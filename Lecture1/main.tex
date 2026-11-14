@@ -873,7 +873,6 @@ print(plaintext)
   \say{Kod sprawdzony: daje dokładnie Hello there. Warto pokazać jeden bajt: pierwszy bajt szyfrogramu XOR pierwszy bajt padu daje 0x48, czyli 72, czyli H.}
 \end{frame}
 
-
 \begin{frame}{The price of the one-time pad}
   \begin{center}
     \small One year of readings:\\[0.15cm]
@@ -1520,53 +1519,85 @@ print(rc4(key, m1) == rc4(key, m1))   # True
 
 \samedot
 \begin{frame}{Task 4, step 2: a public value}
-  \taskhead{Task 4, step 2}{Fix it, and keep \textbf{one} secret key. For every message, make a new value of 3 bytes:}
+  \taskhead{Task 4, step 2}{Step 1 showed: one key gives one keystream.
+    Goal: keep \textbf{one} secret key, but get a \textbf{different keystream} for every message.}
   \begin{columns}[T,onlytextwidth]
-    \column{0.6\textwidth}
+    \column{0.64\textwidth}
       \footnotesize
-      \begin{itemize}\setlength{\itemsep}{1pt}
-        \item it does not have to be secret,
-        \item it is sent in the open, together with the ciphertext,
-        \item it must change the ciphertext.
-      \end{itemize}
-      \textbf{Check:}
-      \begin{enumerate}[a)]\setlength{\itemsep}{0pt}\scriptsize
-        \item \texttt{xor(c1, c2) == xor(m1, m2)}\hfill should be \texttt{False}
-        \item \texttt{m1} sent twice, with two new values:\\ are the two ciphertexts different?\hfill should be \texttt{True}
-        \item your friend decrypts \texttt{c1} with the key and the value
-      \end{enumerate}
-    \column{0.36\textwidth}
+      \textbf{TODO 2}\ \ \texttt{encrypt(key, m)}: make a new 3-byte value \texttt{n = random.randbytes(3)},
+        use it with \texttt{rc4} so that it changes the keystream, return the packet \texttt{n + c}.\\[3pt]
+      \textbf{TODO 3}\ \ \texttt{decrypt(key, packet)}: take \texttt{n} from the first 3 bytes, give back the message.\\[3pt]
+      \textbf{TODO 4}\ \ check it: next slide.
+    \column{0.33\textwidth}
       \centering
       \begin{tikzpicture}
-        \envelope{a}{0,0}{c1}
-        \node[draw=nLine, thick, fill=white, rotate=-8, font=\ttfamily\scriptsize, text=nInk, inner sep=4pt] at (0.9,0.75) {3 bytes};
-        \draw[nInk, thick] (0.6,0.95) -- (0.55,0.6);
-        \node[font=\scriptsize, text=gray] at (0.2,-0.95) {a public note on the outside};
+        % the packet: the public value first, then the ciphertext
+        \node[draw=sAmber, thick, fill=white, minimum width=1.0cm, minimum height=0.6cm, font=\ttfamily\scriptsize] (n) at (0,0) {n};
+        \node[ctb, anchor=west, minimum width=2.4cm, minimum height=0.6cm, font=\ttfamily\scriptsize] (c) at (n.east) {c \ldots};
+        \node[font=\scriptsize, text=gray, anchor=south] at (n.north) {3 bytes, public};
+        \draw[decorate, decoration={brace, mirror, amplitude=4pt}, nInk] ([yshift=-0.08cm]n.south west) -- ([yshift=-0.08cm]c.south east)
+          node[midway, below=5pt, font=\scriptsize, text=nInk] {the packet: \texttt{n + c}};
       \end{tikzpicture}
   \end{columns}
-  \stepbox{Hint}{\texttt{random.randbytes(3)} gives 3 random bytes.\qquad \texttt{b"ab" + b"cd" == b"abcd"}}
+  \vfill
+  \stepbox{Hints}{\texttt{rc4} takes only two things: \texttt{key} and \texttt{data}.\qquad \texttt{b"ab" + b"cd" == b"abcd"}\\
+    \texttt{packet[0:3]} = the first 3 bytes,\ \ \texttt{packet[3:]} = the rest.}
   \keymsg{A public value, new for every message.}
-  \say{Około 4 minut. Nie podpowiadać, gdzie wpleść wartość; wystarczy przypomnieć, że rc4 ma tylko dwa argumenty: key i data.}
+  \say{Około 4 minut. Nie podpowiadać, gdzie wpleść n; wystarczy przypomnieć, że rc4 ma tylko dwa argumenty: key i data. Pakiet n + c ma ten sam kształt co pakiet WEP: jawna wartość przed szyfrogramem.}
+\end{frame}
+
+\samedot
+\begin{frame}{Task 4, step 2: check it}
+  \taskhead{Task 4, step 2}{\textbf{TODO 4}: when \texttt{encrypt} and \texttt{decrypt} are written, print four lines.}
+  \vfill
+  \begin{center}
+    \small
+    \renewcommand{\arraystretch}{1.5}
+    \begin{tabular}{l@{\quad}l@{\quad}l}
+      a) & \texttt{p1 = encrypt(key, m1)}\ \ and\ \ \texttt{p2 = encrypt(key, m2)} & \\
+         & \texttt{xor(p1[3:], p2[3:]) == xor(m1, m2)} & should be \texttt{False} \\
+      b) & \texttt{encrypt(key, m1)} twice: are the two packets different? & should be \texttt{True} \\
+      c) & \texttt{decrypt(key, p1)} & should be \texttt{b'Meet at noon.'} \\
+      d) & \texttt{attacker\_learns\_xor(p1, p2, m1, m2)} & should be \texttt{False} \\
+    \end{tabular}
+  \end{center}
+  \vfill
+  \begin{center}\footnotesize\textcolor{gray}{a) no shared keystream\qquad b) the same message looks different\qquad c) your friend can still read it\\[2pt]
+    d) is a ready test: the attacker sees only the packets.}\end{center}
+  \keymsg{Four checks, four expected answers.}
+  \say{Sprawdzenia mówią studentom, kiedy skończyli. Funkcja attacker\_learns\_xor jest gotowa w pliku: gra napastnika, który widzi tylko to, co leci w powietrzu, czyli dwa pakiety z jawnymi n. Próbuje prostych sztuczek, np. zdjąć jawne n XOR-em, i sprawdza, czy dostaje m1 XOR m2. Łapie rozwiązania, które tylko przebierają wiadomość: XOR n z wiadomością albo z szyfrogramem, n doklejone przed wiadomość. Takie rozwiązania przechodzą a), b) i c), ale w d) dają True.}
 \end{frame}
 
 \samedot
 \begin{frame}[fragile]{Solution, step 2: a public value}
-% CHECKED: Task4/solution/one_key.py prints False, True, b'Meet at noon.'
-\begin{lstlisting}[style=py, emph={rc4,xor,print}]
-n1 = random.randbytes(3)
-n2 = random.randbytes(3)
-c1 = rc4(n1 + key, m1)
-c2 = rc4(n2 + key, m2)
-print(xor(c1, c2) == xor(m1, m2))               # False
-print(rc4(n1 + key, m1) != rc4(n2 + key, m1))   # True
-print(rc4(n1 + key, c1))                        # b'Meet at noon.'
+  \begin{columns}[T,onlytextwidth]
+    \column{0.55\textwidth}
+% CHECKED: Task4/solution/one_key.py prints False, True, b'Meet at noon.', False (after True, True from step 1)
+\begin{lstlisting}[style=py, emph={rc4,xor,print,encrypt,decrypt}]
+def encrypt(key, m):
+    n = random.randbytes(3)
+    c = rc4(n + key, m)
+    return n + c
+
+def decrypt(key, packet):
+    n = packet[0:3]
+    c = packet[3:]
+    return rc4(n + key, c)
+p1 = encrypt(key, m1)
+p2 = encrypt(key, m2)
+print(xor(p1[3:], p2[3:]) == xor(m1, m2))  # False
+print(encrypt(key, m1) != encrypt(key, m1))  # True
+print(decrypt(key, p1))  # b'Meet at noon.'
+print(attacker_learns_xor(p1, p2, m1, m2))  # False
 \end{lstlisting}
-  \vspace{0.1cm}
-  \begin{center}\small RC4 has only one input, so the value has to go \textbf{into the key}.\end{center}
-  \defbox{\textbf{Nonce}: a public value, different for every message (``\textbf{n}umber used \textbf{once}'').}
-  \begin{center}\small Later today: what \textbf{Wi-Fi} did with exactly this idea.\end{center}
+    \column{0.42\textwidth}
+      \stepbox{The value goes into the key}{RC4 has only one input, so \texttt{n + key} is the RC4 key: a new \texttt{n} gives a new keystream.}
+      \defbox{\textbf{Nonce}: a public value, different for every message (``\textbf{n}umber used \textbf{once}'').}
+      {\small Later today: what \textbf{Wi-Fi} did with exactly this idea.}
+  \end{columns}
+  \vfill
   \keymsg{New nonce: new keystream, with no new secret.}
-  \say{Prawie wszyscy wymyślą nonce + key: zapisać na tablicy, kto jak to zrobił. Pułapka: jeśli ktoś XOR-ował wartość z wiadomością, test a) da False, ale napastnik zna obie wartości, więc dalej policzy m1 XOR m2. Wartość musi zmieniać keystream, a ten zależy tylko od klucza. Zdanie z dołu to zapowiedź: do pomysłu nonce + key wrócimy przy WEP, pod koniec sekcji o słabościach RC4.}
+  \say{Prawie wszyscy wymyślą nonce + key: zapisać na tablicy, kto jak to zrobił. Pułapka: ktoś może zXOR-ować n (powtórzone na długość wiadomości) z wiadomością, a klucz zostawić bez zmian. Taki kod przechodzi a), b) i c), ale n1 i n2 są jawne w pakietach, więc napastnik usuwa je XOR-em i dalej dostaje m1 XOR m2. Teraz łapie to sprawdzenie d): kto dostał tam True, niech powie, co zrobił. Zdany test d) to jednak nie dowód bezpieczeństwa, tylko brak prostych sztuczek; prawdziwy argument jest taki, że nowe n daje inny klucz RC4, a więc inny keystream. Zdanie z dołu to zapowiedź: do pomysłu nonce + key wrócimy przy WEP, pod koniec sekcji o słabościach RC4.}
 \end{frame}
 
 % an invoice on paper: \invoice{name}{position}{amount}
@@ -2791,88 +2822,6 @@ for _ in range(100_000):      # 100 000 random keys
   \say{To prawdziwy pomiar. Takie zliczanie, tylko dużo większe, stało za atakami na ciasteczka przeglądarek. Bez skrzywienia każda wartość pojawiałaby się około 390 razy.}
 \end{frame}
 
-\begin{frame}{WEP: RC4 in Wi-Fi}
-  \defbox{\textbf{WEP}: the first security standard for Wi-Fi (1997).}
-  \vfill
-  \begin{center}
-    \begin{tikzpicture}
-      \node[draw=sAmber, thick, fill=white, minimum width=2.4cm, minimum height=0.8cm, font=\small\bfseries] (iv) at (0,0) {IV {\normalfont\scriptsize(3 bytes)}};
-      \node[font=\large] at (1.65,0) {$+$};
-      \node[actorlight=sAmber, minimum width=4.6cm, minimum height=0.8cm, font=\small\bfseries] (k) at (4.4,0) {\faKey\ shared Wi-Fi key};
-      \node[font=\large] at (7.15,0) {$=$};
-      \node[actorlight=sAmber, minimum height=0.8cm, font=\small\bfseries] at (8.4,0) {\faKey\ RC4 key};
-      \node[font=\scriptsize, text=nInk, align=center, anchor=north] at (0,-0.5) {public, new\\for each packet};
-      \node[font=\scriptsize, text=nInk, align=center, anchor=north] at (4.4,-0.5) {the same\\for everybody};
-    \end{tikzpicture}
-  \end{center}
-  \vfill
-  \defbox{\textbf{IV}: initialisation vector. A nonce, under another name.}
-  \begin{center}\small This is exactly your fix from Task 4: \textbf{nonce + key}. Is gluing the nonce to the key a good idea?\end{center}
-  \keymsg{WEP built a new RC4 key for every packet.}
-  \say{To dokładnie wasz pomysł z Task 4: wrócić do tego, co zapisaliśmy wtedy na tablicy. Pytanie z dołu zostawić otwarte: odpowiedź dają dwa następne slajdy. Pomysł rozsądny, wykonanie katastrofalne. (IV ma białe tło: jest jawny; klucz sieci jest tajny.)}
-\end{frame}
-
-\samedot
-\begin{frame}{WEP, problem 1: the IV repeats}
-  \begin{columns}[c,onlytextwidth]
-    \column{0.42\textwidth}
-      \centering
-      \begin{tikzpicture}
-        \draw[container] (-0.3,-0.35) rectangle (4.35,2.45);
-        \node[font=\scriptsize\bfseries, text=nInk, anchor=north west] at (-0.25,2.42) {23 people};
-        \foreach \k in {0,...,22} {
-          \pgfmathtruncatemacro{\r}{\k/6}\pgfmathtruncatemacro{\c}{mod(\k,6)}
-          \node[text=nInk, font=\large] (p\k) at ({0.72*\c+0.15},{1.7-0.62*\r}) {\faUser};
-        }
-        \draw[annot] (p8.south west) rectangle (p8.north east);
-        \draw[annot] (p19.south west) rectangle (p19.north east);
-        \node[font=\scriptsize\bfseries, text=AccentOrange] at (2.0,-0.75) {two with the same birthday};
-      \end{tikzpicture}
-    \column{0.55\textwidth}
-      \defbox{\textbf{The birthday effect}: in a room of 23 people, two share a birthday with a chance of about 50\%. Repeats come much sooner than we expect.}
-  \end{columns}
-  \vfill
-  \begin{center}
-    % CHECKED: 2**24 = 16 777 216; 50% after about sqrt(2 ln 2 * 2**24) = 4 823 packets
-    \small
-    \begin{tabular}{ll}
-      IV has 3 bytes: & 16\,777\,216 possible values \\
-      random IVs: & about 50\% chance of a repeat after only about \textbf{4\,800 packets} \\
-    \end{tabular}
-  \end{center}
-  \vfill
-  \keymsg{Repeated IV means repeated keystream.}
-  \say{A powtórka IV to ponowne użycie keystreamu, czyli dokładnie ten sam błąd co wcześniej. Wasza wartość w Task 4 też miała 3 bajty.}
-\end{frame}
-
-\samedot
-\begin{frame}{WEP, problem 2: the key leaks}
-  \vfill
-  \begin{center}\small The public IV is the \textbf{first part} of the RC4 key.\\
-    The first keystream bytes depend strongly on the first key bytes.\end{center}
-  \vfill
-  \begin{center}
-    \begin{tikzpicture}[>=Stealth]
-      \foreach \k in {0,...,4} {
-        \begin{scope}[shift={(0,{0.9-0.45*\k})}]
-          \draw[nLine, thick, fill=white] (0,0) rectangle (2.6,0.38);
-          \draw[sAmber, thick, fill=white] (0.04,0.04) rectangle (0.7,0.34);
-          \node[font=\tiny\bfseries, text=nInk] at (0.37,0.19) {IV};
-          \fill[sBrown!25] (0.78,0.04) rectangle (2.56,0.34);
-        \end{scope}
-      }
-      \node[font=\scriptsize, text=nInk, anchor=north] at (1.3,-0.95) {collect enough packets};
-      \draw[data, line width=1.6pt] (3.0,0) -- (6.0,0) node[midway, above, font=\scriptsize] {compute};
-      \node[actorlight=sAmber, minimum height=0.9cm, font=\small\bfseries] at (7.6,0) {\faKey\ the shared key};
-    \end{tikzpicture}
-  \end{center}
-  \vfill
-  \begin{center}\small Fluhrer, Mantin, Shamir, 2001.\end{center}
-  \vfill
-  \keymsg{The attacker recovers the key itself.}
-  \say{Tu nie chodzi już tylko o odczyt: napastnik dostaje klucz sieci. To ta sama słabość, którą zmierzyliście w Task 7: S pamięta początek klucza, a w WEP początek klucza to jawny IV.}
-\end{frame}
-
 \begin{frame}{RC4 has no nonce}
   \vfill
   \begin{center}
@@ -2891,37 +2840,236 @@ for _ in range(100_000):      # 100 000 random keys
     \end{tikzpicture}
   \end{center}
   \vfill
-  \begin{center}\small RC4 takes only a key. Everyone must invent how to add a nonce.\\
-    WEP glued it in front of the key, and that was the mistake.\end{center}
+  \begin{center}\small RC4 takes only a key.\\
+    So everybody has to glue the nonce in somewhere, like you in Task 4.\end{center}
   \vfill
   \mistaketag{3}%
   \keymsg{RC4 makes the dangerous thing the easy thing.}
-  \say{Nonce wymyśliliście sami w Task 4, a WEP zrobił dokładnie to samo. To trzeci błąd RC4: brak wejścia na nonce, więc bezpieczne użycie nie jest tym najłatwiejszym.}
+  \say{To trzeci błąd RC4: brak wejścia na nonce, więc bezpieczne użycie nie jest tym najłatwiejszym. Każdy protokół musi dokleić nonce po swojemu, tak jak wy w Task 4. Następny slajd pokazuje, jak zrobiło to Wi-Fi.}
 \end{frame}
 
 \samedot
-\begin{frame}{How others added a nonce}
-  \begin{center}\small RC4 takes only a key. Every protocol had to add the nonce its own way.\end{center}
-  \vspace{-0.2cm}
+\begin{frame}{WEP: RC4 in Wi-Fi}
+  \defbox{\textbf{WEP}: the first security standard for Wi-Fi (1997).}
+  \vfill
   \begin{center}
-    \footnotesize
-    \renewcommand{\arraystretch}{1.25}
-    \begin{tabular}{l p{5.4cm} l}
-      \toprule
-      WEP (1997) & nonce + key & \nok\ broken: the nonce repeats, the key leaks \\
-      \midrule
-      WPA (2003), TKIP mode & key, sender address and a packet counter, mixed into a new RC4 key for every packet & a quick fix for WEP, still RC4 inside \\
-      \midrule
-      TLS & a new RC4 key for every connection, one long keystream for the whole talk & worked for years, until the biases \\
-      \bottomrule
+    \begin{tikzpicture}[>=Stealth]
+      \node[draw=sAmber, thick, fill=white, minimum width=2.9cm, minimum height=0.95cm, font=\normalsize\bfseries] (iv) at (0,0) {IV {\normalfont\footnotesize(3 bytes)}};
+      \node[font=\Large] at (1.95,0) {$+$};
+      \node[actorlight=sAmber, minimum width=5.0cm, minimum height=0.95cm, font=\normalsize\bfseries] (k) at (4.95,0) {\faKey\ shared Wi-Fi key};
+      \node[font=\Large] at (7.95,0) {$=$};
+      \node[actorlight=sAmber, minimum height=0.95cm, font=\normalsize\bfseries] at (9.4,0) {\faKey\ RC4 key};
+      \node[font=\footnotesize, text=nInk, align=center, anchor=north] at (0,-0.6) {IV = a nonce: public,\\new for each packet};
+      \node[font=\footnotesize, text=nInk, align=center, anchor=north] at (4.95,-0.6) {secret, and the same\\for everybody};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small Wi-Fi glued it exactly like you in Task 4: \textbf{IV + key}. Is it a good idea?\end{center}
+  \vfill
+  \keymsg{The public IV becomes the first part of the RC4 key.}
+  \say{Wi-Fi zrobiło dokładnie to, co wy w Task 4: wrócić do tego, co zapisaliśmy wtedy na tablicy. Pytanie z dołu zostawić otwarte: odpowiedź dają następne slajdy. Pomysł rozsądny, wykonanie katastrofalne. (IV ma białe tło: jest jawny; klucz sieci jest tajny.)}
+\end{frame}
+
+% one row: \weprow{y}{number}{IV}{keystream bytes}{ciphertext bytes}
+\newcommand{\weprow}[5]{%
+  \begin{scope}[shift={(0,#1)}]
+    \node[font=\tiny\bfseries, text=nInk, anchor=east] at (-0.08,0) {packet #2};
+    \node[draw=sAmber, thick, fill=white, minimum width=1.15cm, minimum height=0.42cm, inner sep=1pt, font=\ttfamily\tiny, anchor=west] (iv) at (0,0) {#3};
+    \node[actorlight=sAmber, minimum width=0.5cm, minimum height=0.42cm, inner sep=1pt, font=\tiny, anchor=west] (kk) at (iv.east) {\faKey};
+    \draw[data] (kk.east) -- (2.1,0);
+    \node[hwmain, minimum width=0.95cm, minimum height=0.42cm, inner sep=1pt, font=\tiny\bfseries, text=white] at (2.6,0) {RC4 \faRedo};
+    \draw[data] (3.1,0) -- (3.42,0);
+    \byterow{3.7}{0}{ksb, cell, font=\ttfamily\tiny}{#4}{0.48}
+    \node[font=\small] at (5.65,0) {$\oplus$};
+    \byterow{5.95}{0}{ptb, cell, font=\ttfamily\tiny}{AA,AA,03,00}{0.48}
+    \draw[radio] (7.72,0) -- (8.62,0);
+    \node[draw=sAmber, thick, fill=white, minimum width=1.15cm, minimum height=0.42cm, inner sep=1pt, font=\ttfamily\tiny, anchor=west] at (8.75,0) {#3};
+    \byterow{10.15}{0}{ctb, cell, font=\ttfamily\tiny}{#5}{0.48}
+    \node[font=\tiny, text=nInk] at (12.1,0) {\ldots};
+  \end{scope}}
+\samedot
+\begin{frame}{WEP, packet by packet}
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth, cell/.style={minimum width=0.44cm, minimum height=0.42cm, inner sep=0pt}]
+      % CHECKED (python3, RC4): key 1F 8A 3C 77 D2, plaintext starts AA AA 03 00
+      %   IV 4F 12 A0: keystream EC 56 B2 AC, ciphertext 46 FC B1 AC
+      %   IV 9C 03 7E: keystream 92 E3 B7 18, ciphertext 38 49 B4 18
+      %   IV 21 E8 55: keystream 8E 0F 1D 42, ciphertext 24 A5 1E 42
+      \draw[container] (-1.25,-2.45) rectangle (7.85,1.05);
+      \node[actor=sIndigo, anchor=north west] at (-1.15,0.95) {\faLaptop\ THE SENDER COMPUTES};
+      \draw[container] (8.68,-2.45) rectangle (12.45,1.05);
+      \node[actor=nInk, anchor=north west] at (8.78,0.95) {\faBroadcastTower\ IN THE AIR};
+      \node[font=\tiny, text=gray] at (0.82,0.2) {RC4 key};
+      \node[font=\tiny, text=gray] at (4.42,0.2) {keystream};
+      \node[font=\tiny, text=gray] at (6.67,0.2) {plaintext};
+      \node[font=\tiny, text=gray] at (10.55,0.2) {the packet};
+      \weprow{-0.25}{1}{4F 12 A0}{EC,56,B2,AC}{46,FC,B1,AC}
+      \weprow{-0.87}{2}{9C 03 7E}{92,E3,B7,18}{38,49,B4,18}
+      \weprow{-1.49}{3}{21 E8 55}{8E,0F,1D,42}{24,A5,1E,42}
+      \node[font=\scriptsize, text=nInk] at (3.3,-2.05) {\faRedo\ = RC4 starts from zero for every packet};
+      \node[font=\scriptsize, text=nInk, align=center] at (10.56,-2.05) {IV in the open,\\the key is never sent};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small New IV $\rightarrow$ new RC4 key $\rightarrow$ a completely different keystream, from its first byte.\\[2pt]
+    \textcolor{gray}{Why restart? Packets get lost in the air; a running keystream would lose its place.}\end{center}
+  \vfill
+  \keymsg{WEP builds a new RC4 key for every packet.}
+  \say{Ten sam tekst jawny (każdy pakiet zaczyna się od AA AA 03 00) daje trzy zupełnie różne szyfrogramy, bo IV jest inny. Ramki w radiu giną, więc WEP uruchamia RC4 od nowa dla każdej ramki: zgubiona ramka nie rozsynchronizuje następnych. W TLS było inaczej: RC4 szedł jednym strumieniem przez całe połączenie, bo TCP pilnuje kolejności i niczego nie gubi. Następne slajdy: co się dzieje, gdy IV się powtórzy.}
+\end{frame}
+
+\samedot
+\begin{frame}{WEP, problem 1: the IV repeats}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      % many packets before and between: faded dots
+      \node[font=\normalsize, text=gray] at (0.85,1.55) {$\vdots$};
+      \node[font=\scriptsize, text=gray, anchor=west] at (1.9,1.55) {packets 1 to 16};
+      \node[font=\normalsize, text=gray] at (0.85,0.02) {$\vdots$};
+      \node[font=\scriptsize, text=gray, anchor=west] at (1.9,0.02) {4\,193 other packets};
+      \foreach \n/\len/\y [count=\i] in {{packet 17}/3.4/0.75, {packet 4\,211}/2.4/-0.75} {
+        \node[font=\scriptsize\bfseries, text=nInk, anchor=east] at (-0.1,\y) {\n};
+        \node[draw=sAmber, thick, fill=white, minimum width=1.7cm, minimum height=0.48cm, font=\ttfamily\scriptsize, anchor=west] (w\i) at (0,\y) {9C 03 7E};
+        \node[ctb, minimum width=\len cm, minimum height=0.48cm, anchor=west, font=\scriptsize] (d\i) at (w\i.east) {ciphertext};
+        \draw[annot] ([shift={(-0.07,0.07)}]w\i.north west) rectangle ([shift={(0.07,-0.07)}]w\i.south east);
+      }
+      \draw[decorate, decoration={brace, amplitude=5pt}, thick, nInk] (5.4,1.05) -- (5.4,-1.05);
+      \node[font=\small, text=nInk, anchor=west, align=left] at (5.65,0.12)
+        {same IV $\Rightarrow$ same RC4 key $\Rightarrow$ \textbf{same keystream}};
+      \node[font=\scriptsize, text=gray, anchor=west] at (5.65,-0.45) {(the sensor after the battery change, again)};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small The IV has 3 bytes: only $2^{24} = 16\,777\,216$ possible values.\\[3pt]
+    With random IVs, how many packets until one repeats?\end{center}
+  \vfill
+  \keymsg{Repeated IV means repeated keystream.}
+  \say{A powtórka IV to ponowne użycie keystreamu, czyli dokładnie ten sam błąd co wcześniej, tylko automatycznie. Wasza wartość w Task 4 też miała 3 bajty. Zapytać salę, ile pakietów trzeba, zanim IV się powtórzy: większość powie ,,miliony''.}
+\end{frame}
+
+\samedot
+\begin{frame}{How soon do repeats come?}
+  \begin{columns}[c,onlytextwidth]
+    \column{0.36\textwidth}
+      \centering
+      \begin{tikzpicture}[scale=0.85, transform shape]
+        \draw[container] (-0.3,-0.35) rectangle (4.35,2.45);
+        \node[font=\scriptsize\bfseries, text=nInk, anchor=north west] at (-0.25,2.42) {23 people};
+        \foreach \k in {0,...,22} {
+          \pgfmathtruncatemacro{\r}{\k/6}\pgfmathtruncatemacro{\c}{mod(\k,6)}
+          \node[text=nInk, font=\large] (p\k) at ({0.72*\c+0.15},{1.7-0.62*\r}) {\faUser};
+        }
+        \draw[annot] (p8.south west) rectangle (p8.north east);
+        \draw[annot] (p19.south west) rectangle (p19.north east);
+        \node[font=\scriptsize\bfseries, text=AccentOrange] at (2.0,-0.75) {two with the same birthday};
+      \end{tikzpicture}
+    \column{0.6\textwidth}
+      \defbox{\textbf{The birthday effect}: among 23 people, two share a birthday with a chance of about 50\%. Repeats come much sooner than we expect.}
+  \end{columns}
+  \vfill
+  \begin{center}
+    % CHECKED (python3): sqrt(2 ln 2) = 1.1774; 1.1774*sqrt(365) = 22.5; 1.1774*4096 = 4823;
+    %   23 people, exact product: 1 - (1-0/365)(1-1/365)...(1-22/365) = 0.5073
+    %   2**24 = 16 777 216; 50% after about sqrt(2 ln 2 * 2**24) = 4 823 packets
+    \small With $N$ possible values, repeats start after about\quad
+      $\boldsymbol{n \approx 1.18 \cdot \sqrt{N}}$\ \ tries\quad \textcolor{gray}{(rule of thumb: about $\sqrt{N}$)}\\[3pt]
+    {\footnotesize\textcolor{gray}{Why? $n$ packets make about $n^2/2$ pairs; each pair repeats with chance $1/N$; so repeats come when $n^2 \approx N$.}}\\[4pt]
+    \renewcommand{\arraystretch}{1.5}
+    \begin{tabular}{lll}
+      birthdays & $N = 365$ & $n \approx 1.18 \cdot 19.1 \approx$ \textbf{23 people} \\
+      WEP IV & $N = 2^{24}$ & $n \approx 1.18 \cdot 4\,096 \approx$ \textbf{4\,800 packets}\ \ \textcolor{gray}{\scriptsize(one packet = one run of RC4)} \\
     \end{tabular}
   \end{center}
-  \scriptsize
-  \textbf{WPA}: the fix for WEP in Wi-Fi.\quad \textbf{TKIP}: the mode of WPA that still uses RC4.\\
-  \textbf{TLS}: the protocol that protects the connection between your browser and a website.
   \vfill
-  \keymsg{No nonce input: everyone builds it differently, and some get it wrong.}
-  \say{WEP to wasz pomysł z Task 4. TKIP: klucz każdego pakietu powstaje przez wymieszanie klucza z adresem nadawcy i 48-bitowym licznikiem pakietów; licznik się nie powtarza, a klucz pakietu nie ma już jawnego początku. TLS: na początku połączenia obie strony wymieniają jawne liczby losowe i z nich oraz wspólnego sekretu powstaje nowy klucz RC4, osobny dla każdego kierunku; kolejne wiadomości biorą dalsze bajty tego samego keystreamu. Te jawne liczby losowe pełnią rolę nonce. TLS nie padło przez nonce, tylko przez skrzywienia, które mierzyliśmy w Task 8.}
+  \keymsg{3 bytes of IV: repeats after a few thousand packets.}
+  \say{Dokładny wzór: n = pierwiastek z (2 ln 2 razy N), stąd 1,18. Dla dociekliwych: szansa powtórki po n próbach to około 1 minus e do potęgi (minus n kwadrat przez 2N). W pamięci wystarczy ,,około pierwiastek z N'': dla 3 bajtów to 4096, czyli kilka tysięcy pakietów. Wyprowadzenie, gdyby ktoś pytał: szansa, że w n próbach nic się nie powtórzy, to $(1 - 1/N)(1 - 2/N)\cdots(1 - (n-1)/N)$. Dla małych x jest $1 - x \approx e^{-x}$, więc ten iloczyn to około $e^{-n(n-1)/(2N)} \approx e^{-n^2/(2N)}$. Przyrównujemy do jednej drugiej: $n^2/(2N) = \ln 2$, czyli $n = \sqrt{2 \ln 2 \cdot N} \approx 1{,}177 \cdot \sqrt{N}$. Sprawdzenie: dla 23 osób dokładny iloczyn daje szansę powtórki około 50,7\%.}
+\end{frame}
+
+\samedot
+\begin{frame}[fragile]{Try it: two packets, one IV}
+  \begin{center}\small Run the attack on 6\,000 captured packets. It finds two with the same IV and reads the secret one.\end{center}
+  \vfill
+  \begin{semiverbatim}\footnotesize\color{nInk}
+\textbf{\$ python3 attack.py}
+captured 6000 packets
+known packet has IV 9c 03 7e and known plaintext:
+    status: the printer is online and ready
+found a second packet with the same IV: packet 2100
+decrypted the second packet:
+    \textcolor{AccentOrange}{the door code is 2580}
+  \end{semiverbatim}
+  \vfill
+  \begin{center}\small Ready to run from \ghlink{example1}. No network: the packets are simulated from a fixed seed.\end{center}
+  \keymsg{A repeated IV reveals a whole message, with no key.}
+  \say{Uruchomić na żywo. To ten sam atak co w sekcji o ponownym użyciu keystreamu, tylko na przechwyconym ruchu WEP. Keystream z pakietu o znanej treści odszyfrowuje inny pakiet z tym samym IV.}
+\end{frame}
+
+\samedot
+\begin{frame}{WEP, problem 2: the key leaks}
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      % IN: the RC4 key = public IV + secret Wi-Fi key
+      \node[font=\scriptsize\bfseries, text=gray] at (1.75,1.25) {IN: the RC4 key};
+      \node[draw=sAmber, thick, fill=white, minimum width=1.6cm, minimum height=1.0cm, align=center, font=\scriptsize] (iv) at (0.8,0.3)
+        {\textbf{IV}\\ \textcolor{sTealText}{\faCheck\ KNOWN}\\[-1pt]{\tiny (public)}};
+      \node[actorlight=sAmber, minimum width=1.9cm, minimum height=1.0cm, align=center, font=\scriptsize] (key) at (2.55,0.3)
+        {\faKey\ \textbf{Wi-Fi key}\\ \textcolor{AccentOrange}{\textbf{SECRET ?}}};
+      % the mixer
+      \node[hwmain, minimum width=2.4cm, minimum height=1.1cm, align=center, font=\small\bfseries, text=white] (rc4) at (6.0,0.3)
+        {\faCogs\ RC4\\[-1pt]{\scriptsize\normalfont mixes badly}};
+      \node[font=\tiny\bfseries, text=AccentOrange] at (6.0,-0.45) {(RC4 mistake 1/3)};
+      \draw[data, line width=1.4pt] (3.55,0.3) -- (rc4.west);
+      % OUT: the keystream, first byte known
+      \node[font=\scriptsize\bfseries, text=gray] at (9.9,1.25) {OUT: the keystream};
+      \node[ksb, minimum width=1.6cm, minimum height=1.0cm, align=center, font=\scriptsize] (z1) at (9.2,0.3)
+        {\textbf{first byte}\\ \textcolor{sTealText}{\faCheck\ KNOWN}};
+      \foreach \k in {0,1} \node[ksb, minimum width=0.6cm, minimum height=1.0cm] at ({10.45+0.65*\k},0.3) {};
+      \node[font=\small, text=nInk] at (11.85,0.3) {\ldots};
+      \node[font=\tiny, text=nInk, anchor=west] at (9.45,-0.45) {= ciphertext XOR AA};
+      \draw[data, line width=1.4pt] (rc4.east) -- (z1.west);
+      % the weak link
+      \draw[->, very thick, AccentOrange, dashed] (z1.south) .. controls (9.2,-1.6) and (2.55,-1.6) .. (key.south);
+      \node[font=\scriptsize\bfseries, text=AccentOrange, fill=white, inner sep=2pt] at (5.9,-1.25)
+        {a weak link: the output still remembers the input};
+    \end{tikzpicture}
+  \end{center}
+  \vspace{-4pt}
+  \begin{center}\small
+    A good cipher: knowing part of the input and part of the output tells \textbf{nothing} about the secret part.\\
+    RC4: it tells \textbf{a little}. WEP hands the attacker this situation in \textbf{every packet}, with a new IV each time.\\
+    Thousands of packets: the secret key, byte by byte.\\[3pt]
+    {\scriptsize\textcolor{gray}{Fluhrer, Mantin, Shamir, 2001. Later attacks: about 40\,000 packets.}}
+  \end{center}
+  \keymsg{A public value straight into a weak mixer: the output gives the key away.}
+  % CHECKED: python3 FMS simulation, key 1F 8A 3C 77 D2, IVs (3, 255, x) for x = 0..255:
+  %   254 IVs pass the condition, votes: 1F 11, 85 6, 95 4, 91 4; exp(-3) = 0.0498
+  \say{Idea bez wzorów: wejście RC4 jest w połowie jawne (IV), wyjście w kawałku jawne (pierwszy bajt keystreamu, bo każdy pakiet zaczyna się od nagłówka SNAP z bajtem AA). Dobry szyfr nie zdradziłby nic o tajnej części; RC4 zdradza trochę, bo KSA słabo miesza (Task 7: S pamięta klucz). To błąd RC4 numer 1. Szczegóły, gdyby ktoś pytał: napastnik sam wykonuje trzy pierwsze kroki KSA, bo zna IV, więc zna S oraz j; czwarty krok miesza pierwszy tajny bajt K[0]. Dla słabych IV, np. (3, 255, x), pierwszy bajt keystreamu w około 5\% pakietów zdradza j z tego kroku, a wtedy K[0] = j3 $-$ j2 $-$ S[3]. Każdy pakiet ,,głosuje'' na jedną wartość K[0]; w symulacji z kluczem 1F 8A 3C 77 D2 wygrywa 1F z 11 głosami (kolejne mają 6, 4, 4). Potem tak samo K[1], K[2] i dalej. Ruch napastnik generuje sam: przechwycony pakiet ARP wysyła do sieci w kółko, a każda odpowiedź to nowy pakiet z nowym IV. Tu nie chodzi już tylko o odczyt: napastnik dostaje klucz sieci.}
+\end{frame}
+
+
+
+
+
+\samedot
+\begin{frame}[fragile]{Try it: the key leaks}
+  \begin{center}\small Run the attack on weak-IV packets. Each packet votes; the real key wins, byte by byte.\end{center}
+  \vfill
+  \begin{semiverbatim}\footnotesize\color{nInk}
+\textbf{\$ python3 attack.py}
+captured 15000 packets with weak IVs
+
+K[0]: top guesses  \textcolor{AccentOrange}{1F} (147 votes), 85 (76), 95 (59)
+K[1]: top guesses  \textcolor{AccentOrange}{8A} (96 votes), 5C (66), 92 (59)
+\ \ \ ...
+recovered key: \textcolor{AccentOrange}{1f 8a 3c 77 d2}
+real key:      1f 8a 3c 77 d2
+match: True
+  \end{semiverbatim}
+  \vfill
+  \begin{center}\small Ready to run from \ghlink{example2}. \texttt{fms\_guess} is a black box: the votes are the point.\end{center}
+  \keymsg{Thousands of weak packets vote; the whole key falls out.}
+  \say{Uruchomić na żywo. Każdy słaby pakiet oddaje jeden głos, w większości zły; prawidłowy bajt wygrywa. Program odzyskuje cały klucz i porównuje go z prawdziwym. fms\_guess jest gotowy, studenci nie muszą go rozumieć.}
 \end{frame}
 
 % ======================================================================
@@ -2929,22 +3077,30 @@ for _ in range(100_000):      # 100 000 random keys
 % ======================================================================
 
 \begin{frame}{Where RC4 lived}
-  \vfill
+  \begin{center}\small \textbf{Why RC4?} Simple, fast, needs no special hardware.\\
+    But it takes only a key, so every protocol added the nonce its own way.\end{center}
+  \vspace{-0.25cm}
   \begin{center}
-    \small
-    \renewcommand{\arraystretch}{1.7}
-    \begin{tabular}{c l l}
-      \textcolor{nInk}{\Large\faWifi} & \textbf{WEP} & the first Wi-Fi security \\
-      \textcolor{nInk}{\Large\faWifi} & \textbf{WPA} & the quick fix for WEP, still RC4 inside (TKIP mode) \\
-      \textcolor{nInk}{\Large\faLock} & \textbf{SSL / TLS} & the padlock in your browser (SSL is the old name) \\
-      \textcolor{nInk}{\Large\faDesktop} & \textbf{RDP}, old & Windows remote desktop \\
+    \footnotesize
+    \renewcommand{\arraystretch}{1.15}
+    \begin{tabular}{c l >{\raggedright\arraybackslash}p{5.4cm} >{\raggedright\arraybackslash}p{4.2cm}}
+      \toprule
+      & \textbf{where} & \textbf{how the nonce got in} & \textbf{result} \\
+      \midrule
+      \textcolor{nInk}{\large\faWifi} & \textbf{WEP} (1997) & IV + key & \nok\ broken (we just saw it) \\
+      \textcolor{nInk}{\large\faWifi} & \textbf{WPA} / TKIP (2003) & key, sender address and a packet counter, mixed into a new RC4 key for every packet & a quick fix for WEP, still RC4 inside \\
+      \textcolor{nInk}{\large\faLock} & \textbf{SSL / TLS} & a new RC4 key for every connection, one long keystream for the whole connection & worked for years, until the biases \\
+      \textcolor{nInk}{\large\faDesktop} & \textbf{RDP}, old & a new RC4 key for every session, renewed every 4\,096 packets & replaced by TLS in newer versions \\
+      \bottomrule
     \end{tabular}
   \end{center}
-  \vfill
-  \stepbox{Why RC4?}{Simple, fast, needs no special hardware.}
+  \scriptsize
+  \textbf{WPA}: the fix for WEP in Wi-Fi.\quad \textbf{TKIP}: the mode of WPA that still uses RC4.\quad
+  \textbf{RDP}: Windows remote desktop.\\
+  \textbf{TLS}: the protocol behind the padlock in your browser (SSL is its old name).
   \vfill
   \keymsg{For years, RC4 was everywhere.}
-  \say{Każdą nazwę wyjaśnić jednym zdaniem.}
+  \say{Każdą nazwę wyjaśnić jednym zdaniem. Brak wejścia na nonce: każdy zbudował je inaczej, a niektórzy źle. TKIP: klucz każdego pakietu powstaje przez wymieszanie klucza z adresem nadawcy i 48-bitowym licznikiem pakietów; licznik się nie powtarza, a klucz pakietu nie ma już jawnego początku. TLS: na początku połączenia obie strony wymieniają jawne liczby losowe i z nich oraz wspólnego sekretu powstaje nowy klucz RC4, osobny dla każdego kierunku; kolejne wiadomości biorą dalsze bajty tego samego keystreamu. Te jawne liczby losowe pełnią rolę nonce. TLS nie padło przez nonce, tylko przez skrzywienia, które mierzyliśmy w Task 9. Stare RDP: klucz RC4 z liczb losowych obu stron, odnawiany co 4096 pakietów.}
 \end{frame}
 
 \samedot
