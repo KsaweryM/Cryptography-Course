@@ -1,14 +1,17 @@
+# Task 1: use ChaCha20.
+# chacha.py is ready: chacha20(key, nonce, counter, data). The data is from RFC 8439, section 2.4.2.
 from chacha import chacha20
 
-key = bytes.fromhex("c0ffee00" * 8)              # 32 bytes
-nonce = bytes.fromhex("0000004a0000000000000007")   # 12 bytes
+key   = bytes(range(32))
+nonce = bytes.fromhex("000000000000004a00000000")
 ciphertext = bytes.fromhex(
-    "36323fcd0cbf7202049805976e0d4afda0a2bc36"
-    "3f02eea05b49125427ad01f9709e3275ef98d8"
+    "6e2e359a2568f98041ba0728dd0d6981e97e7aec1d4360c2"
+    "0a27afccfd9fae0bf91b65c5524733ab8f593dabcd62b357"
+    "1639d624e65152ab8f530c359f0861d807ca0dbf500d6a61"
+    "56a38e088a22b65e52bc514d16ccf806818ce91ab7793736"
+    "5af90bbf74a35be6b40b8eedf2785e42874d"
 )
 
-# TODO 1: decrypt the ciphertext with
-#         chacha20(key, nonce, counter, data).
-#         The message was encrypted starting with counter 1.
+# TODO 1: decrypt the ciphertext with counter 1
 
-# TODO 2: print the plaintext as text: plaintext.decode()
+# TODO 2: print the message
