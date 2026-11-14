@@ -6,7 +6,6 @@
 #   make 3 5             build several presentations
 #   make rebuild-4       build one presentation from scratch, even if nothing changed
 #   make rebuild         build all presentations from scratch
-#   make notes           also build the speaker notes (Polish, kept locally, in Lecture*/)
 #   make list            show the available lectures
 #   make clean-4         remove the auxiliary files and the PDFs of one presentation
 #   make clean           remove auxiliary files and PDFs
@@ -22,7 +21,7 @@ name   = $(strip $(shell sed -n 's/^NAME *:= *//p' $(1)/Makefile))
 NUMBERS := $(foreach l,$(LECTURES),$(call number,$(l)))
 PDFS    := $(foreach l,$(LECTURES),$(PDF)/$(call name,$(l)).pdf)
 
-.PHONY: all notes list rebuild clean FORCE $(NUMBERS) $(NUMBERS:%=rebuild-%) $(NUMBERS:%=clean-%)
+.PHONY: all list rebuild clean FORCE $(NUMBERS) $(NUMBERS:%=rebuild-%) $(NUMBERS:%=clean-%)
 
 all: $(PDFS)
 
@@ -46,9 +45,6 @@ endef
 $(foreach l,$(LECTURES),$(eval $(call LECTURE_RULES,$(l))))
 
 FORCE:
-
-notes:
-	@$(foreach l,$(LECTURES),{ [ ! -f $(l)/notes.tex ] || $(MAKE) --no-print-directory -C $(l) notes; } &&) true
 
 rebuild:
 	$(MAKE) clean
