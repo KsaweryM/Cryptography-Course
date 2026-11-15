@@ -18,3 +18,22 @@ python3 second_byte.py
 ```
 
 Python 3, no extra libraries. The random seed is fixed, so every run prints the same numbers.
+
+## Expected output
+
+```
+$ python3 remember.py
+100000 random keys: first output byte == key[0] ?
+  RC4      S[0] == key[0]          36.75%
+  ChaCha20 first byte == key[0]     0.40%
+  chance                            0.39%
+
+$ python3 second_byte.py
+100000 random keys: how often is the second keystream byte 0 ?
+  RC4       0.78%   (779 keys)
+  ChaCha20  0.36%   (362 keys)
+  chance    0.39%
+```
+
+RC4 remembers the first key byte and makes the second byte 0 twice too often.
+ChaCha20 looks like chance in both.

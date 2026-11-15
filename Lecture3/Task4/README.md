@@ -1,6 +1,9 @@
 # Task 4: your own RSA
 
-`my_rsa.py` gives two primes p and q and the public exponent e = 65537. Fill in the `TODO`s:
+Goal: make your own RSA key from two primes, then encrypt and decrypt the number 2026.
+
+`my_rsa.py` gives two primes p and q (about 20 digits each, so that the result fits on the screen)
+and the public exponent e = 65537. Fill in the `TODO`s:
 
 1. n = p · q
 2. phi = (p - 1)(q - 1)
@@ -17,3 +20,12 @@ python3 my_rsa.py
 ```
 
 Python 3.8 or newer (for `pow(e, -1, phi)`), no extra libraries.
+
+## Expected output
+
+```
+n = 2221701454780507748530735154427775990789
+d = 1367151349159148221410861819858768950381
+C = 736246060401132335090489988934276767570
+P = 2026
+```

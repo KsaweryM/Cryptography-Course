@@ -14,7 +14,6 @@
 \usepackage{colortbl}
 \usepackage{xcolor}
 \usepackage{fontawesome5}
-\usepackage{listings}
 \usepackage{etoolbox}
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta, calc, positioning, fit, decorations.pathreplacing, decorations.pathmorphing}
@@ -144,54 +143,31 @@
     \footnotesize\textbf{\textcolor{AccentOrange}{\faExclamationTriangle}\ #1}\\ #2
   \end{beamercolorbox}\vspace{0.06cm}}
 
-% ---------- code: dark window, grey dots, syntax colours ----------
-\definecolor{VSDarkBg}{RGB}{25,25,25}
-\definecolor{VSText}{RGB}{245,245,245}
-\definecolor{VSBlue}{RGB}{80,180,255}
-\definecolor{VSPurple}{RGB}{210,110,210}
-\definecolor{VSString}{RGB}{255,140,80}
-\definecolor{VSComment}{RGB}{80,220,80}
-\setbeamercolor{vscodelisting}{bg=VSDarkBg}
-\lstdefinestyle{code}{basicstyle=\color{VSText}\ttfamily\scriptsize, keywordstyle=\color{VSBlue}\bfseries,
-  stringstyle=\color{VSString}, commentstyle=\color{VSComment}\itshape, emphstyle=\color{VSPurple},
-  numbers=none, columns=fixed, basewidth=0.52em, keepspaces=true, showstringspaces=false, xleftmargin=6pt}
-\lstdefinestyle{py}{style=code, language=Python, emph={print,chr,zip,range,len,bytes,ord,hex}}
-\BeforeBeginEnvironment{lstlisting}{%
-  \begin{beamercolorbox}[rounded=true,sep=2mm,wd=\linewidth]{vscodelisting}%
-  \begin{tikzpicture}
-    \fill[nLine] (0,0) circle (3pt); \fill[nLine] (0.35,0) circle (3pt); \fill[nLine] (0.70,0) circle (3pt);
-  \end{tikzpicture}%
-  \vspace{-0.2cm}}
-\AfterEndEnvironment{lstlisting}{\end{beamercolorbox}}
-\newcommand{\hlcode}[1]{{\setlength{\fboxsep}{1pt}\colorbox{AccentOrange}{\textcolor{white}{\bfseries #1}}}}
-\newcommand{\eol}{\tikz[remember picture, overlay]\coordinate (eol) at (0,0.08);}
-\newcommand{\codenote}[3][0pt]{%
-  \begin{tikzpicture}[remember picture, overlay, >=Stealth]
-    \node[draw=AccentOrange, very thick, fill=AccentOrange!6, rounded corners=4pt, text width=0.33\paperwidth,
-      align=left, inner sep=6pt, font=\footnotesize, anchor=west] (cal)
-      at ([yshift=#1]eol -| {$(current page.west)!0.6!(current page.east)$}) {\textbf{\textcolor{AccentOrange}{#2}}\\[3pt]#3};
-    \draw[->, very thick, AccentOrange] (eol -| cal.west) -- ([xshift=4pt]eol);
-  \end{tikzpicture}}
-% program output: a light terminal line
-\newcommand{\terminal}[1]{%
-  \begin{tikzpicture}
-    \node[draw=nLine, thick, fill=nFill, rounded corners=3pt, inner sep=5pt, font=\ttfamily\small, text=nInk]
-      {\textcolor{nLine}{\$}\ #1};
-  \end{tikzpicture}}
-
 % ======================================================================
 % Course macros
 % ======================================================================
-% task header: \taskhead{Task}{Open the template from \ghlink{Task1}.}
-\newcommand{\taskhead}[2]{%
-  \begin{beamercolorbox}[rounded=true,sep=0.12cm,wd=\linewidth]{block body example}
-    \small\textbf{#1}\\[0.04cm]
-    \footnotesize #2
-  \end{beamercolorbox}\vspace{0.1cm}}
 % the starter files on GitHub: the word "GitHub" is the link.
 %   \ghlink{Task4} opens the folder of Task 4, \ghlink{} opens the folder of this lecture
 \newcommand{\ghbase}{https://github.com/KsaweryM/Cryptography-Course/tree/main/Lecture3}
 \newcommand{\ghlink}[1]{\href{\ghbase/#1}{\textcolor{DeepBlue}{\textbf{GitHub}}}}
+% the task slides: the steps are in the README on GitHub, the slide only opens the task
+%   \taskgoal{one line}   \taskready{the ready modules}   \opentask{Task2}{about 6 minutes}
+%   a task on paper: the question on the slide, then \onpaper{about 3 minutes}
+\newcommand{\taskgoal}[1]{{\centering\large\textcolor{AccentOrange}{\faBullseye}\ \textbf{Goal:} #1\par}\vspace{0.2cm}}
+\newcommand{\taskready}[1]{{\centering\normalsize\textcolor{nInk}{\faBox}\ \textbf{Ready:} #1\par}\vspace{0.2cm}}
+\newcommand{\opentask}[2]{%
+  \begin{beamercolorbox}[rounded=true,sep=0.35cm,wd=\linewidth]{block body example}
+    \centering
+    {\LARGE\faGithub\ \textbf{Open the task:}\ \href{\ghbase/#1}{\textcolor{DeepBlue}{\textbf{\texttt{#1}}}}}\\[8pt]
+    \footnotesize\href{\ghbase/#1}{\textcolor{DeepBlue}{\texttt{github.com/KsaweryM/Cryptography-Course/tree/main/Lecture3/#1}}}\\[6pt]
+    \small on \ghlink{#1}: the steps, the starter files and how to run them\ifx&#2&\else\qquad\faClock[regular]\ #2\fi
+  \end{beamercolorbox}}
+\newcommand{\onpaper}[1]{%
+  \begin{beamercolorbox}[rounded=true,sep=0.3cm,wd=\linewidth]{block body example}
+    \centering
+    {\LARGE\faPencil*\ \textbf{On paper}}\ifx&#1&\else\qquad\small\faClock[regular]\ #1\fi
+  \end{beamercolorbox}}
+
 % a page of the simulator website, printed in full so that students can type it:
 %   \simlink{math/extended-euclid/} prints and links ksawerym.github.io/Cryptography-simulators/math/extended-euclid/
 \newcommand{\simbase}{ksawerym.github.io/Cryptography-simulators}
@@ -259,57 +235,20 @@
 
 \begin{frame}{Agenda For Today}
   \vfill
-  \begin{columns}[T,onlytextwidth]
-    \column{0.5\textwidth}
-      \large
-      \begin{itemize}
-        \item[\textcolor{DeepBlue}{\faKey}] \textbf{1. One shared key} \\
-        \textcolor{gray}{\small What it cannot do}
-        \vspace{0.3cm}
-
-        \item[\textcolor{DeepBlue}{\faLock}] \textbf{2. A pair of keys} \\
-        \textcolor{gray}{\small A padlock anyone can close}
-        \vspace{0.3cm}
-
-        \item[\textcolor{DeepBlue}{\faPuzzlePiece}] \textbf{3. Hard problems} \\
-        \textcolor{gray}{\small Easy one way, hard the other}
-      \end{itemize}
-    \column{0.5\textwidth}
-      \large
-      \begin{itemize}
-        \item[\textcolor{DeepBlue}{\faCalculator}] \textbf{4. Arithmetic modulo n} \\
-        \textcolor{gray}{\small Powers and the inverse}
-        \vspace{0.3cm}
-
-        \item[\textcolor{DeepBlue}{\faCogs}] \textbf{5. RSA: keys and encryption} \\
-        \textcolor{gray}{\small From two primes to a message}
-        \vspace{0.3cm}
-
-        \item[\textcolor{DeepBlue}{\faGlobe}] \textbf{6. RSA in the real world} \\
-        \textcolor{gray}{\small Padding, key sizes, where it lives}
-      \end{itemize}
-  \end{columns}
-  \vfill
-  \say{Najpierw problem, którego nie rozwiąże żaden szyfr z poprzednich zajęć. Potem pomysł, matematyka i RSA krok po kroku.}
-\end{frame}
-
-\begin{frame}{Today you will need}
-  \vfill
   \begin{center}
     \begin{tikzpicture}
-      \foreach \x/\ic/\t/\s in {0/\faPython/Python 3/version 3.8 or newer, 4.2/\faEdit/an editor/any one you like,
-                               8.4/\faPencil*/paper and a pen/Task 1} {
-        \node[hw, minimum width=3.4cm, minimum height=2.5cm] (n) at (\x,0) {};
-        \node[text=nInk] at (\x,0.35) {\fontsize{34}{36}\selectfont\ic};
-        \node[font=\large\bfseries, text=nInk] at (\x,-0.65) {\t};
-        \node[font=\small, text=gray, below=0.15cm of n] {\s};
+      % what we will do today: one icon and one sentence per point (the section names are in the bar at the top)
+      \foreach \ic/\t [count=\k from 0] in {
+          {\faKey}/{See what one shared key cannot do when many people talk.},
+          {\faCalculator}/{Learn the arithmetic behind RSA: powers and the inverse modulo n.},
+          {\faCogs}/{Build RSA keys from two primes, encrypt a message, and see how RSA is used for real.}} {
+        \node[circle, fill=DeepBlue, text=white, minimum size=1.3cm, font=\LARGE] at (0,{-1.9*\k}) {\ic};
+        \node[anchor=west, text width=12cm, font=\large, align=left, execute at begin node={\hyphenpenalty=10000 }] at (1.0,{-1.9*\k}) {\t};
       }
     \end{tikzpicture}
   \end{center}
   \vfill
-  \begin{center}\small Starter files for the tasks: \ghlink{}, folders Task2 to Task6. Nothing to install.\end{center}
-  \vfill
-  \say{Python 3.8 albo nowszy, bo od tej wersji pow liczy odwrotność modularną. Każde zadanie jest samodzielne.}
+  \say{Najpierw problem, którego nie rozwiąże żaden szyfr z poprzednich zajęć. Potem pomysł, matematyka i RSA krok po kroku. Nazwy sekcji są na pasku u góry.}
 \end{frame}
 
 % ======================================================================
@@ -372,7 +311,6 @@
 
 \samedot
 \begin{frame}{Task 1: how many keys?}
-  \taskhead{Task 1}{On paper, about 3 minutes.}
   \begin{columns}[c,onlytextwidth]
     \column{0.4\textwidth}
       \begin{center}\fivegraph{0}\end{center}
@@ -385,11 +323,14 @@
         \item 10\,000 people (a company)?
       \end{itemize}
   \end{columns}
-  \say{Podpowiedź dla wolniejszych: narysować 5 osób i połączyć każdą z każdą.}
+  \vfill
+  \onpaper{about 3 minutes}
+  \vfill
+  \say{Około 3 minut, na kartce. Podpowiedź dla wolniejszych: narysować 5 osób i połączyć każdą z każdą.}
 \end{frame}
 
 \samedot
-\begin{frame}{Solution: how many keys?}
+\begin{frame}{Task 1: what we saw}
   \begin{columns}[c,onlytextwidth]
     \column{0.4\textwidth}
       \begin{center}\fivegraph{1}\\[0.2cm]\scriptsize 5 people, 10 keys\end{center}
@@ -607,70 +548,29 @@
 \end{frame}
 
 \begin{frame}{Task 2: use RSA}
-  \taskhead{Task 2}{RSA is the best known public-key cipher. Use it as a black box first.}
-  \begin{columns}[c,onlytextwidth]
-    \column{0.5\textwidth}
-      \begin{center}
-        \begin{tikzpicture}[>=Stealth]
-          \bob{0,0}
-          \node[privkey] at (0,1.25) {\faKey\ my private key};
-          \node[ctx, minimum width=1.6cm] (c) at (-2.4,-0.2) {\faEnvelope\\ from Alice};
-          \node[apubkey] at (2.6,1.25) {\faLockOpen\ Alice's public key};
-          \node[msg, minimum width=1.6cm] (r) at (2.6,-0.2) {\faReply\\ reply};
-          \draw[data] (c) -- (B); \draw[data] (B) -- (r);
-        \end{tikzpicture}
-      \end{center}
-    \column{0.5\textwidth}
-      You are Bob. You have your private key, Alice's public key and a message from Alice.
-      \begin{enumerate}
-        \item Decrypt Alice's message.
-        \item Encrypt a reply for Alice.
-        \item Try to decrypt your own reply. What happens?
-      \end{enumerate}
-  \end{columns}
-  \say{Około 6 minut. Klucze mają 2048 bitów, czyli liczby po około 617 cyfr; wystarczy je przekazać funkcjom.}
+  \vfill
+  \taskgoal{you are Bob: decrypt Alice's message, then encrypt a reply for her.}
+  \taskready{\texttt{rsa\_ready.py}, the functions \texttt{encrypt} and \texttt{decrypt}.}
+  \vfill
+  \opentask{Task2}{about 6 minutes}
+  \vfill
+  \say{Około 6 minut. RSA to najbardziej znany szyfr z kluczem publicznym; najpierw jako czarna skrzynka. rsa\_ready.py jest w folderze zadania, do środka zajrzymy w sekcji 5. Klucze mają 2048 bitów, czyli liczby po około 617 cyfr; wystarczy je przekazać funkcjom. Ostatni krok: Bob próbuje odszyfrować własną odpowiedź. Każde zadanie jest samodzielne, nic nie trzeba instalować.}
 \end{frame}
 
 \samedot
-\begin{frame}[fragile]{Task 2: what to do}
-  \begin{columns}[c,onlytextwidth]
-    \column{0.6\textwidth}
-\begin{lstlisting}[style=py]
-from rsa_ready import encrypt, decrypt
-
-my_private_key = (d, n)   # 617-digit numbers
-alice_public_key = (65537, n)
-ciphertext = ...          # from Alice
-
-# TODO 1: decrypt the ciphertext and print it
-# TODO 2: encrypt "Yes, at 5 pm." for Alice
-# TODO 3: decrypt your reply with YOUR private key
-\end{lstlisting}
-    \column{0.37\textwidth}
-      \taskhead{Task 2}{Open use\_rsa.py from \ghlink{Task2}. rsa\_ready.py is a black box.}
-      \stepbox{encrypt(text, public\_key)}{gives a number}
-      \stepbox{decrypt(number, private\_key)}{gives the text}
-  \end{columns}
-  \say{rsa\_ready.py jest w folderze zadania. Do środka zajrzymy w sekcji 5.}
-\end{frame}
-
-\samedot
-\begin{frame}[fragile]{Solution: use RSA}
-  \begin{columns}[c,onlytextwidth]
-    \column{0.6\textwidth}
-\begin{lstlisting}[style=py]
-print(decrypt(ciphertext, my_private_key))
-reply = encrypt("Yes, at 5 pm.", alice_public_key)
-print(decrypt(reply, my_private_key))
-\end{lstlisting}
-    \column{0.37\textwidth}
-      \stepbox{The output}{\ttfamily Can we meet on Friday at the library?}
-      \probbox{Your own reply}{\ttfamily '\textbackslash x06\textbackslash xe5Z\textbackslash x9c...'\rmfamily\ (nonsense)}
-  \end{columns}
+\begin{frame}{Task 2: what we saw}
+  \vfill
+  % CHECKED: Task2/solution/use_rsa.py, python3 3.12: first line exactly as below, the last line is unreadable bytes
+  \begin{center}
+    \begin{minipage}{0.62\textwidth}
+      \stepbox{Alice's message}{\ttfamily Can we meet on Friday at the library?}
+      \vspace{0.2cm}
+      \probbox{Bob decrypts his own reply}{\ttfamily '\textbackslash x06\textbackslash xe5Z\textbackslash x9c...'\rmfamily\ (nonsense)}
+    \end{minipage}
+  \end{center}
   \vfill
   \keymsg{What is locked with Alice's public key, only Alice's private key opens.}
-  % CHECKED: Task2/solution/use_rsa.py, python3 3.12: first line exactly as above, the last line is unreadable bytes
-  \say{Kod sprawdzony. Bob nie odczyta własnej odpowiedzi, bo zamknął ją kłódką Alice.}
+  \say{Sprawdzone. Bob nie odczyta własnej odpowiedzi, bo zamknął ją kłódką Alice.}
 \end{frame}
 
 \begin{frame}{How fast is RSA?}
@@ -817,81 +717,35 @@ print(decrypt(reply, my_private_key))
 \end{frame}
 
 \begin{frame}{Task 3: factor it}
-  \taskhead{Task 3}{Four numbers, each a product of two primes: 32, 40, 48 and 55 bits.}
-  \begin{columns}[c,onlytextwidth]
-    \column{0.55\textwidth}
-      \begin{enumerate}
-        \item Write the trial division.
-        \item Measure the time for each number.
-      \end{enumerate}
-      \vspace{0.3cm}
-      \probbox{Predict first}{Each number is 8 bits longer. How many times longer will it take?}
-    \column{0.42\textwidth}
-      \begin{center}
-        \begin{tikzpicture}
-          \foreach \y/\b in {1.5/32, 0.5/40, -0.5/48, -1.5/55} {
-            \node[numcell, minimum width={0.06cm*\b}, anchor=west] at (0,\y) {\b\ bits};
-            \node[text=nInk, font=\large] at (4.2,\y) {\faStopwatch};
-            \node[text=AccentOrange, font=\bfseries] at (4.65,\y) {?};
-          }
-        \end{tikzpicture}
-      \end{center}
-  \end{columns}
-  \say{Około 7 minut. Ostatnia liczba liczy się około 10 sekund. Zapisać przewidywania na tablicy.}
+  \vfill
+  \taskgoal{factor four numbers (32, 40, 48 and 55 bits) and time each one.}
+  \taskready{the numbers and the time measurement, in \texttt{factor.py}.}
+  \vfill
+  \opentask{Task3}{about 7 minutes}
+  \vfill
+  \say{Około 7 minut. Najpierw zapytać salę: każda liczba jest o 8 bitów dłuższa, ile razy dłużej to potrwa? Zapisać przewidywania na tablicy. Ostatnia liczba liczy się około 10 sekund. Jeśli ktoś pyta, czemu wystarczy szukać do pierwiastka: jeśli n ma dzielnik większy od pierwiastka, to ma też mniejszy.}
 \end{frame}
 
 \samedot
-\begin{frame}[fragile]{Task 3: what to do}
-  \begin{columns}[c,onlytextwidth]
-    \column{0.6\textwidth}
-\begin{lstlisting}[style=py]
-def smallest_factor(n):
-    # TODO: try the divisors 2, 3, 5, 7, 9, ...
-    #       until one divides n (n % f == 0),
-    #       and return it.
-    #       You only need to try f while
-    #       f * f <= n. Why?
-    return None
-\end{lstlisting}
-    \column{0.37\textwidth}
-      \taskhead{Task 3}{Open factor.py from \ghlink{Task3}. Write the function in place of the TODO.}
-      \footnotesize The numbers and the time measurement are ready in the file.
-  \end{columns}
-  \say{Jeśli n ma dzielnik większy od pierwiastka, to ma też mniejszy, więc wystarczy szukać do pierwiastka.}
-\end{frame}
-
-\samedot
-\begin{frame}[fragile]{Solution: factor it}
-  \begin{columns}[c,onlytextwidth]
-    \column{0.42\textwidth}
-\begin{lstlisting}[style=py]
-if n % 2 == 0:
-    return 2
-f = 3
-while f * f <= n:
-    if n % f == 0:
-        return f
-    f += 2
-\end{lstlisting}
-    \column{0.55\textwidth}
-      \begin{center}
-        \begin{tikzpicture}
-          % 1 cm per power of ten above 0.001 s
-          \foreach \y/\l/\t/\f in {1.5/0.477/0.003 s/50119 x 64157, 0.6/1.672/0.047 s/737039 x 992809,
-                                   -0.3/2.892/0.78 s/12100201 x 14470207, -1.2/4.004/10.1 s/162019679 x 197590889} {
-            \fill[nInk] (0,{\y-0.15}) rectangle ({1.0*\l},{\y+0.15});
-            \node[anchor=west, font=\scriptsize\bfseries, text=nInk] at ({1.0*\l+0.05},\y) {\t};
-            \node[anchor=west, font=\tiny, text=gray] at (0,{\y+0.3}) {\f};
-          }
-          \foreach \y/\b in {1.5/32, 0.6/40, -0.3/48, -1.2/55} \node[anchor=east, font=\scriptsize, text=nInk] at (-0.1,\y) {\b\ bits};
-          \node[font=\tiny, text=gray] at (2.5,-1.85) {time, log scale};
-        \end{tikzpicture}
-      \end{center}
-  \end{columns}
+\begin{frame}{Task 3: what we saw}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[scale=1.25]
+      % 1 cm per power of ten above 0.001 s
+      \foreach \y/\l/\t/\f in {1.5/0.477/0.003 s/50119 x 64157, 0.6/1.672/0.047 s/737039 x 992809,
+                               -0.3/2.892/0.78 s/12100201 x 14470207, -1.2/4.004/10.1 s/162019679 x 197590889} {
+        \fill[nInk] (0,{\y-0.15}) rectangle ({1.0*\l},{\y+0.15});
+        \node[anchor=west, font=\small\bfseries, text=nInk] at ({1.0*\l+0.05},\y) {\t};
+        \node[anchor=west, font=\scriptsize, text=gray] at (0,{\y+0.32}) {\f};
+      }
+      \foreach \y/\b in {1.5/32, 0.6/40, -0.3/48, -1.2/55} \node[anchor=east, font=\small, text=nInk] at (-0.1,\y) {\b\ bits};
+      \node[font=\scriptsize, text=gray] at (2.5,-1.85) {time, log scale};
+    \end{tikzpicture}
+  \end{center}
   \vfill
   \keymsg{Every 8 more bits make factoring about 16 times slower.}
   % CHECKED: Task3/solution/factor.py, python3 3.12, i5-8265U: 0.003 s, 0.047 s, 0.775 s, 10.113 s; 64 bits in my own run: 295 s
-  \say{Kod sprawdzony na moim laptopie. 8 bitów więcej to około 16 razy dłużej, bo czynniki są o 4 bity dłuższe. Mój pomiar dla 64 bitów: 295 sekund.}
+  \say{Pomiar z mojego laptopa. 8 bitów więcej to około 16 razy dłużej, bo czynniki są o 4 bity dłuższe. Porównać z przewidywaniami z tablicy. Mój pomiar dla 64 bitów: 295 sekund.}
 \end{frame}
 
 \begin{frame}{How long for 2048 bits?}
@@ -1100,13 +954,13 @@ while f * f <= n:
       \stepbox{How to find d}{Trying d = 1, 2, 3, \dots\ never ends for a 617-digit m.
         The \textbf{extended Euclidean algorithm} needs only about 1200 divisions.}
     \column{0.48\textwidth}
-      \stepbox{In Python}{\texttt{pow(e, -1, m)}\\ \texttt{pow(7, -1, 160)}\ gives 23}
+      \stepbox{In Python (3.8 or newer)}{\texttt{pow(e, -1, m)}\\ \texttt{pow(7, -1, 160)}\ gives 23}
   \end{columns}
   \vfill
   \curious{math/extended-euclid/}
   \vfill
   \keymsg{The inverse undoes a multiplication modulo m.}
-  \say{To odpowiednik dzielenia w świecie modulo. W RSA d będzie kluczem prywatnym. Algorytmu nie liczymy ręcznie: pow robi to za nas. Kogo ciekawi, jak to działa krok po kroku, ma link do symulatora.}
+  \say{To odpowiednik dzielenia w świecie modulo. W RSA d będzie kluczem prywatnym. Algorytmu nie liczymy ręcznie: pow robi to za nas, od Pythona 3.8. Kogo ciekawi, jak to działa krok po kroku, ma link do symulatora.}
 \end{frame}
 
 % ======================================================================
@@ -1349,205 +1203,86 @@ while f * f <= n:
 \end{frame}
 
 \begin{frame}{Task 4: your own RSA}
-  \taskhead{Task 4}{Two primes with about 20 digits each are given, and e = 65537. About 8 minutes.}
   \vfill
+  \taskgoal{make your own RSA key from two primes, then encrypt and decrypt 2026.}
+  \taskready{two primes with about 20 digits each, and $e = 65537$.}
+  \vfill
+  \opentask{Task4}{about 8 minutes}
+  \vfill
+  \say{Około 8 minut. Wzory są na poprzednich slajdach. Odwrotność: pow(e, -1, phi). Liczby po 20 cyfr, żeby wynik mieścił się na ekranie; prawdziwe klucze mają po około 309 cyfr na p i q.}
+\end{frame}
+
+\samedot
+\begin{frame}{Task 4: what we saw}
+  \vfill
+  % CHECKED: Task4/solution/my_rsa.py, python3 3.12: the output is exactly as below
   \begin{center}
-    \begin{tikzpicture}
-      \foreach \x/\t/\k in {0/n/1, 2.4/phi/1, 4.8/d/1, 7.2/C/2, 9.6/P/3} {
-        \node[numcell, minimum width=2cm, minimum height=1cm, dashed, draw=nLine] at (\x,0) {};
-        \node[font=\small\bfseries, text=nInk, above] at (\x,0.55) {\t};
-        \node at (\x,-0.85) {\badge{\k}};
-      }
-    \end{tikzpicture}
+    \begin{minipage}{0.7\textwidth}
+      \stepbox{The output}{\ttfamily\small d = 1367151349159148221410861819858768950381\\
+        C = 736246060401132335090489988934276767570\\ P = 2026}
+    \end{minipage}\\[0.4cm]
+    The ciphertext looks nothing like 2026, and it comes back.
   \end{center}
   \vfill
-  \begin{enumerate}
-    \item Compute n, phi and d.
-    \item Encrypt the number 2026.
-    \item Decrypt it again.
-  \end{enumerate}
-  \say{Około 8 minut. Wzory są na poprzednich slajdach. Odwrotność: pow(e, -1, phi).}
-\end{frame}
-
-\samedot
-\begin{frame}[fragile]{Task 4: what to do}
-  \begin{columns}[c,onlytextwidth]
-    \column{0.58\textwidth}
-\begin{lstlisting}[style=py]
-p = 37908704904578413183
-q = 58606630333925820283
-e = 65537
-message = 2026
-
-# TODO 1: n = ...
-# TODO 2: phi = ...
-# TODO 3: d = ...      pow(e, -1, phi)
-# TODO 4: C = ...      pow(message, e, n)
-# TODO 5: P = ...
-\end{lstlisting}
-    \column{0.39\textwidth}
-      \taskhead{Task 4}{Open my\_rsa.py from \ghlink{Task4}. Write the code in place of the TODO lines.}
-      \footnotesize Numbers with 20 digits, so that the result fits on the screen.
-  \end{columns}
-  \say{Liczby po 20 cyfr, żeby wynik mieścił się na ekranie. Prawdziwe klucze mają po około 309 cyfr na p i q.}
-\end{frame}
-
-\samedot
-\begin{frame}[fragile]{Solution: your own RSA}
-  \begin{columns}[c,onlytextwidth]
-    \column{0.42\textwidth}
-\begin{lstlisting}[style=py]
-n = p * q
-phi = (p - 1) * (q - 1)
-d = pow(e, -1, phi)
-C = pow(message, e, n)
-P = pow(C, d, n)
-\end{lstlisting}
-    \column{0.55\textwidth}
-      \stepbox{The output}{\ttfamily\scriptsize d = 1367151349159148221410861819858768950381\\
-        C = 736246060401132335090489988934276767570\\ P = 2026}
-  \end{columns}
-  \vfill
   \keymsg{All of RSA is five lines of Python.}
-  % CHECKED: Task4/solution/my_rsa.py, python3 3.12: the output is exactly as above
-  \say{Kod sprawdzony. Szyfrogram nie przypomina 2026 w żaden sposób.}
+  \say{Sprawdzone. Szyfrogram nie przypomina 2026 w żaden sposób, a po odszyfrowaniu wraca 2026.}
 \end{frame}
 
 \begin{frame}{Task 5: does it always work?}
-  \taskhead{Task 5}{Key: n = 187, e = 7, d = 23. About 4 minutes.}
   \vfill
+  \taskgoal{key $n = 187$, $e = 7$, $d = 23$: does every $P$ from 0 to 186 come back?}
+  \taskready{the key, in \texttt{always.py}.}
+  \vfill
+  \opentask{Task5}{about 4 minutes}
+  \vfill
+  \say{Około 4 minut. Najpierw zapytać salę: a P = 17, które dzieli n? Większość powie, że 17 nie zadziała. Jedna pętla i jedno porównanie.}
+\end{frame}
+
+\samedot
+\begin{frame}{Task 5: what we saw}
+  \vfill
+  % CHECKED: Task5/solution/always.py: wrong is empty; 17 -> 85 -> 17
   \begin{center}
     \begin{tikzpicture}
       \foreach \i in {0,...,186} {
         \pgfmathtruncatemacro{\r}{\i/34} \pgfmathtruncatemacro{\c}{mod(\i,34)}
-        \node[draw=nLine, fill=white, minimum size=0.34cm, inner sep=0pt] at ({0.38*\c},{-0.38*\r}) {};
+        \node[draw=aExec, fill=aExec!25, minimum size=0.34cm, inner sep=0pt] at ({0.38*\c},{-0.38*\r}) {};
       }
       \node[draw=AccentOrange, very thick, minimum size=0.38cm, inner sep=0pt] at ({0.38*17},0) {};
       \node[font=\scriptsize, text=AccentOrange, above] at ({0.38*17},0.2) {P = 17};
-    \end{tikzpicture}
+    \end{tikzpicture}\\[0.4cm]
+    \ttfamily wrong: []\qquad P = 17 -> 85 -> 17
   \end{center}
   \vfill
-  Encrypt and decrypt every P from 0 to 186. Does every P come back?\\[0.2cm]
-  \probbox{Predict first}{What about P = 17, which divides n?}
-  \say{Około 4 minut. Większość powie, że 17 nie zadziała, bo dzieli n.}
-\end{frame}
-
-\samedot
-\begin{frame}[fragile]{Task 5: what to do}
-  \begin{columns}[c,onlytextwidth]
-    \column{0.58\textwidth}
-\begin{lstlisting}[style=py]
-n, e, d = 187, 7, 23
-wrong = []
-# TODO: for every P in range(n): encrypt,
-#       decrypt, and add P to wrong
-#       if it does not come back
-print(wrong)
-\end{lstlisting}
-    \column{0.39\textwidth}
-      \taskhead{Task 5}{Open always.py from \ghlink{Task5}.}
-      \footnotesize One loop and one comparison.
-  \end{columns}
-  \say{Jedna pętla i jedno porównanie.}
-\end{frame}
-
-\samedot
-\begin{frame}[fragile]{Solution: does it always work?}
-  \begin{columns}[c,onlytextwidth]
-    \column{0.45\textwidth}
-\begin{lstlisting}[style=py]
-for P in range(n):
-    C = pow(P, e, n)
-    if pow(C, d, n) != P:
-        wrong.append(P)
-\end{lstlisting}
-    \column{0.52\textwidth}
-      \begin{center}
-        \begin{tikzpicture}
-          \foreach \i in {0,...,186} {
-            \pgfmathtruncatemacro{\r}{\i/17} \pgfmathtruncatemacro{\c}{mod(\i,17)}
-            \node[draw=aExec, fill=aExec!25, minimum size=0.26cm, inner sep=0pt] at ({0.3*\c},{-0.3*\r}) {};
-          }
-        \end{tikzpicture}\\[0.2cm]
-        \ttfamily\small wrong: []\\ P = 17 -> 85 -> 17
-      \end{center}
-  \end{columns}
-  \vfill
   \keymsg{RSA works for every P from 0 to n - 1.}
-  % CHECKED: Task5/solution/always.py: wrong is empty; 17 -> 85 -> 17
-  \say{Kod sprawdzony. Dlaczego zawsze działa, wynika z twierdzenia Eulera; dowód pomijamy. W prawdziwym RSA P dzielące n praktycznie się nie zdarza.}
+  \say{Sprawdzone. Wszystkie 187 wartości wracają, także 17. Dlaczego zawsze działa, wynika z twierdzenia Eulera; dowód pomijamy. W prawdziwym RSA P dzielące n praktycznie się nie zdarza.}
 \end{frame}
 
 \begin{frame}{Task 6: guess the PIN}
-  \taskhead{Task 6}{A bank encrypts 4-digit PINs with RSA, exactly as on the last slides, with a 2048-bit key. About 7 minutes.}
   \vfill
+  \taskgoal{find a PIN encrypted with textbook RSA, without the private key.}
+  \taskready{the bank's public key (2048 bits) and an encrypted PIN, in \texttt{pin.py}.}
+  \vfill
+  \opentask{Task6}{about 7 minutes}
+  \vfill
+  % CHECKED: C in Task6/pin.py starts with 73320723855296 and has 616 digits
+  \say{Około 7 minut. Bank szyfruje PIN dokładnie tak jak na ostatnich slajdach, kluczem 2048-bitowym. Ewa ma szyfrogram i klucz publiczny. Nie podpowiadać od razu. Jeśli nikt nie ma pomysłu: klucz publiczny jest publiczny, każdy może nim szyfrować. Pomiar czasu jest gotowy w pliku.}
+\end{frame}
+
+\samedot
+\begin{frame}{Task 6: what we saw}
+  \vfill
+  % CHECKED: Task6/solution/pin.py, python3 3.12, i5-8265U: PIN 4821 found in 0.40 s; all 10 000 about 0.9 s
   \begin{center}
-    \begin{tikzpicture}[>=Stealth]
-      % the payment card
-      \draw[sIndigo, fill=sIndigo, rounded corners=6pt] (0,0) rectangle (3.6,2.2);
-      \fill[sAmber!80, rounded corners=2pt] (0.35,1.05) rectangle (1.05,1.6);
-      \foreach \y in {1.15,1.33,1.5} \draw[sAmberText, thin] (0.35,\y) -- (1.05,\y);
-      \node[font=\scriptsize\ttfamily, text=white, anchor=west] at (0.3,0.55) {5341 \ 8827 \ 1093 \ 4410};
-      \node[font=\tiny, text=white, anchor=west] at (0.3,0.2) {CARDHOLDER};
-      \node[text=white, font=\small] at (3.2,1.85) {\faWifi};
-      \node[draw=white, thick, fill=white, rounded corners=2pt, font=\small\ttfamily, text=nInk] at (2.55,1.3) {PIN \textcolor{AccentOrange}{????}};
-      % the encrypted PIN on the network: a long strip of digits
-      \draw[netarrow] (3.8,1.1) -- (5.2,1.1);
-      \node[ctx, font=\scriptsize\ttfamily, minimum height=0.8cm, anchor=west] (c) at (5.3,1.1) {C = 7332072385 5296... \textcolor{gray}{(616 digits)}};
-      % Eve catches it
-      \eve{7.8,-0.6}
-      \draw[data, dashed] (7.8,0.7) -- (E.north);
-      % the bank with its public key
-      \node[person=nInk, minimum size=1.3cm, font=\LARGE] (bk) at (12.4,1.1) {\faUniversity};
-      \node[pname, below=1pt of bk] {bank};
-      \draw[netarrow] (c.east) -- (bk.west);
-      \node[pubkey] at (12.4,-0.85) {\faLockOpen\ the bank's public key\\ \public};
-      \node[font=\scriptsize, text=sPinkText, align=center] at (7.8,-1.75) {has C and the public key};
-    \end{tikzpicture}
+    \begin{minipage}{0.6\textwidth}
+      \stepbox{The output}{\ttfamily PIN: 4821\quad found in 0.40 s}
+      \vspace{0.2cm}
+      \probbox{Why it works}{Encrypting is public, and there are only 10\,000 PINs.}
+    \end{minipage}
   \end{center}
   \vfill
-  \begin{center}\textbf{Find the PIN without the private key.}\end{center}
-  % CHECKED: C from Task6/pin.py starts with 73320723855296 and has 616 digits; the card number is made up
-  \say{Około 7 minut. Nie podpowiadać od razu. Jeśli nikt nie ma pomysłu: klucz publiczny jest publiczny, każdy może nim szyfrować.}
-\end{frame}
-
-\samedot
-\begin{frame}[fragile]{Task 6: what to do}
-  \begin{columns}[c,onlytextwidth]
-    \column{0.58\textwidth}
-\begin{lstlisting}[style=py]
-e = 65537
-n = ...    # the bank's public key, 617 digits
-C = ...    # the encrypted PIN
-
-# TODO: find the PIN without the private key.
-#       Hint: you can encrypt any number yourself.
-\end{lstlisting}
-    \column{0.39\textwidth}
-      \taskhead{Task 6}{Open pin.py from \ghlink{Task6}.}
-      \footnotesize The time measurement is ready in the file.
-  \end{columns}
-  \say{Pomiar czasu jest gotowy w pliku.}
-\end{frame}
-
-\samedot
-\begin{frame}[fragile]{Solution: guess the PIN}
-  \begin{columns}[c,onlytextwidth]
-    \column{0.5\textwidth}
-\begin{lstlisting}[style=py]
-for guess in range(10000):
-    if pow(guess, e, n) == C:
-        pin = guess
-        break
-\end{lstlisting}
-    \column{0.47\textwidth}
-      \stepbox{The output}{\ttfamily PIN: 4821\quad found in 0.40 s}
-      \probbox{Why it works}{Encrypting is public, and there are only 10\,000 PINs.}
-  \end{columns}
-  \vfill
   \keymsg{Textbook RSA: the same message always gives the same ciphertext.}
-  % CHECKED: Task6/solution/pin.py, python3 3.12, i5-8265U: PIN 4821 found in 0.40 s; all 10 000 about 0.9 s
-  \say{Kod sprawdzony. Wszystkie 10 000 PIN-ów to około 0,9 s. Ta sama słabość dotyczy każdej wiadomości z małej liczby możliwości: tak, nie, kwota przelewu.}
+  \say{Sprawdzone. Ewa szyfruje każdy możliwy PIN kluczem publicznym i porównuje z C. Wszystkie 10 000 PIN-ów to około 0,9 s. Ta sama słabość dotyczy każdej wiadomości z małej liczby możliwości: tak, nie, kwota przelewu.}
 \end{frame}
 
 % CHECKED: textbook C starts with 7332072385 (Task6/pin.py); the three OAEP ciphertexts on the right are only an

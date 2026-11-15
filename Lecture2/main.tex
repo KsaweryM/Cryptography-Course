@@ -13,7 +13,6 @@
 \usepackage{colortbl}
 \usepackage{xcolor}
 \usepackage{fontawesome5}
-\usepackage{listings}
 \usepackage{etoolbox}
 \usepackage{xstring}
 \usepackage{tikz}
@@ -159,17 +158,6 @@
 \definecolor{VSString}{RGB}{255,140,80}
 \definecolor{VSComment}{RGB}{80,220,80}
 \setbeamercolor{vscodelisting}{bg=VSDarkBg}
-\lstdefinestyle{code}{basicstyle=\color{VSText}\ttfamily\scriptsize, keywordstyle=\color{VSBlue}\bfseries,
-  stringstyle=\color{VSString}, commentstyle=\color{VSComment}\itshape, emphstyle=\color{VSPurple},
-  numbers=none, columns=fixed, basewidth=0.52em, keepspaces=true, showstringspaces=false, xleftmargin=6pt}
-\lstdefinestyle{py}{style=code, language=Python, emph={print,chr,zip,range,len,bytes,ord,hex}}
-\BeforeBeginEnvironment{lstlisting}{%
-  \begin{beamercolorbox}[rounded=true,sep=2mm,wd=\linewidth]{vscodelisting}%
-  \begin{tikzpicture}
-    \fill[nLine] (0,0) circle (3pt); \fill[nLine] (0.35,0) circle (3pt); \fill[nLine] (0.70,0) circle (3pt);
-  \end{tikzpicture}%
-  \vspace{-0.2cm}}
-\AfterEndEnvironment{lstlisting}{\end{beamercolorbox}}
 \newcommand{\hlcode}[1]{{\setlength{\fboxsep}{1pt}\colorbox{AccentOrange}{\textcolor{white}{\bfseries #1}}}}
 \newcommand{\eol}{\tikz[remember picture, overlay]\coordinate (eol) at (0,0.08);}
 \newcommand{\codenote}[3][0pt]{%
@@ -189,35 +177,26 @@
 % ======================================================================
 % Course macros
 % ======================================================================
-% task header: \taskhead{Task}{Open the template from \ghlink{Task1}.}
-\newcommand{\taskhead}[2]{%
-  \begin{beamercolorbox}[rounded=true,sep=0.12cm,wd=\linewidth]{block body example}
-    \small\textbf{#1}\\[0.04cm]
-    \footnotesize #2
-  \end{beamercolorbox}\vspace{0.1cm}}
 % the starter files on GitHub: the word "GitHub" is the link.
 %   \ghlink{Task4} opens the folder of Task 4, \ghlink{} opens the folder of this lecture
 \newcommand{\ghbase}{https://github.com/KsaweryM/Cryptography-Course/tree/main/Lecture2}
 \newcommand{\ghlink}[1]{\href{\ghbase/#1}{\textcolor{DeepBlue}{\textbf{GitHub}}}}
+% the task slides: the steps are in the README on GitHub, the slide only opens the task
+%   \taskgoal{one line}   \taskready{the ready modules}   \opentask{Task2}{about 6 minutes}
+\newcommand{\taskgoal}[1]{{\centering\large\textcolor{AccentOrange}{\faBullseye}\ \textbf{Goal:} #1\par}\vspace{0.2cm}}
+\newcommand{\taskready}[1]{{\centering\normalsize\textcolor{nInk}{\faBox}\ \textbf{Ready:} #1\par}\vspace{0.2cm}}
+\newcommand{\opentask}[2]{%
+  \begin{beamercolorbox}[rounded=true,sep=0.35cm,wd=\linewidth]{block body example}
+    \centering
+    {\LARGE\faGithub\ \textbf{Open the task:}\ \href{\ghbase/#1}{\textcolor{DeepBlue}{\textbf{\texttt{#1}}}}}\\[8pt]
+    \footnotesize\href{\ghbase/#1}{\textcolor{DeepBlue}{\texttt{github.com/KsaweryM/Cryptography-Course/tree/main/Lecture2/#1}}}\\[6pt]
+    \small on \ghlink{#1}: the steps, the starter files and how to run them\ifx&#2&\else\qquad\faClock[regular]\ #2\fi
+  \end{beamercolorbox}}
 
 % speaker notes (Polish): printed only in the notes PDF (make notes)
 \setbeamertemplate{note page}[default]
 \setbeamerfont{note page}{size=\normalsize}
 \newcommand{\say}[1]{\note{\selectlanguage{polish}#1}}
-
-% a whole Python file or some of its lines, read straight from the task folder,
-% so the code on the slide is always the code in the file: \codefile{Task2/jump.py}{10-18}
-\newcommand{\codefile}[3][]{%
-  \begin{beamercolorbox}[rounded=true,sep=2mm,wd=\linewidth]{vscodelisting}%
-  \begin{tikzpicture}
-    \fill[nLine] (0,0) circle (3pt); \fill[nLine] (0.35,0) circle (3pt); \fill[nLine] (0.70,0) circle (3pt);
-    \node[anchor=west, font=\ttfamily\scriptsize, text=nLine] at (1.0,0) {\detokenize{#2}};
-  \end{tikzpicture}%
-  \vspace{-0.2cm}
-  % solutions are not published: in a copy without TaskN/solution/ the slide says so instead
-  \IfFileExists{#2}{\lstinputlisting[style=py,linerange={#3},#1]{#2}}%
-    {\par\vspace{0.2cm}\hspace{6pt}\textcolor{nLine}{\ttfamily\scriptsize \# the solution is shown in the lecture}\par\vspace{0.1cm}}
-  \end{beamercolorbox}}
 
 % ======================================================================
 % Colour mapping for this lecture (colour rules, section 6)
@@ -509,40 +488,20 @@
 
 \begin{frame}{Agenda For Today}
   \vfill
-  \begin{columns}[T,onlytextwidth]
-    \column{0.52\textwidth}
-      \large
-      \begin{itemize}
-        \item[\textcolor{DeepBlue}{\faBug}] \textbf{1. What went wrong with RC4} \\
-        \textcolor{gray}{\small Two problems, one missing feature}
-        \vspace{0.3cm}
-
-        \item[\textcolor{DeepBlue}{\faForward}] \textbf{2. A keystream from a counter} \\
-        \textcolor{gray}{\small The nonce is an input}
-        \vspace{0.3cm}
-
-        \item[\textcolor{DeepBlue}{\faRandom}] \textbf{3. The keystream looks random} \\
-        \textcolor{gray}{\small Twenty rounds of simple steps}
-      \end{itemize}
-    \column{0.46\textwidth}
-      \large
-      \begin{itemize}
-        \item[\textcolor{DeepBlue}{\faIcon{tachometer-alt}}] \textbf{4. Fast without special hardware} \\
-        \textcolor{gray}{\small No tables, no AES chip}
-        \vspace{0.3cm}
-
-        \item[\textcolor{DeepBlue}{\faIcon{shield-alt}}] \textbf{5. ChaCha20-Poly1305} \\
-        \textcolor{gray}{\small Encryption with a tag}
-        \vspace{0.3cm}
-
-        \item[\textcolor{DeepBlue}{\faBalanceScale}] \textbf{6. RC4 and ChaCha20 side by side} \\
-        \textcolor{gray}{\small What changed, and why}
-      \end{itemize}
-  \end{columns}
+  \begin{center}
+    \begin{tikzpicture}
+      % what we will do today: one icon and one sentence per point (the section names are in the bar at the top)
+      \foreach \ic/\t [count=\k from 0] in {
+          {\faForward}/{Build a keystream from a key, a nonce and a counter, as ChaCha20 does.},
+          {\faRandom}/{Test that this keystream looks random, where RC4 failed, and see why it is fast on any phone.},
+          {\faIcon{shield-alt}}/{Add a tag, so that any change to a message is caught.}} {
+        \node[circle, fill=DeepBlue, text=white, minimum size=1.3cm, font=\LARGE] at (0,{-1.9*\k}) {\ic};
+        \node[anchor=west, text width=12cm, font=\large, align=left, execute at begin node={\hyphenpenalty=10000 }] at (1.0,{-1.9*\k}) {\t};
+      }
+    \end{tikzpicture}
+  \end{center}
   \vfill
-  \begin{center}\small Tasks and ready examples: a link on each task slide (\ghlink{})\end{center}
-  \vfill
-  \say{Trzy naprawy: keystream ma wyglądać losowo, nonce ma być wejściem, a wiadomość ma mieć znacznik. Po drodze jeden slajd o szybkości. Link do zadań jest przy każdym zadaniu.}
+  \say{Trzy naprawy RC4: nonce jako wejście, keystream, który wygląda losowo, i znacznik przy wiadomości. Po drodze jeden slajd o szybkości. Nazwy sekcji są na pasku u góry, a link do zadań jest przy każdym zadaniu.}
 \end{frame}
 
 % ======================================================================
@@ -805,81 +764,62 @@
 \end{frame}
 
 \begin{frame}{Task 1: use ChaCha20}
-  \begin{columns}[T,onlytextwidth]
-    \column{0.6\textwidth}
-      \codefile[emph={chacha20,print,bytes,range}, basicstyle=\color{VSText}\ttfamily\fontsize{6.5}{7.0}\selectfont]{Task1/use_chacha.py}{3-17}
-    \column{0.37\textwidth}
-      \taskhead{Task 1}{Open \texttt{use\_chacha.py} from \ghlink{Task1}.}
-      \stepbox{\faBox\ \texttt{chacha.py} is ready}{\texttt{chacha20(key, nonce,}\\ \texttt{\ \ \ \ \ \ \ \ counter, data)}}
-      \stepbox{The data}{the example from RFC 8439, section 2.4.2}
-  \end{columns}
+  \vfill
+  \taskgoal{decrypt a message from RFC 8439 with one call to ChaCha20.}
+  \taskready{\texttt{chacha.py}, the function \texttt{chacha20(key, nonce, counter, data)}.}
+  \vfill
+  \opentask{Task1}{about 4 minutes}
   \vfill
   \fixtag{1}%
-  \keymsg{Decrypting is the same call as encrypting.}
-  \say{Około 4 minut. chacha.py jest gotowy. Deszyfrowanie to to samo wywołanie co szyfrowanie: XOR z tym samym keystreamem. Dane z RFC 8439, punkt 2.4.2.}
+  \say{Około 4 minut. chacha.py jest gotowy, studenci używają go jako czarnej skrzynki. Instrukcja i TODO są w README na GitHubie. Deszyfrowanie to to samo wywołanie co szyfrowanie: XOR z tym samym keystreamem. Dane z RFC 8439, punkt 2.4.2.}
 \end{frame}
 
 \samedot
-\begin{frame}{Solution: use ChaCha20}
-  \begin{columns}[T,onlytextwidth]
-    \column{0.55\textwidth}
-      % CHECKED: Task1/solution/use_chacha.py prints the plaintext of RFC 8439 2.4.2;
-      %          chacha.py gives the ciphertext 6e2e359a2568f980... of the RFC
-      \codefile[emph={chacha20,print}]{Task1/solution/use_chacha.py}{15-16}
-    \column{0.42\textwidth}
-      \stepbox{Output}{\texttt{\scriptsize Ladies and Gentlemen of the class of '99: If I could offer you only one tip for the future, sunscreen would be it.}}
-  \end{columns}
+\begin{frame}{Task 1: what we saw}
+  \vfill
+  % CHECKED: Task1/solution/use_chacha.py prints the plaintext of RFC 8439 2.4.2;
+  %          chacha.py gives the ciphertext 6e2e359a2568f980... of the RFC
+  \begin{center}
+    \begin{minipage}{0.72\textwidth}
+      \stepbox{Output}{\texttt{Ladies and Gentlemen of the class of '99: If I could offer you only one tip for the future, sunscreen would be it.}}
+    \end{minipage}\\[0.4cm]
+    Decrypting is the same call as encrypting, with counter 1.
+  \end{center}
   \vfill
   \fixtag{1}%
   \keymsg{One call decrypts. Next: decrypt only the middle, with the counter.}
-  \say{Kod sprawdzony, daje tekst z RFC. Dolne zdanie prowadzi do zadania 2: skok w środek przez licznik.}
+  \say{Sprawdzone: rozwiązanie daje tekst z RFC. Jedno wywołanie chacha20 z licznikiem 1 i tym samym kluczem oraz nonce. Dolne zdanie prowadzi do zadania 2: skok w środek przez licznik.}
 \end{frame}
 
 \begin{frame}{Task 2: jump to the middle}
-  \begin{center}\small Goal: decrypt \textbf{only} block 700 of the film, using the counter.\end{center}
-  \vspace{-0.1cm}
-  \begin{columns}[T,onlytextwidth]
-    \column{0.62\textwidth}
-      \codefile[emph={open,print}]{Task2/jump.py}{10-18}
-    \column{0.35\textwidth}
-      \taskhead{Task 2}{Open \texttt{jump.py} from \ghlink{Task2}.\ \ \texttt{chacha.py} is ready.}
-      \begin{tikzpicture}
-        \foreach \k in {0,...,24} {
-          \ifnum\k=17 \node[ctb, minimum width=0.14cm, minimum height=0.5cm, inner sep=0pt] at ({0.17*\k},0) {};
-          \else \node[ctb, minimum width=0.14cm, minimum height=0.5cm, inner sep=0pt, fill=sBrown!8] at ({0.17*\k},0) {}; \fi
-        }
-        \draw[annot] ({0.17*17-0.12},-0.32) rectangle ({0.17*17+0.12},0.32);
-        \node[font=\scriptsize\bfseries, text=AccentOrange, anchor=north] at ({0.17*17},-0.35) {block 700};
-        \node[font=\tiny, text=gray, anchor=north] at (0,-0.35) {0};
-        \node[font=\tiny, text=gray, anchor=north] at ({0.17*24},-0.35) {999};
-      \end{tikzpicture}\\[2pt]
-      {\scriptsize\textcolor{gray}{film.bin, drawn shortened}}
-  \end{columns}
+  \vfill
+  \taskgoal{decrypt \textbf{only} block 700 of an encrypted film, using the counter.}
+  \taskready{\texttt{chacha.py} and \texttt{film.bin} (1000 blocks of 64 bytes).}
+  \vfill
+  \opentask{Task2}{about 5 minutes}
   \vfill
   \fixtag{1}%
-  \keymsg{Reach block 700 without making blocks 0 to 699.}
-  \say{Około 5 minut. Pokazać, że licznik to numer bloku: ustaw counter = 700 i odszyfruj sam ten kawałek. TODO 3 to pomiar: jeden blok kontra 701. Klucz i nonce są wyżej w pliku.}
+  \say{Około 5 minut. Pokazać, że licznik to numer bloku: ustaw counter = 700 i odszyfruj sam ten kawałek. Ostatni TODO to pomiar: jeden blok kontra 701. Klucz i nonce są w pliku, instrukcja w README.}
 \end{frame}
 
 \samedot
-\begin{frame}{Solution: jump to the middle}
-  \begin{columns}[T,onlytextwidth]
-    \column{0.6\textwidth}
-      % CHECKED: Task2/solution/jump.py, author's laptop (i5-8265U, Python 3.12), five runs:
-      %          one block 0.00015 to 0.00020 s, all 701 blocks 0.100 to 0.103 s
-      \codefile[emph={chacha20,print}]{Task2/solution/jump.py}{13-24}
-    \column{0.37\textwidth}
-      \stepbox{Output}{\texttt{\tiny Frame 0700: the hero finally opens the red door.}\\[3pt]
-        \texttt{\scriptsize one block: 0.00016 s}\\
-        \texttt{\scriptsize all 701:\ \ \ 0.10 s}}
-      \centering
-      \begin{tikzpicture}
-        \fill[nLine] (0,0.5) rectangle (3.2,0.8);
-        \node[font=\scriptsize, text=nInk, anchor=south west] at (0,0.8) {all 701 blocks: 0.10 s};
-        \fill[AccentOrange] (0,-0.15) rectangle (0.05,0.15);
-        \node[font=\scriptsize, text=nInk, anchor=west] at (0.1,0) {one block: about 600 times faster};
-      \end{tikzpicture}
-  \end{columns}
+\begin{frame}{Task 2: what we saw}
+  \vfill
+  % CHECKED: Task2/solution/jump.py, author's laptop (i5-8265U, Python 3.12), five runs:
+  %          one block 0.00015 to 0.00020 s, all 701 blocks 0.100 to 0.103 s
+  \begin{center}
+    \begin{minipage}{0.6\textwidth}
+      \stepbox{Output}{\texttt{Frame 0700: the hero finally opens the red door.}\\[3pt]
+        \texttt{one block: 0.00016 s}\\
+        \texttt{all 701:\ \ \ 0.10 s}}
+    \end{minipage}\\[0.5cm]
+    \begin{tikzpicture}
+      \fill[nLine] (0,0.5) rectangle (6.4,0.8);
+      \node[font=\small, text=nInk, anchor=west] at (6.55,0.65) {all 701 blocks: 0.10 s};
+      \fill[AccentOrange] (0,-0.15) rectangle (0.06,0.15);
+      \node[font=\small, text=nInk, anchor=west] at (0.2,0) {one block: about 600 times faster};
+    \end{tikzpicture}
+  \end{center}
   \vfill
   \fixtag{1}%
   \keymsg{The counter gives random access to the keystream.}
@@ -1367,30 +1307,27 @@
 \end{frame}
 
 \begin{frame}{Task 3: change one byte}
-  \begin{columns}[T,onlytextwidth]
-    \column{0.6\textwidth}
-      \codefile[emph={seal,open_,print,bytes}]{Task3/tamper.py}{2-12}
-    \column{0.37\textwidth}
-      \taskhead{Task 3}{Open \texttt{tamper.py} from \ghlink{Task3}.}
-      \stepbox{\faBox\ \texttt{aead.py} is ready}{\texttt{seal(key, nonce, plaintext)}\\ returns ciphertext + tag\\[3pt]
-        \texttt{open\_(key, nonce, packet)}\\ checks the tag, then decrypts}
-  \end{columns}
+  \vfill
+  \taskgoal{seal a message, change one byte, then try to open it.}
+  \taskready{\texttt{aead.py}, the functions \texttt{seal} and \texttt{open\_}.}
+  \vfill
+  \opentask{Task3}{about 5 minutes}
   \vfill
   \fixtag{3}%
-  \keymsg{Change one byte, then try to open it.}
-  \say{Około 5 minut. aead.py gotowy (seal, open\_). Podkreślnik w nazwie, bo open to już funkcja Pythona. Zmień jeden bajt i spróbuj otworzyć.}
+  \say{Około 5 minut. aead.py gotowy (seal, open\_). Podkreślnik w nazwie, bo open to już funkcja Pythona. Zmień jeden bajt i spróbuj otworzyć. Szczegóły w README.}
 \end{frame}
 
 \samedot
-\begin{frame}{Solution: change one byte}
-  \begin{columns}[T,onlytextwidth]
-    \column{0.6\textwidth}
-      % CHECKED: Task3/solution/tamper.py prints "open_ raises: bad tag: message rejected";
-      %          aead.py gives the ciphertext d31a8d34648e60db... and the tag 1ae10b59... of RFC 8439 2.8.2
-      \codefile[emph={seal,open_,print,bytes}]{Task3/solution/tamper.py}{7-12}
-    \column{0.37\textwidth}
-      \stepbox{Output}{\texttt{\scriptsize open\_ raises:}\\ \texttt{\scriptsize bad tag: message rejected}}
-  \end{columns}
+\begin{frame}{Task 3: what we saw}
+  \vfill
+  % CHECKED: Task3/solution/tamper.py prints "open_ raises: bad tag: message rejected";
+  %          aead.py gives the ciphertext d31a8d34648e60db... and the tag 1ae10b59... of RFC 8439 2.8.2
+  \begin{center}
+    \begin{minipage}{0.5\textwidth}
+      \stepbox{Output}{\texttt{open\_ raises:}\\ \texttt{bad tag: message rejected}}
+    \end{minipage}\\[0.4cm]
+    Nothing is decrypted: the tag is checked first.
+  \end{center}
   \vfill
   \fixtag{3}%
   \keymsg{One changed byte: rejected. Without a tag it would pass unseen.}
