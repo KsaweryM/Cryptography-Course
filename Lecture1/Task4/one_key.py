@@ -48,16 +48,19 @@ m2 = b"Bring the map"
 
 
 def encrypt(key, m):
-    # TODO 2: make a new 3-byte value: n = random.randbytes(3)
-    #         It does not have to be secret: it travels in the open.
-    #         Use n with rc4 so that it changes the keystream.
-    #         Return the packet: n + c (first n, then the ciphertext c).
+    # TODO 2: encrypt one message with its own RC4 key.
+    #   a) Make a new 3-byte value: n = random.randbytes(3)
+    #      It does not have to be secret: it travels in the open.
+    #   b) The RC4 key for this message is n + key
+    #      (n glued in front of the secret key): c = rc4(n + key, m)
+    #   c) Return the packet that is sent: n + c (first n, then the ciphertext c).
     pass
 
 
 def decrypt(key, packet):
-    # TODO 3: take n from the first 3 bytes of the packet,
-    #         the ciphertext from the rest, and give back the message.
+    # TODO 3: undo encrypt.
+    #   a) n = the first 3 bytes of the packet, c = the rest.
+    #   b) The RC4 key is again n + key: give back rc4(n + key, c).
     pass
 
 
@@ -68,6 +71,5 @@ def decrypt(key, packet):
 #   c) decrypt(key, p1)                                          b'Meet at noon.'
 #   d) attacker_learns_xor(p1, p2, m1, m2)                       should be False
 #      (a ready test: the attacker sees only the packets)
-# Hints: rc4 takes only two things: key and data.
+# Hints: b"ab" + b"cd" == b"abcd", so n + key is n glued in front of key.
 #        packet[0:3] = the first 3 bytes, packet[3:] = the rest.
-#        b"ab" + b"cd" == b"abcd"
