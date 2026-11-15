@@ -1589,6 +1589,7 @@
   \vfill
   \defbox{\textbf{Internal state}: everything the cipher keeps in its memory between one byte and the next.}
   \vfill
+  \curious{rc4/\#2}
   \keymsg{First mix the key in, then produce bytes.}
   \say{RC4 znamy już z zewnątrz, z Task 2: teraz otwieramy czarną skrzynkę. Najpierw zwykłymi słowami. Nazwy i rysunek są na następnym slajdzie.}
 \end{frame}
@@ -1940,7 +1941,8 @@
   \begin{center}\ksafig{1,3,8,201,21,27,35,67,242,145,207,89,92,cut,186,88}{none}{}\end{center}
   \vfill
   \stepbox{S looks shuffled, but it is still a permutation}{every number from 0 to 255 appears exactly once.}
-  \begin{center}\small \texttt{T} is thrown away. PRGA starts with this \texttt{S} and \texttt{i = j = 0}.\end{center}
+  \begin{center}\small \texttt{T} is thrown away. PRGA starts with this \texttt{S} and \texttt{i = j = 0}.\\[2pt]
+    \curious{rc4/\#2}\end{center}
   \keymsg{Is the key really hidden in S?}
   \say{Kolejnych 252 kroków nie liczymy ręcznie, wynik policzył program. Ten stan S jest punktem startowym dla PRGA w następnej sekcji. Pytanie z dołu slajdu prowadzi do zadania.}
 \end{frame}
@@ -2035,7 +2037,8 @@
   \begin{center}
     \arrfig[0.7]{0,1,2,3,4,5,6,7,8,9,10,11,12,cut,204,cut,254,255}{1,3,8,201,21,27,35,67,242,145,207,89,92,cut,178,cut,186,88}{}
   \end{center}
-  \vspace{-0.5cm}
+  \vspace{-0.75cm}
+  \curious{rc4/\#3}
   \keymsg{Every loop of PRGA gives one keystream byte.}
   \say{KSA skończone, T wyrzucone. Zostaje S, a i oraz j zaczynają od zera. Każde przejście pętli daje jeden bajt keystreamu.}
 \end{frame}
