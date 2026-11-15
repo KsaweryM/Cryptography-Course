@@ -307,64 +307,20 @@
 
 \begin{frame}{Agenda For Today}
   \vfill
-  \begin{columns}[T,onlytextwidth]
-    \column{0.52\textwidth}
-      \large
-      \begin{itemize}
-        \item[\textcolor{DeepBlue}{\faIcon{compress-arrows-alt}}] \textbf{1. Shorter keys, same safety} \\
-        \textcolor{gray}{\small Why another kind of crypto}
-        \vspace{0.3cm}
-
-        \item[\textcolor{DeepBlue}{\faChartLine}] \textbf{2. A curve of points} \\
-        \textcolor{gray}{\small $y^2 = x^3 + ax + b \bmod p$}
-        \vspace{0.3cm}
-
-        \item[\textcolor{DeepBlue}{\faPlus}] \textbf{3. Adding points} \\
-        \textcolor{gray}{\small Chord, tangent, formulas}
-        \vspace{0.3cm}
-
-        \item[\textcolor{DeepBlue}{\faTimes}] \textbf{4. Multiplying by a number} \\
-        \textcolor{gray}{\small $kG$ and the ECDLP}
-      \end{itemize}
-    \column{0.48\textwidth}
-      \large
-      \begin{itemize}
-        \item[\textcolor{DeepBlue}{\faHandshake}] \textbf{5. Agreeing on a key} \\
-        \textcolor{gray}{\small ECDH, X25519, HKDF}
-        \vspace{0.3cm}
-
-        \item[\textcolor{DeepBlue}{\faEnvelope}] \textbf{6. Encrypting on a curve} \\
-        \textcolor{gray}{\small ElGamal with points}
-        \vspace{0.3cm}
-
-        \item[\textcolor{DeepBlue}{\faGlobe}] \textbf{7. ECC in the real world} \\
-        \textcolor{gray}{\small Sizes, speed, where it lives}
-      \end{itemize}
-  \end{columns}
-  \vfill
-  \say{Najpierw po co, potem matematyka na małej krzywej, potem prawdziwe krzywe w kodzie.}
-\end{frame}
-
-\begin{frame}{Today you will need}
-  \vfill
   \begin{center}
     \begin{tikzpicture}
-      \foreach \x/\ic/\name/\sub in {0/\faPython/Python 3/version 3.8 or newer,
-          4.2/\faEdit/an editor/any one you like,
-          8.4/\faIcon{pencil-alt}/paper and a pen/Task 1 and small sums} {
-        \node[hw, minimum width=3.4cm, minimum height=2.5cm] (b) at (\x,0) {};
-        \node[text=nInk] at (\x,0.35) {\fontsize{36}{38}\selectfont\ic};
-        \node[font=\large\bfseries, text=nInk] at (\x,-0.65) {\name};
-        \node[font=\small, text=gray, below=0.15cm of b] {\sub};
+      % what we will do today: one icon and one sentence per point (the section names are in the bar at the top)
+      \foreach \ic/\t [count=\k from 0] in {
+          {\faIcon{compress-arrows-alt}}/{See why elliptic curves give the same safety with much shorter keys.},
+          {\faChartLine}/{Add and multiply points on a small curve, on paper and in Python.},
+          {\faHandshake}/{Agree on a key and encrypt a message on real curves.}} {
+        \node[circle, fill=DeepBlue, text=white, minimum size=1.3cm, font=\LARGE] at (0,{-1.9*\k}) {\ic};
+        \node[anchor=west, text width=12cm, font=\large, align=left, execute at begin node={\hyphenpenalty=10000 }] at (1.0,{-1.9*\k}) {\t};
       }
     \end{tikzpicture}
   \end{center}
   \vfill
-  \begin{center}
-    \small Nothing to install. Starter files for Task 2 to Task 5: \ghlink{}
-  \end{center}
-  \vfill
-  \say{Każde zadanie jest samodzielne: potrzebne funkcje są gotowe w folderze zadania.}
+  \say{Najpierw po co, potem matematyka na małej krzywej, potem prawdziwe krzywe w kodzie. Nazwy sekcji są na pasku u góry.}
 \end{frame}
 
 % ======================================================================
@@ -862,9 +818,9 @@
       \footnotesize
       \textbf{Ready:} $O$ (\texttt{None}), and the cases $P + O$ and $P + (-P)$.\\[6pt]
       \textbf{You write:} the slope, $x_3$, $y_3$, and the loop.\\[6pt]
-      Inverse: \texttt{pow(v, -1, p)}
+      Inverse: \texttt{pow(v, -1, p)}\\ (Python 3.8 or newer)
   \end{columns}
-  \say{Przypadki z O i z punktami przeciwnymi są gotowe, trzeba dopisać tylko wzory.}
+  \say{Przypadki z O i z punktami przeciwnymi są gotowe, trzeba dopisać tylko wzory. Każde zadanie jest samodzielne: potrzebne funkcje są gotowe w folderze zadania.}
 \end{frame}
 
 % CHECKED: Task2/solution/ec_toy.py prints 1G = (5, 1) ... 18G = (5, 16), 19G = O

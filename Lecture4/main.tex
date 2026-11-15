@@ -276,60 +276,20 @@
 
 \begin{frame}{Agenda For Today}
   \vfill
-  \begin{columns}[T,onlytextwidth]
-    \column{0.52\textwidth}
-      \large
-      \begin{itemize}
-        \item[\textcolor{DeepBlue}{\faComments}] \textbf{1. A secret in public} \\
-        \textcolor{gray}{\small Agree without sending it}
-        \vspace{0.3cm}
-
-        \item[\textcolor{DeepBlue}{\faHandshake}] \textbf{2. Diffie-Hellman} \\
-        \textcolor{gray}{\small Two numbers, one secret}
-        \vspace{0.3cm}
-
-        \item[\textcolor{DeepBlue}{\faSearch}] \textbf{3. Why is it safe?} \\
-        \textcolor{gray}{\small The discrete logarithm}
-      \end{itemize}
-    \column{0.48\textwidth}
-      \large
-      \begin{itemize}
-        \item[\textcolor{DeepBlue}{\faKey}] \textbf{4. A key, not a cipher} \\
-        \textcolor{gray}{\small Where DH is used}
-        \vspace{0.3cm}
-
-        \item[\textcolor{DeepBlue}{\faUserSecret}] \textbf{5. The man in the middle} \\
-        \textcolor{gray}{\small When nobody checks who is who}
-        \vspace{0.3cm}
-
-        \item[\textcolor{DeepBlue}{\faEnvelope}] \textbf{6. ElGamal encryption} \\
-        \textcolor{gray}{\small Diffie-Hellman with a message}
-      \end{itemize}
-  \end{columns}
-  \vfill
-  \say{Pierwsza połowa to wymiana klucza, druga to szyfr zbudowany na tym samym pomyśle.}
-\end{frame}
-
-\begin{frame}{Today you will need}
-  \vfill
   \begin{center}
     \begin{tikzpicture}
-      \foreach \x/\ic/\name/\sub in {0/\faPython/Python 3/{version 3.8 or newer, nothing to install},
-                                     4.6/\faEdit/An editor/any one you like,
-                                     9.2/\faPen/Paper and a pen/Task 1 is on paper} {
-        \node[hw, minimum width=3.8cm, minimum height=2.5cm] (c) at (\x,0) {};
-        \node[text=nInk] at (\x,0.35) {\fontsize{36}{38}\selectfont\ic};
-        \node[font=\large\bfseries, text=nInk] at (\x,-0.65) {\name};
-        \node[font=\small, text=gray, below=0.15cm of c, text width=3.8cm, align=center] {\sub};
+      % what we will do today: one icon and one sentence per point (the section names are in the bar at the top)
+      \foreach \ic/\t [count=\k from 0] in {
+          {\faHandshake}/{Agree on a secret key in public, without ever sending it.},
+          {\faUserSecret}/{See why this is safe, and how Mallory breaks it when nobody checks who is who.},
+          {\faEnvelope}/{Encrypt a message with the same idea: ElGamal.}} {
+        \node[circle, fill=DeepBlue, text=white, minimum size=1.3cm, font=\LARGE] at (0,{-1.9*\k}) {\ic};
+        \node[anchor=west, text width=12cm, font=\large, align=left, execute at begin node={\hyphenpenalty=10000 }] at (1.0,{-1.9*\k}) {\t};
       }
     \end{tikzpicture}
   \end{center}
   \vfill
-  \begin{center}
-    \small The tasks: \ghlink{}\ \texttt{Lecture4 / Task2 \dots\ Task6}
-  \end{center}
-  \vfill
-  \say{Każde zadanie jest samodzielne. Zadanie 1 robimy na kartce, małymi liczbami.}
+  \say{Pierwsza połowa to wymiana klucza Diffiego-Hellmana, druga to szyfr zbudowany na tym samym pomyśle. Nazwy sekcji są na pasku u góry.}
 \end{frame}
 
 % ======================================================================
@@ -842,7 +802,7 @@
       \end{tikzpicture}
       \end{center}
   \end{columns}
-  \say{Około 6 minut. Liczby losowe: secrets.randbits(256).}
+  \say{Około 6 minut. Liczby losowe: secrets.randbits(256). Każde zadanie jest samodzielne, nic nie trzeba instalować.}
 \end{frame}
 
 \samedot
@@ -1677,7 +1637,7 @@ def change_message(self, data):
   \end{center}
   \vfill
   \begin{center}
-    \normalsize In Python:\quad \terminal{pow(6, -1, 23)}
+    \normalsize In Python (3.8 or newer):\quad \terminal{pow(6, -1, 23)}
   \end{center}
   \vfill
   \say{Z wykładu 3, gdzie liczyliśmy ją algorytmem Euklidesa. Działa jak dzielenie modulo p.}
