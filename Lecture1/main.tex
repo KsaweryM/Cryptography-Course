@@ -214,6 +214,13 @@
 %   \simlink{rc4/\#2} prints and links ksawerym.github.io/Cryptography-simulators/rc4/#2
 \newcommand{\simbase}{ksawerym.github.io/Cryptography-simulators}
 \newcommand{\simlink}[1]{\href{https://\simbase/#1}{\textcolor{DeepBlue}{\texttt{\simbase/#1}}}}
+% a slide that sends the room to the simulator (shown live by the lecturer): \opensim{rc4/\#4.3}
+\newcommand{\opensim}[1]{%
+  \begin{beamercolorbox}[rounded=true,sep=0.35cm,wd=\linewidth]{block body example}
+    \centering
+    {\LARGE\faDesktop\ \textbf{Open the simulator}}\\[8pt]
+    \normalsize\simlink{#1}
+  \end{beamercolorbox}}
 % "For the curious" line under a frame: \curious{rc4/\#2}
 \newcommand{\curious}[1]{{\footnotesize\textcolor{gray}{\faSearch\ For the curious:}\ \simlink{#1}}}
 
@@ -2559,7 +2566,7 @@ def prga(S, n):
   \vfill
   \curious{rc4/\#4.3}
   \keymsg{Repeated IV means repeated keystream.}
-  \say{A powtórka IV to ponowne użycie keystreamu, czyli dokładnie ten sam błąd co wcześniej, tylko automatycznie. Wasza wartość w Task 4 też miała 3 bajty. Zapytać salę, ile pakietów trzeba, zanim IV się powtórzy: większość powie ,,miliony''. Symulator z linku pokazuje oba problemy WEP: powtórki IV i wyciek klucza (FMS).}
+  \say{A powtórka IV to ponowne użycie keystreamu, czyli dokładnie ten sam błąd co wcześniej, tylko automatycznie. Wasza wartość w Task 4 też miała 3 bajty. Zapytać salę, ile pakietów trzeba, zanim IV się powtórzy: większość powie ,,miliony''. Za dwa slajdy pokażemy to w symulatorze.}
 \end{frame}
 
 \samedot
@@ -2601,22 +2608,19 @@ def prga(S, n):
 \end{frame}
 
 \samedot
-\begin{frame}[fragile]{Try it: two packets, one IV}
-  \begin{center}\small Run the attack on 6\,000 captured packets. It finds two with the same IV and reads the secret one.\end{center}
+\begin{frame}{See it: two packets, one IV}
   \vfill
-  \begin{semiverbatim}\footnotesize\color{nInk}
-\textbf{\$ python3 attack.py}
-captured 6000 packets
-known packet has IV 9c 03 7e and known plaintext:
-    status: the printer is online and ready
-found a second packet with the same IV: packet 2100
-decrypted the second packet:
-    \textcolor{AccentOrange}{the door code is 2580}
-  \end{semiverbatim}
+  \opensim{rc4/\#4.3}
   \vfill
-  \begin{center}\small Ready to run from \ghlink{example1}. No network: the packets are simulated from a fixed seed.\end{center}
+  \begin{enumerate}\small
+    \item Two printer packets, encrypted with WEP. Press \textbf{the same IV as packet 1}.
+    \item Now $C_1 \oplus C_2 = P_1 \oplus P_2$: the keystream is gone.
+    \item Eve knows $P_1$ (a status packet), so she reads $P_2$: \textcolor{AccentOrange}{\texttt{the door code is 2580}}.
+    \item Below: send packets with random IVs until one repeats. A few thousand are enough.
+  \end{enumerate}
+  \vfill
   \keymsg{A repeated IV reveals a whole message, with no key.}
-  \say{Uruchomić na żywo. To ten sam atak co w sekcji o ponownym użyciu keystreamu, tylko na przechwyconym ruchu WEP. Keystream z pakietu o znanej treści odszyfrowuje inny pakiet z tym samym IV.}
+  \say{Pokazać na żywo w symulatorze. To ten sam atak co w sekcji o ponownym użyciu keystreamu, tylko na ruchu WEP: keystream z pakietu o znanej treści odszyfrowuje inny pakiet z tym samym IV. Potem przycisk na dole kilka razy: powtórka wypada zwykle po kilku tysiącach pakietów, zgodnie z poprzednim slajdem.}
 \end{frame}
 
 \samedot
@@ -2666,24 +2670,19 @@ decrypted the second packet:
 
 
 \samedot
-\begin{frame}[fragile]{Try it: the key leaks}
-  \begin{center}\small Run the attack on weak-IV packets. Each packet votes; the real key wins, byte by byte.\end{center}
+\begin{frame}{See it: the key leaks}
   \vfill
-  \begin{semiverbatim}\footnotesize\color{nInk}
-\textbf{\$ python3 attack.py}
-captured 15000 packets with weak IVs
-
-K[0]: top guesses  \textcolor{AccentOrange}{1F} (147 votes), 85 (76), 95 (59)
-K[1]: top guesses  \textcolor{AccentOrange}{8A} (96 votes), 5C (66), 92 (59)
-\ \ \ ...
-recovered key: \textcolor{AccentOrange}{1f 8a 3c 77 d2}
-real key:      1f 8a 3c 77 d2
-match: True
-  \end{semiverbatim}
+  \opensim{rc4/\#4.4}
   \vfill
-  \begin{center}\small Ready to run from \ghlink{example2}. \texttt{fms\_guess} is a black box: the votes are the point.\end{center}
+  \begin{enumerate}\small
+    \item One packet with the IV \texttt{03 FF 00}: Eve runs the first 3 loops of the KSA herself.
+    \item Loop 3 uses the secret $K[0]$. The value it puts into cell 3 tells $K[0]$.
+    \item In about 1 packet in 20 that value comes out as the first keystream byte: a right vote.
+    \item Below: 15\,000 packets vote. The right byte wins, one key byte after another: \textcolor{AccentOrange}{\texttt{1F 8A 3C 77 D2}}.
+  \end{enumerate}
+  \vfill
   \keymsg{Thousands of weak packets vote; the whole key falls out.}
-  \say{Uruchomić na żywo. Każdy słaby pakiet oddaje jeden głos, w większości zły; prawidłowy bajt wygrywa. Program odzyskuje cały klucz i porównuje go z prawdziwym. fms\_guess jest gotowy, studenci nie muszą go rozumieć.}
+  \say{Pokazać na żywo. Najpierw jeden pakiet, krok po kroku (przycisk next): trzy obiegi KSA Ewa liczy sama, bo zna IV; czwarty używa K[0]. Przycisk ,,an IV where the cells stay'' pokazuje pakiet z trafnym głosem, ,,another weak IV'' zwykle pakiet z głosem przypadkowym. Na 256 takich IV trafnych głosów jest 11, najlepsza zła wartość ma 6. Potem głosowanie na dole, tempo 2000 pakietów na sekundę: zielony słupek wychodzi na prowadzenie. Studenci nie muszą pamiętać wzoru; ważne, że każdy pakiet to głos, a trafne głosy zawsze wskazują ten sam bajt.}
 \end{frame}
 
 % ======================================================================
