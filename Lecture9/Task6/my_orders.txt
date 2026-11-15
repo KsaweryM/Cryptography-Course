@@ -1,0 +1,3 @@
+# SHA-256 fingerprints of the certificates that Alice ordered for alice-shop.example
+606599e5fee40972cd602bae2c67b3da27425efb29908fc863f3cb1213360ae4
+4e74d58c752088e8e2d9da1faee2705be36b8d2a666d1e847894ebb80936bbca

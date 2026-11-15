@@ -1,0 +1,16 @@
+% Task 1: the real chain of www.coventry.ac.uk (saved 15 Nov 2026). CHECKED: openssl x509 on the three PEM files.
+\documentclass[12pt,tikz,border=6pt]{standalone}
+\input{common}
+\begin{document}
+\pagecolor{white}
+\begin{tikzpicture}[>=Stealth]
+
+  \cert{lf}{0,0}{sIndigo}{6.2cm}{leaf.pem}{\textbf{Subject:} www.coventry.ac.uk\\\textbf{Issuer:} WE1\\\textbf{Valid:} 2026-10-13 .. 2027-01-11\\\textbf{Key:} EC P-256}
+  \cert{we}{7.4,0}{sBrown}{6.2cm}{intermediate.pem}{\textbf{Subject:} WE1, Google Trust Services\\\textbf{Issuer:} GTS Root R4\\\textbf{Valid:} 2023-12-13 .. 2029-02-20\\\textbf{Key:} EC P-256}
+  \cert{rt}{14.8,0}{sViolet}{6.2cm}{root.pem}{\textbf{Subject:} GTS Root R4\\\textbf{Issuer:} GTS Root R4 (itself)\\\textbf{Valid:} 2016-06-22 .. 2036-06-22\\\textbf{Key:} EC P-384}
+  \draw[sig] (we.west) -- node[above, font=\Large\bfseries, text=AccentOrange] {?} (lf.east);
+  \draw[sig] (rt.west) -- node[above, font=\Large\bfseries, text=AccentOrange] {?} (we.east);
+  \node[note, anchor=north] at (7.4,-3.2) {\badge{3}\ same names? \qquad \badge{4}\ did the next one sign it? \qquad \badge{5}\ does the root sign itself? the leaf sign WE1?};
+  \node[note, anchor=south, font=\small\bfseries] at (7.4,0.9) {\faGlobe\ www.coventry.ac.uk: the server sends the first two, the root comes from the trust store};
+\end{tikzpicture}
+\end{document}

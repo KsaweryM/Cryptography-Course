@@ -1,0 +1,26 @@
+% Task 6: CertificateVerify. RFC 9846, section 4.5.2 (RFC 8446, section 4.4.3); values from Task6/files/values.py.
+% CHECKED: Task6/solution: the content is 130 bytes; today's transcript hash 94831204943b04ae...08f8556a
+\documentclass[12pt,tikz,border=6pt]{standalone}
+\input{common}
+\begin{document}
+\pagecolor{white}
+\begin{tikzpicture}[>=Stealth]
+  \foreach \a/\b/\t/\s/\st in {0/4.6/{64 $\times$ \texttt{0x20} (spaces)}/64 bytes/cell,
+      4.6/12.8/{\texttt{"TLS 1.3, server CertificateVerify"}}/33 bytes/cell,
+      12.8/13.6/{\texttt{00}}/1 byte/cell,
+      13.6/19.0/{transcript hash \texttt{9483\ldots556a}}/32 bytes/cell} {
+    \node[\st, font=\small, minimum height=0.9cm, minimum width={(\b-\a)*1cm}, anchor=west, inner sep=1pt, draw=AccentOrange, dashed] at (\a,0) {\t};
+    \node[font=\small, text=gray, anchor=north] at ({(\a+\b)/2},-0.5) {\s};
+  }
+  \node[font=\small\bfseries, text=AccentOrange, anchor=south] at (9.5,0.5) {TODO 1: build these 130 bytes};
+  \node[smallcard=sTeal] (bc) at (-1.0,-2.4) {\cert\ \texttt{bob.pem}: bob.example\\ its public key};
+  \foreach \k/\who/\c/\ic in {0/{Bob, today}/sTeal/\faServer, 1/{Mallory, with a copy of Bob's certificate}/sPink/\faUserSecret,
+      2/{Mallory, replaying Bob's signature from yesterday}/sPink/\faUserSecret} {
+    \pgfmathsetmacro{\y}{-1.7-0.75*\k}
+    \node[smallcard=\c, anchor=west] at (3.6,\y) {\ic\ \who: a signature};
+    \node[font=\Large\bfseries, text=AccentOrange] at (16.5,\y) {?};
+  }
+  \node[font=\small, text=nInk, anchor=west, align=left] at (17.0,-2.45) {TODO 2 and 3:\\ verify each one};
+  \draw[data] (bc.east) -- (3.5,-2.45);
+\end{tikzpicture}
+\end{document}

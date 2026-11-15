@@ -1,0 +1,1859 @@
+\documentclass[aspectratio=169,10pt]{beamer}
+% notes.tex defines \NOTESONLY and reads this file: then only the speaker notes are printed
+\ifdefined\NOTESONLY
+  \setbeameroption{show only notes}
+\fi
+
+\usepackage{lmodern}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[polish,english]{babel}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{colortbl}
+\usepackage{xcolor}
+\usepackage{fontawesome5}
+\usepackage{listings}
+\usepackage{etoolbox}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, calc, positioning, fit, decorations.pathreplacing, decorations.pathmorphing}
+\usepackage{pgfplots}
+% layers for the code windows drawn in TikZ: the window, then the line that runs now, then the text
+\pgfdeclarelayer{codebg}\pgfdeclarelayer{codehl}\pgfsetlayers{codebg,codehl,main}
+\pgfplotsset{compat=1.18}
+
+\usetheme{Madrid}
+\useinnertheme{rounded}
+\useoutertheme{miniframes}
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{itemize items}[circle]
+\setbeamertemplate{enumerate items}[default]
+\setbeamertemplate{blocks}[rounded][shadow=true]
+% one dot per idea, not per frame: \samedot before a frame gives it the dot of the frame before
+% (it undoes the step of the dot counter that the next frame makes)
+\newcommand{\samedot}{\addtocounter{subsectionslide}{-1}}
+% the default dot step of the circle dots (0.1 cm dots)
+\setbeamersize{mini frame size=.14cm,mini frame offset=-.01cm}
+
+% ======================================================================
+% Colour rules for presentations (Beamer + TikZ), from Agents/colors
+% ======================================================================
+
+% ---------- template ----------
+\definecolor{DeepBlue}{HTML}{283593}      % title bar, headings, links, control-flow arrows
+\definecolor{AccentOrange}{HTML}{EB5A14}  % annotations: step numbers, "look here", code highlight, conclusions
+\definecolor{LightGray}{HTML}{F5F6FA}     % background of information blocks
+\setbeamercolor{palette primary}{bg=DeepBlue,fg=white}
+\setbeamercolor{palette secondary}{bg=DeepBlue!80!black,fg=white}
+\setbeamercolor{palette tertiary}{bg=DeepBlue!90!black,fg=white}
+\setbeamercolor{title}{bg=DeepBlue,fg=white}
+\setbeamercolor{frametitle}{bg=DeepBlue,fg=white}
+\setbeamercolor{structure}{fg=DeepBlue}
+\setbeamercolor{item}{fg=AccentOrange}
+\setbeamercolor{alerted text}{fg=AccentOrange}
+\setbeamercolor{block title}{bg=DeepBlue,fg=white}
+\setbeamercolor{block body}{bg=LightGray,fg=black}
+\setbeamercolor{block title example}{bg=AccentOrange,fg=white}
+\setbeamercolor{block body example}{bg=AccentOrange!10,fg=black}
+\setbeamercolor{enumerate item}{fg=DeepBlue}
+\setbeamerfont{enumerate item}{series=\bfseries}
+
+% ---------- actors and categories: fills only (S1 to S6) ----------
+\definecolor{sIndigo}{HTML}{5C6BC0}   % S1
+\definecolor{sPink}{HTML}{EC407A}     % S2
+\definecolor{sViolet}{HTML}{7E57C2}   % S3
+\definecolor{sAmber}{HTML}{FFB300}    % S4: black text on it
+\definecolor{sTeal}{HTML}{26A69A}     % S5
+\definecolor{sBrown}{HTML}{8D6E63}    % S6
+% text variants that stay readable on white
+\definecolor{sPinkText}{HTML}{C2185B}
+\definecolor{sAmberText}{HTML}{A06A00}
+\definecolor{sTealText}{HTML}{00796B}
+
+% ---------- actions: frames only; results: signs only ----------
+\definecolor{aExec}{HTML}{43A047}     % runs now
+\definecolor{aRead}{HTML}{1E88E5}     % is read
+\definecolor{aWrite}{HTML}{E53935}    % is written
+
+% ---------- neutral (Blue Grey) ----------
+\definecolor{nInk}{HTML}{37474F}      % text in figures, waveforms, wires, data-flow arrows
+\definecolor{nLine}{HTML}{90A4AE}     % borders, axes
+\definecolor{nLight}{HTML}{CFD8DC}    % inactive lines, grids, empty places (dashed)
+\definecolor{nFill}{HTML}{ECEFF1}     % fill of boxes and used cells
+\definecolor{nIdle}{HTML}{E0E0E0}     % time lost (idle, busy waiting, bubbles)
+
+% ---------- TikZ styles ----------
+\tikzset{
+  aexec/.style={draw=aExec, line width=1.6pt},
+  aexecm/.style={aexec, label={[text=aExec, inner sep=1pt, font=\tiny]left:$\blacktriangleright$}},
+  aread/.style={draw=aRead, line width=1.6pt, dash pattern=on 3pt off 2pt},
+  awrite/.style={draw=aWrite, line width=2.4pt},
+  hw/.style={draw=nLine, thick, fill=nFill, text=nInk, rounded corners=3pt, align=center, inner sep=4pt},
+  hwmain/.style={draw=nInk, thick, fill=nInk, text=white, rounded corners=3pt, align=center, inner sep=4pt},
+  cell/.style={draw=nLine, thick, fill=white, text=nInk, font=\ttfamily\scriptsize},
+  cellused/.style={cell, fill=nFill},
+  cellfree/.style={cell, dashed, draw=nLight},
+  container/.style={draw=nLine, thick, dashed, rounded corners=5pt},
+  actor/.style={fill=#1, draw=#1, text=white, rounded corners=3pt, align=center, font=\scriptsize\bfseries, inner sep=4pt},
+  actorlight/.style={fill=#1!15, draw=#1, thick, text=nInk, rounded corners=3pt, align=center, inner sep=4pt},
+  suspended/.style={fill=#1!30, draw=#1, dashed, line width=0.9pt, text=nInk, rounded corners=3pt, align=center, inner sep=4pt},
+  ready/.style={fill=white, draw=#1, line width=0.8pt, text=nInk, rounded corners=3pt, align=center, inner sep=4pt},
+  idle/.style={fill=nIdle, draw=none, text=nInk, rounded corners=3pt, align=center, inner sep=4pt},
+  flow/.style={-{Stealth}, very thick, DeepBlue},
+  data/.style={-{Stealth}, very thick, nInk},
+  holds/.style={-{Stealth}, very thick, nInk},
+  waits/.style={-{Stealth}, very thick, nLine, dashed},
+  annot/.style={draw=AccentOrange, line width=1.4pt, rounded corners=3pt},
+}
+\tikzset{actoramber/.style={actor=sAmber, text=black}}
+
+% ---------- signs and small helpers ----------
+\newcommand{\ok}{\textcolor{aExec}{\faCheck}}
+\newcommand{\nok}{\textcolor{aWrite}{\faTimes}}
+\newcommand{\badge}[1]{\tikz[baseline=(b.base)]\node[circle,fill=AccentOrange,text=white,
+  inner sep=1.2pt,font=\bfseries\tiny] (b) {#1};}
+\newcommand{\bigbadge}[1]{\tikz[baseline=(b.base)]\node[circle,fill=AccentOrange,text=white,
+  inner sep=2pt,font=\bfseries\small] (b) {#1};}
+% ---------- text boxes ----------
+\newcommand{\defbox}[1]{%
+  \begin{beamercolorbox}[rounded=true,sep=0.1cm,wd=\linewidth]{block body example}
+    \footnotesize #1
+  \end{beamercolorbox}\vspace{0.06cm}}
+% a large definition in the middle of the slide
+\newcommand{\bigdef}[1]{%
+  \begin{beamercolorbox}[rounded=true,sep=0.25cm,wd=\linewidth]{block body example}
+    \centering\normalsize #1
+  \end{beamercolorbox}\vspace{0.06cm}}
+\newcommand{\stepbox}[2]{%
+  \begin{beamercolorbox}[rounded=true,sep=0.09cm,wd=\linewidth]{block body}
+    \footnotesize\textbf{#1}\\ #2
+  \end{beamercolorbox}\vspace{0.06cm}}
+\newcommand{\keymsg}[1]{%
+  \begin{beamercolorbox}[rounded=true,sep=0.1cm,wd=\textwidth]{block body example}
+    \centering\footnotesize #1
+  \end{beamercolorbox}}
+% a grey box without a title
+\newcommand{\plainbox}[1]{%
+  \begin{beamercolorbox}[rounded=true,sep=0.12cm,wd=\linewidth]{block body}
+    \centering\footnotesize #1
+  \end{beamercolorbox}\vspace{0.06cm}}
+\setbeamercolor{block body problem}{bg=AccentOrange!10,fg=black}
+\newcommand{\probbox}[2]{%
+  \begin{beamercolorbox}[rounded=true,sep=0.09cm,wd=\linewidth]{block body problem}
+    \footnotesize\textbf{\textcolor{AccentOrange}{\faExclamationTriangle}\ #1}\\ #2
+  \end{beamercolorbox}\vspace{0.06cm}}
+
+% ---------- code: dark window, grey dots, syntax colours ----------
+\definecolor{VSDarkBg}{RGB}{25,25,25}
+\definecolor{VSText}{RGB}{245,245,245}
+\definecolor{VSBlue}{RGB}{80,180,255}
+\definecolor{VSPurple}{RGB}{210,110,210}
+\definecolor{VSString}{RGB}{255,140,80}
+\definecolor{VSComment}{RGB}{80,220,80}
+\setbeamercolor{vscodelisting}{bg=VSDarkBg}
+\lstdefinestyle{code}{basicstyle=\color{VSText}\ttfamily\scriptsize, keywordstyle=\color{VSBlue}\bfseries,
+  stringstyle=\color{VSString}, commentstyle=\color{VSComment}\itshape, emphstyle=\color{VSPurple},
+  numbers=none, columns=fixed, basewidth=0.52em, keepspaces=true, showstringspaces=false, xleftmargin=6pt}
+\lstdefinestyle{py}{style=code, language=Python, emph={print,chr,zip,range,len,bytes,ord,hex}}
+\BeforeBeginEnvironment{lstlisting}{%
+  \begin{beamercolorbox}[rounded=true,sep=2mm,wd=\linewidth]{vscodelisting}%
+  \begin{tikzpicture}
+    \fill[nLine] (0,0) circle (3pt); \fill[nLine] (0.35,0) circle (3pt); \fill[nLine] (0.70,0) circle (3pt);
+  \end{tikzpicture}%
+  \vspace{-0.2cm}}
+\AfterEndEnvironment{lstlisting}{\end{beamercolorbox}}
+\newcommand{\hlcode}[1]{{\setlength{\fboxsep}{1pt}\colorbox{AccentOrange}{\textcolor{white}{\bfseries #1}}}}
+\newcommand{\eol}{\tikz[remember picture, overlay]\coordinate (eol) at (0,0.08);}
+\newcommand{\codenote}[3][0pt]{%
+  \begin{tikzpicture}[remember picture, overlay, >=Stealth]
+    \node[draw=AccentOrange, very thick, fill=AccentOrange!6, rounded corners=4pt, text width=0.33\paperwidth,
+      align=left, inner sep=6pt, font=\footnotesize, anchor=west] (cal)
+      at ([yshift=#1]eol -| {$(current page.west)!0.6!(current page.east)$}) {\textbf{\textcolor{AccentOrange}{#2}}\\[3pt]#3};
+    \draw[->, very thick, AccentOrange] (eol -| cal.west) -- ([xshift=4pt]eol);
+  \end{tikzpicture}}
+% program output: a light terminal line
+\newcommand{\terminal}[1]{%
+  \begin{tikzpicture}
+    \node[draw=nLine, thick, fill=nFill, rounded corners=3pt, inner sep=5pt, font=\ttfamily\small, text=nInk]
+      {\textcolor{nLine}{\$}\ #1};
+  \end{tikzpicture}}
+
+% ======================================================================
+% Course macros
+% ======================================================================
+% the starter files on GitHub: the word "GitHub" is the link.
+%   \ghlink{Task4} opens the folder of Task 4, \ghlink{} opens the folder of this lecture
+\newcommand{\ghbase}{https://github.com/KsaweryM/Cryptography-Course/tree/main/Lecture7}
+\newcommand{\ghlink}[1]{\href{\ghbase/#1}{\textcolor{DeepBlue}{\textbf{GitHub}}}}
+% the task slides: the steps are in the README on GitHub, the slide only opens the task
+%   \taskgoal{one line}   \taskready{the ready modules}   \opentask{Task2}{about 6 minutes}
+%   a task on paper: the question on the slide, then \onpaper{about 6 minutes}
+\newcommand{\taskgoal}[1]{{\centering\large\textcolor{AccentOrange}{\faBullseye}\ \textbf{Goal:} #1\par}\vspace{0.2cm}}
+\newcommand{\taskready}[1]{{\centering\normalsize\textcolor{nInk}{\faBox}\ \textbf{Ready:} #1\par}\vspace{0.2cm}}
+\newcommand{\opentask}[2]{%
+  \begin{beamercolorbox}[rounded=true,sep=0.35cm,wd=\linewidth]{block body example}
+    \centering
+    {\LARGE\faGithub\ \textbf{Open the task:}\ \href{\ghbase/#1}{\textcolor{DeepBlue}{\textbf{\texttt{#1}}}}}\\[8pt]
+    \footnotesize\href{\ghbase/#1}{\textcolor{DeepBlue}{\texttt{github.com/KsaweryM/Cryptography-Course/tree/main/Lecture7/#1}}}\\[6pt]
+    \small on \ghlink{#1}: the steps, the starter files and how to run them\ifx&#2&\else\qquad\faClock[regular]\ #2\fi
+  \end{beamercolorbox}}
+\newcommand{\onpaper}[1]{%
+  \begin{beamercolorbox}[rounded=true,sep=0.3cm,wd=\linewidth]{block body example}
+    \centering
+    {\LARGE\faPencil*\ \textbf{On paper}}\ifx&#1&\else\qquad\small\faClock[regular]\ #1\fi
+  \end{beamercolorbox}}
+
+% a page of the simulator website, printed in full so that students can type it:
+%   \simlink{elliptic-curves/\#2} prints and links ksawerym.github.io/Cryptography-simulators/elliptic-curves/#2
+\newcommand{\simbase}{ksawerym.github.io/Cryptography-simulators}
+\newcommand{\simlink}[1]{\href{https://\simbase/#1}{\textcolor{DeepBlue}{\texttt{\simbase/#1}}}}
+% "For the curious" line under a frame: \curious{elliptic-curves/\#2}
+\newcommand{\curious}[1]{{\footnotesize\textcolor{gray}{\faSearch\ For the curious:}\ \simlink{#1}}}
+
+% speaker notes (Polish): printed only in the notes PDF (make notes)
+\setbeamertemplate{note page}[default]
+\setbeamerfont{note page}{size=\normalsize}
+\newcommand{\say}[1]{\note{\selectlanguage{polish}#1}}
+
+
+% ======================================================================
+% Colour mapping for this lecture (colour rules, section 6)
+%   S1 sIndigo : Alice, the owner of the website, and her leaf certificate (and any leaf)
+%   S2 sPink   : Mallory
+%   S3 sViolet : the root CA and its certificate
+%   S4 sAmber  : private keys
+%   S5 sTeal   : Bob, the client (browser)
+%   S6 sBrown  : intermediate CAs
+%   CT logs, trust stores, servers, commands and mechanisms are neutral
+% ======================================================================
+\tikzset{
+  person/.style={circle, fill=#1, draw=#1, text=white, minimum size=1.15cm, font=\Large, inner sep=0pt},
+  privkey/.style={draw=sAmber, thick, fill=sAmber!25, text=nInk, rounded corners=3pt, align=center, inner sep=4pt},
+  tile/.style={hw, minimum width=#1, text width=#1-0.3cm, minimum height=2.2cm},
+  sig/.style={-{Stealth}, very thick, nInk},
+  hlarrow/.style={-{Stealth}, line width=1.6pt, AccentOrange},
+}
+% a person: \personnode{name}{x,y}{colour}{caption}
+\newcommand{\personnode}[4]{%
+  \node[person=#3] (#1) at (#2) {\faUser};
+  \node[font=\small\bfseries, text=#3, below=0.08cm of #1] (#1lbl) {#4};}
+% a certificate card: \cert{name}{x,y}{colour}{width}{header}{rows}
+%   the header (#1h) is a band in the colour of the role, the body (#1) lists the fields
+\newcommand{\cert}[6]{%
+  \node[fill=#3, draw=#3, text=white, font=\scriptsize\bfseries, minimum width=#4, minimum height=0.5cm,
+    rounded corners=3pt, anchor=north, inner sep=2pt] (#1h) at (#2) {\faCertificate\ #5};
+  \node[draw=#3, line width=0.9pt, fill=white, text=nInk, font=\scriptsize, minimum width=#4, text width=#4-0.3cm,
+    anchor=north, align=left, inner sep=4pt, rounded corners=2pt] (#1) at ([yshift=0.02cm]#1h.south) {#6};}
+% a CA building: \canode{name}{x,y}{colour}{caption}
+\newcommand{\canode}[4]{%
+  \node[circle, fill=#3, draw=#3, text=white, minimum size=1.25cm, font=\Large, inner sep=0pt] (#1) at (#2) {\faLandmark};
+  \node[font=\small\bfseries, text=nInk, below=0.08cm of #1, align=center] (#1lbl) {#4};}
+% a private key: \keynode{name}{x,y}{caption}
+\newcommand{\keynode}[3]{\node[privkey, font=\small] (#1) at (#2) {\textcolor{sAmberText}{\faKey}\ #3};}
+\newcommand{\hl}[1]{\textcolor{AccentOrange}{\textbf{#1}}}
+% light terminal for program output and openssl commands; @...@ marks text in orange
+\lstdefinestyle{term}{basicstyle=\color{nInk}\ttfamily\scriptsize, backgroundcolor=\color{nFill}, frame=single,
+  rulecolor=\color{nLine}, framesep=4pt, xleftmargin=5pt, xrightmargin=5pt, columns=fixed, basewidth=0.52em,
+  keepspaces=true, showstringspaces=false, upquote=true,
+  moredelim=[is][\color{AccentOrange}\bfseries]{@}{@}, escapeinside={(*}{*)}}
+\lstnewenvironment{termout}[1][]{\lstset{style=term,#1}}{}
+% the eight steps of the life of a certificate; \lifebar{k} marks step k (0: none)
+\newcommand{\lifebar}[1]{%
+  \begin{tikzpicture}
+    \foreach \ic/\t [count=\k] in {\faKey/key pair, \faFile*/request, \faSearch/validation, \faStamp/issue,
+        \faBook/publish, \faLock/use, \faIcon{sync-alt}/renew, \faIcon{hourglass-end}/expire} {
+      \ifnum\k=#1
+        \node[circle, draw=AccentOrange, line width=1.6pt, fill=AccentOrange!12, text=nInk, minimum size=0.75cm,
+          font=\normalsize] (s\k) at ({1.75*(\k-1)},0) {\ic};
+        \node[font=\scriptsize\bfseries, text=AccentOrange, below=0.02cm of s\k] {\k\ \t};
+      \else
+        \node[circle, draw=nLine, thick, fill=nFill, text=nInk, minimum size=0.75cm, font=\normalsize] (s\k) at ({1.75*(\k-1)},0) {\ic};
+        \node[font=\scriptsize, text=nInk, below=0.02cm of s\k] {\k\ \t};
+      \fi
+    }
+    \foreach \k [evaluate=\k as \n using int(\k+1)] in {1,...,7} \draw[flow, thick] (s\k) -- (s\n);
+  \end{tikzpicture}}
+
+\title{Cryptography}
+\subtitle{Certificate Authorities and the Certificate Lifecycle}
+\author{Ksawery Możdżyński}
+\date{}
+
+\begin{document}
+
+% ======================================================================
+% Opening
+% ======================================================================
+
+\begin{frame}
+  \titlepage
+  \say{Na wykładzie 6: czym jest certyfikat X.509. Dziś: kto go podpisuje, dlaczego mu ufamy i jak certyfikat się rodzi, żyje i wygasa.}
+\end{frame}
+
+\begin{frame}{Agenda For Today}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \foreach \ic/\t [count=\k from 0] in {
+          {\faSitemap}/{Follow a chain of trust from a real website up to a root in your trust store.},
+          {\faTools}/{Build a small PKI of your own and see which rules stop a CA from signing too much.},
+          {\faIcon{sync-alt}}/{Follow a certificate through its life: request, checks, public logs, renewal and expiry.}} {
+        \node[circle, fill=DeepBlue, text=white, minimum size=1.3cm, font=\LARGE] at (0,{-1.9*\k}) {\ic};
+        \node[anchor=west, text width=12cm, font=\large, align=left, execute at begin node={\hyphenpenalty=10000 }] at (1.0,{-1.9*\k}) {\t};
+      }
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \say{Najpierw łańcuch zaufania na prawdziwej stronie, potem własne małe PKI i reguły, potem cykl życia certyfikatu. Nazwy sekcji są na pasku u góry.}
+\end{frame}
+
+% ======================================================================
+\section{Certificate authorities}
+% ======================================================================
+
+\begin{frame}{Recall: a digital signature}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      % sign
+      \keynode{pk}{0,0.7}{private key}
+      \node[hw, minimum width=2.1cm] (d1) at (0,-0.5) {\faFile*[regular]\ data};
+      \node[hwmain, minimum width=2.0cm, minimum height=1.6cm] (sg) at (3.0,0.1) {\Large\faCogs\\[2pt]\small\bfseries sign};
+      \draw[data] (pk.east) -- (sg.west |- pk.east);
+      \draw[data] (d1.east) -- (sg.west |- d1.east);
+      \node[hw, minimum width=2.0cm] (s1) at (5.6,0.1) {\faSignature\ signature};
+      \draw[data] (sg) -- (s1);
+      % verify
+      \node[hw, minimum width=2.1cm] (pub) at (8.2,1.0) {\faIcon{lock-open}\ public key};
+      \node[hw, minimum width=2.1cm] (d2) at (8.2,0.1) {\faFile*[regular]\ data};
+      \node[hw, minimum width=2.1cm] (s2) at (8.2,-0.8) {\faSignature\ signature};
+      \node[hwmain, minimum width=2.0cm, minimum height=2.2cm] (vf) at (10.9,0.1) {\Large\faCogs\\[2pt]\small\bfseries verify};
+      \foreach \n in {pub,d2,s2} \draw[data] (\n.east) -- (vf.west |- \n.east);
+      \node[font=\large\bfseries, text=nInk, right=0.2cm of vf, align=left] {\ok\ True\\ \nok\ False};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small \textbf{True} means: the data was not changed, and the holder of the private key signed it.\end{center}
+  \vfill
+  \keymsg{Only the holder of the private key can sign; anybody with the public key can check.}
+  \say{Z tygodnia o funkcjach skrótu i podpisach. Dziś podpis to czarna skrzynka: nie liczymy, tylko używamy. W środku jest skrót danych i RSA albo ECDSA.}
+\end{frame}
+
+\begin{frame}{Recall: a certificate}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \cert{c}{0,0}{sIndigo}{7.4cm}{certificate}{%
+        \textbf{Subject:}\ \texttt{alice-shop.example}\\[3pt]
+        \textbf{Public key:}\ \texttt{04 1E 4D FF 7E 2A \ldots}\\[3pt]
+        \textbf{Valid:}\ \texttt{2026-11-15 .. 2027-02-13}\\[3pt]
+        \textbf{Issuer:}\ \texttt{Trusty Corp}\\[2pt]
+        \textcolor{nLine}{\rule{6.5cm}{0.6pt}}\\[2pt]
+        \textbf{Signature of the issuer:}\ \texttt{30 46 02 21 \ldots}}
+      \foreach \y/\t in {-0.82/the name, -1.25/the key that belongs to the name, -1.68/dates, -2.11/who vouches for it,
+          -2.85/the issuer signed all of the above} {
+        \draw[nLine, thick, -{Stealth}] (5.3,\y) -- (3.9,\y);
+        \node[anchor=west, font=\small, text=nInk] at (5.4,\y) {\t};
+      }
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \keymsg{A certificate says: this public key belongs to this name, and the issuer vouches for it.}
+  \say{Z wykładu 6. Certyfikat wiąże nazwę z kluczem publicznym, a podpis wystawcy mówi: ja, wystawca, ręczę za to powiązanie. Dziś pytanie: kim jest ten wystawca?}
+\end{frame}
+
+\begin{frame}{Who vouches for Alice's key?}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \personnode{al}{-6.4,0.9}{sIndigo}{Alice}
+      \personnode{ma}{6.4,0.9}{sPink}{Mallory}
+      \cert{a}{-2.8,1.6}{sIndigo}{4.4cm}{sent by Alice}{%
+        \textbf{Subject:}\ \texttt{alice-shop.example}\\ \textbf{Key:}\ Alice's key\\
+        \textbf{Issuer:}\ \texttt{alice-shop.example}\\ signed by Alice's own key}
+      \cert{m}{2.8,1.6}{sPink}{4.4cm}{sent by Mallory}{%
+        \textbf{Subject:}\ \texttt{alice-shop.example}\\ \textbf{Key:}\ Mallory's key\\
+        \textbf{Issuer:}\ \texttt{alice-shop.example}\\ signed by Mallory's own key}
+      \draw[data] (al.east) -- (ah.west |- al.east);
+      \draw[data] (ma.west) -- (mh.east |- ma.west);
+      \personnode{bob}{0,-1.9}{sTeal}{Bob}
+      \draw[data] (a.south) to[bend right=15] (bob.west);
+      \draw[data] (m.south) to[bend left=15] (bob.east);
+      \node[font=\fontsize{30}{32}\selectfont\bfseries, text=AccentOrange] at (1.2,-1.6) {?};
+      \node[font=\small, text=nInk, below=0.05cm of boblbl] {which one is real?};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \keymsg{A certificate that signs itself proves nothing about the name.}
+  \say{Certyfikat podpisany własnym kluczem nazywamy self-signed. Każdy może taki zrobić dla dowolnej nazwy. Podpis się zgadza w obu przypadkach, ale nic nie mówi o tym, kto jest właścicielem nazwy. Pytanie do sali: czego Bob potrzebuje?}
+\end{frame}
+
+\begin{frame}{The idea: a certificate authority}
+  \bigdef{\textbf{Certificate authority (CA):} an organisation that Bob already trusts.\\
+    It checks that the name belongs to Alice, then signs her certificate with its private key.}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \personnode{al}{0,0}{sIndigo}{Alice}
+      \canode{ca}{6,0}{nInk}{Trusty CA}
+      \personnode{bob}{11,0}{sTeal}{Bob}
+      \draw[data] ([yshift=0.25cm]al.east) to node[above, font=\small, text=nInk] {\badge{1}\ ``alice-shop.example is mine''} ([yshift=0.25cm]ca.west);
+      \draw[data] ([yshift=-0.25cm]ca.west) to node[below, font=\small, text=nInk] {\badge{2}\ certificate signed by Trusty CA} ([yshift=-0.25cm]al.east);
+      \draw[waits] (bob.west) to node[above, font=\small, text=nInk] {trusts} (ca.east);
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \say{Pomysł jak z notariuszem albo urzędem paszportowym: zaufana trzecia strona sprawdza i potwierdza. Bob nie zna Alice, ale zna Trusty CA. Skąd Bob zna CA, zobaczymy w sekcji Chains of trust.}
+\end{frame}
+
+\begin{frame}{What a CA does}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \foreach \ic/\t/\s [count=\k from 0] in {\faSearch/Checks/{who is asking\\\textcolor{gray}{Getting a certificate}},
+          \faSignature/Signs/{the certificate\\\textcolor{gray}{Chains of trust}},
+          \faBullhorn/Publishes/{what it signed\\\textcolor{gray}{Certificate Transparency}},
+          \faLock/Protects/{its private keys\\\textcolor{gray}{Chains of trust}}} {
+        \node[hw, minimum width=3.3cm, minimum height=3.6cm] (b\k) at ({3.6*\k},0) {};
+        \node[text=nInk, font=\fontsize{30}{32}\selectfont] at ({3.6*\k},0.75) {\ic};
+        \node[font=\bfseries, text=nInk] at ({3.6*\k},-0.35) {\t};
+        \node[font=\footnotesize, text=nInk, align=center] at ({3.6*\k},-1.05) {\s};
+        \node[circle, fill=AccentOrange, text=white, font=\bfseries\small, minimum size=0.55cm] at ([xshift=0.3cm,yshift=-0.3cm]b\k.north west) {\the\numexpr\k+1\relax};
+      }
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \keymsg{A CA is only as good as its checks and its key protection.}
+  \say{Cztery obowiązki CA i dzisiejsze sekcje. Do publikowania należy też odwoływanie certyfikatów: to temat wykładu 8.}
+\end{frame}
+
+\begin{frame}{Who checks the CA?}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      % source: cabforum.org (founded 2005; Baseline Requirements in force since 1 July 2012)
+      \foreach \ic/\t/\s [count=\k from 0] in {\faUsers/{CA/Browser Forum}/{since 2005\\[3pt] \textbf{Baseline Requirements}:\\the rules for TLS\\certificates (since 2012)},
+          \faIcon{clipboard-check}/Auditors/{a yearly audit:\\WebTrust or ETSI\\[3pt]the report is public},
+          \faGlobe/Root programs/{browsers and systems\\decide which CAs\\they trust}} {
+        \node[hw, minimum width=4.0cm, minimum height=3.5cm] (b\k) at ({4.4*\k},0) {};
+        \node[text=nInk, font=\fontsize{24}{26}\selectfont] at ({4.4*\k},1.05) {\ic};
+        \node[font=\bfseries, text=nInk] at ({4.4*\k},0.3) {\t};
+        \node[font=\footnotesize, text=nInk, align=center, anchor=north] at ({4.4*\k},-0.05) {\s};
+      }
+      \canode{ca}{4.4,-2.75}{nInk}{}
+      \node[font=\small\bfseries, text=nInk, right=0.15cm of ca] {a public CA};
+      \foreach \k in {0,1,2} \draw[data] (b\k.south) -- (ca);
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \keymsg{A public CA follows public rules and is audited every year.}
+  \say{CA/Browser Forum to wspólne forum urzędów i producentów przeglądarek. Baseline Requirements to wymagania dla certyfikatów TLS: jak sprawdzać nazwy, jak długo certyfikat może żyć. Audyt co rok. Programy root to klucz: o nich w sekcji Chains of trust.}
+\end{frame}
+
+\begin{frame}{Real CAs}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \foreach \t [count=\k from 0] in {{Let's Encrypt\\\scriptsize free, automatic}, DigiCert, Sectigo, GlobalSign, {Google Trust\\Services}} {
+        \node[hw, minimum width=2.5cm, minimum height=1.7cm, font=\small\bfseries] at ({2.75*\k},0) {\faLandmark\\[3pt]\t};
+      }
+      % CHECKED: openssl s_client -connect www.coventry.ac.uk:443, 15 Nov 2026: issuer CN=WE1, O=Google Trust Services
+      \cert{cov}{5.5,-1.5}{sIndigo}{6.4cm}{www.coventry.ac.uk}{%
+        \textbf{Issuer:}\ \hl{WE1, Google Trust Services}\\ \textcolor{gray}{seen on 15 November 2026}}
+      \draw[annot, -{Stealth}] (cov.north east) to[bend right=25] (11,-0.85);
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \say{Let's Encrypt wystawia najwięcej certyfikatów, bo jest darmowy i automatyczny: wrócimy do niego w sekcji Automation and expiry. Coventry używa Google Trust Services, sprawdziłem 15 listopada.}
+\end{frame}
+
+% ======================================================================
+\section{Chains of trust}
+% ======================================================================
+
+% the real chain of www.coventry.ac.uk, three cards: leaf (lf), WE1 (we), GTS Root R4 (rt)
+% CHECKED: openssl s_client -connect www.coventry.ac.uk:443 -showcerts, 15 Nov 2026 16:13 UTC, and
+%   openssl x509 -noout -subject -issuer -dates -text; the root from /etc/ssl/certs/GTS_Root_R4.pem (Ubuntu 24.04)
+\newcommand{\covchain}{%
+  \cert{lf}{-4.7,1.6}{sIndigo}{4.3cm}{leaf}{%
+    \textbf{Subject:}\ www.coventry.ac.uk\\ \textbf{Issuer:}\ WE1\\
+    \textbf{Valid:}\ 2026-10-13 .. 2027-01-11\\ \textbf{Key:}\ EC P-256}
+  \cert{we}{0,1.6}{sBrown}{4.3cm}{intermediate}{%
+    \textbf{Subject:}\ WE1, Google Trust Services\\ \textbf{Issuer:}\ GTS Root R4\\
+    \textbf{Valid:}\ 2023-12-13 .. 2029-02-20\\ \textbf{Key:}\ EC P-256}
+  \cert{rt}{4.7,1.6}{sViolet}{4.3cm}{root}{%
+    \textbf{Subject:}\ GTS Root R4\\ \textbf{Issuer:}\ GTS Root R4 (itself)\\
+    \textbf{Valid:}\ 2016-06-22 .. 2036-06-22\\ \textbf{Key:}\ EC P-384}}
+
+\begin{frame}{One key for every website?}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \node[hwmain, minimum width=3.2cm, minimum height=2.2cm] (srv) at (0,0) {};
+      \node[text=white, font=\Large] at (0,0.55) {\faServer};
+      \node[text=white, font=\small\bfseries] at (0,-0.05) {Trusty CA};
+      \keynode{k}{0,-0.65}{\scriptsize online, all day}
+      \node[text=AccentOrange, font=\Large] at (1.9,1.0) {\faExclamationTriangle};
+      \foreach \y/\t in {1.5/site 1, 0.75/site 2, 0/site 3, -0.75/\ldots, -1.5/site 500 000 000} {
+        \node[hw, minimum width=3.4cm, font=\small, anchor=west] (s) at (5.2,\y) {\faGlobe\ \t};
+        \draw[data] (1.65,0) -- (s.west);
+      }
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small One leak: every device in the world must replace its trust in this CA.\end{center}
+  \keymsg{The key that everybody trusts should be used as rarely as possible.}
+  \say{Gdyby jeden klucz podpisywał wszystko, musiałby być dostępny cały czas, czyli podłączony do sieci. Wyciek takiego klucza oznacza wymianę zaufania na miliardach urządzeń. Pytanie do sali: jak to rozdzielić?}
+\end{frame}
+
+\begin{frame}{Root, intermediate, leaf}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \cert{r}{0,0}{sViolet}{3.6cm}{root CA}{signs itself;\\lives in the trust store}
+      \cert{i}{4.6,0}{sBrown}{3.6cm}{intermediate CA}{signed by the root;\\signs websites}
+      \cert{l}{9.2,0}{sIndigo}{3.6cm}{leaf certificate}{the website;\\signs no certificates}
+      \draw[data] (r.east) to node[above, font=\scriptsize] {signs} (i.west);
+      \draw[data] (i.east) to node[above, font=\scriptsize] {signs} (l.west);
+      \node[font=\small, text=nInk, align=center, below=0.5cm of r] {\textcolor{sAmberText}{\faKey}\ key offline,\\a few times a year};
+      \node[font=\small, text=nInk, align=center, below=0.5cm of i] {\textcolor{sAmberText}{\faKey}\ key online, in an\\HSM, all day};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \curious{pki/\#3.1}
+  \keymsg{The root signs intermediates, intermediates sign websites.}
+  \say{Root podpisuje tylko pośrednie CA, a pośrednie CA podpisują strony. Liść, czyli certyfikat końcowy, nie podpisuje nikogo. HSM to sprzętowy moduł bezpieczeństwa: urządzenie, z którego klucz nie wychodzi. Magazyn zaufania to lista rootów na komputerze Boba, za chwilę. W symulatorze z linku można rozłożyć łańcuch Boba na root, pośredni i liść.}
+\end{frame}
+
+\begin{frame}{The chain of www.coventry.ac.uk}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \covchain
+      \draw[sig] (we.west) to node[above, font=\scriptsize] {signed} node[below, font=\scriptsize] {by} (lf.east);
+      \draw[sig] (rt.west) to node[above, font=\scriptsize] {signed} node[below, font=\scriptsize] {by} (we.east);
+      \draw[decorate, decoration={brace, mirror, amplitude=6pt}, nInk, thick] (-6.85,-0.35) -- (2.15,-0.35)
+        node[midway, below=8pt, font=\small, text=nInk] {sent by the server};
+      \draw[decorate, decoration={brace, mirror, amplitude=6pt}, nInk, thick] (2.55,-0.35) -- (6.85,-0.35)
+        node[midway, below=8pt, font=\small, text=nInk] {already on Bob's computer};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \keymsg{Three certificates: the server sends the first two, the root is already on Bob's computer.}
+  \say{Prawdziwy łańcuch z 15 listopada. Liść ważny tylko 90 dni, pośredni pięć lat, root dwadzieścia. Klucze to krzywe eliptyczne z wykładu 5. Serwer wysyła liść i WE1, root jest u Boba.}
+\end{frame}
+
+\begin{frame}{Names link the chain}
+  \vfill
+  \begin{center}
+    % CHECKED: openssl x509 -ext subjectKeyIdentifier,authorityKeyIdentifier on the three certificates
+    \begin{tikzpicture}
+      \cert{lf}{-4.7,1.6}{sIndigo}{4.3cm}{leaf}{%
+        \textbf{Subject:}\ www.coventry.ac.uk\\ \textbf{Issuer:}\ \hl{WE1, Google Trust\ldots}\\[2pt]
+        \textbf{AKI:}\ \texttt{\hl{90:77:92:35:67:C4}\ldots}}
+      \cert{we}{0,1.6}{sBrown}{4.3cm}{intermediate}{%
+        \textbf{Subject:}\ \hl{WE1, Google Trust\ldots}\\ \textbf{Issuer:}\ \textcolor{sViolet}{\textbf{GTS Root R4}}\\[2pt]
+        \textbf{SKI:}\ \texttt{\hl{90:77:92:35:67:C4}\ldots}\\ \textbf{AKI:}\ \texttt{\textcolor{sViolet}{\textbf{80:4C:D6:EB:74:FF}}\ldots}}
+      \cert{rt}{4.7,1.6}{sViolet}{4.3cm}{root}{%
+        \textbf{Subject:}\ \textcolor{sViolet}{\textbf{GTS Root R4}}\\ \textbf{Issuer:}\ GTS Root R4\\[2pt]
+        \textbf{SKI:}\ \texttt{\textcolor{sViolet}{\textbf{80:4C:D6:EB:74:FF}}\ldots}}
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{columns}[t,onlytextwidth]
+    \column{0.48\textwidth}\centering\small issuer of each $=$ subject of the next
+    \column{0.48\textwidth}\centering\small Authority Key Identifier (AKI) $=$\\ Subject Key Identifier (SKI) of the next
+  \end{columns}
+  \vfill
+  \keymsg{Names and key identifiers tell the client which certificate comes next.}
+  \say{Nazwa wystawcy w każdym certyfikacie to nazwa podmiotu następnego. Identyfikatory kluczy to skróty kluczy publicznych: pomagają znaleźć właściwy klucz, gdy CA ma ich kilka.}
+\end{frame}
+
+% the three steps of checking: \checksteps{step now}{result 1}{result 2}{result 3}
+\newcommand{\checksteps}[4]{%
+  \small
+  \begin{tabular}{@{}l l l@{}}
+    \ifnum#1=1\now\else\notnow\fi & 1. verify(public key of WE1, leaf, signature on the leaf) & #2\\[2pt]
+    \ifnum#1=2\now\else\notnow\fi & 2. verify(public key of GTS Root R4, WE1, signature on WE1) & #3\\[2pt]
+    \ifnum#1=3\now\else\notnow\fi & 3. Is GTS Root R4 in Bob's trust store? & #4
+  \end{tabular}}
+\newcommand{\now}{\makebox[0.45cm][l]{\textcolor{AccentOrange}{\faCaretRight}}}
+\newcommand{\notnow}{\makebox[0.45cm][l]{}}
+
+\begin{frame}{Checking the chain: step 1}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \covchain
+      \draw[hlarrow] (we.west) to node[above, font=\scriptsize\bfseries, text=AccentOrange] {verify} (lf.east);
+      \node[font=\large] at (-2.35,-0.25) {\ok};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\checksteps{1}{\ok\ True}{?}{?}\end{center}
+  \vfill
+  \say{Klucz publiczny WE1 weryfikuje podpis na liściu. Jeśli True, to WE1 naprawdę wystawił ten liść.}
+\end{frame}
+
+\samedot
+\begin{frame}{Checking the chain: step 2}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \covchain
+      \draw[sig] (we.west) -- (lf.east);
+      \draw[hlarrow] (rt.west) to node[above, font=\scriptsize\bfseries, text=AccentOrange] {verify} (we.east);
+      \node[font=\large] at (2.35,-0.25) {\ok};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\checksteps{2}{\ok\ True}{\ok\ True}{?}\end{center}
+  \vfill
+  \say{Tak samo o jedno ogniwo wyżej. Ale root podpisał sam siebie, więc jego podpis nic nie dowodzi. Dlaczego więc mu ufamy?}
+\end{frame}
+
+\samedot
+\begin{frame}{Checking the chain: step 3}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \covchain
+      \draw[sig] (we.west) -- (lf.east);
+      \draw[sig] (rt.west) -- (we.east);
+      \node[container, draw=sTeal, fit=(rth)(rt), inner sep=0.2cm, line width=1.2pt] (ts) {};
+      \node[font=\scriptsize\bfseries, text=sTealText, anchor=south] at (ts.north) {\faUser\ Bob's trust store};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\checksteps{3}{\ok\ True}{\ok\ True}{\ok\ True: stop, the chain is trusted}\end{center}
+  \curious{pki/\#3.2}
+  \keymsg{Trust in the root comes from the trust store, not from its signature.}
+  \say{Zaufanie do roota nie pochodzi z podpisu, tylko z tego, że jest w magazynie Boba. Pełna walidacja ma więcej kroków (daty, nazwa, odwołanie): to wykład 8. W symulatorze z linku można sprawdzić ten sam łańcuch www.coventry.ac.uk krok po kroku.}
+\end{frame}
+
+\begin{frame}{Task 1: follow the chain}
+  \begin{columns}[c,onlytextwidth]
+    \column{0.55\textwidth}
+      \taskgoal{check, link by link, that the chain of www.coventry.ac.uk holds together.}
+      \taskready{\texttt{cert\_ready.py}: \texttt{load\_cert}, \texttt{subject\_of}, \texttt{issuer\_of}, \texttt{valid\_from}, \texttt{signed\_by};
+        the three PEM files of the chain.}
+    \column{0.43\textwidth}
+      \centering
+      \begin{tikzpicture}
+        \foreach \c/\t [count=\k from 0] in {sIndigo/leaf, sBrown/WE1, sViolet/root} {
+          \node[fill=\c, text=white, rounded corners=3pt, minimum width=1.5cm, minimum height=1.1cm, font=\small\bfseries, align=center] (n\k) at ({1.9*\k},0) {\faCertificate\\\t};
+        }
+        \draw[sig] (n1) to node[above, font=\bfseries, text=AccentOrange] {?} (n0);
+        \draw[sig] (n2) to node[above, font=\bfseries, text=AccentOrange] {?} (n1);
+      \end{tikzpicture}
+  \end{columns}
+  \vfill
+  \opentask{Task1}{about 8 minutes}
+  \say{Około 8 minut. signed\_by(child, parent) sprawdza nazwę wystawcy i podpis, czyli kroki 1 i 2 z poprzednich slajdów. Pliki pobrałem 15 listopada; liść wygasa w styczniu, ale zadanie działa dalej, bo nie sprawdzamy dat.}
+\end{frame}
+
+\begin{frame}[fragile]{Task 1: what we saw}
+  % CHECKED: Task1/solution/follow_chain.py, 15 Nov 2026
+\begin{termout}
+0 subject: CN=www.coventry.ac.uk
+  issuer:  CN=WE1,O=Google Trust Services,C=US
+  valid:   2026-10-13 to 2027-01-11
+1 subject: CN=WE1,O=Google Trust Services,C=US
+  issuer:  CN=GTS Root R4,O=Google Trust Services LLC,C=US
+2 subject: CN=GTS Root R4,O=Google Trust Services LLC,C=US
+  issuer:  CN=GTS Root R4,O=Google Trust Services LLC,C=US
+issuer of 0 == subject of 1 : @True@       issuer of 1 == subject of 2 : @True@
+1 signed 0 : @True@      2 signed 1 : @True@      the root signed itself: True
+the leaf signed the intermediate: @False@
+\end{termout}
+  \vfill
+  \keymsg{Each certificate is signed by the next one; the last one signs itself.}
+  \say{Oba ogniwa się zgadzają. Liść nie podpisał WE1: odwrotny kierunek nie działa. Root podpisuje sam siebie, co niczego nie dowodzi, ale też nie szkodzi.}
+\end{frame}
+
+\begin{frame}{The root key stays offline}
+  \vfill
+  \begin{columns}[c,onlytextwidth]
+    \column{0.45\textwidth}
+      \centering
+      \begin{tikzpicture}
+        \node[draw=nInk, line width=2pt, fill=nFill, rounded corners=6pt, minimum width=4.6cm, minimum height=3.4cm] (safe) at (0,0) {};
+        \node[circle, draw=nInk, thick, minimum size=0.6cm] at (1.75,0) {};
+        \node[hwmain, minimum width=2.2cm, minimum height=1.3cm] (hsm) at (-0.4,0.4) {\faServer\\[-1pt]\scriptsize HSM};
+        \keynode{rk}{-0.4,-0.9}{\scriptsize root key}
+        \node[font=\scriptsize, text=nInk, anchor=north] at (safe.south) {in a safe, no network};
+        \node[text=nInk, font=\large] at (2.6,1.3) {\faBan};
+        \node[text=nInk, font=\small, anchor=west] at (2.9,1.3) {\faWifi};
+      \end{tikzpicture}
+    \column{0.53\textwidth}
+      \stepbox{Used a few times a year}{a new intermediate, a new list of revoked CAs}
+      \stepbox{Key ceremony}{several people, none alone; a written script, step by step;\\video recording and an auditor}
+      \vspace{0.1cm}
+      % CHECKED: openssl x509 on /etc/ssl/certs/ISRG_Root_X1.pem and GTS_Root_R4.pem (Ubuntu 24.04)
+      {\scriptsize
+      \begin{tabular}{@{}lll@{}}
+        \toprule
+        Root & Valid & Key\\ \midrule
+        ISRG Root X1 & 2015-06-04 .. 2035-06-04 & RSA 4096\\
+        GTS Root R4 & 2016-06-22 .. 2036-06-22 & EC P-384\\ \bottomrule
+      \end{tabular}}
+  \end{columns}
+  \vfill
+  \keymsg{The root key never touches the network.}
+  \say{Klucz roota żyje w HSM, który nie jest podłączony do sieci. Ceremonia: kilka osób, każda ma tylko część dostępu, wszystko nagrane i sprawdzone przez audytora. ISRG to organizacja non-profit, która prowadzi Let's Encrypt. Root żyje 20 lat, więc musi przetrwać dwie dekady bez wycieku.}
+\end{frame}
+
+\begin{frame}{If an intermediate leaks}
+  \vfill
+  \begin{columns}[t,onlytextwidth]
+    \column{0.47\textwidth}
+      \begin{center}
+        \begin{tikzpicture}
+          \node[fill=sBrown, text=white, rounded corners=3pt, minimum width=2.4cm, minimum height=1.0cm, font=\small\bfseries] (i) {\faCertificate\ intermediate};
+          \node[text=AccentOrange, font=\Large, right=0.15cm of i] {\faFire};
+        \end{tikzpicture}
+      \end{center}
+      \stepbox{An intermediate key leaks}{the root revokes the intermediate\\ the root signs a new one\\
+        trust stores: \textbf{no change}\\ websites: new certificates}
+    \column{0.47\textwidth}
+      \begin{center}
+        \begin{tikzpicture}
+          \node[fill=sViolet, text=white, rounded corners=3pt, minimum width=2.4cm, minimum height=1.0cm, font=\small\bfseries] (r) {\faCertificate\ root};
+          \node[text=AccentOrange, font=\huge, right=0.15cm of r] {\faFire\faFire};
+        \end{tikzpicture}
+      \end{center}
+      \probbox{The root key leaks}{every trust store must drop the root\\ billions of devices, some never updated\\
+        every certificate below it is lost}
+  \end{columns}
+  \vfill
+  \keymsg{Intermediates keep a leak small: the root stays and signs a new one.}
+  \say{Dlatego są pośrednie CA: wyciek zdarza się tam, gdzie klucz pracuje, a naprawa jest lokalna. Jak się odwołuje certyfikat, zobaczymy na wykładzie 8.}
+\end{frame}
+
+\begin{frame}{Trust stores}
+  \bigdef{\textbf{Trust store:} the list of root certificates that a program trusts without any proof.}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \foreach \ic/\t/\s [count=\k from 0] in {\faDesktop/Operating system/{Windows, macOS,\\Linux: \texttt{/etc/ssl/certs}},
+          {\faFirefox\ \faChrome}/Browser/{Firefox: its own\\Chrome: its own},
+          \faJava/Java/{\texttt{cacerts}\\in the JDK},
+          \faPython/Python/{\texttt{ssl}: the system store\\\texttt{certifi}: a copy of\\Mozilla's list}} {
+        \node[hw, minimum width=3.3cm, minimum height=3.2cm] at ({3.55*\k},0) {};
+        \node[text=nInk, font=\fontsize{26}{28}\selectfont] at ({3.55*\k},0.85) {\ic};
+        \node[font=\bfseries\small, text=nInk] at ({3.55*\k},0.05) {\t};
+        \node[font=\scriptsize, text=nInk, align=center, anchor=north] at ({3.55*\k},-0.25) {\s};
+      }
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \say{Magazyn zaufania to po prostu lista rootów. Każdy program może mieć własną, i to czasem zaskakuje: strona działa w przeglądarce, a nie działa w programie w Javie. certifi to pakiet Pythona, którego używa biblioteka requests.}
+\end{frame}
+
+\begin{frame}[fragile]{Trust stores on this laptop}
+  % CHECKED: Ubuntu 24.04, Python 3.12.3, ca-certificates 20260816ubuntu0.24.04.1, OpenJDK 21.0.12.1, 15 Nov 2026
+  \vfill
+\begin{termout}
+$ python3 -c "import ssl; print(ssl.get_default_verify_paths().cafile)"
+/usr/lib/ssl/cert.pem
+$ python3 -c "import ssl; print(len(ssl.create_default_context().get_ca_certs()))"
+@120@
+\end{termout}
+  \vspace{0.2cm}
+\begin{termout}
+$ keytool -list -cacerts -storepass changeit | head -3
+Keystore type: JKS
+Keystore provider: SUN
+Your keystore contains @146@ entries
+\end{termout}
+  \vfill
+  \keymsg{Two programs on one computer can trust different roots.}
+  \say{Pomiar z tego laptopa, Ubuntu 24.04: Python widzi 120 rootów z pakietu ca-certificates, Java ma własny plik z 146 wpisami. Dwa programy na tym samym komputerze ufają trochę innym listom. Hasło changeit to domyślne hasło tego pliku.}
+\end{frame}
+
+\begin{frame}{Root programs}
+  \vfill
+  \begin{center}
+    \small
+    \begin{tabular}{@{}lll@{}}
+      \toprule
+      \textbf{Root program} & \textbf{Used by} & \textbf{Note}\\ \midrule
+      \faFirefox\ Mozilla & Firefox, most Linux systems, \texttt{certifi} & open discussion of every CA\\[3pt]
+      \faWindows\ Microsoft & Windows, Edge & \\[3pt]
+      \faApple\ Apple & macOS, iOS, Safari & \\[3pt]
+      \faChrome\ Google Chrome & Chrome & its own store since 2022\\ \bottomrule
+    \end{tabular}
+  \end{center}
+  \vfill
+  \stepbox{To get in}{public rules (CP/CPS), yearly audits, report every incident. \qquad Removed from a program: Lecture 9.}
+  \keymsg{A handful of root programs decide whom billions of devices trust.}
+  \say{Program root to zespół, który decyduje, jakie rooty trafiają do magazynu. Mozilla prowadzi dyskusje publicznie, dlatego jej listy używa wiele systemów. CP i CPS to publiczne dokumenty CA: jakie reguły obiecuje i jak je wykonuje. Jak CA wypada z programów, zobaczymy na wykładzie 9 (DigiNotar, Symantec).}
+\end{frame}
+
+\begin{frame}{A new root borrows trust: cross-signing}
+  \vfill
+  \begin{center}
+    % CHECKED: the third certificate sent by www.coventry.ac.uk: subject GTS Root R4, issuer GlobalSign Root CA,
+    %   2023-11-15 .. 2028-01-28, SKI 80:4C:D6:EB... (the same key as the self-signed GTS Root R4)
+    \begin{tikzpicture}
+      \cert{gs}{0,1.5}{sViolet}{3.6cm}{GlobalSign Root CA}{old, in every store,\\also on old devices}
+      \cert{x}{5.2,1.5}{sViolet}{4.4cm}{GTS Root R4}{\textbf{Issuer:}\ GlobalSign Root CA\\\textbf{Valid:}\ 2023-11-15 .. 2028-01-28}
+      \cert{s}{5.2,-0.6}{sViolet}{4.4cm}{GTS Root R4}{\textbf{Issuer:}\ itself\\\textbf{Valid:}\ 2016-06-22 .. 2036-06-22}
+      \draw[data] (gs.east) to node[above, font=\scriptsize] {signs} (x.west);
+      \draw[annot] ([xshift=0.25cm]xh.north east) -- ([xshift=0.25cm]s.south east)
+        node[midway, right, font=\scriptsize\bfseries, text=AccentOrange, align=left] {same key,\\same name};
+      \cert{we}{11.0,1.5}{sBrown}{2.4cm}{WE1}{signed by\\GTS Root R4}
+      \draw[data] (x.east) -- (weh.west |- x.east);
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small Old devices reach GlobalSign; new devices stop at GTS Root R4. Let's Encrypt did the same until 2024.\end{center}
+  \say{Nowy root trafia do magazynów latami, a stare telefony nigdy się nie aktualizują. Dlatego stary root podpisuje certyfikat nowego: to cross-signing. Serwer Coventry wysyła właśnie taką wersję jako trzeci certyfikat. ISRG Root X1 był podpisany przez DST Root CA X3, który wygasł 30 września 2021; Let's Encrypt wysyłał ten łańcuch domyślnie do lutego 2024, a sam podpis krzyżowy wygasł 30 września 2024.}
+\end{frame}
+
+\begin{frame}{Task 2: look into a trust store}
+  \begin{columns}[c,onlytextwidth]
+    \column{0.58\textwidth}
+      \taskgoal{count what is in a real trust store and find the root that issued WE1.}
+      \taskready{\texttt{cert\_ready.py}: \texttt{load\_certs}, \texttt{key\_type}, \texttt{valid\_from}, \texttt{valid\_until}, \texttt{signed\_by};
+        \texttt{trust\_store.pem}, \texttt{we1.pem}.}
+    \column{0.4\textwidth}
+      \centering
+      \begin{tikzpicture}
+        \node[container, minimum width=3.6cm, minimum height=2.0cm] (box) {};
+        \node[font=\scriptsize\bfseries, text=nInk, anchor=south] at (box.north) {\faIcon{box-open}\ trust\_store.pem};
+        \foreach \x/\y in {-1.2/0.4,-0.4/0.4,0.4/0.4,1.2/0.4,-1.2/-0.4,-0.4/-0.4,0.4/-0.4}
+          \node[fill=sViolet, text=white, rounded corners=2pt, minimum width=0.6cm, minimum height=0.55cm, font=\scriptsize] at (\x,\y) {\faCertificate};
+        \node[font=\bfseries, text=AccentOrange] at (1.2,-0.4) {?};
+      \end{tikzpicture}
+  \end{columns}
+  \vfill
+  \opentask{Task2}{about 8 minutes}
+  \say{Około 8 minut. Plik trust\_store.pem to kopia magazynu Ubuntu, czyli listy Mozilli. Przed uruchomieniem zapytać salę: ile rootów, ile RSA?}
+\end{frame}
+
+\begin{frame}[fragile]{Task 2: what we saw}
+  % CHECKED: Task2/solution/look_into_store.py on the copy of ca-certificates 20260816 (Ubuntu 24.04)
+  \begin{columns}[c,onlytextwidth]
+    \column{0.5\textwidth}
+\begin{termout}
+roots in the store: @120@
+self-signed: 120
+RSA keys: 80  EC keys: 40
+oldest: CN=Izenpe.com,... from 2007-12-13
+expires last: CN=SECOM TLS ECC
+  Root CA 2024,... on 2049-01-14
+WE1 was issued by:
+  CN=GTS Root R4,...  EC P-384
+signed WE1: @True@
+\end{termout}
+    \column{0.46\textwidth}
+      \centering
+      \begin{tikzpicture}[x=0.075cm]
+        \foreach \n/\v [count=\k from 0] in {RSA 4096/59, RSA 2048/21, EC P-384/36, EC P-256/3, EC P-521/1} {
+          \node[font=\scriptsize, text=nInk, anchor=east] at (-1,{-0.55*\k}) {\n};
+          \fill[nLine, rounded corners=1pt] (0,{-0.55*\k-0.18}) rectangle (\v,{-0.55*\k+0.18});
+          \node[font=\scriptsize\bfseries, text=nInk, anchor=west] at (\v+1,{-0.55*\k}) {\v};
+        }
+        \node[font=\scriptsize, text=gray] at (25,0.5) {keys of the 120 roots};
+      \end{tikzpicture}
+  \end{columns}
+  \vfill
+  \keymsg{A trust store is a plain list of about a hundred self-signed roots.}
+  \say{Wszystkie rooty są self-signed. Dwie trzecie to RSA, ale nowe rooty to coraz częściej krzywe eliptyczne. Najstarszy root ma prawie 20 lat, najnowsze są ważne do 2049.}
+\end{frame}
+
+% ======================================================================
+\section{Limits on a CA}
+% ======================================================================
+
+\begin{frame}{Can a leaf sign?}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \cert{i}{0,0}{sBrown}{3.0cm}{Trusty CA 1}{an honest\\intermediate}
+      \cert{m}{4.6,0}{sPink}{3.6cm}{mallory.example}{an honest certificate\\
+        \textcolor{sAmberText}{\faKey}\ + her private key}
+      \node[draw=sPink, dashed, line width=1.2pt, fill=sPink!15, rounded corners=3pt, minimum width=3.6cm,
+        minimum height=1.6cm, align=center, font=\scriptsize, text=nInk, anchor=north] (b) at (9.6,0)
+        {\faCertificate\ \textbf{bank.example}\\signed with\\Mallory's key};
+      \draw[data] (i.east) to node[above, font=\scriptsize] {signs} (mh.west |- i.east);
+      \draw[data] (m.east) to node[above, font=\scriptsize] {signs} node[below, font=\Large\bfseries, text=AccentOrange] {?} (b.west |- m.east);
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small
+    \texttt{signed\_by(bank, mallory)} $\rightarrow$ \texttt{True}. \quad The signature is correct.\\[4pt]
+    What stops Bob from trusting it?
+  \end{center}
+  \vfill
+  \keymsg{A correct signature is not enough: the signer must be allowed to sign certificates.}
+  \say{Mallory kupiła zwykły certyfikat dla swojej strony. Ma klucz prywatny, więc umie podpisać dowolne dane, także certyfikat dla banku. Matematycznie podpis jest poprawny i łańcuch nazw też się zgadza. Pytanie do sali: co musi być w certyfikacie Mallory, żeby to odrzucić?}
+\end{frame}
+
+\begin{frame}{Basic Constraints}
+  \vfill
+  \begin{center}
+    % CHECKED: openssl x509 -ext basicConstraints on the chain of www.coventry.ac.uk, 15 Nov 2026
+    \begin{tikzpicture}
+      \cert{a}{0,0}{sIndigo}{4.1cm}{www.coventry.ac.uk}{\textbf{Basic Constraints:} critical\\[2pt]\hspace*{0.3cm}\normalsize\texttt{\hl{CA:FALSE}}}
+      \cert{b}{4.6,0}{sBrown}{4.1cm}{WE1}{\textbf{Basic Constraints:} critical\\[2pt]\hspace*{0.3cm}\normalsize\texttt{CA:TRUE, pathlen:0}}
+      \cert{c}{9.2,0}{sViolet}{4.1cm}{GTS Root R4}{\textbf{Basic Constraints:} critical\\[2pt]\hspace*{0.3cm}\normalsize\texttt{CA:TRUE}}
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{columns}[t,onlytextwidth]
+    \column{0.48\textwidth}\stepbox{CA:FALSE}{this key must not sign certificates.}
+    \column{0.48\textwidth}\stepbox{critical}{a client that does not understand it must reject the certificate.}
+  \end{columns}
+  \vfill
+  \curious{pki/\#3.6}
+  \keymsg{CA:FALSE on a leaf stops it from signing certificates.}
+  \say{Basic Constraints to rozszerzenie X.509 z wykładu 6. Flaga CA mówi, czy klucz z tego certyfikatu może podpisywać certyfikaty. Critical znaczy: jeśli klient tego nie rozumie, ma odrzucić certyfikat. Pathlen przy WE1: na następnym slajdzie. W symulatorze z linku Mallory podpisuje swoim liściem fałszywy certyfikat bob.example, a łańcuch zostaje odrzucony właśnie przez CA:FALSE.}
+\end{frame}
+
+\begin{frame}{pathLen: how many CAs below}
+  \vfill
+  \begin{center}
+    % CHECKED: tls_check with a CA below a pathlen:0 CA gives "path length constraint exceeded" (OpenSSL 3.0.13)
+    \begin{tikzpicture}
+      \cert{r}{0,0}{sViolet}{2.8cm}{root}{\texttt{CA:TRUE}\\no limit}
+      \cert{a}{3.4,0}{sBrown}{2.8cm}{intermediate A}{\texttt{CA:TRUE}\\\texttt{pathlen:1}}
+      \cert{b}{6.8,0}{sBrown}{2.8cm}{intermediate B}{\texttt{CA:TRUE}\\\texttt{pathlen:0}}
+      \cert{l}{10.2,0}{sIndigo}{2.8cm}{leaf}{\texttt{CA:FALSE}\\[1pt]\ }
+      \foreach \x/\y in {r/a, a/b, b/l} \draw[data] (\x.east) -- (\y.west);
+      \node[font=\scriptsize, text=nInk, align=center, below=0.15cm of a] {one more CA\\may stand below};
+      \node[font=\scriptsize, text=nInk, align=center, below=0.15cm of b] {only leaves\\below me};
+      \node[draw=nLine, dashed, fill=nFill, rounded corners=3pt, font=\scriptsize, align=center, text=nInk,
+        minimum width=2.8cm] (x) at (6.8,-3.1) {another CA\\below B};
+      \draw[data] (6.8,-2.05) -- (x.north);
+      \draw[aWrite, line width=1.6pt] (x.south west) -- (x.north east);
+      \node[anchor=west, font=\scriptsize\ttfamily, text=nInk] at (8.3,-3.1) {path length constraint exceeded};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \keymsg{pathLen limits how deep the tree under a CA can grow.}
+  \say{pathLen liczy tylko certyfikaty CA poniżej, liście się nie liczą. WE1 ma pathlen 0: Google nie może pod nim zrobić kolejnego CA. Komunikat błędu sprawdziłem w OpenSSL.}
+\end{frame}
+
+\begin{frame}{Key Usage: who may sign certificates}
+  \vfill
+  \begin{center}
+    % CHECKED: openssl x509 -ext keyUsage on the chain of www.coventry.ac.uk
+    \begin{tikzpicture}
+      \cert{a}{0,0}{sIndigo}{4.8cm}{www.coventry.ac.uk}{\textbf{Key Usage:} critical\\[2pt]\hspace*{0.3cm}Digital Signature}
+      \cert{b}{6.4,0}{sBrown}{5.4cm}{WE1 and GTS Root R4}{\textbf{Key Usage:} critical\\[2pt]\hspace*{0.3cm}Digital Signature,\\\hspace*{0.3cm}\hl{Certificate Sign}, CRL Sign}
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{columns}[t,onlytextwidth]
+    \column{0.48\textwidth}\stepbox{Certificate Sign}{may sign certificates.}
+    \column{0.48\textwidth}\stepbox{CRL Sign}{may sign lists of revoked certificates (Lecture 8).}
+  \end{columns}
+  \vfill
+  \keymsg{A CA needs both CA:TRUE and Certificate Sign.}
+  \say{Key Usage mówi, do czego wolno użyć klucza. Certificate Sign tylko u CA. Klient sprawdza obie rzeczy: Basic Constraints i Key Usage.}
+\end{frame}
+
+\begin{frame}{Good to know: when a browser forgot to check}
+  \vfill
+  \begin{columns}[c,onlytextwidth]
+    \column{0.36\textwidth}
+      \centering
+      \begin{tikzpicture}
+        \node[draw=nLine, thick, fill=nFill, rounded corners=4pt, minimum width=4.4cm, minimum height=2.6cm] (w) {};
+        \fill[nLine] ([shift={(0,-0.45)}]w.north west) rectangle (w.north east);
+        \node[draw=nLine, fill=white, rounded corners=2pt, minimum width=3.6cm, font=\tiny, anchor=north] at ([yshift=-0.55cm]w.north) {\faLock\ https://bank.example};
+        \node[text=nInk, font=\fontsize{30}{32}\selectfont] at ([yshift=-0.35cm]w.center) {\faInternetExplorer};
+        \node[text=AccentOrange, font=\Large] at (w.north east) {\faExclamationTriangle};
+      \end{tikzpicture}
+    \column{0.6\textwidth}
+      \probbox{2002: Internet Explorer did not check Basic Constraints}{Any website certificate could sign a certificate for any other name,
+        and Internet Explorer accepted it.}
+      \stepbox{Found and shown by Moxie Marlinspike}{Microsoft fixed it the same year.}
+  \end{columns}
+  \vfill
+  \keymsg{A rule protects nobody if the client does not check it.}
+  \say{Można pominąć. To dokładnie atak ze slajdu Can a leaf sign: wystarczył dowolny kupiony certyfikat. Marlinspike pokazał to narzędziem sslsniff.}
+\end{frame}
+
+\begin{frame}{Task 3: build your own PKI}
+  \begin{columns}[c,onlytextwidth]
+    \column{0.55\textwidth}
+      \taskgoal{make a root, an intermediate and a leaf for alice-shop.example, and let a TLS client accept them.}
+      \taskready{\texttt{cert\_ready.py}: \texttt{new\_key}, \texttt{make\_cert}, \texttt{save\_cert}, \texttt{ca\_flag}, \texttt{signed\_by}, \texttt{tls\_check}.}
+    \column{0.43\textwidth}
+      \centering
+      \begin{tikzpicture}
+        \foreach \c/\t [count=\k from 0] in {sViolet/{Trusty\\Root CA}, sBrown/{Trusty\\CA 1}, sIndigo/{alice-shop\\.example}} {
+          \node[draw=\c, dashed, line width=1.2pt, fill=\c!12, text=nInk, rounded corners=3pt, minimum width=1.6cm,
+            minimum height=1.3cm, font=\scriptsize\bfseries, align=center] (n\k) at ({1.95*\k},0) {\t};
+        }
+        \draw[data] (n0) -- (n1);
+        \draw[data] (n1) -- (n2);
+      \end{tikzpicture}
+  \end{columns}
+  \vfill
+  \opentask{Task3}{about 12 minutes}
+  \say{Około 12 minut. make\_cert buduje i podpisuje certyfikat; issuer None daje certyfikat self-signed. tls\_check uruchamia w pamięci serwer i klienta TLS, który ufa tylko naszemu rootowi: co robi w środku, zobaczymy na wykładzie 8.}
+\end{frame}
+
+\begin{frame}[fragile]{Task 3: what we saw}
+  % CHECKED: Task3/solution/build_pki.py, cryptography 41.0.7, OpenSSL 3.0.13
+  \vfill
+\begin{termout}
+leaf.pem : CN=alice-shop.example <- CN=Trusty CA 1 (False, None)
+intermediate.pem : CN=Trusty CA 1 <- CN=Trusty Root CA (True, 0)
+root.pem : CN=Trusty Root CA <- CN=Trusty Root CA (True, 1)
+intermediate signed leaf: True
+root signed intermediate: True
+root signed root:         True
+TLS, alice-shop.example:  (*\ok*) @OK@
+TLS, bob-shop.example:    (*\nok*) Hostname mismatch, certificate is not valid for 'bob-shop.example'.
+TLS, no intermediate:     (*\nok*) unable to get local issuer certificate
+\end{termout}
+  \vfill
+  \keymsg{Three calls make a PKI; the server must send the intermediate too.}
+  \say{Nasz łańcuch działa, jeśli klient ufa naszemu rootowi. Bez pośredniego CA klient nie znajdzie drogi do roota: serwer musi wysyłać pośrednie CA. To częsty błąd konfiguracji.}
+\end{frame}
+
+\begin{frame}{Name Constraints}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \cert{r}{0,0}{sViolet}{2.8cm}{Trusty Root CA}{\ \\[1pt]\ }
+      \cert{a}{4.5,0}{sBrown}{4.6cm}{Acme Corp CA}{\textbf{Name Constraints:} critical\\\hspace*{0.3cm}Permitted:\ \texttt{\hl{DNS:acme.example}}}
+      \draw[data] (r.east) -- (a.west);
+      \foreach \n/\m/\y in {www.acme.example/\ok/0.1, mail.acme.example/\ok/-0.6, bank.example/\nok/-1.3} {
+        \node[hw, font=\small\ttfamily, minimum width=3.4cm, anchor=west] (n) at (8.8,\y) {\n};
+        \node[font=\large, right=0.1cm of n] {\m};
+        \draw[data] (a.east) -- (n.west);
+      }
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{columns}[t,onlytextwidth]
+    \column{0.48\textwidth}\stepbox{Permitted}{the only names the CA may issue.}
+    \column{0.48\textwidth}\stepbox{Excluded}{names it must never issue.}
+  \end{columns}
+  \vfill
+  \keymsg{Name Constraints keep a CA inside its own names.}
+  \say{Name Constraints pozwala dać firmie własne CA, które nie może wystawić certyfikatu dla cudzej nazwy. Działa dla nazw DNS, adresów IP i adresów e-mail.}
+\end{frame}
+
+\begin{frame}{Task 4: who may sign?}
+  \begin{columns}[c,onlytextwidth]
+    \column{0.55\textwidth}
+      \taskgoal{see a TLS client reject a correct signature from a leaf, and a name outside a CA's limits.}
+      \taskready{\texttt{cert\_ready.py}: \texttt{new\_key}, \texttt{make\_cert}, \texttt{signed\_by}, \texttt{tls\_check}; a root and an intermediate are made for you.}
+    \column{0.43\textwidth}
+      \centering
+      \begin{tikzpicture}
+        \node[fill=sPink, text=white, rounded corners=3pt, minimum width=1.9cm, font=\scriptsize\bfseries] (m) at (0,0.7) {mallory.example};
+        \node[draw=sPink, dashed, thick, fill=sPink!15, rounded corners=3pt, minimum width=1.9cm, font=\scriptsize\bfseries] (b) at (2.9,0.7) {bank.example};
+        \draw[data] (m) to node[above, text=AccentOrange, font=\bfseries] {?} (b);
+        \node[fill=sBrown, text=white, rounded corners=3pt, minimum width=1.9cm, font=\scriptsize\bfseries] (a) at (0,-0.6) {Acme Corp CA};
+        \node[hw, minimum width=1.9cm, font=\scriptsize\bfseries] (c) at (2.9,-0.6) {bank.example};
+        \draw[data] (a) to node[above, text=AccentOrange, font=\bfseries] {?} (c);
+      \end{tikzpicture}
+  \end{columns}
+  \vfill
+  \opentask{Task4}{about 10 minutes}
+  \say{Około 10 minut. Przed uruchomieniem: czy signed\_by powie True dla certyfikatu podpisanego przez Mallory? A co powie klient TLS?}
+\end{frame}
+
+\begin{frame}[fragile]{Task 4: what we saw}
+  % CHECKED: Task4/solution/who_may_sign.py, OpenSSL 3.0.13 messages
+  \vfill
+\begin{termout}
+1. mallory.example:           (*\ok*) OK
+2. her key signed the fake:   True
+   bank.example via Mallory:  (*\nok*) @invalid CA certificate@
+3. www.acme.example via Acme: (*\ok*) OK
+4. bank.example via Acme:     (*\nok*) @permitted subtree violation@
+\end{termout}
+  \vfill
+  \begin{columns}[t,onlytextwidth]
+    \column{0.48\textwidth}\stepbox{Mallory's leaf}{the signature is correct, but her certificate says \texttt{CA:FALSE}.}
+    \column{0.48\textwidth}\stepbox{Acme Corp CA}{\texttt{bank.example} is outside \texttt{acme.example}.}
+  \end{columns}
+  \vfill
+  \keymsg{The client trusts the rules in the chain, not just the signatures.}
+  \say{Podpis Mallory jest poprawny, ale jej certyfikat ma CA:FALSE, więc klient odrzuca łańcuch. CA Acme wystawia tylko pod acme.example. Oba komunikaty to dokładne słowa OpenSSL.}
+\end{frame}
+
+\begin{frame}{Private PKI: a company's own root}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \node[container, minimum width=12.8cm, minimum height=4.0cm] (office) at (5.2,0) {};
+      \node[font=\small\bfseries, text=nInk, anchor=north west] at (office.north west) {\ \faBuilding\ Acme's offices};
+      \cert{r}{0,0.8}{sViolet}{2.8cm}{Acme Root CA}{Acme's own,\\in no public store}
+      \foreach \ic/\t [count=\k from 0] in {\faServer/{internal web\\servers}, \faIcon{network-wired}/VPN for staff,
+          \faWifi/{Wi-Fi with\\certificates}, \faPrint/{printers,\\devices}} {
+        \node[hw, minimum width=2.1cm, minimum height=1.5cm, font=\scriptsize, align=center] (d\k) at ({3.4+2.35*\k},0.6) {{\Large\ic}\\\t};
+      }
+      \draw[data] (r.east) -- (d0.west);
+      \foreach \x in {3.4,5.75,8.1} \node[text=nInk, font=\Large] at (\x,-1.2) {\faLaptop};
+      \node[font=\scriptsize, text=nInk, anchor=west, align=left] at (8.9,-1.2) {the root is installed\\on Acme's laptops only};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small Tools: Microsoft AD CS, step-ca, HashiCorp Vault, EJBCA, \texttt{openssl}. \quad Uses in detail: Lecture 9.\end{center}
+  \keymsg{A private root is trusted only where the company installs it.}
+  \say{Prywatne PKI to własny root, którego nie ma w żadnym publicznym magazynie. Firma instaluje go na swoich komputerach. Dobrze, gdy firmowy root ma Name Constraints: wtedy nie podpisze certyfikatu dla obcej strony.}
+\end{frame}
+
+\begin{frame}{Public and private PKI side by side}
+  \vfill
+  \begin{center}
+    \small
+    \begin{tabular}{@{}lll@{}}
+      \toprule
+      & \textbf{Public PKI} & \textbf{Private PKI}\\ \midrule
+      Trusted by & every browser and system & company devices only\\[3pt]
+      Rules & Baseline Requirements, audits & the company's own\\[3pt]
+      Names & public domains & also internal names (\texttt{srv01.corp})\\[3pt]
+      Validity & at most 200 days (2026) & the company decides\\[3pt]
+      Public logs & required & no\\ \bottomrule
+    \end{tabular}
+  \end{center}
+  \vfill
+  \keymsg{Private PKI gives freedom, and with it all the work of a CA.}
+  \say{Ostatni wiersz rozwiniemy w sekcji Certificate Transparency, a limit ważności w sekcji Automation and expiry.}
+\end{frame}
+
+% ======================================================================
+\section{Getting a certificate}
+% ======================================================================
+
+\begin{frame}{The life of a certificate}
+  \vfill
+  \begin{center}\lifebar{0}\end{center}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \foreach \t/\s [count=\k from 0] in {{Getting a certificate}/{steps 1 to 4}, {Certificate Transparency}/{step 5},
+          {Automation and expiry}/{steps 6 to 8}, {Lecture 8: revocation}/{a stop before the end}} {
+        \node[hw, minimum width=3.4cm, minimum height=1.3cm, font=\footnotesize, align=center] at ({3.65*\k},0) {\textbf{\t}\\\s};
+      }
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \say{Ten rysunek prowadzi przez resztę wykładu. Odwołanie certyfikatu przed końcem ważności to temat wykładu 8.}
+\end{frame}
+
+\begin{frame}{Step 1: the key pair}
+  \begin{center}\scalebox{0.65}{\lifebar{1}}\end{center}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \node[draw=sIndigo, line width=1pt, fill=sIndigo!12, rounded corners=4pt, minimum width=4.2cm, minimum height=2.0cm] (srv) at (0,0) {};
+      \node[font=\small\bfseries, text=nInk, anchor=north] at (srv.north) {\faServer\ Alice's server};
+      \keynode{k}{0,0.1}{private key}
+      \node[font=\scriptsize, text=nInk, anchor=south] at (srv.south) {stays here, always};
+      \canode{ca}{8.5,0}{nInk}{Trusty CA}
+      \draw[data] (srv.east) to node[above, font=\small] {\faIcon{lock-open}\ only the public key} (ca.west);
+      \node[font=\scriptsize, text=nInk, below=0.55cm of ca, align=center] {never sees the\\private key};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{columns}[t,onlytextwidth]
+    \column{0.48\textwidth}\probbox{Bad}{a website that ``generates a key for you'', a key sent by e-mail.}
+    \column{0.48\textwidth}\stepbox{Good}{EC P-256, or RSA with 2048 bits or more, made on the server.}
+  \end{columns}
+  \vspace{-0.1cm}
+  \keymsg{Whoever knows the private key is the website.}
+  \say{Klucz prywatny generuje właściciel na swoim serwerze. Kto zna klucz prywatny, ten może podszyć się pod stronę, więc CA też nie powinna go znać.}
+\end{frame}
+
+\begin{frame}[fragile]{The key pair in one command}
+  % CHECKED: OpenSSL 3.0.13, 15 Nov 2026: genpkey writes the key with mode 600
+  \vfill
+\begin{termout}
+$ openssl genpkey -algorithm EC -pkeyopt ec_paramgen_curve:P-256 -out alice.key
+$ ls -l alice.key
+@-rw-------@ 1 ksawery ksawery 241 lis 15 17:20 alice.key
+\end{termout}
+  \vfill
+  \begin{center}\small \hl{\texttt{-rw-------}}: only the owner may read the file. \quad Protecting keys on servers, HSM and TPM: Lecture 9.\end{center}
+  \vfill
+  \keymsg{The private key is a file only its owner may read.}
+  \say{OpenSSL sam zapisuje klucz z prawami tylko dla właściciela. Ochrona klucza na serwerze, HSM i TPM: wykład 9.}
+\end{frame}
+
+\begin{frame}{Step 2: the certificate signing request}
+  \begin{center}\scalebox{0.7}{\lifebar{2}}\end{center}
+  \vfill
+  \begin{center}
+    % CHECKED: openssl req -in alice.csr -noout -text: public key 04:1e:4d:ff:7e:2a..., signature 30:46:02:21:00:88:99...,
+    %   DER 269 bytes (MIIBCTCB...: 0x0109 + 4)
+    \begin{tikzpicture}
+      \cert{c}{0,0}{sIndigo}{8.0cm}{certificate signing request (CSR)}{%
+        \textbf{Subject:}\ \texttt{CN=alice-shop.example}\\[3pt]
+        \textbf{Public key:}\ EC P-256, \texttt{04 1E 4D FF 7E 2A \ldots}\\[3pt]
+        \textbf{Requested:}\ subjectAltName \texttt{DNS:alice-shop.example}\\[2pt]
+        \textcolor{nLine}{\rule{7.4cm}{0.6pt}}\\[2pt]
+        \textbf{Signature} (Alice's private key):\ \texttt{30 46 02 21 00 88 99 \ldots}}
+      \foreach \y/\t in {-0.82/the name she wants, -1.27/her public key, -1.72/the extensions she asks for,
+          -2.45/made with the key of this request} {
+        \draw[nLine, thick, -{Stealth}] (5.6,\y) -- (4.15,\y);
+        \node[anchor=west, font=\small, text=nInk] at (5.7,\y) {\t};
+      }
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small 269 bytes, sent to the CA. No issuer, no dates, no signature of a CA.\end{center}
+  \say{CSR to wniosek o certyfikat. Jest podobny do certyfikatu, ale nie ma wystawcy, dat ani podpisu CA: ma podpis samej Alice.}
+\end{frame}
+
+\begin{frame}{Why the CSR is signed}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \cert{c}{0,0}{sIndigo}{3.6cm}{CSR}{\textbf{Subject:} alice-shop.example\\\textbf{Public key:} 04 1E 4D \ldots\\\textbf{Signature:} 30 46 \ldots}
+      \node[hwmain, minimum width=2.2cm, minimum height=1.5cm] (v) at (5.6,-0.9) {\Large\faCogs\\[1pt]\small\bfseries verify};
+      \draw[data] (c.east |- v.west) to node[below, font=\scriptsize, align=center] {the key and the\\signature from the CSR} (v.west);
+      \node[font=\small, text=nInk, anchor=west, align=left] at (6.9,-0.9) {\ok\ True: whoever made it\\holds the private key};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \bigdef{\textbf{Proof of possession:} the request was made by whoever holds the private key.\\
+    It does \textbf{not} prove that alice-shop.example belongs to Alice.}
+  \vfill
+  \keymsg{A CSR proves the key, not the name.}
+  \say{Podpis CSR weryfikujemy kluczem z tego samego CSR. To dowód posiadania klucza: nikt nie poprosi o certyfikat na cudzy klucz publiczny, którego prywatnej połowy nie ma. Ale nazwę może wpisać każdy.}
+\end{frame}
+
+\begin{frame}[fragile]{The CSR in one command}
+  % CHECKED: OpenSSL 3.0.13, 15 Nov 2026 (the key bytes and the signature are cut out)
+\begin{termout}
+$ openssl req -new -key alice.key -subj "/CN=alice-shop.example" \
+      -addext "subjectAltName=DNS:alice-shop.example" -out alice.csr
+$ openssl req -in alice.csr -noout -text -verify
+@Certificate request self-signature verify OK@
+Certificate Request:
+    Data:
+        Subject: CN = alice-shop.example
+                Public-Key: (256 bit)
+            Requested Extensions:
+                X509v3 Subject Alternative Name:
+                    DNS:alice-shop.example
+    Signature Algorithm: ecdsa-with-SHA256
+\end{termout}
+  \vfill
+  \keymsg{Two commands: a request ready for any CA.}
+  \say{To samo, co na poprzednim slajdzie, w dwóch poleceniach. Plik alice.csr wysyła się do CA, na przykład wkleja w formularz na jej stronie.}
+\end{frame}
+
+\begin{frame}{Task 5: check three CSRs}
+  \begin{columns}[c,onlytextwidth]
+    \column{0.55\textwidth}
+      \taskgoal{play the CA: check the signatures of four CSRs and see what a valid one proves.}
+      \taskready{\texttt{cert\_ready.py}: \texttt{new\_key}, \texttt{make\_csr}, \texttt{load\_csr}, \texttt{dns\_names\_of}, \texttt{key\_id};
+        \texttt{bob.csr}, \texttt{bob-changed.csr}, \texttt{mallory.csr}.}
+    \column{0.43\textwidth}
+      \centering
+      \begin{tikzpicture}
+        \foreach \c/\t/\s [count=\k from 0] in {sTeal/bob.csr/{Bob's request}, sPink/bob-changed.csr/{changed on\\the way}, sPink/mallory.csr/{Mallory's own,\\name of Bob}} {
+          \node[draw=\c, line width=1pt, fill=\c!12, text=nInk, rounded corners=3pt, minimum width=1.75cm,
+            minimum height=1.6cm, font=\tiny, align=center] at ({1.9*\k},0) {{\large\faFile*}\\[2pt]\textbf{\t}\\\s};
+          \node[font=\bfseries, text=AccentOrange] at ({1.9*\k},1.05) {?};
+        }
+      \end{tikzpicture}
+  \end{columns}
+  \vfill
+  \opentask{Task5}{about 10 minutes}
+  \say{Około 10 minut. Najpierw zapytać: który CSR CA powinna odrzucić? csr.is\_signature\_valid to gotowa właściwość biblioteki.}
+\end{frame}
+
+\begin{frame}[fragile]{Task 5: what we saw}
+  % CHECKED: Task5/solution/check_csrs.py, 15 Nov 2026
+\begin{termout}
+alice.csr signature valid: True
+bob.csr signature valid: True
+bob-changed.csr signature valid: (*\nok*) @False@     (Mallory changed the name to mal-shop.example)
+mallory.csr signature valid: (*\ok*) @True@          (the name is bob-shop.example)
+
+key in bob.csr:     74099af184f4ade6
+key in mallory.csr: 03e9a0627939012b
+\end{termout}
+  \vfill
+  \begin{columns}[t,onlytextwidth]
+    \column{0.48\textwidth}\stepbox{bob-changed.csr}{a change on the way breaks the signature.}
+    \column{0.48\textwidth}\probbox{mallory.csr}{valid, for Bob's name, with Mallory's key.}
+  \end{columns}
+  \vfill
+  \keymsg{Anybody can make a valid CSR for any name: the CA must check the name.}
+  \say{Zmiana bajtów w drodze psuje podpis, tak jak w każdym podpisanym dokumencie. Ale CSR Mallory dla nazwy Boba jest całkowicie poprawny: podpisała go swoim kluczem. Gdyby CA wystawiła certyfikat, Mallory byłaby sklepem Boba. Dlatego następny krok: sprawdzić nazwę.}
+\end{frame}
+
+\begin{frame}{Step 3: who is asking? DV, OV, EV}
+  \begin{center}\scalebox{0.7}{\lifebar{3}}\end{center}
+  \vfill
+  \begin{center}
+    \small
+    % source: CA/Browser Forum certificate policy OIDs (2.23.140.1.2.1 DV, 2.23.140.1.2.2 OV, 2.23.140.1.1 EV)
+    \begin{tabular}{@{}llll@{}}
+      \toprule
+      \textbf{Level} & \textbf{The CA checks} & \textbf{Takes} & \textbf{Policy OID}\\ \midrule
+      \textbf{DV} Domain Validation & control of the domain & seconds & \texttt{2.23.140.1.2.1}\\[3pt]
+      \textbf{OV} Organisation Validation & + the organisation exists, its address & days & \texttt{2.23.140.1.2.2}\\[3pt]
+      \textbf{EV} Extended Validation & + legal checks, documents, a phone call & days, weeks & \texttt{2.23.140.1.1}\\ \bottomrule
+    \end{tabular}
+  \end{center}
+  \vfill
+  % CHECKED: openssl x509 -ext certificatePolicies on the leaf of www.coventry.ac.uk: Policy: 2.23.140.1.2.1
+  \begin{center}\small \texttt{www.coventry.ac.uk}: Certificate Policies \texttt{\hl{2.23.140.1.2.1}} $\rightarrow$ DV\end{center}
+  \curious{pki/\#2.3.pol}
+  \keymsg{Most of the web uses DV: the CA checks control of the domain, nothing more.}
+  \say{Trzy poziomy weryfikacji. DV sprawdza tylko kontrolę nad domeną i jest w pełni automatyczna. Poziom zapisuje się w certyfikacie jako identyfikator polityki (OID). Coventry ma DV, jak większość stron. W symulatorze z linku widać to pole polityki w bajtach certyfikatu uczelni.}
+\end{frame}
+
+\begin{frame}{Domain validation: three ways}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \foreach \ic/\t/\s [count=\k from 0] in {{\faIcon{file-alt}}/HTTP file/{\texttt{http://alice-shop.example/}\\\texttt{.well-known/acme-challenge/}\\\texttt{<token>}},
+          \faServer/DNS record/{\texttt{\_acme-challenge.}\\\texttt{alice-shop.example}\\\texttt{TXT "<value>"}},
+          \faEnvelope/E-mail/{a code sent to\\\texttt{admin@alice-shop.example}\\(fewer and fewer CAs)}} {
+        \node[hw, minimum width=4.3cm, minimum height=3.4cm] at ({4.6*\k},0) {};
+        \node[text=nInk, font=\fontsize{26}{28}\selectfont] at ({4.6*\k},0.95) {\ic};
+        \node[font=\bfseries, text=nInk] at ({4.6*\k},0.15) {\t};
+        \node[font=\scriptsize, text=nInk, align=center, anchor=north] at ({4.6*\k},-0.15) {\s};
+      }
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small \faGlobe\ The CA asks from several places on the internet, so one hijacked route is not enough.\end{center}
+  \say{Token to losowy napis, który CA wymyśla dla tego jednego sprawdzenia. Każda metoda sprawdza to samo: czy wnioskodawca kontroluje domenę. Słowo acme-challenge w ścieżce pochodzi od protokołu ACME, który zobaczymy w sekcji Automation and expiry. Sprawdzanie z kilku miejsc utrudnia atak przez przejęcie trasy w jednym miejscu sieci.}
+\end{frame}
+
+\begin{frame}{OV and EV: checking the organisation}
+  \vfill
+  \begin{columns}[t,onlytextwidth]
+    \column{0.48\textwidth}
+      \begin{center}{\fontsize{30}{32}\selectfont\textcolor{nInk}{\faBuilding}}\end{center}
+      \stepbox{OV}{the company register\\ the address\\ a person who works there}
+    \column{0.48\textwidth}
+      \begin{center}{\fontsize{30}{32}\selectfont\textcolor{nInk}{\faGavel}}\end{center}
+      \stepbox{EV}{everything of OV\\ legal documents\\ a phone call to a known number\\ rules in the EV Guidelines}
+  \end{columns}
+  \vfill
+  \begin{center}\small The certificate then also carries:\ \texttt{O = Alice Shop Ltd, L = Coventry, C = GB}\end{center}
+  \keymsg{OV and EV put the organisation's name into the certificate.}
+  \say{OV i EV dodają do certyfikatu nazwę organizacji. Robi to człowiek, więc trwa dni i kosztuje. Przykładowe dane są wymyślone.}
+\end{frame}
+
+\begin{frame}{EV lost its green bar}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \node[font=\small\bfseries, text=nInk] at (0,1.3) {before 2019};
+      \node[draw=nLine, thick, fill=white, rounded corners=8pt, minimum width=8.6cm, minimum height=0.7cm, anchor=west, font=\small] at (-4.3,0.6)
+        {\textcolor{aExec}{\faLock\ \textbf{Alice Shop Ltd [GB]}}\ \textcolor{nLine}{|}\ https://alice-shop.example};
+      \node[font=\small\bfseries, text=nInk] at (0,-0.5) {since 2019};
+      \node[draw=nLine, thick, fill=white, rounded corners=8pt, minimum width=8.6cm, minimum height=0.7cm, anchor=west, font=\small] at (-4.3,-1.2)
+        {\textcolor{nInk}{\faLock}\ alice-shop.example};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \stepbox{Chrome 77 and Firefox 70 (2019)}{the company name moved from the address bar to the page details.
+    Studies showed that users did not notice it, and did not notice when it was missing.}
+  \say{Można pominąć. EV miało pokazywać nazwę firmy w pasku, ale ludzie nie zwracali na to uwagi. Od 2019 roku przeglądarki traktują EV jak każdy inny certyfikat na pasku.}
+\end{frame}
+
+\begin{frame}{Step 4: the CA issues the certificate}
+  \begin{center}\scalebox{0.7}{\lifebar{4}}\end{center}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \cert{c}{0,0}{sIndigo}{2.8cm}{CSR}{public key\\names\\\textcolor{gray}{(the rest: ignored)}}
+      \node[draw=sBrown, line width=1pt, fill=sBrown!12, rounded corners=4pt, minimum width=4.6cm, minimum height=2.4cm,
+        text width=4.2cm, font=\scriptsize, align=left, text=nInk] (ca) at (5.0,-0.9)
+        {\textbf{\faLandmark\ Trusty CA 1} adds:\\ serial number, dates, issuer,\\ Basic Constraints, Key Usage,\\ policy\\[3pt]
+         signs \textcolor{sAmberText}{\faKey}\ (the key in an HSM)};
+      \cert{o}{10.0,0}{sIndigo}{3.0cm}{certificate}{alice-shop.example\\issued by Trusty CA 1\\90 days}
+      \draw[data] (c.east) -- (ca.west |- c.east);
+      \draw[data] (ca.east |- o.east) -- (o.west);
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small From the CSR the CA takes only the public key and the names it has checked.\end{center}
+  \keymsg{The CA decides what goes into the certificate, not the applicant.}
+  \say{CA nie kopiuje CSR na ślepo. Bierze klucz i sprawdzone nazwy, a resztę ustala sama: numer seryjny, daty, rozszerzenia. Gdyby CA kopiowała z CSR flagę CA:TRUE, każdy dostałby własne CA.}
+\end{frame}
+
+\begin{frame}[fragile]{Issuing in one command}
+  % CHECKED: OpenSSL 3.0.13, 15 Nov 2026, with a CA made by openssl req -x509 (Trusty CA 1)
+\begin{termout}
+$ openssl x509 -req -in alice.csr -CA ca.pem -CAkey ca.key -days 90 \
+      @-copy_extensions copy@ -out alice.pem
+Certificate request self-signature ok
+subject=CN = alice-shop.example
+$ openssl x509 -in alice.pem -noout -issuer -dates -ext subjectAltName
+issuer=CN = Trusty CA 1
+notBefore=Nov 15 16:20:17 2026 GMT
+notAfter=Feb 13 16:20:17 2027 GMT
+X509v3 Subject Alternative Name:
+    DNS:alice-shop.example
+\end{termout}
+  \vfill
+  \begin{center}\small \hl{\texttt{-copy\_extensions copy}} takes the subjectAltName from the CSR.\end{center}
+  \keymsg{One command turns a checked CSR into a certificate.}
+  \say{Tak wystawia się certyfikat we własnym, prywatnym PKI. OpenSSL najpierw sprawdza podpis CSR. -copy\_extensions copy przenosi SAN z wniosku; prawdziwe CA ma tu ściśle określone reguły.}
+\end{frame}
+
+% ======================================================================
+\section{Certificate Transparency}
+% ======================================================================
+
+\begin{frame}{Who notices a wrong certificate?}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \canode{ca}{0,0}{sBrown}{Trusty CA\\\scriptsize (a mistake, or hacked)}
+      \personnode{ma}{7,0}{sPink}{Mallory}
+      \draw[data] (ca.east) to node[above, font=\small] {\faCertificate\ alice-shop.example} (ma.west);
+      \personnode{al}{-1.5,-3.0}{sIndigo}{Alice}
+      \personnode{bob}{3.5,-3.0}{sTeal}{Bob}
+      \node[font=\scriptsize, text=nInk, right=0.2cm of al, align=left] {does not\\know};
+      \node[font=\scriptsize, text=nInk, right=0.2cm of bob, align=left] {the chain\\is fine};
+      \node[font=\scriptsize, text=nInk, align=left] at (8.6,-3.0) {nobody else:\\sees nothing};
+      \node[font=\fontsize{30}{32}\selectfont\bfseries, text=AccentOrange] at (10.2,-1.4) {?};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \keymsg{A wrongly issued certificate looks perfectly valid.}
+  \say{Sama kryptografia tu nie pomoże: certyfikat jest poprawnie podpisany przez prawdziwe CA. Takie przypadki się zdarzały (wykład 9). Pytanie do sali: jak Alice mogłaby się o tym dowiedzieć?}
+\end{frame}
+
+\begin{frame}{The idea: public logs}
+  \bigdef{\textbf{Certificate Transparency (CT):} every public certificate is written to public logs.\\
+    Anybody can read a log; nobody can change or remove what is in it.}
+  \vfill
+  \begin{center}
+    % source: RFC 6962, Certificate Transparency, June 2013
+    \begin{tikzpicture}
+      \foreach \k in {0,...,5} {
+        \node[hw, minimum width=1.6cm, minimum height=1.1cm, font=\scriptsize, align=center] (e\k) at ({1.85*\k},0) {\faCertificate\\entry \the\numexpr\k+1\relax};
+      }
+      \node[draw=AccentOrange, dashed, line width=1.2pt, rounded corners=3pt, minimum width=1.6cm, minimum height=1.1cm, font=\scriptsize, text=AccentOrange] (n) at (11.1,0) {new};
+      \draw[hlarrow] (e5) -- (n);
+      \node[font=\scriptsize\bfseries, text=AccentOrange, below=0.1cm of n] {only append};
+      \node[font=\small, text=nInk, anchor=east] at (-1.0,0) {\faBook\ a log};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small RFC 6962 (2013). A Merkle tree makes a removed entry visible.\end{center}
+  \say{CT nie zabrania złych certyfikatów, ale sprawia, że każdy jest widoczny. Konstrukcja logu (drzewo Merkle) pozwala wykryć, że log coś usunął: tu tylko nazwa.}
+\end{frame}
+
+\begin{frame}{Certificate Transparency in five steps}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \canode{ca}{0,0}{sBrown}{Trusty CA}
+      \foreach \y/\n in {1.0/A, -1.0/B} \node[hw, minimum width=2.2cm, font=\small] (log\n) at (6.5,\y) {\faBook\ CT log \n};
+      \draw[data] (ca.north east) to[bend left=10] node[above, font=\scriptsize, pos=0.45] {\badge{1} precertificate} (logA.west);
+      \draw[data] (logB.west) to[bend left=10] node[below, font=\scriptsize, pos=0.55] {\badge{2} SCT: ``I will add it within 24 h''} (ca.south east);
+      \node[hw, minimum width=2.6cm, font=\small] (srv) at (0,-3.0) {\faServer\ Alice's server};
+      \draw[data] (ca.south) to node[left, font=\scriptsize, align=right] {\badge{3} certificate with\\the SCTs inside} (srv.north);
+      \personnode{bob}{6.5,-3.1}{sTeal}{Bob's browser}
+      \draw[data] (srv.east) to node[above, font=\scriptsize] {\badge{4} checks the SCTs} (bob.west);
+      \personnode{al}{11.2,0.2}{sIndigo}{Alice's monitor}
+      \draw[data] (al.west) -- (logA.east);
+      \draw[data] (al.west) -- (logB.east);
+      \node[font=\scriptsize, align=left, text=nInk, anchor=north] at (11.2,-1.2) {\badge{5} reads the logs:\\every certificate for\\alice-shop.example};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \say{Precertyfikat to certyfikat z oznaczeniem, że to jeszcze nie ten prawdziwy, żeby SCT mogło trafić do środka. SCT, Signed Certificate Timestamp, to podpisana przez log obietnica dopisania. Przeglądarka nie odpytuje logów przy każdym połączeniu, tylko sprawdza SCT.}
+\end{frame}
+
+\begin{frame}[fragile]{The SCTs in www.coventry.ac.uk}
+  % CHECKED: openssl x509 -in coventry.pem -noout -text; log names from Google's log_list.json v3, version 97.2 (2026-11-15)
+\begin{termout}
+$ openssl x509 -in coventry.pem -noout -text
+    CT Precertificate SCTs:
+        Signed Certificate Timestamp:
+            Log ID    : 46:A2:39:67:C6:0D:B6:46: ...     @-> DigiCert Sphinx2027h1@
+            Timestamp : Oct 13 03:29:17.226 2026 GMT
+        Signed Certificate Timestamp:
+            Log ID    : A2:81:00:18:73:4E:17:6E: ...     @-> Let's Encrypt Willow2027h1@
+            Timestamp : Oct 13 03:29:17.654 2026 GMT
+\end{termout}
+  \vfill
+  \curious{pki/\#2.3.sct}
+  \keymsg{Two logs, from two companies, promised to publish this certificate.}
+  \say{Dwa SCT od dwóch różnych operatorów. Log ID to skrót klucza publicznego logu; nazwę znajdujemy na liście logów, którą publikuje Google. 2027h1 znaczy: ten log przyjmuje certyfikaty, które wygasają w pierwszej połowie 2027 roku. W symulatorze z linku widać oba SCT w bajtach tego certyfikatu.}
+\end{frame}
+
+\begin{frame}{Browsers require SCTs}
+  \vfill
+  \begin{center}
+    \small
+    \begin{tabular}{@{}ll@{}}
+      \toprule
+      \faChrome\ Chrome & every certificate issued after 30 April 2018\\[3pt]
+      \faSafari\ Safari (Apple) & every certificate issued after 15 October 2018\\ \bottomrule
+    \end{tabular}
+  \end{center}
+  \vfill
+  % CHECKED: Task6/solution/find_scts.py: coventry.pem 90 days 2 SCTs, python-org.pem 397 days 3 SCTs
+  \begin{columns}[t,onlytextwidth]
+    \column{0.48\textwidth}\stepbox{Valid up to 180 days: 2 SCTs}{www.coventry.ac.uk, 90 days: 2 SCTs}
+    \column{0.48\textwidth}\stepbox{Valid longer: 3 SCTs}{www.python.org, 397 days: 3 SCTs}
+  \end{columns}
+  \vfill
+  \keymsg{No SCTs, no padlock: public CAs must log every certificate.}
+  \say{Bez SCT przeglądarka odrzuca publiczny certyfikat, nawet z poprawnym łańcuchem. Dlatego CA nie ma wyboru: musi logować wszystko. Przykłady z zadania 6.}
+\end{frame}
+
+\begin{frame}{Alice watches the logs}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \node[draw=nLine, thick, fill=white, rounded corners=4pt, minimum width=11cm, minimum height=3.1cm] (w) at (0,0) {};
+      \fill[nFill] ([shift={(0.05,-0.05)}]w.north west) rectangle ([shift={(-0.05,-0.6)}]w.north east);
+      \node[draw=nLine, fill=white, rounded corners=6pt, minimum width=8cm, font=\scriptsize\ttfamily, anchor=north] at ([yshift=-0.1cm]w.north) {crt.sh/?q=alice-shop.example};
+      \node[font=\scriptsize\ttfamily, text=nInk, align=left, anchor=north west] at ([shift={(0.4,-0.8)}]w.north west)
+        {2026-11-15\quad Trusty CA 1\quad alice-shop.example\\[2pt]2027-02-01\quad Trusty CA 1\quad alice-shop.example\\[2pt]
+         \hl{2027-03-03\quad Other CA\quad\ \ \ alice-shop.example}};
+      \node[font=\small\bfseries, text=AccentOrange] at (3.9,-1.0) {\faExclamationTriangle\ not mine!};
+      \node[font=\tiny, text=gray, anchor=south east] at (w.south east) {example data};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \stepbox{Monitors}{send an e-mail for every new certificate with your name.}
+  \probbox{Side effect}{every name in a public certificate is public (\texttt{vpn.alice-shop.example}, \texttt{test.alice-shop.example}).}
+  \keymsg{With CT, Alice can see every certificate issued for her name.}
+  \say{crt.sh to darmowa wyszukiwarka w logach CT prowadzona przez Sectigo; dane na slajdzie są przykładowe. Dzięki CT wykryto wiele źle wystawionych certyfikatów. Skutek uboczny: logi zdradzają nazwy serwerów, więc nazwy wewnętrzne lepiej trzymać w prywatnym PKI.}
+\end{frame}
+
+\begin{frame}{Task 6: find the SCTs}
+  \begin{columns}[c,onlytextwidth]
+    \column{0.58\textwidth}
+      \taskgoal{read the SCTs of two real certificates and of one that was never logged.}
+      \taskready{\texttt{cert\_ready.py}: \texttt{load\_cert}, \texttt{scts\_of}, \texttt{sct\_time}, \texttt{valid\_from}, \texttt{valid\_until};
+        \texttt{ct\_logs.py}: \texttt{LOGS}; three PEM files.}
+    \column{0.4\textwidth}
+      \centering
+      \begin{tikzpicture}
+        \foreach \c/\t [count=\k from 0] in {sIndigo/coventry, sIndigo/python-org, sIndigo/my-shop} {
+          \node[fill=\c, text=white, rounded corners=3pt, minimum width=1.6cm, minimum height=1.1cm, font=\tiny\bfseries, align=center] at ({1.8*\k},0) {\faCertificate\\\t};
+          \node[font=\small\bfseries, text=AccentOrange] at ({1.8*\k},0.85) {SCTs?};
+        }
+      \end{tikzpicture}
+  \end{columns}
+  \vfill
+  \opentask{Task6}{about 7 minutes}
+  \say{Około 7 minut. ct\_logs.py to wycinek listy logów Google z 15 listopada. Przed uruchomieniem: ile SCT ma certyfikat z zadania 3, zrobiony przez nas?}
+\end{frame}
+
+\begin{frame}[fragile]{Task 6: what we saw}
+  % CHECKED: Task6/solution/find_scts.py, 15 Nov 2026
+\begin{termout}
+coventry.pem    valid for  90 days   SCTs: @2@
+    DigiCert Sphinx2027h1, Let's Encrypt Willow2027h1
+    valid_from 02:29:16, the SCTs at 03:29:17: 60 minutes later
+python-org.pem  valid for 397 days   SCTs: @3@
+    Sectigo Elephant2027h1, Cloudflare Nimbus2027, Let's Encrypt Sycamore2027h1
+    2 to 3 seconds after valid_from
+my-shop.pem     valid for  90 days   SCTs: @0@
+\end{termout}
+  \vfill
+  \keymsg{Real certificates carry their SCTs; ours has none.}
+  \say{Liczba SCT zgadza się z regułą: 90 dni dwa, 397 dni trzy. Godzina różnicy w Coventry: Google cofa datę początku o godzinę, prawdopodobnie jako zapas na klientów ze spóźnionym zegarem. Nasz własny certyfikat nie ma SCT: przeglądarka nie przyjęłaby go jako publicznego.}
+\end{frame}
+
+% ======================================================================
+\section{Automation and expiry}
+% ======================================================================
+
+\begin{frame}{Manual certificates go wrong}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \foreach \ic/\t [count=\k from 0] in {\faIcon{file-alt}/{fill in\\a form}, \faEnvelope/{answer\\an e-mail}, \faDownload/{download\\a zip}, \faCopy/{copy files to\\the server}, \faIcon{redo}/{restart\\the server}, {\faIcon{calendar-alt}}/{a reminder,\\once a year}} {
+        \node[hw, minimum width=1.85cm, minimum height=1.9cm, font=\scriptsize, align=center] (b\k) at ({2.2*\k},0) {{\Large\ic}\\[3pt]\t};
+      }
+      \foreach \k [evaluate=\k as \n using int(\k+1)] in {0,...,4} \draw[data] (b\k) -- (b\n);
+      \node[text=AccentOrange, font=\Large] at ([xshift=-0.1cm,yshift=-0.1cm]b5.north east) {\faExclamationCircle};
+      \node[draw=aWrite, line width=1.2pt, fill=white, rounded corners=3pt, font=\small, text=nInk, align=center] at (5.5,-2.4)
+        {\nok\ ``Your connection is not private''\\\scriptsize the day it expires};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \keymsg{Whatever a person does once a year, a person forgets.}
+  \say{Ręczne odnawianie raz na rok to przepis na awarię: wykład 9 pokaże prawdziwe przykłady. Pytanie do sali: co by było, gdyby certyfikat żył 47 dni?}
+\end{frame}
+
+\begin{frame}{Let's Encrypt}
+  \vfill
+  \begin{columns}[c,onlytextwidth]
+    \column{0.38\textwidth}
+      \centering
+      \begin{tikzpicture}
+        \node[hw, minimum width=4.2cm, minimum height=3.4cm] (b) {};
+        \node[text=nInk, font=\fontsize{30}{32}\selectfont] at (0,0.8) {\faLock};
+        \node[font=\bfseries, text=nInk] at (0,-0.1) {Let's Encrypt};
+        \node[font=\scriptsize, text=nInk, align=center] at (0,-0.85) {free, automatic, open\\run by ISRG, a non-profit};
+      \end{tikzpicture}
+    \column{0.6\textwidth}
+      \small
+      \begin{tabular}{@{}ll@{}}
+        \toprule
+        2015 & first certificate (September), public beta (December)\\[3pt]
+        2019 & ACME becomes RFC 8555\\[3pt]
+        today & certificates valid 90 days;\\ & the most issued of any CA\\ \bottomrule
+      \end{tabular}
+  \end{columns}
+  \vfill
+  \bigdef{\textbf{ACME} (Automatic Certificate Management Environment): the protocol a server uses to get a certificate with no person involved.}
+  \say{Let's Encrypt zmienił sieć: HTTPS stał się darmowy i automatyczny, więc dziś prawie każda strona go ma. Protokół, którym rozmawia z serwerami, to ACME.}
+\end{frame}
+
+\begin{frame}{ACME in five steps}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \node[actor=sIndigo, minimum width=4.2cm] (c) at (0,0) {\faServer\ ACME client (Alice's server)};
+      \node[actor=sBrown, minimum width=4.2cm] (s) at (10,0) {\faLandmark\ ACME server (the CA)};
+      \draw[nLine, thick, dashed] (c.south) -- (0,-5.1);
+      \draw[nLine, thick, dashed] (s.south) -- (10,-5.1);
+      \foreach \y/\t/\d in {-0.7/{\badge{1} new account (an account key)}/r, -1.4/{\badge{2} new order: alice-shop.example}/r,
+          -2.1/{challenge: a token}/l, -3.5/{\badge{4} ``ready, check it''}/r, -4.2/{\badge{5} finalize: the CSR}/r, -4.9/{the certificate}/l} {
+        \if\d r\draw[data] (0,\y) to node[above, font=\scriptsize] {\t} (10,\y);
+        \else\draw[data] (10,\y) to node[above, font=\scriptsize] {\t} (0,\y);\fi
+      }
+      \node[font=\scriptsize, text=nInk, anchor=west] at (0.15,-2.8) {\badge{3} put the answer where the CA can see it};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \say{Klucz konta to osobna para kluczy klienta ACME, nie klucz strony. W prawdziwym ACME każde żądanie jest podpisane kluczem konta i idzie przez HTTPS.}
+\end{frame}
+
+\begin{frame}{The http-01 challenge}
+  % CHECKED: one run of Task7/solution/get_certificate.py (the token is new in every run)
+  \vfill
+  \small
+  \begin{tabular}{@{}ll@{}}
+    token & \texttt{\hl{ETv93pPvSyKSw0yhgDphoNcfCiRgDbRl9XHNGiyicxw}}\\[6pt]
+    key authorization & \texttt{\hl{ETv93pPvSyKSw0yhgDphoNcfCiRgDbRl9XHNGiyicxw}}\\
+     & \texttt{.ZZMNW5DVypj1dZwFKAQjsKFF17mKcYih2I71lLldnOU}\\
+     & $=$ token $+$ \texttt{"."} $+$ thumbprint of the account key (SHA-256, base64url)\\[6pt]
+    file & \texttt{http://alice-shop.example/.well-known/acme-challenge/}\\
+     & \texttt{\hl{ETv93pPvSyKSw0yhgDphoNcfCiRgDbRl9XHNGiyicxw}}\\[6pt]
+    the CA & GET that URL $\rightarrow$ the same text? $\rightarrow$ \texttt{valid}
+  \end{tabular}
+  \vfill
+  \keymsg{Only someone who controls the website can put the file there.}
+  \say{Tylko ktoś, kto kontroluje serwer WWW pod tą nazwą, może tam położyć plik. Odcisk klucza konta wiąże odpowiedź z kontem: Mallory nie może przechwycić cudzego tokenu i użyć go na swoim koncie.}
+\end{frame}
+
+\begin{frame}{The dns-01 challenge and wildcards}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \node[hw, font=\small\ttfamily, inner sep=8pt] {\_acme-challenge.alice-shop.example.\quad TXT\quad "base64url(SHA-256(key authorization))"};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{columns}[t,onlytextwidth]
+    \column{0.48\textwidth}\stepbox{+}{works for servers that are not on the internet\\ the only way to get \texttt{*.alice-shop.example}}
+    \column{0.48\textwidth}\probbox{$-$}{the ACME client needs the right to change DNS records}
+  \end{columns}
+  \vfill
+  \say{Można pominąć. Certyfikat z gwiazdką (wildcard) obejmuje wszystkie nazwy jednego poziomu. Let's Encrypt wydaje go tylko przez dns-01.}
+\end{frame}
+
+\begin{frame}[fragile]{ACME clients}
+  \vfill
+\begin{termout}
+$ sudo certbot --nginx -d alice-shop.example
+\end{termout}
+  \vfill
+  \begin{center}
+    \small
+    \begin{tabular}{@{}ll@{}}
+      \toprule
+      certbot & the client of the EFF; edits the nginx or Apache settings\\[3pt]
+      Caddy & a web server with HTTPS built in: no command at all\\[3pt]
+      acme.sh & a shell script\\[3pt]
+      cert-manager & for Kubernetes\\ \bottomrule
+    \end{tabular}
+  \end{center}
+  \vfill
+  \say{Jedno polecenie: certbot zdobywa certyfikat, wpisuje go do konfiguracji nginx i ustawia automatyczne odnawianie. Caddy robi to sam przy starcie.}
+\end{frame}
+
+\begin{frame}{Task 7: get a certificate by ACME}
+  \begin{columns}[c,onlytextwidth]
+    \column{0.55\textwidth}
+      \taskgoal{pass the http-01 challenge of a toy ACME CA and get a 90-day certificate.}
+      \taskready{\texttt{acme\_toy.py}: \texttt{thumbprint}, \texttt{start\_web\_server}, \texttt{ToyCA}; \texttt{cert\_ready.py}: \texttt{new\_key}, \texttt{make\_csr}.}
+    \column{0.43\textwidth}
+      \centering
+      \begin{tikzpicture}
+        \node[actor=sIndigo, minimum width=2.4cm, minimum height=1.2cm] (w) at (0,0) {\faServer\\web server\\\tiny 127.0.0.1};
+        \node[actor=sBrown, minimum width=2.4cm, minimum height=1.2cm] (c) at (3.3,0) {\faLandmark\\Toy ACME CA};
+        \draw[data] (c) to node[above, font=\tiny] {GET token} (w);
+      \end{tikzpicture}
+  \end{columns}
+  \vfill
+  \opentask{Task7}{about 12 minutes}
+  \say{Około 12 minut. Zabawkowe CA działa na tym samym komputerze, a serwer WWW na 127.0.0.1, więc nie trzeba internetu. Uproszczenie: bez podpisanych żądań i bez HTTPS, ale samo wyzwanie http-01 jest prawdziwe.}
+\end{frame}
+
+\begin{frame}[fragile]{Task 7: what we saw}
+  % CHECKED: Task7/solution/get_certificate.py, 15 Nov 2026
+\begin{termout}
+1. token: ETv93pPvSyKSw0yhgDphoNcfCiRgDbRl9XHNGiyicxw
+2. key authorization: ETv93pPvSy...Rl9XHNGiyicxw.ZZMNW5DVypj1dZwFKAQjsKFF17mKcYih2I71lLldnOU
+3. file written
+   [CA] downloads http://alice-shop.example/.well-known/acme-challenge/ETv93pPvSy...
+   [web server] GET /.well-known/acme-challenge/ETv93pPvSy... -> 200
+4. the CA says: @valid@
+5. subject: CN=alice-shop.example  issuer: CN=Toy ACME CA R1
+   valid: 2026-11-15 to 2027-02-13
+\end{termout}
+  \vfill
+  \keymsg{Five steps, no person: a certificate in seconds.}
+  \say{Token za każdym razem jest inny. Zły plik daje invalid, a zamówienie zostaje nieważne: trzeba złożyć nowe. Certbot robi dokładnie te kroki, tylko przez sieć.}
+\end{frame}
+
+\begin{frame}{Renewal}
+  \begin{center}\scalebox{0.7}{\lifebar{7}}\end{center}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[x=0.13cm]
+      \fill[AccentOrange!15] (60,-0.4) rectangle (90,0.4);
+      \draw[nInk, very thick] (0,0) -- (90,0);
+      \foreach \d in {0,30,60,90} {\draw[nInk, thick] (\d,-0.15) -- (\d,0.15); \node[font=\scriptsize, text=nInk, below=4pt] at (\d,-0.15) {day \d};}
+      \node[font=\small, text=nInk] at (30,0.7) {in use};
+      \node[font=\small\bfseries, text=AccentOrange] at (75,0.7) {renew here};
+      \node[font=\small, text=nInk, anchor=west] at (91,0) {\faIcon{hourglass-end}\ expires};
+      \draw[annot, -{Stealth}] (60,-1.3) -- (60,-0.45);
+      \node[font=\scriptsize, text=nInk, anchor=north] at (60,-1.3) {Let's Encrypt: renew every 60 days, with a third of the time left};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{columns}[t,onlytextwidth]
+    \column{0.48\textwidth}\stepbox{A new key}{at every renewal is better.}
+    \column{0.48\textwidth}\stepbox{ARI (ACME Renewal Information)}{the CA can tell the client when to renew.}
+  \end{columns}
+  \keymsg{Renew early and automatically, with time left to fix a failure.}
+  \say{Odnowienie to po prostu nowy certyfikat. Zapas jednej trzeciej daje czas na kilka prób, gdy coś nie działa. ARI to rozszerzenie ACME: CA może poprosić o wcześniejsze odnowienie, na przykład gdy musi odwołać certyfikaty.}
+\end{frame}
+
+\begin{frame}{Expiry}
+  \vfill
+  % CHECKED: notAfter of the leaf of www.coventry.ac.uk: Jan 11 03:29:14 2027 GMT
+  \begin{center}\small \texttt{notAfter = Jan 11 03:29:14 2027 GMT} \quad (www.coventry.ac.uk)\end{center}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \node[font=\scriptsize\ttfamily, text=nInk, anchor=east] at (-4.6,0.6) {Jan 11 03:29:13};
+      \node[draw=nLine, thick, fill=white, rounded corners=8pt, minimum width=7.5cm, minimum height=0.7cm, font=\small, anchor=west] at (-4.4,0.6) {\faLock\ https://www.coventry.ac.uk \hfill \ok};
+      \node[font=\scriptsize\ttfamily, text=nInk, anchor=east] at (-4.6,-0.6) {Jan 11 03:29:15};
+      \node[draw=aWrite, line width=1.2pt, fill=white, rounded corners=8pt, minimum width=7.5cm, minimum height=0.7cm, font=\small, anchor=west] at (-4.4,-0.6) {\nok\ \texttt{NET::ERR\_CERT\_DATE\_INVALID}};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small The server keeps sending the old certificate until somebody replaces it. \quad Outages: Lecture 9.\end{center}
+  \keymsg{Expiry is exact to the second, and the server does not notice.}
+  \say{Po notAfter każdy klient odrzuca certyfikat, co do sekundy. Serwer o tym nie wie i dalej wysyła stary. Prawdziwe awarie z tego powodu: wykład 9.}
+\end{frame}
+
+\begin{frame}{Validity is getting shorter}
+  \vfill
+  \begin{center}
+    % source: CA/Browser Forum Baseline Requirements (39 months from 2015, 825 days from March 2018),
+    %   root programs (398 days from 1 Sep 2020), ballot SC-081 (200, 100, 47 days from 15 Mar 2026, 2027, 2029)
+    \begin{tikzpicture}[x=0.0055cm]
+      \foreach \t/\n/\d [count=\k from 0] in {before 2015/5 years/1826, 2015/39 months/1186, 2018/825 days/825,
+          2020/398 days/398, 15 Mar 2026/200 days/200, 15 Mar 2027/100 days/100, 15 Mar 2029/47 days/47} {
+        \node[font=\small, text=nInk, anchor=east] at (-20,{-0.62*\k}) {\t};
+        \fill[nLine, rounded corners=1.5pt] (0,{-0.62*\k-0.22}) rectangle (\d,{-0.62*\k+0.22});
+        \node[font=\small\bfseries, text=nInk, anchor=west] at (\d+20,{-0.62*\k}) {\n};
+      }
+      \draw[annot] (-400,-2.78) rectangle (550,-2.18);
+      \node[font=\scriptsize\bfseries, text=AccentOrange, anchor=west] at (560,-2.48) {now (November 2026)};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \keymsg{From 2029 a public certificate lives at most 47 days.}
+  \say{Od marca 2026 obowiązuje 200 dni, od marca 2027 100, od marca 2029 47 dni: tak zdecydowało CA/Browser Forum w 2025 roku. Limit 398 dni z 2020 roku wprowadziły najpierw przeglądarki. Ponad pięć razy krótszy certyfikat to ponad pięć razy więcej odnowień: bez automatu się nie da.}
+\end{frame}
+
+\begin{frame}{Why shorter certificates?}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \foreach \ic/\t [count=\k from 0] in {{\faIcon{user-times}}/{Wrong data\\lives shorter}, \faBan/{Revocation\\works poorly\\(Lecture 8)},
+          \faKey/{A stolen key\\helps for\\less time}, \faIcon{sync-alt}/{New algorithms\\arrive faster}, \faRobot/{It forces\\automation}} {
+        \node[hw, minimum width=2.6cm, minimum height=3.2cm] at ({2.85*\k},0) {};
+        \node[text=nInk, font=\fontsize{24}{26}\selectfont] at ({2.85*\k},0.75) {\ic};
+        \node[font=\small, text=nInk, align=center, anchor=north] at ({2.85*\k},-0.05) {\t};
+      }
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \keymsg{A short certificate expires before most problems matter.}
+  \say{Najważniejszy powód: odwołanie certyfikatu działa słabo, o tym na wykładzie 8. Krótki certyfikat wygasa sam, zanim ktokolwiek musi go odwoływać. Let's Encrypt idzie dalej: od stycznia 2026 każdy może wziąć certyfikat 6-dniowy, a domyślne 90 dni skraca się do 64 dni w lutym 2027 i do 45 dni w lutym 2028.}
+\end{frame}
+
+\begin{frame}{Task 8: is this validity allowed?}
+  \begin{columns}[c,onlytextwidth]
+    \column{0.55\textwidth}
+      \taskgoal{check eight certificates against the limit that held on the day each was issued.}
+      \taskready{\texttt{cert\_ready.py}: \texttt{load\_cert}, \texttt{valid\_from}, \texttt{valid\_until}; \texttt{certs/}: 8 certificates, 2 of them real.}
+    \column{0.43\textwidth}
+      \centering\scriptsize
+      \begin{tabular}{@{}ll@{}}
+        \toprule
+        issued from & at most\\ \midrule
+        1 Mar 2018 & 825 days\\ 1 Sep 2020 & 398 days\\ 15 Mar 2026 & 200 days\\ 15 Mar 2027 & 100 days\\ 15 Mar 2029 & 47 days\\ \bottomrule
+      \end{tabular}
+  \end{columns}
+  \vfill
+  \opentask{Task8}{about 8 minutes}
+  \say{Około 8 minut. Limity są na slajdzie Validity is getting shorter i w README. Liczymy dni jako różnicę valid\_until minus valid\_from.}
+\end{frame}
+
+\begin{frame}[fragile]{Task 8: what we saw}
+  % CHECKED: Task8/solution/check_validity.py, 15 Nov 2026
+\begin{termout}
+coventry.pem    2026-10-13   90 days, limit 200 : (*\ok*) OK
+python-org.pem  2026-01-13  397 days, limit 398 : (*\ok*) OK
+shop-2019.pem   2019-05-01  730 days, limit 825 : (*\ok*) OK
+shop-2021.pem   2021-03-01  730 days, limit 398 : (*\nok*) @TOO LONG@
+api-2026.pem    2026-04-01  397 days, limit 200 : (*\nok*) @TOO LONG@
+blog-2026.pem   2026-11-01  199 days, limit 200 : (*\ok*) OK
+mail-2027.pem   2027-04-01  100 days, limit 100 : (*\ok*) OK
+vpn-2029.pem    2029-06-01   90 days, limit  47 : (*\nok*) @TOO LONG@
+\end{termout}
+  \vfill
+  \keymsg{The limit depends on the issue date: 397 days was fine in January 2026, too long in April.}
+  \say{python.org: 397 dni wystawione w styczniu 2026, tuż przed zmianą, więc jeszcze dobrze. Ten sam certyfikat w kwietniu 2026 byłby za długi. Nawet 90 dni Let's Encrypt nie wystarczy w 2029 roku.}
+\end{frame}
+
+\begin{frame}{Summary}
+  \vfill
+  \begin{tikzpicture}
+    \foreach \t [count=\k] in {
+        {A \textbf{CA} checks who is asking and signs; public CAs follow the \textbf{Baseline Requirements} and yearly audits.},
+        {A \textbf{chain} goes leaf $\rightarrow$ intermediate $\rightarrow$ root; trust comes from the root in the \textbf{trust store}; the root key stays offline.},
+        {\textbf{Basic Constraints}, \textbf{pathLen} and \textbf{Name Constraints} limit who may sign what; a company can run a \textbf{private PKI}.},
+        {Key pair $\rightarrow$ \textbf{CSR} (proves the key) $\rightarrow$ \textbf{DV, OV or EV} (proves the name) $\rightarrow$ issuance $\rightarrow$ \textbf{CT} logs and SCTs.},
+        {\textbf{ACME} and Let's Encrypt automate issuance and renewal; validity drops to \textbf{47 days} by 2029.}} {
+      \node[hw, text width=12.6cm, align=left, minimum height=0.95cm, anchor=west, font=\small] at (0.8,{-1.1*\k}) {\t};
+      \node[circle, fill=AccentOrange, text=white, font=\bfseries, minimum size=0.7cm] at (0.4,{-1.1*\k}) {\k};
+    }
+  \end{tikzpicture}
+  \vfill
+  \say{Po jednym zdaniu na cel wykładu. Na wykładzie 8: jak klient sprawdza łańcuch krok po kroku, jak odwołuje się certyfikaty i jak to wszystko działa w TLS.}
+\end{frame}
+
+\end{document}

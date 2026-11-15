@@ -1,0 +1,22 @@
+% Task 7: ACME http-01 with a toy CA and a web server on 127.0.0.1. CHECKED: Task7/solution/get_certificate.py.
+\documentclass[12pt,tikz,border=6pt]{standalone}
+\input{common}
+\begin{document}
+\pagecolor{white}
+\begin{tikzpicture}[>=Stealth]
+
+  \node[actor=sIndigo, minimum width=4.6cm, minimum height=1.0cm] (c) at (0,0) {\faServer\ get\_certificate.py (Alice)};
+  \node[actor=sBrown, minimum width=4.6cm, minimum height=1.0cm] (s) at (13,0) {\faLandmark\ ToyCA (Toy ACME CA R1)};
+  \draw[nLine, thick, dashed] (c.south) -- (0,-6.4);
+  \draw[nLine, thick, dashed] (s.south) -- (13,-6.4);
+  \draw[data] (0,-0.9) -- node[above, font=\small] {\badge{1}\ new\_order("alice-shop.example", account key)} (13,-0.9);
+  \draw[data] (13,-1.7) -- node[above, font=\small] {token} (0,-1.7);
+  \node[note, anchor=west] at (0.2,-2.4) {\badge{2}\ key authorization = token + "." + thumbprint(account key)};
+  \node[hw, anchor=west, font=\small\ttfamily] (wr) at (0.6,-3.4) {webroot/.well-known/acme-challenge/<token>};
+  \node[anchor=east] at (wr.west) {\badge{3}};
+  \draw[data] (0,-4.3) -- node[above, font=\small] {\badge{4}\ validate(order)} (13,-4.3);
+  \draw[data, dashed] (13,-4.6) -- (wr.east);
+  \node[font=\small, text=nInk, anchor=north west] at (0.6,-4.75) {the CA: GET http://alice-shop.example/.well-known/acme-challenge/<token>};
+  \draw[data] (0,-6.0) -- node[above, font=\small] {\badge{5}\ finalize(order, CSR) $\rightarrow$ a certificate for 90 days} (13,-6.0);
+\end{tikzpicture}
+\end{document}

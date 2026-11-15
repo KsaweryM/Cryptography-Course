@@ -19,9 +19,6 @@ __pycache__/
 # The slides are published in builded_presentation/; the copies inside the lectures are local
 Lecture*/Lecture_*.pdf
 
-# Speaker notes: kept locally, not published
-*notes.pdf
-
 # Solutions of the tasks: kept locally, not published
 solution/
 
@@ -29,11 +26,5 @@ solution/
 # Only the .md files directly in Lecture*/ match; the README.md of every task stays.
 Lecture*/*.md
 
-# Planning of the W3 block: kept locally, not published
-W3-prezentacje/
-W3-topics.pdf
-W3-topics.tex
-W3-zakres.md
-
-# Local files: the lecturer's TODO for Claude, notes and temporary files (never in git)
+# Local files
 local/

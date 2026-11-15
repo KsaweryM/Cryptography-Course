@@ -1,0 +1,25 @@
+% Task 2: a signed name card. CHECKED: Task2/solution/name_card.py (keys and signature, Ed25519)
+\documentclass[12pt,tikz,border=6pt]{standalone}
+\input{common}
+\begin{document}
+\pagecolor{white}
+\begin{tikzpicture}[>=Stealth, card]
+  \canode{ca}{0,0}{Trusty CA}
+  \node[privval, font=\small, anchor=north] at (0,-1.35) {\faKey\ trusty\_ca\_private.pem};
+  % the card
+  \node[cardbox, minimum width=9.6cm, minimum height=3.0cm] (c) at (7.2,0) {};
+  \node[font=\bfseries, text=nInk, anchor=north west] at (2.55,1.35) {\faIdCard\ Bob's card};
+  \node[font=\ttfamily\small, text=nInk, anchor=west] at (2.6,0.55) {name=bob.example;key=};
+  \node[pubval, font=\ttfamily\scriptsize, anchor=west] at (2.6,0.0) {\faKey\ 2fa8b9a6b0d5878b924cb42b1188f4e5f12cf7aa0d6faa0f2d715304702e3c40};
+  \node[caval, font=\small, anchor=west] at (2.6,-0.85) {signature of Trusty CA: \textbf{?}\quad \badge{2}};
+  \node[font=\small, anchor=east] at (11.9,0.55) {\badge{1}};
+  \draw[data] (ca.east) -- node[above, font=\small] {signs} (c.west);
+  % Alice and Mallory
+  \personnode{al}{3.5,-3.4}{sIndigo}{Alice}
+  \node[pubval, font=\small, anchor=west] at (4.4,-3.4) {\faKey\ trusty\_ca\_public.pem};
+  \node[note, anchor=west] at (4.4,-4.05) {\badge{3}\ verify the card: True?};
+  \mallorynode{ma}{10.5,-3.4}
+  \node[note, anchor=north, align=center] at (10.5,-4.75) {\badge{4}\ her key in the card, CA signature\\ \badge{5}\ her key, her own signature};
+  \node[pubval, font=\ttfamily\scriptsize, anchor=north] at (10.5,-5.85) {\faKey\ 456918eb\ldots539d5bcb};
+\end{tikzpicture}
+\end{document}
