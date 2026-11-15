@@ -1,0 +1,46 @@
+% Task 3: one keystream, two messages. Values from Task3/reuse.py;
+% CHECKED (python3): C1 XOR P1 starts with 0xA6 XOR 0x4D ('M') = 0xEB;
+%   0xBF XOR 0xEB = 0x54 = 'T'. The other bytes are the result of the task: not shown.
+\documentclass[12pt,tikz,border=6pt]{standalone}
+\input{common}
+\begin{document}
+\pagecolor{white}
+\begin{tikzpicture}[>=Stealth]
+  \def\dx{0.92}
+  % the story: one keystream Z for two messages, the attacker has C1, C2 and P1
+  \node[circle, fill=sPink, text=white, minimum size=1.0cm, font=\Large] (a) at (-1.4,2.0) {\faUserSecret};
+  \node[note, anchor=west, align=left] at (-0.7,2.0)
+    {You recorded \textbf{C1} and \textbf{C2}. Both were encrypted with \textbf{the same keystream Z}:\\
+     \texttt{C1 = P1 XOR Z}\quad and\quad \texttt{C2 = P2 XOR Z}.\quad You also know \textbf{P1}.};
+
+  \foreach \k in {0,...,14} \node[font=\small, text=gray] at ({\dx*\k},0.9) {\k};
+  % step 2: the keystream from C1 and P1
+  \node[font=\normalsize\bfseries, text=nInk, anchor=west] at (-3.3,0.3) {\badge{2}\ Get Z};
+  \node[rowlabel] at (-0.5,-0.3) {C1};
+  \byterow{0}{-0.3}{ctb}{A6,DA,32,D5,97,79,8F,52,E6,4D,6A,11,47,E6,0F}{\dx}
+  \node[rowlabel] at (-0.5,-1.05) {XOR\ \ P1};
+  \byterow{0}{-1.05}{ptb, font=\ttfamily\normalsize\bfseries}{M,E,E,T,{\textvisiblespace},M,E,{\textvisiblespace},A,T,{\textvisiblespace},9,{\textvisiblespace},P,M}{\dx}
+  \draw[nInk, thick] (-0.45,-1.48) -- ({14.45*\dx},-1.48);
+  \node[rowlabel] at (-0.5,-1.9) {= Z};
+  \node[ksb] at (0,-1.9) {EB};
+  \foreach \k in {1,...,14} \node[byte, fill=white, dashed, draw=sAmber, text=sAmberText] at ({\dx*\k},-1.9) {?};
+
+  % step 3: Z opens the second message
+  \node[font=\normalsize\bfseries, text=nInk, anchor=west] at (-3.3,-2.75) {\badge{3}\ Open C2};
+  \node[rowlabel] at (-0.5,-3.35) {C2};
+  \byterow{0}{-3.35}{ctb}{BF,D7,32,A1,E7,7D,84,52,EE,4A,6A,1C,56,81,70}{\dx}
+  \node[rowlabel] at (-0.5,-4.1) {XOR\ \ Z};
+  \node[ksb] at (0,-4.1) {EB};
+  \foreach \k in {1,...,14} \node[byte, fill=white, dashed, draw=sAmber, text=sAmberText] at ({\dx*\k},-4.1) {?};
+  \draw[nInk, thick] (-0.45,-4.53) -- ({14.45*\dx},-4.53);
+  \node[rowlabel] at (-0.5,-4.95) {= P2};
+  \node[ptb, font=\ttfamily\normalsize\bfseries] at (0,-4.95) {T};
+  \foreach \k in {1,...,14} \node[unk] at ({\dx*\k},-4.95) {?};
+
+  % the first column, worked out
+  \draw[annot] (-0.46,-5.35) rectangle (0.46,0.05);
+  \node[font=\small, text=AccentOrange, anchor=north west, align=left] at (-0.46,-5.5)
+    {\texttt{0xA6 XOR \textquotesingle M\textquotesingle\ = 0xEB}, then \texttt{0xBF XOR 0xEB = 0x54 = \textquotesingle T\textquotesingle}.
+     \ \ No key needed: \texttt{C1 XOR P1 = Z}.};
+\end{tikzpicture}
+\end{document}

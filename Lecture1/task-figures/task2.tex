@@ -1,0 +1,54 @@
+% Task 2: RC4 as a black box. Values from Task2/use_rc4.py and Task2/rc4.py;
+% CHECKED (python3): keystream(b"Kangaroo", 8) = 69 9d da 7e fe 61 73 62;
+%   the ciphertext starts 24 F8 BF 0A DE 0C 16 42 and has 28 bytes.
+%   The plaintext and the keystream of "Kangarop" are the results of the task: not shown.
+\documentclass[12pt,tikz,border=6pt]{standalone}
+\input{common}
+\begin{document}
+\pagecolor{white}
+\begin{tikzpicture}[>=Stealth]
+  \def\dx{1.0}
+  \def\xs{7.0}
+  % key -> RC4 -> keystream
+  \node[actorlight=sAmber, font=\small, minimum height=1.0cm, align=center] (k) at (0,0)
+    {\faKey\ \textbf{key}\\ \texttt{b"Kangaroo"}};
+  \node[hwmain, minimum width=2.6cm, minimum height=1.3cm] (r) at (3.5,0) {};
+  \node[text=white, font=\Large] at (2.85,0.18) {\faCogs};
+  \node[text=white, font=\large\bfseries] at (3.85,0.18) {RC4};
+  \node[text=white, font=\scriptsize] at (3.5,-0.35) {black box};
+  \draw[data] (k) -- (r);
+  \draw[data] (r.east) -- (6.45,0);
+  \node[font=\ttfamily\small, text=nInk, anchor=south] at (3.5,0.75) {keystream(key, 28)};
+  \byterow{\xs}{0}{ksb}{69,9D,DA,7E,FE,61,73,62}{\dx}
+  \node[font=\large, text=nInk] at ({\xs+8*\dx},0) {\ldots};
+  \draw[decorate, decoration={brace, amplitude=5pt}, nInk] ({\xs-0.4},0.45) -- ({\xs+8.3*\dx},0.45)
+    node[midway, above=6pt, note] {\textbf{keystream}: 28 bytes, as long as the ciphertext};
+  % XOR with the ciphertext
+  \node[rowlabel] at ({\xs-0.55},-1.25) {ciphertext};
+  \byterow{\xs}{-1.25}{ctb}{24,F8,BF,0A,DE,0C,16,42}{\dx}
+  \node[font=\large, text=nInk] at ({\xs+8*\dx},-1.25) {\ldots};
+  \node[font=\small\bfseries, text=nInk, anchor=east] at ({\xs-0.55},-0.62) {XOR};
+  \draw[nInk, thick] ({\xs-0.45},-1.78) -- ({\xs+8.3*\dx},-1.78);
+  \node[rowlabel] at ({\xs-0.55},-2.3) {message};
+  \foreach \k in {0,...,7} \node[unk] at ({\xs+\dx*\k},-2.3) {?};
+  \node[font=\large, text=nInk] at ({\xs+8*\dx},-2.3) {\ldots};
+  \node[font=\small, text=AccentOrange, anchor=west] at ({\xs+8.5*\dx},-2.3) {\badge{2}};
+  \node[font=\small, text=AccentOrange, anchor=west] at ({\xs+8.5*\dx},0) {\badge{1}};
+
+  % one letter of the key changed
+  \draw[nLight, thick, dashed] (-1.4,-3.05) -- (17.0,-3.05);
+  \node[actorlight=sAmber, font=\small, minimum height=1.0cm, align=center] (k2) at (0,-4.5)
+    {\faKey\ \textbf{key}\\ \texttt{b"Kangaro\textcolor{AccentOrange}{\textbf{p}}"}};
+  \node[hwmain, minimum width=2.6cm, minimum height=1.3cm] (r2) at (3.5,-4.5) {};
+  \node[text=white, font=\Large] at (2.85,-4.32) {\faCogs};
+  \node[text=white, font=\large\bfseries] at (3.85,-4.32) {RC4};
+  \node[text=white, font=\scriptsize] at (3.5,-4.85) {black box};
+  \draw[data] (k2) -- (r2);
+  \draw[data] (r2.east) -- (6.45,-4.5);
+  \node[font=\ttfamily\small, text=nInk, anchor=south] at (3.5,-3.75) {keystream(b"Kangarop", 8)};
+  \foreach \k in {0,...,7} \node[byte, fill=white, dashed, draw=sAmber, text=sAmberText] at ({\xs+\dx*\k},-4.5) {?};
+  \node[font=\small, text=AccentOrange, anchor=west] at ({\xs+8.5*\dx},-4.5) {\badge{3}};
+  \node[note, anchor=north, align=center] at ({\xs+3.5*\dx},-5.0)
+    {only the last letter changed: \textbf{how many of the 8 bytes stay the same?}};
+\end{tikzpicture}
+\end{document}

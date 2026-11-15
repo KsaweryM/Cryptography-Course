@@ -1,0 +1,53 @@
+% Task 5: raise the price. Ciphertext from Task5/tamper.py; the invoice format from the README.
+% CHECKED (python3, Task5/server.py): the ciphertext D2 3F BF D0 9C 33 F1 9D decrypts to "00000010";
+%   XOR on the first byte only changes the first digit. The value of x is the result of the task: not shown.
+\documentclass[12pt,tikz,border=6pt]{standalone}
+\input{common}
+% an invoice on paper: \invoice{name}{position}{amount}
+\newcommand{\invoice}[3]{%
+  \node[draw=nLine, thick, fill=white, minimum width=2.5cm, minimum height=2.9cm, rounded corners=1pt] (#1) at (#2) {};
+  \node[font=\small\bfseries, text=nInk, anchor=north] at ([yshift=-0.12cm]#1.north) {INVOICE};
+  \foreach \d in {0.75,0.98,1.21} \draw[nLight, thick] ([shift={(0.25,-\d)}]#1.north west) -- ([shift={(-0.25,-\d)}]#1.north east);
+  \node[font=\scriptsize, text=nInk, anchor=south west] at ([shift={(0.15,0.6)}]#1.south west) {to pay (PLN):};
+  \node[font=\ttfamily\normalsize\bfseries, text=nInk, anchor=south] at ([yshift=0.15cm]#1.south) {#3};}
+\begin{document}
+\pagecolor{white}
+\begin{tikzpicture}[>=Stealth]
+  \def\dx{1.0}
+  \def\xs{5.2}
+  % the way of the message
+  \node[actor=sIndigo, minimum width=2.4cm, minimum height=0.9cm] (a) at (1.0,3.0) {\faUser\ party A};
+  \node[actor=sTeal, minimum width=2.4cm, minimum height=0.9cm] (b) at (17.2,3.0) {\faUser\ party B};
+  \draw[data] (a) -- node[above, note] {ciphertext} (7.9,3.0);
+  \draw[data] (10.5,3.0) -- node[above, note] {changed ciphertext} (b);
+  \node[circle, fill=sPink, text=white, minimum size=1.1cm, font=\Large] (x) at (9.2,3.0) {\faUserSecret};
+  \node[font=\small\bfseries, text=sPinkText] at (9.2,2.15) {you: no key, but you can change bytes};
+
+  % what A wrote
+  \invoice{i1}{1.0,-0.4}{00000010}
+  \node[note] at (1.0,-2.15) {A wrote 10 PLN};
+  % the bytes
+  \node[rowlabel, font=\small, text=gray] at ({\xs-0.55},1.15) {byte};
+  \foreach \k in {0,...,7} \node[font=\small, text=gray] at ({\xs+\dx*\k},1.15) {\k};
+  \node[rowlabel] at ({\xs-0.55},0.6) {plaintext};
+  \byterow{\xs}{0.6}{ptb}{30,30,30,30,30,30,31,30}{\dx}
+  \node[font=\small, text=sViolet, anchor=west] at ({\xs+7.55*\dx},0.6) {= \texttt{"00000010"}};
+  \node[rowlabel] at ({\xs-0.55},-0.3) {ciphertext};
+  \byterow{\xs}{-0.3}{ctb}{D2,3F,BF,D0,9C,33,F1,9D}{\dx}
+  \node[rowlabel] at ({\xs-0.55},-1.2) {XOR};
+  \node[byte, draw=AccentOrange, line width=1.4pt, text=AccentOrange, font=\ttfamily\normalsize\bfseries] at (\xs,-1.2) {x};
+  \foreach \k in {1,...,7} \node[cellfree, minimum width=0.8cm, minimum height=0.62cm, font=\ttfamily\small, text=nLine] at ({\xs+\dx*\k},-1.2) {00};
+  \draw[nInk, thick] ({\xs-0.45},-1.65) -- ({\xs+7.45*\dx},-1.65);
+  \node[rowlabel] at ({\xs-0.55},-2.15) {B decrypts};
+  \node[ptb, draw=AccentOrange, line width=1.4pt, font=\ttfamily\normalsize\bfseries] at (\xs,-2.15) {35};
+  \byterow{\xs+\dx}{-2.15}{ptb}{30,30,30,30,30,31,30}{\dx}
+  \node[font=\small, text=sViolet, anchor=west] at ({\xs+7.55*\dx},-2.15) {= \texttt{"50000010"}};
+  \draw[annot] ({\xs-0.5},-2.55) rectangle ({\xs+0.5},0.95);
+
+  % what B accepts
+  \invoice{i2}{17.2,-0.4}{50000010}
+  \node[font=\small\bfseries, text=sTealText] at (17.2,-2.15) {B accepts it \ok};
+  \node[note, anchor=north, align=center] at (9.2,-2.75)
+    {A change in the ciphertext lands on \textbf{the same byte} of the plaintext: \ \texttt{(C XOR x)} decrypts to \texttt{P XOR x}.\\ Which \texttt{x} turns \texttt{0x30} (the digit 0) into \texttt{0x35} (the digit 5)?};
+\end{tikzpicture}
+\end{document}

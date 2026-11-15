@@ -1,0 +1,46 @@
+% Task 9: measure the second byte. CHECKED with python3 and Task9/rc4.py:
+%   random.seed(5), 7 keys of 16 random bytes, z = prga(ksa(key), 3):
+%   457c769f... fa 3b 75 | 37ce91cb... 2d 0f e3 | 29fe69bd... db 71 cd | efe26c07... 5a 13 55
+%   74d37ff1... 94 9a 8a | 3b6aa1e6... 08 a0 be | a2e81478... fd 00 e5
+%   1/256 = 0.39%. The measured percentages are the result of the task: not shown.
+\documentclass[12pt,tikz,border=6pt]{standalone}
+\input{common}
+\begin{document}
+\pagecolor{white}
+\begin{tikzpicture}[>=Stealth]
+  \def\dy{0.62}
+  \tikzset{zb/.style={ksb, minimum width=0.85cm, minimum height=0.5cm}}
+  % the table of keys and their first 3 keystream bytes
+  \node[font=\small\bfseries, text=nInk] at (1.8,0.75) {random key (16 bytes)};
+  \foreach \c/\l in {0/{z[0]},1/{z[1]},2/{z[2]}} \node[font=\ttfamily\small\bfseries, text=sAmberText] at ({5.0+1.0*\c},0.75) {\l};
+  \foreach \k/\key/\z [count=\r from 0] in {1/{45 7C 76 9F \ldots}/{FA,3B,75}, 2/{37 CE 91 CB \ldots}/{2D,0F,E3},
+      3/{29 FE 69 BD \ldots}/{DB,71,CD}, 4/{EF E2 6C 07 \ldots}/{5A,13,55}, 5/{74 D3 7F F1 \ldots}/{94,9A,8A},
+      6/{3B 6A A1 E6 \ldots}/{08,A0,BE}, 7/{A2 E8 14 78 \ldots}/{FD,00,E5}} {
+    \node[font=\small, text=gray, anchor=east] at (-0.1,{-\dy*\r}) {\k};
+    \node[actorlight=sAmber, font=\ttfamily\small, minimum height=0.5cm, inner sep=2pt] at (1.8,{-\dy*\r}) {\key};
+    \draw[data] (3.65,{-\dy*\r}) -- (4.35,{-\dy*\r});
+    \byterow{5.0}{-\dy*\r}{zb}{\z}{1.0}
+  }
+  \node[font=\Large\bfseries, text=nInk] at (1.8,{-\dy*7+0.05}) {$\vdots$};
+  \node[font=\small, text=gray, anchor=east] at (-0.1,{-\dy*8}) {100\,000};
+  \node[font=\small, text=nInk] at (1.8,{-\dy*8}) {(a new key every time)};
+  \draw[annot] (5.5,{-\dy*6-0.33}) rectangle (6.5,{-\dy*6+0.33});
+  \node[font=\small\bfseries, text=AccentOrange, anchor=west] at (7.7,{-\dy*6}) {a 0 in \texttt{z[1]}: \ \texttt{counts[1] += 1}};
+  \node[font=\small, text=nInk, anchor=west] at (7.7,{-\dy*7}) {after these 7 keys: \ \texttt{counts = [0, 1, 0]}};
+  \node[font=\small, text=nInk, anchor=west] at (7.7,{-\dy*8}) {\ttfamily z = prga(ksa(key), 3)};
+
+  % the idea: compare each percentage with the uniform line
+  \begin{scope}[shift={(11.6,-1.2)}]
+    \node[font=\small\bfseries, text=nInk] at (2.0,2.75) {how often is the byte 0?};
+    \draw[nLine, thick] (0,-0.35) -- (0,2.15);
+    \draw[nLine, thick] (0,-0.35) -- (4.6,-0.35);
+    \foreach \l/\y in {{byte 1 \texttt{(z[0])}}/1.7, {byte 2 \texttt{(z[1])}}/0.9, {byte 3 \texttt{(z[2])}}/0.1} {
+      \node[font=\small\bfseries, text=nInk, anchor=east] at (-0.1,\y) {\l};
+      \node[font=\small\bfseries, text=nInk, anchor=west] at (0.15,\y) {?\,\%};
+    }
+    \draw[DeepBlue, very thick, dashed] (2.3,-0.45) -- (2.3,2.25);
+    \node[font=\small, text=DeepBlue, anchor=west, align=left] at (2.45,1.3) {uniform:\\ $1/256 = \mathbf{0.39\%}$};
+    \node[font=\small, text=nInk, anchor=north, align=center] at (2.3,-0.5) {your three percentages};
+  \end{scope}
+\end{tikzpicture}
+\end{document}

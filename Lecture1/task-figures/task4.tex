@@ -1,0 +1,59 @@
+% Task 4: one key, many messages. Values from Task4/one_key.py and Task4/rc4.py, CHECKED with python3:
+%   rc4 keystream of b"our secret": b5 d0 d4 df ...
+%   rc4(b"our secret", b"Meet at noon.") = f8 b5 b1 ab ..., rc4(b"our secret", b"Bring the map") = f7 a2 bd b1 ...
+%   two example values of n (in the program they are random): 3b 91 e4 and c7 05 6a
+%   keystream(n + key): f8 4a 4e 74 ... and e8 94 aa a2 ...
+%   rc4(n + key, m1) = b5 2f 2b 00 ...,  rc4(n + key, m2) = aa e6 c3 cc ...
+\documentclass[12pt,tikz,border=6pt]{standalone}
+\input{common}
+\begin{document}
+\pagecolor{white}
+\begin{tikzpicture}[>=Stealth]
+  \def\dx{0.85}
+  \tikzset{nb/.style={byte, fill=white, draw=sAmber, line width=1.2pt}}
+  % key -> RC4 -> keystream, on one row at height #1
+  \newcommand{\keyrow}[1]{%
+    \node[actorlight=sAmber, font=\small, minimum height=0.7cm] (k) at (4.75,#1) {\faKey\ \texttt{our secret}};
+    \node[hwmain, minimum width=1.7cm, minimum height=0.75cm, font=\small\bfseries] (r) at (7.75,#1) {\faCogs\ RC4};
+    \draw[data] (k) -- (r);
+    \draw[data] (r.east) -- (9.05,#1);}
+  \newcommand{\ksrow}[2]{\byterow{9.5}{#1}{ksb}{#2}{\dx}\node[text=nInk] at ({9.5+4*\dx-0.15},#1) {\ldots};}
+  \def\cx{17.0}
+
+  % ---------------- step 1 ----------------
+  \node[font=\normalsize\bfseries, text=nInk, anchor=west] at (-0.4,1.45) {\badge{1}\ The same key for two messages};
+  \node[font=\small\bfseries, text=sAmberText] at ({9.5+1.5*\dx},0.85) {keystream};
+  \node[font=\small\bfseries, text=sBrown] at ({\cx+1.5*\dx},0.85) {ciphertext};
+  \foreach \y/\m/\z/\c in {0.25/{m1 = Meet at noon.}/{B5,D0,D4,DF}/{F8,B5,B1,AB}, -0.75/{m2 = Bring the map}/{B5,D0,D4,DF}/{F7,A2,BD,B1}} {
+    \node[note, anchor=east, font=\ttfamily\small] at (3.3,\y) {\m};
+    \keyrow{\y}
+    \ksrow{\y}{\z}
+    \draw[data] (13.15,\y) -- node[above, font=\small, text=nInk] {XOR m} (16.45,\y);
+    \byterow{\cx}{\y}{ctb}{\c}{\dx}
+    \node[text=nInk] at ({\cx+4*\dx-0.15},\y) {\ldots};
+  }
+  \draw[annot] (9.0,-1.15) rectangle (13.0,0.65);
+  \node[font=\small\bfseries, text=AccentOrange, anchor=north] at (11.0,-1.2) {the same keystream, as in Task 3};
+
+  \draw[nLight, thick, dashed] (-0.4,-2.0) -- (20.6,-2.0);
+
+  % ---------------- step 2 ----------------
+  \node[font=\normalsize\bfseries, text=nInk, anchor=west] at (-0.4,-2.5) {\badge{2}\ A new public \texttt{n} for every message. The RC4 key is \texttt{n + key}.};
+  \node[font=\small\bfseries, text=nInk, align=center] at (1.0,-3.3) {\texttt{n}: 3 random bytes (example)};
+  \node[font=\small\bfseries, text=sAmberText] at ({9.5+1.5*\dx},-3.3) {keystream};
+  \node[font=\small\bfseries, text=nInk] at ({\cx-0.4},-3.3) {packet sent: \texttt{n + c}};
+  \foreach \y/\n/\z/\c in {-3.95/{3B,91,E4}/{F8,4A,4E,74}/{B5,2F,2B,00}, -4.95/{C7,05,6A}/{E8,94,AA,A2}/{AA,E6,C3,CC}} {
+    \byterow{0.15}{\y}{nb}{\n}{\dx}
+    \node[font=\large\bfseries, text=nInk] at (2.85,\y) {+};
+    \keyrow{\y}
+    \ksrow{\y}{\z}
+    \draw[data] (13.15,\y) -- (14.0,\y);
+    \byterow{\cx-2.55}{\y}{nb}{\n}{\dx}
+    \byterow{\cx}{\y}{ctb}{\c}{\dx}
+    \node[text=nInk] at ({\cx+4*\dx-0.15},\y) {\ldots};
+  }
+  \draw[annot] (9.0,-5.35) rectangle (13.0,-3.6);
+  \node[font=\small\bfseries, text=AccentOrange, anchor=north] at (11.0,-5.4) {a new \texttt{n} gives a new keystream};
+  \node[font=\small, text=nInk, anchor=north west] at (14.0,-5.4) {\texttt{n} travels in the open, the key stays secret};
+\end{tikzpicture}
+\end{document}

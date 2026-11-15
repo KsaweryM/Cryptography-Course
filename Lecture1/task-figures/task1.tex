@@ -1,0 +1,39 @@
+% Task 1: the one-time pad. The ciphertext and the pad are the bytes of Task1/decrypt.py;
+% CHECKED: 0xA3 XOR 0xEB = 0x48 = 72 = 'H' (the other letters are the result of the task, not shown)
+\documentclass[12pt,tikz,border=6pt]{standalone}
+\input{common}
+\begin{document}
+\pagecolor{white}
+\begin{tikzpicture}[>=Stealth]
+  % the story: the sender and you share the pad, the ciphertext travels in the open
+  \node[actor=sIndigo, minimum width=2.6cm, minimum height=0.9cm] (s) at (1.2,3.2) {\faUser\ sender};
+  \node[actor=sTeal, minimum width=2.6cm, minimum height=0.9cm] (y) at (11.6,3.2) {\faUser\ you};
+  \draw[radio] (s.east) -- node[below=3pt, note] {ciphertext: anyone can see it} (y.west);
+  \node[actorlight=sAmber, font=\small\bfseries] (ps) at (1.2,4.45) {\faKey\ pad};
+  \node[actorlight=sAmber, font=\small\bfseries] (py) at (11.6,4.45) {\faKey\ the same pad};
+  \node[note, align=center] at (6.4,4.45) {11 random bytes,\\ shared before, used only once};
+  \draw[nLine, thick] (ps.south) -- (s.north);
+  \draw[nLine, thick] (py.south) -- (y.north);
+
+  % the bytes
+  \def\dx{1.05}
+  \node[rowlabel] at (-0.5,1.6) {position};
+  \foreach \k in {0,...,10} \node[font=\small, text=gray] at ({\dx*\k},1.6) {\k};
+  \node[rowlabel] at (-0.5,1.0) {ciphertext};
+  \byterow{0}{1.0}{ctb}{A3,FA,1B,ED,D8,14,BE,1A,C2,6B,2F}{\dx}
+  \node[font=\small\bfseries, text=nInk] at (-1.2,0.4) {XOR};
+  \node[rowlabel] at (-0.5,-0.2) {pad};
+  \byterow{0}{-0.2}{ksb}{EB,9F,77,81,B7,34,CA,72,A7,19,4A}{\dx}
+  \draw[nInk, thick] (-0.5,-0.65) -- (10.95,-0.65);
+  \node[rowlabel] at (-0.5,-1.15) {ASCII code};
+  \node[ptb] at (0,-1.15) {48};
+  \foreach \k in {1,...,10} \node[unk] at ({\dx*\k},-1.15) {?};
+  \node[rowlabel] at (-0.5,-1.95) {letter};
+  \node[ptb, font=\ttfamily\large\bfseries] at (0,-1.95) {H};
+  \foreach \k in {1,...,10} \node[unk] at ({\dx*\k},-1.95) {?};
+  % the first column, worked out
+  \draw[annot] (-0.5,-2.4) rectangle (0.5,1.4);
+  \node[font=\small, text=AccentOrange, anchor=north west, align=left] at (-0.5,-2.6)
+    {\textbf{One byte by hand:}\ \ \texttt{0xA3 XOR 0xEB = 0x48 = 72}, and \texttt{chr(72)} is \texttt{\textquotesingle H\textquotesingle}.\ \ Now do the other 10.};
+\end{tikzpicture}
+\end{document}
