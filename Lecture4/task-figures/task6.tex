@@ -1,0 +1,34 @@
+% Task 6: k used twice. Values from Task6/reuse.py.
+% CHECKED (python3): C1 starts with 26838989395851 (616 digits), C2_first with 17820659653148,
+%   C2_second with 19065383106845 (617 digits each); the second message (the result) is not shown.
+\documentclass[12pt,tikz,border=6pt]{standalone}
+\input{common}
+\begin{document}
+\pagecolor{white}
+\begin{tikzpicture}[>=Stealth]
+  \node[font=\small\bfseries, text=nInk, anchor=west] at (-1.2,1.1) {\faEnvelope\ two ElGamal ciphertexts for Bob, from \texttt{reuse.py}};
+  % first
+  \node[font=\small\bfseries, text=nInk, anchor=east] at (1.15,0) {first:};
+  \node[pubv, font=\small, draw=AccentOrange, line width=1.6pt, fill=AccentOrange!12] (c1a) at (3.5,0) {$C_1$ = \texttt{26838989395851\ldots}};
+  \node[pubv, font=\small] (c2a) at (8.9,0) {$C_2$ = \texttt{17820659653148\ldots}};
+  % second
+  \node[font=\small\bfseries, text=nInk, anchor=east] at (1.15,-1.45) {second:};
+  \node[pubv, font=\small, draw=AccentOrange, line width=1.6pt, fill=AccentOrange!12] (c1b) at (3.5,-1.45) {$C_1$ = \texttt{26838989395851\ldots}};
+  \node[pubv, font=\small] (c2b) at (8.9,-1.45) {$C_2$ = \texttt{19065383106845\ldots}};
+  \draw[decorate, decoration={brace, mirror, amplitude=5pt}, AccentOrange, thick] ([xshift=-0.1cm,yshift=-0.12cm]c1b.south west) -- ([xshift=0.1cm,yshift=-0.12cm]c1b.south east)
+    node[midway, below=6pt, font=\small\bfseries, text=AccentOrange, align=center] {the same: the sender\\ used the same $k$ twice};
+
+  % what is known
+  \node[msgv, font=\small, anchor=west, text width=6.6cm, align=left] (m1) at (11.7,0)
+    {\faReceipt\ known (a public receipt):\\ \texttt{Payment approved: 250 EUR, order 1187.}};
+  \node[unkv, font=\small, anchor=west, text width=6.6cm, align=left, draw=rMsg] (m2) at (11.7,-1.45)
+    {\faQuestionCircle\ the second message: ? ? ?};
+  \draw[nLine, thick] (c2a.east) -- (m1.west);
+  \draw[nLine, thick] (c2b.east) -- (m2.west);
+
+  % Bob's private key: not available
+  \node[secv, font=\small, draw=nLight, fill=nFill, text=gray] (x) at (8.9,-2.9) {\faLock\ Bob's private key $x$};
+  \draw[aWrite, very thick] ([xshift=-2pt]x.south west) -- ([xshift=2pt]x.north east);
+  \node[font=\small, text=nInk, anchor=west] at (10.9,-2.9) {not in the file: you do not have it};
+\end{tikzpicture}
+\end{document}

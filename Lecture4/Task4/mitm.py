@@ -24,7 +24,7 @@ class Mallory:
 
     def change_message(self, data):
         # Alice sends an encrypted message to Bob.
-        # TODO 3: decrypt it with the key shared with Alice and print it,
+        # TODO 3: decrypt it with the key shared with Alice and print it: print("Mallory reads:", text),
         #         then encrypt it again with the key shared with Bob and pass it on
         return data
 

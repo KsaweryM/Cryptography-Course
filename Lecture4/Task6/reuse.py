@@ -57,4 +57,4 @@ first = "Payment approved: 250 EUR, order 1187."
 
 # TODO 1: the hidden mask y^k: C2_first = M_first * y^k mod P, so y^k = C2_first * (inverse of M_first) mod P
 # TODO 2: the second message: M_second = C2_second * (inverse of y^k) mod P
-# TODO 3: print number_to_text(M_second)
+# TODO 3: print it as text: print("second message:", number_to_text(M_second))

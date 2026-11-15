@@ -1,0 +1,38 @@
+% Task 3: factor it. Values from Task3/factor.py.
+% CHECKED (python3): bit lengths 32, 40, 48, 55; isqrt = 56705, 855417, 13232248, 178923481.
+%   The factors and the times are the answer: not shown.
+\documentclass[12pt,tikz,border=6pt]{standalone}
+\input{common}
+\begin{document}
+\pagecolor{white}
+\begin{tikzpicture}[>=Stealth]
+  % the four public numbers n = p x q, a bar as long as the number of bits
+  \node[font=\normalsize\bfseries, text=nInk, anchor=west] at (-0.2,1.1)
+    {\faFile*[regular]\ \texttt{factor.py}: four numbers, each one = prime $\times$ prime, as an RSA $n$};
+  \foreach \y/\b/\n in {0/32/3215484683, -0.9/40/731738952551, -1.8/48/175092413211607, -2.7/55/32013612409104631} {
+    \node[font=\small\bfseries, text=nInk, anchor=east] at (1.3,\y) {\b\ bits};
+    \fill[rPub!45] (1.45,{\y-0.17}) rectangle ({1.45+0.068*\b},{\y+0.17});
+    \node[pubv, anchor=east, font=\ttfamily\small, inner sep=3pt] at (9.3,\y) {\n};
+    \node[font=\small, text=nInk, anchor=center] at (9.6,\y) {=};
+    \node[unkv, font=\small\bfseries, inner sep=3pt, minimum width=0.7cm] at (10.2,\y) {?};
+    \node[font=\small, text=nInk] at (10.85,\y) {$\times$};
+    \node[unkv, font=\small\bfseries, inner sep=3pt, minimum width=0.7cm] at (11.5,\y) {?};
+    \node[font=\small, text=gray, anchor=west] at (12.1,\y) {\faStopwatch\ ? s};
+  }
+  \draw[decorate, decoration={brace, amplitude=5pt}, nInk] (13.5,0.2) -- (13.5,-2.9)
+    node[midway, right=7pt, font=\scriptsize, text=nInk, align=left] {each one\\ 8 bits longer:\\ how many times\\ slower?};
+
+  % trial division: try 2, 3, 5, 7, 9, ... while f * f <= n
+  \node[font=\small\bfseries, text=nInk, anchor=west] at (-0.2,-3.75) {Trial division: try $f$ = 2, 3, 5, 7, 9, \dots\ until \texttt{n \% f == 0}};
+  \draw[nLine, line width=4pt] (0.4,-4.8) -- (12.6,-4.8);
+  \foreach \x/\f in {0.4/2, 1.2/3, 2.0/5, 2.8/7, 3.6/9, 4.4/11} {
+    \node[byte, minimum width=0.62cm] at (\x,-4.8) {\f};
+  }
+  \node[font=\large, text=nInk] at (5.4,-4.8) {\dots};
+  \draw[AccentOrange, line width=1.6pt] (9.4,-5.25) -- (9.4,-4.35);
+  \node[font=\small\bfseries, text=AccentOrange, anchor=west] at (9.45,-4.45) {$\sqrt{n}$};
+  \node[font=\scriptsize, text=AccentOrange, anchor=north, align=center] at (9.4,-5.3) {stop here: \texttt{f * f <= n}\\ why is that enough?};
+  \node[font=\scriptsize, text=gray, anchor=north] at (12.6,-4.95) {$n$};
+  \draw[nLine, thick] (12.6,-5.0) -- (12.6,-4.6);
+\end{tikzpicture}
+\end{document}

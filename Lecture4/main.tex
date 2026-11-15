@@ -181,16 +181,34 @@
 % ======================================================================
 % Course macros
 % ======================================================================
-% task header: \taskhead{Task}{Open the template from \ghlink{Task1}.}
-\newcommand{\taskhead}[2]{%
-  \begin{beamercolorbox}[rounded=true,sep=0.12cm,wd=\linewidth]{block body example}
-    \small\textbf{#1}\\[0.04cm]
-    \footnotesize #2
-  \end{beamercolorbox}\vspace{0.1cm}}
 % the starter files on GitHub: the word "GitHub" is the link.
 %   \ghlink{Task4} opens the folder of Task 4, \ghlink{} opens the folder of this lecture
 \newcommand{\ghbase}{https://github.com/KsaweryM/Cryptography-Course/tree/main/Lecture4}
 \newcommand{\ghlink}[1]{\href{\ghbase/#1}{\textcolor{DeepBlue}{\textbf{GitHub}}}}
+% the task slides: the steps are in the README on GitHub, the slide only opens the task
+%   \taskgoal{one line}   \taskready{the ready modules}   \opentask{Task2}{about 6 minutes}
+%   a task on paper: the question on the slide, then \onpaper{about 5 minutes}
+\newcommand{\taskgoal}[1]{{\centering\large\textcolor{AccentOrange}{\faBullseye}\ \textbf{Goal:} #1\par}\vspace{0.2cm}}
+\newcommand{\taskready}[1]{{\centering\normalsize\textcolor{nInk}{\faBox}\ \textbf{Ready:} #1\par}\vspace{0.2cm}}
+\newcommand{\opentask}[2]{%
+  \begin{beamercolorbox}[rounded=true,sep=0.35cm,wd=\linewidth]{block body example}
+    \centering
+    {\LARGE\faGithub\ \textbf{Open the task:}\ \href{\ghbase/#1}{\textcolor{DeepBlue}{\textbf{\texttt{#1}}}}}\\[8pt]
+    \footnotesize\href{\ghbase/#1}{\textcolor{DeepBlue}{\texttt{github.com/KsaweryM/Cryptography-Course/tree/main/Lecture4/#1}}}\\[6pt]
+    \small on \ghlink{#1}: the steps, the starter files and how to run them\ifx&#2&\else\qquad\faClock[regular]\ #2\fi
+  \end{beamercolorbox}}
+\newcommand{\onpaper}[1]{%
+  \begin{beamercolorbox}[rounded=true,sep=0.3cm,wd=\linewidth]{block body example}
+    \centering
+    {\LARGE\faPencil*\ \textbf{On paper}}\ifx&#1&\else\qquad\small\faClock[regular]\ #1\fi
+  \end{beamercolorbox}}
+
+% a page of the simulator website, printed in full so that students can type it:
+%   \simlink{diffie-hellman/\#1} prints and links ksawerym.github.io/Cryptography-simulators/diffie-hellman/#1
+\newcommand{\simbase}{ksawerym.github.io/Cryptography-simulators}
+\newcommand{\simlink}[1]{\href{https://\simbase/#1}{\textcolor{DeepBlue}{\texttt{\simbase/#1}}}}
+% "For the curious" line under a frame: \curious{diffie-hellman/\#1}
+\newcommand{\curious}[1]{{\footnotesize\textcolor{gray}{\faSearch\ For the curious:}\ \simlink{#1}}}
 
 % speaker notes (Polish): printed only in the notes PDF (make notes)
 \setbeamertemplate{note page}[default]
@@ -515,7 +533,9 @@
   \vfill
   \begin{center}\small Fast even when every number has \textbf{600 digits}.\end{center}
   \vfill
-  \say{Mod to reszta z dzielenia. pow z trzema argumentami liczy potęgę modulo bez liczenia ogromnej potęgi.}
+  {\footnotesize\textcolor{gray}{\faSearch\ For the curious:}\ \simlink{diffie-hellman/\#5}\\
+   \phantom{\faSearch\ For the curious:}\ \simlink{math/fast-exponentiation/\#2}}
+  \say{Mod to reszta z dzielenia. pow z trzema argumentami liczy potęgę modulo bez liczenia ogromnej potęgi. Jak to robi (square-and-multiply), pokazują strony z linków: pierwsza na liczbach z tego wykładu, druga krok po kroku po bitach wykładnika.}
 \end{frame}
 
 \begin{frame}{The public numbers: p and g}
@@ -594,7 +614,8 @@
   \vfill
   \begin{center}Only \textbf{11 different values}: half as many for Eve to try.\end{center}
   \vfill
-  \say{Wybór g należy do twórców standardu, nie do użytkownika. Gotowe grupy z oficjalnych standardów mają sprawdzone p i g.}
+  \curious{diffie-hellman/\#2}
+  \say{Wybór g należy do twórców standardu, nie do użytkownika. Gotowe grupy z oficjalnych standardów mają sprawdzone p i g. W symulatorze z linku potęgi g chodzą po zegarze: dla g = 5 trafiają w każdą liczbę, po wpisaniu g = 2 tylko w połowę.}
 \end{frame}
 
 % ---------- the exchange, one picture in five steps ----------
@@ -706,8 +727,9 @@
   \vfill
   \begin{center}$a\,b = b\,a$, so both get $g^{ab} \bmod p$.\end{center}
   \vfill
+  \curious{diffie-hellman/\#1}
   \keymsg{Both compute $g^{(ab)} \bmod p$, and nobody ever sent it.}
-  \say{Zwykłe prawo potęg, działa też modulo p. To jest zamiana kolejności mieszania farb.}
+  \say{Zwykłe prawo potęg, działa też modulo p. To jest zamiana kolejności mieszania farb. W symulatorze z linku ta sama wymiana jako czarna skrzynka: można zmienić a, b, p i g i patrzeć, jak oba sekrety zmieniają się razem.}
 \end{frame}
 
 % the table for task 1: #1 = 0 empty, 1 filled
@@ -727,10 +749,10 @@
   \end{tabular}}
 
 \begin{frame}{Task 1: an exchange on paper}
-  \taskhead{Task 1}{On paper. $p = 23$,\quad $g = 5$,\quad Alice's secret $a = 4$,\quad Bob's secret $b = 3$}
+  \begin{center}\large $p = 23$,\quad $g = 5$,\quad Alice's secret $a = 4$,\quad Bob's secret $b = 3$\end{center}
   \begin{columns}[T,onlytextwidth]
     \column{0.42\textwidth}
-      \footnotesize
+      \small
       \begin{enumerate}\setlength{\itemsep}{6pt}
         \item Compute $A$ and $B$.
         \item Compute the shared secret as Alice, and again as Bob.
@@ -739,12 +761,15 @@
     \column{0.56\textwidth}
       \footnotesize\taskonetable{0}
   \end{columns}
-  \say{Około 5 minut, na kartce. Potęgi są małe: 5\textasciicircum 4 = 625, 5\textasciicircum 3 = 125.}
+  \vfill
+  \onpaper{about 5 minutes}
+  \vfill
+  \say{Około 5 minut, na kartce. Potęgi są małe: 5\textasciicircum 4 = 625, 5\textasciicircum 3 = 125. Wolniejszym podpowiedzieć: najpierw A i B, potem każdy podnosi liczbę od drugiej strony do swojej tajnej potęgi.}
 \end{frame}
 
 % CHECKED (python3): pow(5,4,23) = 4, pow(5,3,23) = 10, pow(10,4,23) = 18, pow(4,3,23) = 18
 \samedot
-\begin{frame}{Solution: an exchange on paper}
+\begin{frame}{Task 1: what we saw}
   \vfill
   \begin{center}\small
     \renewcommand{\arraystretch}{1.6}
@@ -756,7 +781,8 @@
     \end{tabular}
   \end{center}
   \vfill
-  \say{Sprawdzone w Pythonie. 10000 = 434 · 23 + 18.}
+  \keymsg{Both get 18. Eve saw only 23, 5, 4 and 10.}
+  \say{Sprawdzone w Pythonie. 10000 = 434 · 23 + 18. Przypadkiem A = 4 jest równe a = 4; Eve tego nie wie, więc nic jej to nie daje.}
 \end{frame}
 
 % CHECKED (python3): the prime of group 14 from RFC 3526 has 2048 bits and 617 decimal digits
@@ -779,73 +805,31 @@
   \say{RFC to oficjalny dokument standardu internetowego. Grupa to gotowa para p i g, którą wszyscy mogą używać.}
 \end{frame}
 
-% CHECKED (python3): random.Random(2026), a and b = getrandbits(256) twice, A = pow(2, a, P), B = pow(2, b, P)
 \begin{frame}{Task 2: a real exchange}
-  \taskhead{Task 2}{Use the real 2048-bit $p$ and $g = 2$ from RFC 3526. Starter file: \texttt{dh.py} from \ghlink{Task2}.}
-  \begin{columns}[c,onlytextwidth]
-    \column{0.5\textwidth}
-      \footnotesize
-      \begin{enumerate}\setlength{\itemsep}{6pt}
-        \item Pick random secrets $a$ and $b$.
-        \item Compute $A$, $B$ and the secret on both sides.
-        \item Check that both secrets are equal, and measure the time.
-      \end{enumerate}
-    \column{0.48\textwidth}
-      \begin{center}
-      \begin{tikzpicture}[>=Stealth, scale=0.85, transform shape]
-        \alice{0}{0}
-        \bob{5.4}{0}
-        \node[pub, font=\tiny\ttfamily, text width=2.8cm, align=left] at (2.7,0.75) {A = 25222448494279\dots{} (617 digits)};
-        \node[pub, font=\tiny\ttfamily, text width=2.8cm, align=left] at (2.7,-0.75) {B = 64186192558273\dots{} (616 digits)};
-        \draw[data] (Alice.east) ++(0,0.3) -- ++(0.35,0.45);
-        \draw[data] (Bob.west) ++(0,-0.3) -- ++(-0.35,-0.45);
-      \end{tikzpicture}
-      \end{center}
-  \end{columns}
-  \say{Około 6 minut. Liczby losowe: secrets.randbits(256). Każde zadanie jest samodzielne, nic nie trzeba instalować.}
-\end{frame}
-
-\samedot
-\begin{frame}[fragile]{Task 2: what to do}
-  \begin{columns}[T,onlytextwidth]
-    \column{0.62\textwidth}
-\begin{lstlisting}[style=py]
-import secrets
-P = int("FFFFFFFFFFFFFFFFC90FDAA2...", 16)   # 2048 bits
-G = 2
-
-# TODO 1: a and b: secrets.randbits(256)
-# TODO 2: A = G^a mod P,  B = G^b mod P
-# TODO 3: B^a mod P and A^b mod P
-# TODO 4: print whether they are equal,
-#         and the first 20 digits: str(x)[:20]
-\end{lstlisting}
-    \column{0.35\textwidth}
-      \taskhead{Task 2}{Open \texttt{dh.py} from \ghlink{Task2}. Write the code in place of the \texttt{TODO} lines.}
-  \end{columns}
-  \say{Moduł secrets daje liczby losowe dobre do kryptografii, w przeciwieństwie do random.}
+  \vfill
+  \taskgoal{one Diffie-Hellman exchange with the real 2048-bit $p$, and how long it takes.}
+  \taskready{$p$ and $g = 2$ from RFC 3526, and the timer, in \texttt{dh.py}.}
+  \vfill
+  \opentask{Task2}{about 6 minutes}
+  \vfill
+  \say{Około 6 minut. Liczby losowe: secrets.randbits(256). Moduł secrets daje liczby losowe dobre do kryptografii, w przeciwieństwie do random. Każde zadanie jest samodzielne, nic nie trzeba instalować. Instrukcja i TODO są w README na GitHubie.}
 \end{frame}
 
 % CHECKED: Task2/solution/dh.py prints "equal: True"; the author's runs: 11.8 ms and 12.2 ms
+%          (another run on a busy machine: 15.6 ms); the 20 digits of the secret are new on every run
 \samedot
-\begin{frame}[fragile]{Solution: a real exchange}
-  \begin{columns}[T,onlytextwidth]
-    \column{0.55\textwidth}
-\begin{lstlisting}[style=py, emph={pow,print}]
-a = secrets.randbits(256)
-b = secrets.randbits(256)
-A = pow(G, a, P)
-B = pow(G, b, P)
-print(pow(B, a, P) == pow(A, b, P))
-\end{lstlisting}
-    \column{0.42\textwidth}
-      \terminal{equal: True}\\[0.25cm]
-      \terminal{took 12 ms}\\[0.15cm]
-      \footnotesize\textcolor{gray}{(4 powers in plain Python)}
-  \end{columns}
+\begin{frame}{Task 2: what we saw}
   \vfill
-  \keymsg{Four lines of Python, and two strangers share a 2048-bit secret.}
-  \say{Kod sprawdzony, dwa uruchomienia: 11,8 ms i 12,2 ms. OpenSSL robi całą stronę wymiany w około 0,3 ms.}
+  \begin{center}
+    \begin{minipage}{0.6\textwidth}
+      \stepbox{The output}{\ttfamily equal: True\\ secret: 17703899368065106010 ...\\ took 12.2 ms}
+    \end{minipage}\\[0.4cm]
+    Both sides get the same 617-digit secret, a new one on every run.\\[2pt]
+    The whole exchange takes about \textbf{12 ms} in plain Python.
+  \end{center}
+  \vfill
+  \keymsg{A few lines of Python, and two strangers share a 2048-bit secret.}
+  \say{Sprawdzone, dwa uruchomienia: 11,8 ms i 12,2 ms. Rozwiązanie: a i b z secrets.randbits(256), A = pow(G, a, P), B = pow(G, b, P), potem pow(B, a, P) == pow(A, b, P). Cyfry sekretu są inne przy każdym uruchomieniu. OpenSSL robi całą stronę wymiany w około 0,3 ms.}
 \end{frame}
 
 % ======================================================================
@@ -922,70 +906,38 @@ print(pow(B, a, P) == pow(A, b, P))
   \say{Zwykły logarytm da się policzyć, bo potęgi rosną po kolei. Modulo p nie ma porządku, więc trzeba zgadywać.}
 \end{frame}
 
-% the primes from Task3/dlog.py
 \begin{frame}{Task 3: find a}
-  \taskhead{Task 3}{Four problems: $p$ has 16, 20, 24 and 28 bits. You know $p$, $g$ and $A$.
-    Find the secret $a$ by trying $a = 1, 2, 3, \dots$}
-  \begin{center}
-    \begin{tikzpicture}
-      \foreach \y/\bits/\p in {0/16/49223, -0.75/20/939167, -1.5/24/10684799, -2.25/28/187882979} {
-        \node[rowlabel, font=\small] at (1.5,\y) {\bits\ bits};
-        \node[pub, anchor=west, font=\ttfamily\small] (n) at (1.8,\y) {$p$ = \p};
-        \node[text=nInk, font=\large, anchor=west] at (6.2,\y) {\faClock};
-        \node[text=AccentOrange, font=\large\bfseries, anchor=west] at (6.75,\y) {?};
-      }
-    \end{tikzpicture}
-  \end{center}
+  \vfill
+  \taskgoal{find the secret $a$ from $A$ by trying $a = 1, 2, 3, \dots$}
+  \taskready{four problems ($p$ of 16, 20, 24 and 28 bits) and the timer, in \texttt{dlog.py}.}
   \begin{center}
     \small\textcolor{AccentOrange}{\faLightbulb}\ \textbf{Predict first:} each $p$ is 4 bits longer. How many times longer will it take?
   \end{center}
-  \say{Około 6 minut. Zapisać przewidywania na tablicy. Ostatni przypadek liczy się kilka sekund.}
-\end{frame}
-
-\samedot
-\begin{frame}[fragile]{Task 3: what to do}
-  \begin{columns}[T,onlytextwidth]
-    \column{0.62\textwidth}
-\begin{lstlisting}[style=py]
-def find_exponent(p, g, A):
-    # TODO: try a = 1, 2, 3, ... : keep value = g^a mod p
-    #       (multiply the previous value by g, mod p)
-    #       until value == A, then return a
-    return None
-\end{lstlisting}
-    \column{0.35\textwidth}
-      \taskhead{Task 3}{Open \texttt{dlog.py} from \ghlink{Task3}. Write the code in place of the \texttt{TODO} lines.}
-  \end{columns}
-  \say{Nie liczymy pow od nowa dla każdego a: wystarczy pomnożyć poprzednią wartość przez g.}
+  \vfill
+  \opentask{Task3}{about 6 minutes}
+  \vfill
+  \say{Około 6 minut. Zapisać przewidywania na tablicy. Ostatni przypadek liczy się kilka sekund. Nie liczymy pow od nowa dla każdego a: wystarczy pomnożyć poprzednią wartość przez g.}
 \end{frame}
 
 % CHECKED: Task3/solution/dlog.py finds a = 17773, 415826, 3465539, 60546499; times from the author's laptop
-% (on a busy machine the 28-bit case took 15 to 21 s: the times depend on the load)
+% (on a busy machine the 28-bit case took 8.5 to 21 s: the times depend on the load)
 \samedot
-\begin{frame}[fragile]{Solution: find a}
-  \begin{columns}[T,onlytextwidth]
-    \column{0.4\textwidth}
-\begin{lstlisting}[style=py]
-a = 1
-value = g
-while value != A:
-    value = value * g % p
-    a += 1
-return a
-\end{lstlisting}
-      \footnotesize
-      \renewcommand{\arraystretch}{1.3}
+\begin{frame}{Task 3: what we saw}
+  \begin{columns}[c,onlytextwidth]
+    \column{0.3\textwidth}
+      \small
+      \renewcommand{\arraystretch}{1.4}
       \begin{tabular}{lr}
         16 bits & 0.002 s \\
         20 bits & 0.038 s \\
         24 bits & 0.35 s \\
         28 bits & 6.1 s \\
       \end{tabular}
-    \column{0.57\textwidth}
+    \column{0.67\textwidth}
       \centering
       \begin{tikzpicture}
-        \begin{axis}[width=7.6cm, height=5.0cm, ybar, bar width=0.8cm, ymode=log, log origin=infty,
-            ymin=0.001, ymax=20, symbolic x coords={16,20,24,28}, xtick=data, axis lines=left,
+        \begin{axis}[width=8.4cm, height=5.4cm, ybar, bar width=0.8cm, ymode=log, log origin=infty,
+            ymin=0.001, ymax=60, symbolic x coords={16,20,24,28}, xtick=data, axis lines=left,
             axis line style={nLine}, tick label style={font=\scriptsize}, xlabel={\scriptsize bits of $p$},
             ylabel={\scriptsize seconds (log scale)}, ymajorgrids, grid style={nLight},
             nodes near coords, nodes near coords style={font=\scriptsize, text=nInk},
@@ -996,7 +948,7 @@ return a
   \end{columns}
   \vfill
   \keymsg{Every 4 more bits make the search about 16 times longer.}
-  \say{Kod sprawdzony na moim laptopie. Czasy zależą też od tego, jak duże było losowe a, dlatego wzrost nie jest równy; średnio około 16 razy na 4 bity.}
+  \say{Sprawdzone na moim laptopie. Znalezione a: 17773, 415826, 3465539, 60546499. Pętla: value = g, a = 1, dopóki value != A, value = value * g \% p i a += 1. Czasy zależą też od tego, jak duże było losowe a, dlatego wzrost nie jest równy; średnio około 16 razy na 4 bity.}
 \end{frame}
 
 \begin{frame}{How long for 2048 bits?}
@@ -1384,86 +1336,35 @@ return a
   \vfill
   \begin{center}Both sides see \textbf{correct messages}. Nothing looks wrong.\end{center}
   \vfill
+  \curious{diffie-hellman/\#3}
   \keymsg{Diffie-Hellman alone cannot tell who is on the other side.}
-  \say{Szyfrowanie działa bez zarzutu, tylko z niewłaściwą osobą.}
+  \say{Szyfrowanie działa bez zarzutu, tylko z niewłaściwą osobą. W symulatorze z linku atak krok po kroku, na tych samych małych liczbach.}
 \end{frame}
 
 \begin{frame}{Task 4: be Mallory}
-  \taskhead{Task 4}{A simulated network: Alice and Bob do a Diffie-Hellman exchange,
-    then Alice sends one encrypted message. \textbf{Every value goes through you.}}
-  \begin{columns}[c,onlytextwidth]
-    \column{0.5\textwidth}
-      \footnotesize
-      \begin{enumerate}\setlength{\itemsep}{6pt}
-        \item Replace Alice's $A$ and Bob's $B$ with your own value.
-        \item Read Alice's message.
-        \item Pass it on, so that Bob notices nothing.
-      \end{enumerate}
-    \column{0.48\textwidth}
-      \begin{center}
-      \begin{tikzpicture}[scale=0.8, transform shape]
-        \alice{0}{0}
-        \bob{6}{0}
-        \draw[net] (Alice.east) -- (2.4,0);
-        \draw[net] (3.6,0) -- (Bob.west);
-        \mallory{3}{0}
-        \node[text=nInk, font=\Large] at (3,1.0) {\faLaptop};
-        \node[capt, text=sPinkText] at (3,-1.25) {you};
-      \end{tikzpicture}
-      \end{center}
-  \end{columns}
-  \say{Około 10 minut. network.py jest gotowy i nie trzeba go zmieniać: zawiera Alice, Boba i szyfrowanie wiadomości kluczem z SHA-256.}
-\end{frame}
-
-\samedot
-\begin{frame}[fragile]{Task 4: what to do}
-  \begin{columns}[T,onlytextwidth]
-    \column{0.64\textwidth}
-\begin{lstlisting}[style=py, emph={pow,print}]
-class Mallory:
-    def __init__(self):
-        self.m = secrets.randbits(256)
-        self.M = pow(G, self.m, P)
-
-    def change_A(self, A):
-        # TODO 1: keep the key shared with Alice, send M instead
-        return A
-
-    def change_B(self, B):
-        # TODO 2: the same for Bob
-        return B
-
-    def change_message(self, data):
-        # TODO 3: decrypt, print, encrypt again for Bob
-        return data
-\end{lstlisting}
-    \column{0.33\textwidth}
-      \taskhead{Task 4}{Open \texttt{mitm.py} from \ghlink{Task4}. Write the code in place of the \texttt{TODO} lines.}
-      \stepbox{Ready in network.py}{\texttt{key\_from\_secret}, \texttt{encrypt}, \texttt{decrypt}}
-  \end{columns}
-  \say{key\_from\_secret, encrypt i decrypt są gotowe w network.py. Bez zmian program wypisuje tylko to, co czyta Bob.}
+  \vfill
+  \taskgoal{sit between Alice and Bob, read Alice's message, and let Bob notice nothing.}
+  \taskready{\texttt{network.py}: Alice, Bob, \texttt{key\_from\_secret}, \texttt{encrypt} and \texttt{decrypt}.}
+  \vfill
+  \opentask{Task4}{about 10 minutes}
+  \vfill
+  \say{Około 10 minut. network.py jest gotowy i nie trzeba go zmieniać: zawiera Alice, Boba i szyfrowanie wiadomości kluczem z SHA-256. Bez zmian program wypisuje tylko to, co czyta Bob.}
 \end{frame}
 
 % CHECKED: Task4/solution/mitm.py prints the two lines below
 \samedot
-\begin{frame}[fragile]{Solution: be Mallory}
-\begin{lstlisting}[style=py, emph={pow,print}]
-def change_A(self, A):
-    self.key_alice = key_from_secret(pow(A, self.m, P))
-    return self.M
-
-def change_message(self, data):
-    text = decrypt(self.key_alice, data)
-    print("Mallory reads:", text)
-    return encrypt(self.key_bob, text)
-\end{lstlisting}
+\begin{frame}{Task 4: what we saw}
   \vfill
   \begin{center}
-    \terminal{\textcolor{sPinkText}{Mallory reads:} My new card PIN is 7314. Please keep it secret.}\\[0.15cm]
-    \terminal{\textcolor{sTealText}{Bob reads:}\ \ My new card PIN is 7314. Please keep it secret.}
+    \begin{minipage}{0.86\textwidth}
+      \stepbox{The output}{\ttfamily \textcolor{sPinkText}{Mallory reads:} My new card PIN is 7314. Please keep it secret.\\
+        \textcolor{sTealText}{Bob reads:}\ \ \ \ \,My new card PIN is 7314. Please keep it secret.}
+    \end{minipage}\\[0.4cm]
+    Mallory read the PIN. Bob got the right message, so nothing looked wrong.
   \end{center}
   \vfill
-  \say{Kod sprawdzony. change\_B wygląda tak samo jak change\_A, z kluczem dla Boba. Bob dostał poprawną wiadomość i niczego nie zauważył.}
+  \keymsg{Two exchanges, two keys, and Mallory holds both.}
+  \say{Sprawdzone. change\_A: self.key\_alice = key\_from\_secret(pow(A, self.m, P)) i zwraca self.M zamiast A. change\_B tak samo, z kluczem dla Boba. change\_message: decrypt kluczem Alice, print, encrypt kluczem Boba. Bob dostał poprawną wiadomość i niczego nie zauważył.}
 \end{frame}
 
 % a seal: \seal{x}{y}{colour}{text}
@@ -1621,7 +1522,8 @@ def change_message(self, data):
     The ciphertext is the pair\quad \tikz[baseline=(n.base)]\node[ctx, font=\Large] (n) {$(C_1, C_2) = (10, 14)$};
   \end{center}
   \vfill
-  \say{8\textasciicircum 3 = 512, a 512 mod 23 = 6, więc C2 = 60 mod 23 = 14. Wiadomość M to liczba mniejsza od p.}
+  \curious{diffie-hellman/\#4}
+  \say{8\textasciicircum 3 = 512, a 512 mod 23 = 6, więc C2 = 60 mod 23 = 14. Wiadomość M to liczba mniejsza od p. W symulatorze z linku ten sam przykład: szyfrowanie, odszyfrowanie i ta sama wiadomość dwa razy.}
 \end{frame}
 
 \samedot
@@ -1640,7 +1542,8 @@ def change_message(self, data):
     \normalsize In Python (3.8 or newer):\quad \terminal{pow(6, -1, 23)}
   \end{center}
   \vfill
-  \say{Z wykładu 3, gdzie liczyliśmy ją algorytmem Euklidesa. Działa jak dzielenie modulo p.}
+  \curious{math/extended-euclid/\#3}
+  \say{Odwrotność znamy z RSA: tam d = pow(e, -1, phi). Działa jak dzielenie modulo p. Python liczy ją rozszerzonym algorytmem Euklidesa; jak to działa, pokazuje strona z linku.}
 \end{frame}
 
 % CHECKED (python3): pow(10, 6, 23) = 6, pow(6, -1, 23) = 4, 14 * 4 % 23 = 10
@@ -1710,77 +1613,29 @@ def change_message(self, data):
 \end{frame}
 
 \begin{frame}{Task 5: ElGamal in Python}
-  \taskhead{Task 5}{The real 2048-bit group, Bob's keys are ready.}
-  \begin{columns}[c,onlytextwidth]
-    \column{0.5\textwidth}
-      \footnotesize
-      \begin{enumerate}\setlength{\itemsep}{6pt}
-        \item Write \texttt{encrypt(M, y)}: a new random $k$, then $C_1$ and $C_2$.
-        \item Write \texttt{decrypt(C1, C2, x)}.
-      \end{enumerate}
-      \vspace{0.2cm}
-      The program encrypts one message twice and decrypts it.
-    \column{0.47\textwidth}
-      \begin{center}
-      \begin{tikzpicture}[>=Stealth]
-        \node[hw, font=\ttfamily\small, minimum width=3.6cm] (e) at (0,0.8) {encrypt(M, y)};
-        \node[font=\tiny\bfseries, text=AccentOrange, anchor=south east] at (e.north east) {TODO};
-        \node[msgb, font=\small] (m) at (-2.6,0.8) {$M$};
-        \node[ctx, font=\small] (c) at (2.8,0.8) {$(C_1, C_2)$};
-        \draw[data] (m) -- (e); \draw[data] (e) -- (c);
-        \node[hw, font=\ttfamily\small, minimum width=3.6cm] (d) at (0,-0.8) {decrypt(C1, C2, x)};
-        \node[font=\tiny\bfseries, text=AccentOrange, anchor=south east] at (d.north east) {TODO};
-        \node[msgb, font=\small] (m2) at (2.8,-0.8) {$M$};
-        \draw[data] (c) -- ++(0,-0.8) -| ([xshift=0.4cm]d.north);
-        \draw[data] (d) -- (m2);
-      \end{tikzpicture}
-      \end{center}
-  \end{columns}
-  \say{Około 8 minut. Wzory są na poprzednich slajdach.}
+  \vfill
+  \taskgoal{write \texttt{encrypt} and \texttt{decrypt} of ElGamal, for the real 2048-bit group.}
+  \taskready{Bob's keys $x$ and $y$, and text to number and back, in \texttt{elgamal.py}.}
+  \vfill
+  \opentask{Task5}{about 8 minutes}
+  \vfill
+  \say{Około 8 minut. Wzory są na poprzednich slajdach. Tekst zamieniany na liczbę i z powrotem jest już gotowy w pliku. Odwrotność: pow(s, -1, P).}
 \end{frame}
 
+% CHECKED: Task5/solution/elgamal.py prints the two lines below (and C1, C2: new digits on every run)
 \samedot
-\begin{frame}[fragile]{Task 5: what to do}
-  \begin{columns}[T,onlytextwidth]
-    \column{0.66\textwidth}
-\begin{lstlisting}[style=py]
-def encrypt(M, y):
-    # TODO 1: k = secrets.randbelow(P - 2) + 1
-    #         return (G^k mod P,  M * y^k mod P)
-    return None
-
-def decrypt(C1, C2, x):
-    # TODO 2: s = C1^x mod P,  M = C2 * s^-1 mod P
-    return None
-\end{lstlisting}
-    \column{0.31\textwidth}
-      \taskhead{Task 5}{Open \texttt{elgamal.py} from \ghlink{Task5}. Write the code in place of the \texttt{TODO} lines.}
-  \end{columns}
-  \say{Tekst zamieniany na liczbę i z powrotem jest już gotowy w pliku.}
-\end{frame}
-
-% CHECKED: Task5/solution/elgamal.py prints the two lines below
-\samedot
-\begin{frame}[fragile]{Solution: ElGamal in Python}
-  \begin{columns}[T,onlytextwidth]
-    \column{0.6\textwidth}
-\begin{lstlisting}[style=py, emph={pow,print}]
-def encrypt(M, y):
-    k = secrets.randbelow(P - 2) + 1
-    return pow(G, k, P), M * pow(y, k, P) % P
-
-def decrypt(C1, C2, x):
-    s = pow(C1, x, P)
-    return C2 * pow(s, -1, P) % P
-\end{lstlisting}
-  \end{columns}
+\begin{frame}{Task 5: what we saw}
   \vfill
   \begin{center}
-    \terminal{decrypted: Meet me at the old bridge at noon.}\\[0.2cm]
-    \terminal{the same message again gives the same C1: \textbf{False}}
+    \begin{minipage}{0.8\textwidth}
+      \stepbox{The output}{\ttfamily decrypted: Meet me at the old bridge at noon.\\
+        the same message again gives the same C1: False}
+    \end{minipage}\\[0.4cm]
+    The message comes back. Encrypted twice, it gives two different ciphertexts.
   \end{center}
   \vfill
-  \say{Kod sprawdzony. Ostatnia linijka prowadzi do następnego slajdu.}
+  \keymsg{Every call picks a new $k$, so every ciphertext is new.}
+  \say{Sprawdzone. encrypt: k = secrets.randbelow(P - 2) + 1, zwraca pow(G, k, P) i M * pow(y, k, P) \% P. decrypt: s = pow(C1, x, P), potem C2 * pow(s, -1, P) \% P. Ostatnia linijka prowadzi do następnego slajdu.}
 \end{frame}
 
 % CHECKED (python3): M = 10, y = 8: k = 3 gives (10, 14), k = 7 gives (17, 5)
@@ -1814,8 +1669,9 @@ def decrypt(C1, C2, x):
 
 % the first digits of the values in Task6/reuse.py
 \begin{frame}{Task 6: k used twice}
-  \taskhead{Task 6}{Two ciphertexts for Bob, made with \textbf{the same $k$}: their $C_1$ is the same.}
-  \begin{center}
+  \vfill
+  \taskgoal{recover the second message, without Bob's private key.}
+  {\centering
     \begin{tikzpicture}
       \node[anchor=east, font=\small, text=nInk] at (-0.2,0.5) {first:};
       \node[ctx, font=\ttfamily\scriptsize, draw=AccentOrange, very thick, fill=AccentOrange!15] at (1.8,0.5) {C1 = 268389893958\dots};
@@ -1823,53 +1679,30 @@ def decrypt(C1, C2, x):
       \node[anchor=east, font=\small, text=nInk] at (-0.2,-0.5) {second:};
       \node[ctx, font=\ttfamily\scriptsize, draw=AccentOrange, very thick, fill=AccentOrange!15] at (1.8,-0.5) {C1 = 268389893958\dots};
       \node[ctx, font=\ttfamily\scriptsize] at (5.6,-0.5) {C2 = 190653831068\dots};
-      \node[font=\scriptsize\bfseries, text=AccentOrange] at (1.8,-1.2) {the same};
-    \end{tikzpicture}
-  \end{center}
-  \footnotesize
-  \begin{itemize}
-    \item You know the first message: it was printed on a public receipt.
-    \item \textbf{Recover the second message} without Bob's private key.
-  \end{itemize}
-  \say{Około 7 minut. Nie podpowiadać od razu. Jeśli trzeba: co w obu C2 jest takie samo?}
-\end{frame}
-
-\samedot
-\begin{frame}[fragile]{Task 6: what to do}
-  \begin{columns}[T,onlytextwidth]
-    \column{0.68\textwidth}
-\begin{lstlisting}[style=py]
-C1 = ...          # the same in both
-C2_first, C2_second = ...
-first = "Payment approved: 250 EUR, order 1187."
-
-# TODO 1: the mask y^k = C2_first * (inverse of M_first) mod P
-# TODO 2: M_second = C2_second * (inverse of the mask) mod P
-# TODO 3: print it as text
-\end{lstlisting}
-    \column{0.29\textwidth}
-      \taskhead{Task 6}{Open \texttt{reuse.py} from \ghlink{Task6}. Write the code in place of the \texttt{TODO} lines.}
-  \end{columns}
-  \say{Zamiana tekstu na liczbę jest gotowa w pliku.}
+      \node[font=\scriptsize\bfseries, text=AccentOrange] at (1.8,-1.2) {the same $k$, the same $C_1$};
+    \end{tikzpicture}\par}\vspace{0.1cm}
+  \taskready{the two ciphertexts, and the first message (from a public receipt), in \texttt{reuse.py}.}
+  \vfill
+  \opentask{Task6}{about 7 minutes}
+  \vfill
+  \say{Około 7 minut. Nie podpowiadać od razu. Jeśli trzeba: co w obu C2 jest takie samo? Zamiana tekstu na liczbę jest gotowa w pliku.}
 \end{frame}
 
 % CHECKED: Task6/solution/reuse.py prints the line below
 \samedot
-\begin{frame}[fragile]{Solution: k used twice}
-\begin{lstlisting}[style=py, emph={pow,print}]
-mask = C2_first * pow(text_to_number(first), -1, P) % P
-second = C2_second * pow(mask, -1, P) % P
-print(number_to_text(second))
-\end{lstlisting}
+\begin{frame}{Task 6: what we saw}
   \vfill
   \begin{center}
     \begin{tikzpicture}
       \node[draw=aWrite, very thick, fill=aWrite!8, rounded corners=3pt, inner sep=6pt, font=\ttfamily\small, text=nInk]
         {\textcolor{aWrite}{\faExclamationTriangle}\ second message: New door code for the server room: 4096.};
-    \end{tikzpicture}
+    \end{tikzpicture}\\[0.4cm]
+    Both $C_2$ hide their message with \textbf{the same mask} $y^{k}$.\\[2pt]
+    The known first message gives the mask. The mask gives the second message.
   \end{center}
   \vfill
-  \say{Kod sprawdzony. Klucz prywatny Boba nie był potrzebny ani przez chwilę.}
+  \keymsg{Bob's private key was never needed.}
+  \say{Sprawdzone. mask = C2\_first * pow(M\_first, -1, P) \% P, potem M\_second = C2\_second * pow(mask, -1, P) \% P. Klucz prywatny Boba nie był potrzebny ani przez chwilę.}
 \end{frame}
 
 \begin{frame}{The rule: a new k for every message}

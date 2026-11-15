@@ -1,0 +1,41 @@
+% Task 5: does it always work? Values from Task5/always.py: n = 187 = 17 x 11, e = 7, d = 23.
+% CHECKED (python3): the multiples of 11 and 17 below 187 are 0, 11, 17, 22, 33, 34, ... (26 numbers with gcd(P, 187) > 1).
+%   Whether each P comes back is the answer: the grid shows only the values to check, no results.
+\documentclass[12pt,tikz,border=6pt]{standalone}
+\input{common}
+\begin{document}
+\pagecolor{white}
+\begin{tikzpicture}[>=Stealth]
+  % the key
+  \node[font=\normalsize\bfseries, text=nInk, anchor=west] at (-0.35,1.35) {\faFile*[regular]\ \texttt{always.py}: the small key, $p = 17$, $q = 11$};
+  \node[pubv, anchor=west] (pub) at (-0.35,0.5) {\faLockOpen\ public \{e, n\} = \{7, 187\}};
+  \node[secv, anchor=west] (prv) at ([xshift=0.3cm]pub.east) {\faKey\ private \{d, n\} = \{23, 187\}};
+
+  % one round trip, for every P
+  \node[msgv, font=\ttfamily\small] (P) at (0.3,-0.6) {P};
+  \node[mech, font=\ttfamily\small] (enc) at (2.75,-0.6) {pow(P, 7, 187)};
+  \node[ctv, font=\ttfamily\small] (C) at (5.15,-0.6) {C};
+  \node[mech, font=\ttfamily\small] (dec) at (7.6,-0.6) {pow(C, 23, 187)};
+  \node[unkv, font=\ttfamily\small\bfseries] (P2) at (10.75,-0.6) {P again?};
+  \draw[data] (P) -- (enc); \draw[data] (enc) -- (C); \draw[data] (C) -- (dec); \draw[data] (dec) -- (P2);
+  \node[font=\scriptsize, text=nInk, anchor=west, align=left] at (11.8,-0.6) {if not:\\ add P to \texttt{wrong}};
+
+  % every P from 0 to 186: 11 rows of 17
+  \def\s{0.72}
+  \foreach \i in {0,...,186} {
+    \pgfmathtruncatemacro{\r}{\i/17}
+    \pgfmathtruncatemacro{\c}{mod(\i,17)}
+    \pgfmathtruncatemacro{\aa}{mod(\i,11)}
+    \pgfmathtruncatemacro{\bb}{mod(\i,17)}
+    \ifnum\aa=0 \tikzset{cst/.style={draw=AccentOrange, line width=1.3pt, fill=AccentOrange!12}}\else
+      \ifnum\bb=0 \tikzset{cst/.style={draw=AccentOrange, line width=1.3pt, fill=AccentOrange!12}}\else
+        \tikzset{cst/.style={draw=rMsg!60, thick, fill=rMsgBg}}\fi\fi
+    \node[cst, rounded corners=1.5pt, minimum width={\s cm-0.08cm}, minimum height=0.46cm, inner sep=0pt,
+      font=\ttfamily\scriptsize, text=nInk] at ({\s*\c},{-1.85-0.55*\r}) {\i};
+  }
+  \node[font=\small, text=nInk, anchor=west] at (-0.35,-8.0)
+    {\textcolor{rMsg}{\faSquare}\ every P from 0 to 186: 187 values to check};
+  \node[font=\small, text=nInk, anchor=west] at (-0.35,-8.55)
+    {\textcolor{AccentOrange}{\faSquare}\ P shares a factor with n = 187 (a multiple of 17 or 11): predict first, does it come back?};
+\end{tikzpicture}
+\end{document}

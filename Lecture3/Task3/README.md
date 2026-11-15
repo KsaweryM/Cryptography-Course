@@ -1,29 +1,35 @@
 # Task 3: factor it
 
-Goal: factor four numbers (32, 40, 48 and 55 bits) and time each one.
+## The situation
 
-Each number in `factor.py` is a product of two primes, as in RSA.
-The numbers and the time measurement are ready in the file.
+An RSA public key contains a number n = p × q, where p and q are two secret primes. Whoever finds p and q can compute the private key. `factor.py` holds four such numbers, from 32 to 55 bits: each one is 8 bits longer than the one before. How long does it take to break them apart?
 
-Predict first: each number is 8 bits longer than the one before. How many times longer will it take?
+![factor.py: four numbers, each one a prime times a prime, as an RSA n: 3215484683 (32 bits), 731738952551 (40 bits), 175092413211607 (48 bits) and 32013612409104631 (55 bits). Both factors and the time are question marks; each number is 8 bits longer than the one before, how many times slower? Below, trial division: try f = 2, 3, 5, 7, 9, 11 and so on until n % f == 0, and stop at the square root of n (f * f <= n). Why is that enough?](figure.svg)
 
-Fill in the `TODO` in `factor.py`:
+## Goal
 
-1. Write `smallest_factor(n)` by trial division: try the divisors 2, 3, 5, 7, 9, ... (2, then odd numbers)
-   until one divides n (`n % f == 0`), and return it.
-   You only need to try f while `f * f <= n`. Why?
+Factor the four numbers and time each one.
 
-The program prints the factors and the time for each number. The last number takes several seconds.
+**Predict first:** each number is 8 bits longer than the one before. How many times longer will it take?
 
-## Run
+## Ready for you
 
-```
-python3 factor.py
-```
+- `factor.py`: the four numbers in `NUMBERS`, and the loop that calls `smallest_factor(n)`, measures the time and prints the result.
 
-Python 3, no extra libraries.
+## Steps
+
+Write your code in place of the `TODO` comment in `factor.py`:
+
+1. Write `smallest_factor(n)` by **trial division**: try the divisors 2, 3, 5, 7, 9, ... (2, then the odd numbers) until one divides n (`n % f == 0`), and return it.
+   - You only need to try f while `f * f <= n`. Why?
+   - In C you would write `for (f = 3; f * f <= n; f += 2)`; in Python use a `while` loop with `f += 2`.
 
 ## Expected output
+
+Four lines: each number, its two factors and the time. The last number takes several seconds. Your times will be different, but each line should take roughly 16 times longer than the one before.
+
+<details>
+<summary>Check your answer</summary>
 
 ```
 32 bits: 3215484683 = 50119 x 64157   0.003 s
@@ -32,4 +38,16 @@ Python 3, no extra libraries.
 55 bits: 32013612409104631 = 162019679 x 197590889   10.113 s
 ```
 
-Your times will be different. Every 8 more bits make factoring about 16 times slower.
+8 more bits in n make each factor about 4 bits longer, so there are about 2⁴ = 16 times more divisors to try. A 2048-bit n has factors of 1024 bits: trial division would never finish.
+
+</details>
+
+## Run
+
+```
+python3 factor.py
+```
+
+About 7 minutes. Python 3, no extra libraries.
+
+Want to see it move? In [Eve tries to break it](https://ksawerym.github.io/Cryptography-simulators/rsa/#4), Eve factors n in your browser, then computes phi, d and the message, and you can make n bigger and watch the time grow.

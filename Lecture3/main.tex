@@ -503,7 +503,7 @@
 \newcommand{\flowframe}[3]{%
 \begin{frame}{The flow, step #1}
   \vfill
-  \begin{center}\resizebox{0.86\linewidth}{!}{\flowpic{#1}}\end{center}
+  \begin{center}\resizebox{0.78\linewidth}{!}{\flowpic{#1}}\end{center}
   \vfill
   \begin{center}\large\bigbadge{#1}\ \flowtext{#1}\quad\textcolor{gray}{\scriptsize step #1 of 5}\end{center}
   \vfill
@@ -518,7 +518,7 @@
 \samedot
 \flowframe{4}{Eve widzi szyfrogram, tak jak przy szyfrach symetrycznych.}{}
 \samedot
-\flowframe{5}{Tylko Bob ma klucz prywatny. Nawet Alice nie odszyfruje już swojej wiadomości.}{\keymsg{Eve saw the public key and the ciphertext. Neither helps her.}}
+\flowframe{5}{Tylko Bob ma klucz prywatny. Nawet Alice nie odszyfruje już swojej wiadomości. W symulatorze z linku ta sama historia krok po kroku, na prawdziwych (małych) liczbach RSA.}{\curious{rsa/\#1}\par\keymsg{Eve saw the public key and the ciphertext. Neither helps her.}}
 
 % a horizontal bar on a log scale: \logbar{y}{log10 of the value}{style}{label}; 1.3 cm per power of ten
 \newcommand{\logbar}[4]{%
@@ -730,7 +730,7 @@
 \begin{frame}{Task 3: what we saw}
   \vfill
   \begin{center}
-    \begin{tikzpicture}[scale=1.25]
+    \begin{tikzpicture}[scale=1.15]
       % 1 cm per power of ten above 0.001 s
       \foreach \y/\l/\t/\f in {1.5/0.477/0.003 s/50119 x 64157, 0.6/1.672/0.047 s/737039 x 992809,
                                -0.3/2.892/0.78 s/12100201 x 14470207, -1.2/4.004/10.1 s/162019679 x 197590889} {
@@ -743,9 +743,10 @@
     \end{tikzpicture}
   \end{center}
   \vfill
+  \curious{rsa/\#4}
   \keymsg{Every 8 more bits make factoring about 16 times slower.}
   % CHECKED: Task3/solution/factor.py, python3 3.12, i5-8265U: 0.003 s, 0.047 s, 0.775 s, 10.113 s; 64 bits in my own run: 295 s
-  \say{Pomiar z mojego laptopa. 8 bitów więcej to około 16 razy dłużej, bo czynniki są o 4 bity dłuższe. Porównać z przewidywaniami z tablicy. Mój pomiar dla 64 bitów: 295 sekund.}
+  \say{Pomiar z mojego laptopa. 8 bitów więcej to około 16 razy dłużej, bo czynniki są o 4 bity dłuższe. Porównać z przewidywaniami z tablicy. Mój pomiar dla 64 bitów: 295 sekund. W symulatorze z linku Ewa rozkłada n w przeglądarce, a potem liczy phi, d i czyta wiadomość; jest też oszacowanie czasu dla 2048 bitów.}
 \end{frame}
 
 \begin{frame}{How long for 2048 bits?}
@@ -1085,8 +1086,9 @@
     \end{tikzpicture}
   \end{center}
   \vfill
+  \curious{rsa/\#2}
   \keymsg{Whoever knows p and q can compute d.}
-  \say{Klucz publiczny i prywatny mają to samo n. Różnią się tylko wykładnikiem.}
+  \say{Klucz publiczny i prywatny mają to samo n. Różnią się tylko wykładnikiem. W symulatorze z linku te pięć kroków dla własnych liczb pierwszych, z gotowym przykładem 17, 11, e = 7.}
 \end{frame}
 
 \begin{frame}{Encrypt and decrypt}
@@ -1155,9 +1157,10 @@
       \end{center}
   \end{columns}
   \vfill
+  \curious{rsa/\#3}
   \keymsg{The private key undoes what the public key did.}
   % CHECKED: python3: 11^1, 11^2, 11^4, 11^8, 11^16 mod 187 = 11, 121, 55, 33, 154; pow(11, 23, 187) = 88
-  \say{Sprawdzone pow(11, 23, 187) = 88.}
+  \say{Sprawdzone pow(11, 23, 187) = 88. Dlaczego wraca właśnie 88, pokazuje symulator z linku: te same liczby (88, klucz 7 i 23) i powód z twierdzenia Eulera. Na slajdach dowodu nie robimy.}
 \end{frame}
 
 % the operations for one power, bit by bit: S = square, M = multiply; the exponent 23 = 10111 of the last slide
@@ -1281,8 +1284,9 @@
     \end{minipage}
   \end{center}
   \vfill
+  \curious{rsa/\#5}
   \keymsg{Textbook RSA: the same message always gives the same ciphertext.}
-  \say{Sprawdzone. Ewa szyfruje każdy możliwy PIN kluczem publicznym i porównuje z C. Wszystkie 10 000 PIN-ów to około 0,9 s. Ta sama słabość dotyczy każdej wiadomości z małej liczby możliwości: tak, nie, kwota przelewu.}
+  \say{Sprawdzone. Ewa szyfruje każdy możliwy PIN kluczem publicznym i porównuje z C. Wszystkie 10 000 PIN-ów to około 0,9 s. Ta sama słabość dotyczy każdej wiadomości z małej liczby możliwości: tak, nie, kwota przelewu. W symulatorze z linku ten sam atak na klucz z Task 6, a do tego e = 3 z krótką wiadomością i szyfrowanie hybrydowe.}
 \end{frame}
 
 % CHECKED: textbook C starts with 7332072385 (Task6/pin.py); the three OAEP ciphertexts on the right are only an

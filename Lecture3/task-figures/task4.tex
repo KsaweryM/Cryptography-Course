@@ -1,0 +1,48 @@
+% Task 4: your own RSA. Values from Task4/my_rsa.py.
+% CHECKED (python3): p and q have 20 digits each, n = p*q has 40 digits.
+%   n, phi, d, C and P are the answer: not shown, only "?" boxes.
+\documentclass[12pt,tikz,border=6pt]{standalone}
+\input{common}
+\begin{document}
+\pagecolor{white}
+\begin{tikzpicture}[>=Stealth]
+  \node[font=\normalsize\bfseries, text=nInk, anchor=west] at (-1.6,1.15)
+    {\faFile*[regular]\ \texttt{my\_rsa.py}: make the keys from two primes};
+  % given: p, q (secret), e (public)
+  \node[secv, anchor=west, font=\ttfamily\small] (p) at (0,0.3) {p = 37908704904578413183};
+  \node[secv, anchor=west, font=\ttfamily\small] (q) at (0,-0.55) {q = 58606630333925820283};
+  \node[pubv, anchor=west, font=\ttfamily\small] (e) at (0,-1.6) {e = 65537};
+  \node[font=\scriptsize, text=nInk, anchor=west] at (e.east) {\ given};
+  \node[font=\scriptsize, anchor=west] at ([xshift=2pt]p.east) {\secret};
+  \node[font=\scriptsize, anchor=west] at ([xshift=2pt]q.east) {\secret};
+
+  % the TODOs: n, phi, d
+  \foreach \k/\y/\t/\st/\tag in {1/0.3/n = p $\cdot$ q/rPub/\public, 2/-0.55/phi = (p - 1)(q - 1)/rSec/\secret, 3/-1.6/d = the inverse of e mod phi/rSec/\secret} {
+    \node[circle, fill=AccentOrange, text=white, font=\scriptsize\bfseries, inner sep=1.5pt] at (7.2,\y) {\k};
+    \node[draw=\st, thick, fill=white, rounded corners=3pt, anchor=west, font=\small, text=nInk, inner sep=4pt] (t\k) at (7.55,\y) {\t\ = \textcolor{AccentOrange}{\textbf{?}}};
+    \node[font=\scriptsize, anchor=west] at ([xshift=2pt]t\k.east) {\tag};
+  }
+  \draw[data] (5.6,-0.15) -- (6.9,-0.15);
+
+  % the two keys
+  \node[pubv, minimum width=3.6cm] (pub) at (1.5,-3.0) {\faLockOpen\ public key \{e, n\}};
+  \node[secv, minimum width=3.6cm] (prv) at (8.6,-3.0) {\faKey\ private key \{d, n\}};
+
+  % encrypt and decrypt 2026
+  \node[msgv, font=\ttfamily\normalsize] (m) at (-1.1,-4.35) {2026};
+  \node[font=\scriptsize, text=nInk, anchor=north] at (m.south) {message};
+  \node[circle, fill=AccentOrange, text=white, font=\scriptsize\bfseries, inner sep=1.5pt] at (-0.1,-3.7) {4};
+  \node[mech] (enc) at (1.5,-4.35) {C = message$^{e}$ mod n};
+  \node[ctv, minimum width=1.8cm] (c) at (5.05,-4.35) {C = \textcolor{AccentOrange}{\textbf{?}}};
+  \node[circle, fill=AccentOrange, text=white, font=\scriptsize\bfseries, inner sep=1.5pt] at (7.3,-3.7) {5};
+  \node[mech] (dec) at (8.6,-4.35) {P = C$^{d}$ mod n};
+  \node[msgv, minimum width=1.8cm] (p2) at (11.9,-4.35) {P = \textcolor{AccentOrange}{\textbf{?}}};
+  \node[font=\scriptsize, text=nInk, anchor=north] at (p2.south) {must be 2026};
+  \draw[data] (m) -- (enc);
+  \draw[data] (enc) -- (c);
+  \draw[data] (c) -- (dec);
+  \draw[data] (dec) -- (p2);
+  \draw[data] (pub) -- ([yshift=0.33cm]enc.north);
+  \draw[data] (prv) -- ([yshift=0.33cm]dec.north);
+\end{tikzpicture}
+\end{document}

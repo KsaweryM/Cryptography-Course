@@ -181,35 +181,39 @@
 % ======================================================================
 % Course macros
 % ======================================================================
-% task header: \taskhead{Task}{Open the template from \ghlink{Task1}.}
-\newcommand{\taskhead}[2]{%
-  \begin{beamercolorbox}[rounded=true,sep=0.12cm,wd=\linewidth]{block body example}
-    \small\textbf{#1}\\[0.04cm]
-    \footnotesize #2
-  \end{beamercolorbox}\vspace{0.1cm}}
 % the starter files on GitHub: the word "GitHub" is the link.
 %   \ghlink{Task4} opens the folder of Task 4, \ghlink{} opens the folder of this lecture
 \newcommand{\ghbase}{https://github.com/KsaweryM/Cryptography-Course/tree/main/Lecture5}
 \newcommand{\ghlink}[1]{\href{\ghbase/#1}{\textcolor{DeepBlue}{\textbf{GitHub}}}}
+% the task slides: the steps are in the README on GitHub, the slide only opens the task
+%   \taskgoal{one line}   \taskready{the ready modules}   \opentask{Task2}{about 6 minutes}
+%   a task on paper: the question on the slide, then \onpaper{about 6 minutes}
+\newcommand{\taskgoal}[1]{{\centering\large\textcolor{AccentOrange}{\faBullseye}\ \textbf{Goal:} #1\par}\vspace{0.2cm}}
+\newcommand{\taskready}[1]{{\centering\normalsize\textcolor{nInk}{\faBox}\ \textbf{Ready:} #1\par}\vspace{0.2cm}}
+\newcommand{\opentask}[2]{%
+  \begin{beamercolorbox}[rounded=true,sep=0.35cm,wd=\linewidth]{block body example}
+    \centering
+    {\LARGE\faGithub\ \textbf{Open the task:}\ \href{\ghbase/#1}{\textcolor{DeepBlue}{\textbf{\texttt{#1}}}}}\\[8pt]
+    \footnotesize\href{\ghbase/#1}{\textcolor{DeepBlue}{\texttt{github.com/KsaweryM/Cryptography-Course/tree/main/Lecture5/#1}}}\\[6pt]
+    \small on \ghlink{#1}: the steps, the starter files and how to run them\ifx&#2&\else\qquad\faClock[regular]\ #2\fi
+  \end{beamercolorbox}}
+\newcommand{\onpaper}[1]{%
+  \begin{beamercolorbox}[rounded=true,sep=0.3cm,wd=\linewidth]{block body example}
+    \centering
+    {\LARGE\faPencil*\ \textbf{On paper}}\ifx&#1&\else\qquad\small\faClock[regular]\ #1\fi
+  \end{beamercolorbox}}
+
+% a page of the simulator website, printed in full so that students can type it:
+%   \simlink{elliptic-curves/\#2} prints and links ksawerym.github.io/Cryptography-simulators/elliptic-curves/#2
+\newcommand{\simbase}{ksawerym.github.io/Cryptography-simulators}
+\newcommand{\simlink}[1]{\href{https://\simbase/#1}{\textcolor{DeepBlue}{\texttt{\simbase/#1}}}}
+% "For the curious" line under a frame: \curious{elliptic-curves/\#2}
+\newcommand{\curious}[1]{{\footnotesize\textcolor{gray}{\faSearch\ For the curious:}\ \simlink{#1}}}
 
 % speaker notes (Polish): printed only in the notes PDF (make notes)
 \setbeamertemplate{note page}[default]
 \setbeamerfont{note page}{size=\normalsize}
 \newcommand{\say}[1]{\note{\selectlanguage{polish}#1}}
-
-% a whole Python file or some of its lines, read straight from the task folder,
-% so the code on the slide is always the code in the file: \codefile{Task2/ec_toy.py}{7-20}
-\newcommand{\codefile}[3][]{%
-  \begin{beamercolorbox}[rounded=true,sep=2mm,wd=\linewidth]{vscodelisting}%
-  \begin{tikzpicture}
-    \fill[nLine] (0,0) circle (3pt); \fill[nLine] (0.35,0) circle (3pt); \fill[nLine] (0.70,0) circle (3pt);
-    \node[anchor=west, font=\ttfamily\scriptsize, text=nLine] at (1.0,0) {\detokenize{#2}};
-  \end{tikzpicture}%
-  \vspace{-0.2cm}
-  % solutions are not published: in a copy without TaskN/solution/ the slide says so instead
-  \IfFileExists{#2}{\lstinputlisting[style=py,linerange={#3},#1]{#2}}%
-    {\par\vspace{0.2cm}\hspace{6pt}\textcolor{nLine}{\ttfamily\scriptsize \# the solution is shown in the lecture}\par\vspace{0.1cm}}
-  \end{beamercolorbox}}
 
 % ======================================================================
 % Colour mapping for this lecture (colour rules, section 6)
@@ -518,10 +522,11 @@
       \hspace{0.65cm}$(x, y)$ and $(x, 17 - y)$\\ \hspace{0.65cm}are mirror images
     \column{0.62\textwidth}
       \centering
-      \modgrid[0.285]{\draw[AccentOrange, thick, dashed] (-0.6,8.5) -- (16.6,8.5);}
+      \modgrid[0.25]{\draw[AccentOrange, thick, dashed] (-0.6,8.5) -- (16.6,8.5);}
   \end{columns}
+  \curious{elliptic-curves/\#3}
   \keymsg{Modulo $p$, the curve is a cloud of dots.}
-  \say{Linia zamieniła się w rozsypane kropki. Symetria została: obok punktu (x, y) zawsze leży (x, 17 - y).}
+  \say{Linia zamieniła się w rozsypane kropki. Symetria została: obok punktu (x, y) zawsze leży (x, 17 - y). W symulatorze można kliknąć dowolne pole siatki i sprawdzić, czy to punkt krzywej.}
 \end{frame}
 
 \samedot
@@ -618,8 +623,9 @@
       }
   \end{columns}
   \vfill
+  \curious{elliptic-curves/\#2}
   \uncover<3->{\keymsg{$P + Q$: draw the line, find the third point, reflect it.}}
-  \note<3>{\selectlanguage{polish}To geometryczna definicja, rysujemy ją nad liczbami rzeczywistymi. Wzory, które z niej wynikają, działają potem modulo p.}
+  \note<3>{\selectlanguage{polish}To geometryczna definicja, rysujemy ją nad liczbami rzeczywistymi. Wzory, które z niej wynikają, działają potem modulo p. W symulatorze można przeciągać P i Q po krzywej i przełączyć na podwajanie oraz P + (-P).}
 \end{frame}
 
 \samedot
@@ -689,7 +695,8 @@
   \defbox{``$/\,v \bmod p$'' means multiplying by the \textbf{modular inverse} of $v$:
     the number $v^{-1}$ with $v \cdot v^{-1} = 1 \bmod p$.}
   \vfill
-  \say{Wzory wynikają z przecięcia prostej z krzywą; wyprowadzenie pomijamy. Odwrotność modularna z wykładów 3 i 4: v razy $v^{-1}$ mod p daje 1, w Pythonie pow(v, -1, p).}
+  \curious{math/extended-euclid/}
+  \say{Wzory wynikają z przecięcia prostej z krzywą; wyprowadzenie pomijamy. Odwrotność modularna z wykładów 3 i 4: v razy $v^{-1}$ mod p daje 1, w Pythonie pow(v, -1, p). Link prowadzi do rozszerzonego algorytmu Euklidesa z wykładu 3, który tę odwrotność liczy.}
 \end{frame}
 
 % doubling G = (5, 1) on the toy curve, #1 = the step of this slide (1 to 3)
@@ -700,7 +707,7 @@
     \column{0.6\textwidth}
       \small
       $G = (5, 1)$ on $y^2 = x^3 + 2x + 2 \bmod 17$, \quad $2G = \;?$
-      \vspace{0.3cm}
+      \vspace{0.15cm}
 
       \renewcommand{\arraystretch}{1.35}
       \begin{tabular}{@{}c@{\;}l@{\quad}l@{}}
@@ -712,12 +719,12 @@
         \mk{3} & \from{3}{$\mathbf{y_3}$} & \from{3}{$y_3 = 13 \times (5 - 6) - 1 = -14 \bmod 17$} \\
                & & \from{3}{$y_3 = \mathbf{3}$} \\
       \end{tabular}
-      \vspace{0.25cm}
+      \vspace{0.12cm}
 
       \ifnum#1=3 $\mathbf{2G = (6, 3)}$. \; Check: $3^2 = 9$ and $6^3 + 12 + 2 = 230 = 13 \times 17 + 9$.\fi
     \column{0.38\textwidth}
       \centering
-      \modgrid[0.27]{
+      \modgrid[0.245]{
         \gmark{5,1}{$G$}{below right}
         \ifnum#1=2 \draw[AccentOrange, thick, dashed] (6,-0.4) -- (6,16.4);
           \node[font=\scriptsize\bfseries, text=AccentOrange, anchor=south] at (6,16.4) {$x_3 = 6$};\fi
@@ -745,14 +752,16 @@
 \begin{frame}{Doubling G, step 3}
   \dblG{3}
   \vfill
+  \curious{elliptic-curves/\#4}
   \keymsg{$2G = (6, 3)$ is again a point of the curve.}
-  \say{-14 mod 17 to 3. Sprawdzenie na krzywej pokazuje, że wynik jest punktem krzywej.}
+  \say{-14 mod 17 to 3. Sprawdzenie na krzywej pokazuje, że wynik jest punktem krzywej. W symulatorze przykład G + G liczy dokładnie te trzy kroki; można też wybrać dowolne dwa punkty.}
 \end{frame}
 
 \begin{frame}{Task 1: G + 2G on paper}
   \begin{columns}[c,onlytextwidth]
     \column{0.58\textwidth}
-      \taskhead{Task 1 \textcolor{gray}{\normalfont(on paper)}}{$G = (5, 1)$, \; $2G = (6, 3)$, \; on $y^2 = x^3 + 2x + 2 \bmod 17$}
+      \small $G = (5, 1)$, \; $2G = (6, 3)$, \; on $y^2 = x^3 + 2x + 2 \bmod 17$
+      \normalsize
       \begin{enumerate}\setlength{\itemsep}{8pt}
         \item Compute the slope $s$ for \textbf{two different points}.
         \item Compute $x_3$ and $y_3$.
@@ -761,15 +770,17 @@
       \vspace{0.3cm}
       \centerline{\tikz\node[draw=AccentOrange, dashed, thick, rounded corners=3pt, inner sep=5pt, font=\large]
         {$3G = G + 2G = (\;?\;,\;?\;)$};}
+      \vspace{0.4cm}
+      \onpaper{about 6 minutes}
     \column{0.4\textwidth}
       \centering
       \modgrid[0.27]{\gmark{5,1}{$G$}{below right}\gmark{6,3}{$2G$}{above right}}
   \end{columns}
-  \say{Około 6 minut. Tym razem to dodawanie dwóch różnych punktów, więc inny wzór na nachylenie.}
+  \say{Około 6 minut, na kartce. Tym razem to dodawanie dwóch różnych punktów, więc inny wzór na nachylenie: (y2 - y1) / (x2 - x1). Wzory są na slajdzie The formulas.}
 \end{frame}
 
 \samedot
-\begin{frame}{Solution: G + 2G on paper}
+\begin{frame}{Task 1: what we saw}
   % CHECKED: python3 (Task2/solution/ec_toy.py): 3G = (10, 6); 36 % 17 = 2, 1022 = 60 * 17 + 2
   \begin{columns}[c,onlytextwidth]
     \column{0.6\textwidth}
@@ -782,62 +793,50 @@
       \small $\mathbf{3G = (10, 6)}$.\\[3pt] Check: $6^2 = 36 = 2 \bmod 17$, \; $1000 + 20 + 2 = 1022 = 2 \bmod 17$.
     \column{0.38\textwidth}
       \centering
-      \modgrid[0.27]{\gmark{5,1}{$G$}{below right}\gmark{6,3}{$2G$}{above right}
+      \modgrid[0.24]{\gmark{5,1}{$G$}{below right}\gmark{6,3}{$2G$}{above right}
         \gmark[AccentOrange]{10,6}{$3G$}{above right}}
   \end{columns}
-  \say{Wynik sprawdzony programem. 1022 = 60 · 17 + 2.}
+  \vfill
+  \keymsg{Two different points: the slope is just $(y_2 - y_1) / (x_2 - x_1)$.}
+  \say{Wynik sprawdzony programem. 1022 = 60 · 17 + 2. Tu dzielenie było łatwe, bo mianownik to 1; zwykle trzeba policzyć odwrotność modulo 17.}
 \end{frame}
 
 \begin{frame}{Task 2: all points from G}
   \begin{columns}[c,onlytextwidth]
     \column{0.56\textwidth}
-      \taskhead{Task 2}{Write the point addition in Python, then add $G$ again and again.}
-      \vspace{0.2cm}
-      \centerline{\large $G, \; 2G, \; 3G, \; 4G, \; \ldots$}
-      \vspace{0.5cm}
-      \probbox{Predict first}{How many different points will you get before you reach $O$?}
+      \taskgoal{write the point addition in Python, then add $G$ again and again until you reach $O$.}
+      \taskready{\texttt{ec\_toy.py}: the curve, $G$, $O$ (\texttt{None}), and the cases $P + O$ and $P + (-P)$.}
+      {\centering\small\textcolor{AccentOrange}{\faQuestionCircle}\ \textbf{Predict first:} how many points before $O$?\par}
     \column{0.42\textwidth}
       \centering
-      \modgrid[0.27]{
+      \modgrid[0.17]{
         \draw[AccentOrange, very thick, -{Stealth}, shorten >=4pt, shorten <=4pt] (5,1) to[bend left=20] (6,3);
         \draw[AccentOrange, very thick, -{Stealth}, shorten >=4pt, shorten <=4pt] (6,3) to[bend left=20] (10,6);
         \draw[AccentOrange, very thick, -{Stealth}, shorten <=4pt, dashed] (10,6) to[bend left=20] (12.5,10.5);
         \node[font=\bfseries, text=AccentOrange] at (13,11.4) {?};
         \gmark{5,1}{$G$}{below right}\gmark{6,3}{$2G$}{below right}\gmark{10,6}{$3G$}{below right}}
   \end{columns}
-  \say{Około 10 minut. Wzory są na slajdzie The formulas.}
-\end{frame}
-
-\samedot
-\begin{frame}{Task 2: what to do}
-  \begin{columns}[T,onlytextwidth]
-    \column{0.67\textwidth}
-      \codefile[basewidth=0.5em, basicstyle=\color{VSText}\ttfamily\fontsize{6.5}{7.3}\selectfont]{Task2/ec_toy.py}{7-23,26-27}
-    \column{0.3\textwidth}
-      \taskhead{Task 2}{Open \texttt{ec\_toy.py} from \ghlink{Task2}. Write the code in place of the \texttt{TODO} lines.}
-      \footnotesize
-      \textbf{Ready:} $O$ (\texttt{None}), and the cases $P + O$ and $P + (-P)$.\\[6pt]
-      \textbf{You write:} the slope, $x_3$, $y_3$, and the loop.\\[6pt]
-      Inverse: \texttt{pow(v, -1, p)}\\ (Python 3.8 or newer)
-  \end{columns}
-  \say{Przypadki z O i z punktami przeciwnymi są gotowe, trzeba dopisać tylko wzory. Każde zadanie jest samodzielne: potrzebne funkcje są gotowe w folderze zadania.}
+  \vfill
+  \opentask{Task2}{about 10 minutes}
+  \say{Około 10 minut. Polecenia są w README na GitHubie. Wzory są na slajdzie The formulas; odwrotność modulo p to pow(v, -1, p), od Pythona 3.8. Przypadki z O i z punktami przeciwnymi są gotowe, trzeba dopisać tylko nachylenie, x3, y3 i pętlę. Najpierw zapytać salę o przewidywanie i zapisać je na tablicy.}
 \end{frame}
 
 % CHECKED: Task2/solution/ec_toy.py prints 1G = (5, 1) ... 18G = (5, 16), 19G = O
 \newcommand{\Gpath}{5/1,6/3,10/6,3/1,9/16,16/13,0/6,13/7,7/6,7/11,13/10,0/11,16/4,9/1,3/16,10/11,6/14,5/16}
 \samedot
-\begin{frame}{Solution: all points from G}
+\begin{frame}{Task 2: what we saw}
   \begin{columns}[c,onlytextwidth]
-    \column{0.6\textwidth}
-      \codefile{Task2/solution/ec_toy.py}{18-23}
-      \vspace{0.1cm}
+    \column{0.58\textwidth}
+      \small The output, one point per line:\\[6pt]
       \scriptsize\ttfamily
       \begin{tabular}{@{}l@{\quad}l@{\quad}l@{\quad}l@{}}
         G=(5,1) & 2G=(6,3) & 3G=(10,6) & 4G=(3,1) \\
         5G=(9,16) & 6G=(16,13) & 7G=(0,6) & \ldots \\
         \ldots & 17G=(6,14) & 18G=(5,16) & \textbf{\textcolor{AccentOrange}{19G=O}}
-      \end{tabular}
-    \column{0.38\textwidth}
+      \end{tabular}\\[10pt]
+      \normalfont\small 18 different points, then $O$: every dot of the curve.\\[4pt]
+      \textcolor{gray}{18G = (5, 16) is $-G$, so 19G = $G + (-G) = O$.}
+    \column{0.4\textwidth}
       \centering
       \modgrid[0.27]{
         \foreach \x/\y [remember=\x as \px (initially 5), remember=\y as \py (initially 1)] in \Gpath
@@ -846,7 +845,7 @@
   \end{columns}
   \vfill
   \keymsg{$G$ visits every point of the curve, then returns to $O$ after 19 steps.}
-  \say{Kod sprawdzony. Wszystkie 18 punktów i O: G generuje całą krzywą.}
+  \say{Kod sprawdzony; nie pokazujemy go, jest w folderze solution. Wszystkie 18 punktów i O: G generuje całą krzywą. 18G = (5, 16) to lustrzane odbicie G, dlatego następny krok daje O. Porównać z przewidywaniami z tablicy.}
 \end{frame}
 
 % ======================================================================
@@ -901,7 +900,9 @@
   \end{center}
   \vfill
   \bigdef{For a 256-bit $k$: about \textbf{256 doublings}, not $2^{256}$ additions.}
-  \say{To ten sam pomysł co szybkie potęgowanie przez kwadraty z wykładu 3. W Pythonie mnożenie na P-256 trwa około 11 ms.}
+  \vfill
+  \curious{elliptic-curves/\#3}
+  \say{To ten sam pomysł co szybkie potęgowanie przez kwadraty z wykładu 3. W Pythonie mnożenie na P-256 trwa około 11 ms. W symulatorze, w zakładce kG: double and add, można wpisać dowolne k i przejść krok po kroku.}
 \end{frame}
 
 \begin{frame}{The hard problem: ECDLP}
@@ -923,67 +924,43 @@
 \end{frame}
 
 \begin{frame}{Task 3: find k}
-  \taskhead{Task 3}{Three curves, $p$ has 16, 20 and 24 bits. You know $G$ and $T = kG$. Find $k$ by adding $G$ again and again.}
+  \vfill
+  \taskgoal{on three curves ($p$ with 16, 20, 24 bits), find $k$ from $G$ and $T = kG$.}
+  \taskready{\texttt{ecdlp.py}: \texttt{add}, the three curves, and the timing loop.}
+  \vfill
+  \probbox{Predict first}{Each $p$ is 4 bits longer. How many times longer will it take?}
+  \vfill
+  \opentask{Task3}{about 6 minutes}
+  \vfill
+  \say{Około 6 minut. Najpierw zapytać salę o przewidywanie i zapisać je na tablicy. To samo co próbowanie wykładników w wykładzie 4, tylko na punktach: R = G, k = 1, dodawać G, aż R == T. Ostatnia krzywa liczy się około 15 do 20 sekund.}
+\end{frame}
+
+\samedot
+\begin{frame}{Task 3: what we saw}
   \vfill
   \begin{center}
-    \begin{tikzpicture}
-      \pgfmathsetseed{2026}
-      \foreach \x/\w/\n/\bits in {0/1.4/40/16, 3.6/2.0/90/20, 7.8/2.7/170/24} {
-        \draw[nLine, thick, rounded corners=3pt, fill=white] (\x-\w/2,-\w/2) rectangle (\x+\w/2,\w/2);
-        \foreach \i in {1,...,\n} \fill[sViolet] ({\x+(rnd-0.5)*(\w-0.15)},{(rnd-0.5)*(\w-0.15)}) circle (0.9pt);
-        \node[font=\small\bfseries, text=nInk, anchor=north] at (\x,-\w/2-0.1) {$p$: \bits\ bits};
+    % CHECKED: Task3/solution/ecdlp.py on the author's laptop (the draft): 0.053 s, 1.15 s, 14.1 s;
+    %   k = 37100, 826876, 8762309. A second run on 2026-11-11, on a busy machine: 0.065 s, 1.48 s, 66 s.
+    %   A third run on 2026-11-15: 0.081 s, 1.54 s, 19.3 s, the same k.
+    % a log scale by hand: height = log10(seconds) + 2, so 0.01 s is 0 and 100 s is 4
+    \begin{tikzpicture}[y=1.0cm]
+      \foreach \e/\lbl in {0/0.01 s, 1/0.1 s, 2/1 s, 3/10 s, 4/100 s} {
+        \draw[nLight] (0,\e) -- (7.6,\e);
+        \node[font=\tiny, text=gray, anchor=east] at (0,\e) {\lbl};
       }
-      \node[text=nInk, font=\fontsize{34}{36}\selectfont] at (11.9,0.1) {\faStopwatch};
-      \node[circle, fill=AccentOrange, text=white, font=\bfseries, inner sep=2pt] at (12.6,0.8) {?};
+      \draw[nLine, thick] (0,0) -- (0,4.1);
+      \foreach \x/\t/\lbl/\k in {1.3/0.053/16 bits/37\,100, 3.8/1.15/20 bits/826\,876, 6.3/14.1/24 bits/8\,762\,309} {
+        \pgfmathsetmacro{\h}{log10(\t)+2}
+        \fill[sPink, rounded corners=1pt] (\x-0.5,0) rectangle (\x+0.5,\h);
+        \node[font=\scriptsize\bfseries, text=nInk, anchor=south] at (\x,\h) {\t\ s};
+        \node[font=\scriptsize, text=nInk, anchor=north] at (\x,0) {\lbl};
+        \node[font=\scriptsize, text=gray, anchor=north] at (\x,-0.35) {$k = \k$};
+      }
     \end{tikzpicture}
   \end{center}
   \vfill
-  \probbox{Predict first}{Each $p$ is 4 bits longer. How many times longer will it take?}
-  \say{Około 6 minut. Ostatnia krzywa liczy się około 15 sekund.}
-\end{frame}
-
-\samedot
-\begin{frame}{Task 3: what to do}
-  \vfill
-  \codefile{Task3/ecdlp.py}{31-34}
-  \vfill
-  \begin{columns}[T,onlytextwidth]
-    \column{0.5\textwidth}
-      \taskhead{Task 3}{Open \texttt{ecdlp.py} from \ghlink{Task3}. Write \texttt{find\_k} in place of the \texttt{TODO} lines.}
-    \column{0.47\textwidth}
-      \stepbox{Ready in the file}{\texttt{add(P, Q, a, p)}, the three curves, and the timing loop.}
-  \end{columns}
-  \vfill
-  \say{To samo co próbowanie wykładników w wykładzie 4, tylko na punktach.}
-\end{frame}
-
-\samedot
-\begin{frame}{Solution: find k}
-  \begin{columns}[c,onlytextwidth]
-    \column{0.42\textwidth}
-      \codefile{Task3/solution/ecdlp.py}{31-37}
-    \column{0.55\textwidth}
-      \centering
-      % CHECKED: Task3/solution/ecdlp.py on the author's laptop (the draft): 0.053 s, 1.15 s, 14.1 s;
-      %   k = 37100, 826876, 8762309. A second run on 2026-11-11, on a busy machine: 0.065 s, 1.48 s, 66 s.
-      % a log scale by hand: height = log10(seconds) + 2, so 0.01 s is 0 and 100 s is 4
-      \begin{tikzpicture}[y=1.0cm]
-        \foreach \e/\lbl in {0/0.01 s, 1/0.1 s, 2/1 s, 3/10 s, 4/100 s} {
-          \draw[nLight] (0,\e) -- (5.6,\e);
-          \node[font=\tiny, text=gray, anchor=east] at (0,\e) {\lbl};
-        }
-        \draw[nLine, thick] (0,0) -- (0,4.1);
-        \foreach \x/\t/\lbl in {1/0.053/16 bits, 2.8/1.15/20 bits, 4.6/14.1/24 bits} {
-          \pgfmathsetmacro{\h}{log10(\t)+2}
-          \fill[sPink, rounded corners=1pt] (\x-0.4,0) rectangle (\x+0.4,\h);
-          \node[font=\scriptsize\bfseries, text=nInk, anchor=south] at (\x,\h) {\t\ s};
-          \node[font=\scriptsize, text=nInk, anchor=north] at (\x,0) {\lbl};
-        }
-      \end{tikzpicture}
-  \end{columns}
-  \vfill
   \keymsg{Every 4 more bits make the search more than 10 times longer.}
-  \say{Kod sprawdzony na moim laptopie. Dla 256 bitów to około $2^{255}$ dodawań. Najlepszy znany atak na dobrą krzywą (metoda rho Pollarda) potrzebuje około $2^{128}$ kroków.}
+  \say{Pomiar z mojego laptopa; u studentów czasy będą inne, ale proporcje podobne. Porównać z przewidywaniami z tablicy. Czas rośnie razem z k, czyli z liczbą dodawań: k jest kolejno około 22 i 11 razy większe; średnio 4 bity więcej to 16 razy więcej dodawań. Dla 256 bitów to około $2^{255}$ dodawań. Najlepszy znany atak na dobrą krzywą (metoda rho Pollarda) potrzebuje około $2^{128}$ kroków.}
 \end{frame}
 
 \begin{frame}{The order of G}
@@ -1119,7 +1096,9 @@
       \modgrid[0.25]{\gmark{10,6}{$A$}{below right}\gmark{7,11}{$B$}{above left}
         \gmark[sAmber]{13,10}{\textcolor{sAmberText}{shared}}{above}}
   \end{columns}
-  \say{Sprawdzone w Pythonie. Wspólny punkt to 30G, a 30 mod 19 = 11, czyli 11G = (13, 10) z listy.}
+  \vfill
+  \curious{elliptic-curves/\#1}
+  \say{Sprawdzone w Pythonie. Wspólny punkt to 30G, a 30 mod 19 = 11, czyli 11G = (13, 10) z listy. W symulatorze można zmieniać sekrety a i b na tej samej krzywej i zobaczyć atak Eve na tak małą krzywą.}
 \end{frame}
 
 \begin{frame}{A point is not a key}
@@ -1176,59 +1155,40 @@
 \end{frame}
 
 \begin{frame}{Task 4: X25519}
-  \taskhead{Task 4}{A ready X25519 module in plain Python.}
-  \begin{columns}[c,onlytextwidth]
-    \column{0.55\textwidth}
-      \begin{enumerate}\setlength{\itemsep}{8pt}
-        \item Compute Alice's and Bob's public keys.
-        \item Compute the shared secret on both sides.
-        \item Derive a ChaCha20 key with HKDF.
-      \end{enumerate}
-      \vspace{0.2cm}
-      \small The private keys are the test values from RFC 7748: compare your result.
-    \column{0.43\textwidth}
-      \centering
-      \begin{tikzpicture}[scale=0.62, transform shape]
-        \personnode{alice}{0,0}{sIndigo}{Alice}
-        \personnode{bob}{5.2,0}{sTeal}{Bob}
-        \bytecube{-1.05,-4.3}{sAmber}{}{}
-        \bytecube{4.15,-4.3}{sAmber}{}{}
-        \draw[data, <->] (1,0) -- node[above, font=\small] {public keys} (4.2,0);
-        \node[font=\large\bfseries, text=sAmberText] at (2.6,-3.3) {$=$\,?};
-      \end{tikzpicture}
-  \end{columns}
-  \say{Około 6 minut. Wynik można porównać z dokumentem RFC.}
-\end{frame}
-
-\samedot
-\begin{frame}{Task 4: what to do}
-  \codefile{Task4/ecdh.py}{1-11}
   \vfill
-  \begin{columns}[T,onlytextwidth]
-    \column{0.5\textwidth}
-      \taskhead{Task 4}{Open \texttt{ecdh.py} from \ghlink{Task4}. Write the code in place of the \texttt{TODO} lines.}
-    \column{0.47\textwidth}
-      \stepbox{Ready in \texttt{x25519\_ready.py}}{\texttt{public\_key(private)}, \texttt{x25519(private, public)},
-        \texttt{hkdf(secret, info)}}
-  \end{columns}
-  \say{x25519\_ready.py zawiera też funkcję hkdf, napisaną na hmac i hashlib z biblioteki standardowej.}
+  \taskgoal{Alice and Bob agree on a secret with X25519, then derive a ChaCha20 key with HKDF.}
+  \taskready{\texttt{x25519\_ready.py}: \texttt{public\_key}, \texttt{x25519} and \texttt{hkdf}, in plain Python.}
+  \taskready{\texttt{ecdh.py}: the two private keys, the test values of RFC 7748.}
+  \vfill
+  \opentask{Task4}{about 6 minutes}
+  \vfill
+  \say{Około 6 minut. Polecenia są w README na GitHubie. public\_key(private) to d razy G na Curve25519, x25519(mój prywatny, cudzy publiczny) daje wspólny sekret. Wynik można porównać z dokumentem RFC 7748, punkt 6.1. x25519\_ready.py zawiera też funkcję hkdf, napisaną na hmac i hashlib z biblioteki standardowej.}
 \end{frame}
 
 \samedot
-\begin{frame}{Solution: X25519}
+\begin{frame}{Task 4: what we saw}
   % CHECKED: Task4/solution/ecdh.py: the secret is the one in RFC 7748, section 6.1; equal: True
-  \codefile{Task4/solution/ecdh.py}{7-8,12-13,16,18}
-  \vspace{0.1cm}
-  \footnotesize\ttfamily
-  \begin{tabular}{@{}l@{\quad}l@{}}
-    secret: & \textcolor{sAmberText}{4a5d9d5ba4ce2de1728e3bf480350f25e07e21c947d19e3376f09b3c1e161742} \\
-    equal:  & \textcolor{aExec}{\textbf{True}} \\
-    key:    & \textcolor{sAmberText}{8232af18b2d158a867dead920cb27b5f70409d17ef4712ba664eb4d2ff392f78}
-  \end{tabular}
-  \normalfont
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \personnode{alice}{0,0}{sIndigo}{Alice}
+      \personnode{bob}{10.4,0}{sTeal}{Bob}
+      \draw[data, <->] (0.9,0.1) -- node[above, font=\small] {public keys, 32 bytes each} (9.5,0.1);
+      \node[privval, font=\footnotesize\ttfamily, align=center] (s) at (5.2,-1.55)
+        {4a5d9d5ba4ce2de1728e3bf480350f25\\e07e21c947d19e3376f09b3c1e161742};
+      \node[font=\scriptsize, text=gray, anchor=south] at (s.north) {the same secret on both sides \; \textcolor{aExec}{\faCheck}};
+      \draw[data] (alicelbl.south) |- (s.west);
+      \draw[data] (boblbl.south) |- (s.east);
+      \node[hwmain, font=\small\bfseries] (kdf) at (5.2,-3.0) {\faCogs\ HKDF};
+      \draw[data] (s.south) -- (kdf.north);
+      \node[privval, font=\footnotesize\ttfamily, align=center, anchor=west] at (6.4,-3.0)
+        {8232af18b2d158a8\ldots ff392f78};
+      \node[font=\scriptsize, text=gray, anchor=east] at (4.2,-3.0) {\texttt{"lecture 5 chat key"}};
+    \end{tikzpicture}
+  \end{center}
   \vfill
   \keymsg{The same 32-byte secret on both sides, as in RFC 7748.}
-  \say{Sekret zgadza się z RFC 7748, punkt 6.1. Funkcja hkdf daje wynik zgodny z wektorami z RFC 5869. Kod sprawdzony.}
+  \say{Rozwiązanie sprawdzone. Sekret zgadza się z RFC 7748, punkt 6.1, equal: True. Klucz dla ChaCha20 z hkdf: 8232af18b2d158a867dead920cb27b5f70409d17ef4712ba664eb4d2ff392f78. Funkcja hkdf daje wynik zgodny z wektorami z RFC 5869.}
 \end{frame}
 
 % ======================================================================
@@ -1280,59 +1240,39 @@
       \modgrid[0.25]{\gmark{0,6}{$Q$}{above right}\gmark[nInk]{13,10}{$M$}{above left}
         \gmark[sBrown]{3,1}{$C_1$}{above left}\gmark[sBrown]{5,1}{$C_2$}{above right}}
   \end{columns}
-  \say{4Q = 28G = 9G = (7, 6), bo 28 mod 19 = 9. Odjęcie punktu to dodanie punktu przeciwnego (7, 11). Liczby sprawdzone w Pythonie.}
+  \vfill
+  \curious{elliptic-curves/\#1}
+  \say{W symulatorze, w zakładce ElGamal, są te same liczby. 4Q = 28G = 9G = (7, 6), bo 28 mod 19 = 9. Odjęcie punktu to dodanie punktu przeciwnego (7, 11). Liczby sprawdzone w Pythonie.}
 \end{frame}
 
 \begin{frame}{Task 5: ElGamal on a curve}
-  \taskhead{Task 5}{The small curve, Bob's keys \priv{$d = 7$} and \pub{$Q = 7G$}, the message $M = (13, 10)$.}
-  \begin{columns}[c,onlytextwidth]
-    \column{0.5\textwidth}
-      \begin{enumerate}\setlength{\itemsep}{8pt}
-        \item Write \texttt{encrypt(M, Q, k)}.
-        \item Write \texttt{decrypt(C1, C2, d)}.
-      \end{enumerate}
-      \vspace{0.3cm}
-      \stepbox{Ready}{\texttt{add}, \texttt{mul} and \texttt{neg} (the point $-P$).}
-    \column{0.47\textwidth}
-      \centering
-      \begin{tikzpicture}
-        \foreach \y/\f in {0.75/{encrypt(M, Q, k)}, -0.75/{decrypt(C1, C2, d)}} {
-          \node[draw=nLine, thick, fill=VSDarkBg, rounded corners=3pt, minimum width=5.2cm, minimum height=1.1cm,
-            text=VSText, font=\ttfamily\small, align=left, text width=4.8cm] at (0,\y)
-            {\textcolor{VSBlue}{\textbf{def}} \f:\\ \hspace*{1.5em}\textcolor{VSComment}{\# TODO}};
-        }
-      \end{tikzpicture}
-  \end{columns}
-  \say{Około 7 minut.}
+  \vfill
+  \taskgoal{write \texttt{encrypt(M, Q, k)} and \texttt{decrypt(C1, C2, d)} on the small curve.}
+  \taskready{\texttt{ec\_elgamal.py}: \texttt{add}, \texttt{mul}, \texttt{neg} (the point $-P$), Bob's keys \priv{$d = 7$} and \pub{$Q = 7G$}, the message $M = (13, 10)$.}
+  \vfill
+  \opentask{Task5}{about 7 minutes}
+  \vfill
+  \say{Około 7 minut. Polecenia są w README na GitHubie. Wzory są na slajdzie ElGamal on a curve: C1 = kG, C2 = M + kQ, a przy odszyfrowaniu M = C2 + neg(d C1). mul(k, P) dodaje P k razy; na małej krzywej to wystarczy.}
 \end{frame}
 
 \samedot
-\begin{frame}{Task 5: what to do}
-  \vfill
-  \codefile{Task5/ec_elgamal.py}{45-52}
-  \vfill
-  \begin{columns}[T,onlytextwidth]
-    \column{0.5\textwidth}
-      \taskhead{Task 5}{Open \texttt{ec\_elgamal.py} from \ghlink{Task5}. Write the code in place of the \texttt{TODO} lines.}
-    \column{0.47\textwidth}
-      \stepbox{Ready in the file}{\texttt{add(P, Q)}, \texttt{mul(k, P)}, \texttt{neg(P)}, $G$, $d$, $Q$ and $M$.}
-  \end{columns}
-  \vfill
-  \say{mul(k, P) dodaje P k razy; na małej krzywej to wystarczy.}
-\end{frame}
-
-\samedot
-\begin{frame}{Solution: ElGamal on a curve}
+\begin{frame}{Task 5: what we saw}
   % CHECKED: Task5/solution/ec_elgamal.py prints Q = (0, 6), ciphertext ((3, 1), (5, 1)), decrypted (13, 10)
   \begin{columns}[c,onlytextwidth]
-    \column{0.46\textwidth}
-      \codefile{Task5/solution/ec_elgamal.py}{45-51}
-    \column{0.52\textwidth}
-      \terminal{ciphertext (C1, C2): ((3, 1), (5, 1))}\\[6pt]
-      \terminal{decrypted: (13, 10)}
+    \column{0.55\textwidth}
+      \stepbox{Encrypt with $k = 4$}{$C_1 = \ctx{(3, 1)}$, \; $C_2 = \ctx{(5, 1)}$}
+      \vspace{0.2cm}
+      \stepbox{Decrypt with $d = 7$}{$C_2 - 7\,C_1 = \mathbf{(13, 10)} = M$ \; \ok}
+      \vspace{0.3cm}
+      \centering\small The same numbers as in the example on our curve.
+    \column{0.42\textwidth}
+      \centering
+      \modgrid[0.25]{\gmark{0,6}{$Q$}{above right}\gmark[nInk]{13,10}{$M$}{above left}
+        \gmark[sBrown]{3,1}{$C_1$}{above left}\gmark[sBrown]{5,1}{$C_2$}{above right}}
   \end{columns}
   \vfill
-  \say{Kod sprawdzony, wynik jak na slajdzie z przykładem.}
+  \keymsg{Two short functions: ElGamal on a curve works.}
+  \say{Kod sprawdzony, wynik jak na slajdzie z przykładem. Program wypisuje ciphertext (C1, C2): ((3, 1), (5, 1)) i decrypted: (13, 10).}
 \end{frame}
 
 \begin{frame}{ECC and ElGamal side by side}

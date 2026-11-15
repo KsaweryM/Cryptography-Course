@@ -1,0 +1,110 @@
+% How to get the course repository: clone it with git, or download a ZIP.
+% Build: pdflatex getting-started.tex
+\documentclass[11pt,a4paper]{article}
+\usepackage[margin=2.2cm]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[skins]{tcolorbox}
+\usepackage{fontawesome5}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+\usepackage{titlesec}
+
+\definecolor{ink}{HTML}{1F2A37}
+\definecolor{accent}{HTML}{D9622B}
+\definecolor{link}{HTML}{1F5FBF}
+\definecolor{term}{HTML}{F3F4F6}
+
+\titleformat{\section}{\large\bfseries\color{ink}}{\color{accent}\thesection}{0.6em}{}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt}
+\pagestyle{empty}
+
+% a terminal: commands to type, one per line
+\newtcolorbox{terminal}{enhanced, colback=term, colframe=ink!30, boxrule=0.6pt, arc=3pt,
+  left=8pt, right=8pt, top=4pt, bottom=4pt, fontupper=\ttfamily\small}
+\newtcolorbox{tip}{enhanced, colback=accent!8, colframe=accent, boxrule=0.6pt, arc=3pt,
+  left=8pt, right=8pt, top=4pt, bottom=4pt, before upper=\raggedright}
+\newcommand{\link}[1]{\href{#1}{\textcolor{link}{\texttt{#1}}}}
+
+\begin{document}
+
+{\LARGE\bfseries\color{ink} Getting the course files}\par\vspace{2pt}
+{\large Cryptography: stream ciphers, RSA, Diffie-Hellman, elliptic curves}\par\vspace{6pt}
+All slides, tasks and starter files are in one place on GitHub:\par
+\begin{center}\Large\faGithub\ \link{https://github.com/KsaweryM/Cryptography-Course}\end{center}
+There are two ways to get them. \textbf{Way A} (git) is better: one command gets the updates later.
+\textbf{Way B} (ZIP) needs nothing installed.
+
+\section{Way A: clone with git}
+
+\textbf{Step 1. Check that git is installed.} Open a terminal
+(Windows: \emph{Git Bash} or \emph{PowerShell}; macOS: \emph{Terminal}; Linux: any terminal) and type:
+\begin{terminal}
+git -{}-version
+\end{terminal}
+If you see a version number, for example \texttt{git version 2.43.0}, go to step 2.
+If not, install git:
+\begin{itemize}[nosep, leftmargin=1.4em]
+  \item \textbf{Windows:} download it from \link{https://git-scm.com/download/win} and click through the installer (the default options are fine).
+  \item \textbf{macOS:} type \texttt{xcode-select -{}-install} and confirm.
+  \item \textbf{Linux (Ubuntu, Debian):} type \texttt{sudo apt install git}.
+\end{itemize}
+Then close the terminal, open a new one and check again.
+
+\textbf{Step 2. Go to the folder where you keep your work}, for example your Documents:
+\begin{terminal}
+cd Documents
+\end{terminal}
+
+\textbf{Step 3. Clone the repository.} This copies everything into a new folder \texttt{Cryptography-Course}:
+\begin{terminal}
+git clone https://github.com/KsaweryM/Cryptography-Course.git\\
+cd Cryptography-Course
+\end{terminal}
+No GitHub account and no password are needed: the repository is public.
+
+\textbf{Step 4. Later: get the new files.} Before each lecture, inside the folder \texttt{Cryptography-Course}:
+\begin{terminal}
+git pull
+\end{terminal}
+
+\begin{tip}
+\faLightbulb\ \textbf{If \texttt{git pull} complains} that your changes would be overwritten:
+you edited a file that was also updated. Keep your work with \texttt{git stash}, then \texttt{git pull},
+then \texttt{git stash pop}. Or simply copy your solution somewhere else first.
+\end{tip}
+
+\section{Way B: download a ZIP}
+
+\begin{enumerate}[nosep, leftmargin=1.6em]
+  \item Open \link{https://github.com/KsaweryM/Cryptography-Course} in a browser.
+  \item Click the green button \textbf{\textless\textgreater\ Code}, then \textbf{Download ZIP}.
+  \item Unpack the ZIP file (right click, \emph{Extract all} on Windows).
+\end{enumerate}
+To get updates, download the ZIP again. Keep your own solutions in a separate folder, so a new ZIP never overwrites them.
+
+\section{What is inside, and how to run a task}
+
+\begin{itemize}[nosep, leftmargin=1.4em]
+  \item \texttt{Lecture1} \dots\ \texttt{Lecture5}: one folder per lecture, with the slides as a PDF.
+  \item \texttt{LectureN/TaskK}: one folder per task. Start with its \texttt{README.md}: it tells you the goal,
+        the steps and the expected output. On GitHub the README is shown with its picture under the file list.
+\end{itemize}
+
+The tasks need only \textbf{Python 3.8 or newer}, nothing else to install. Check it, then run a task, for example Task 1 of Lecture 1:
+\begin{terminal}
+python3 -{}-version\\
+cd Lecture1/Task1\\
+python3 decrypt.py
+\end{terminal}
+On Windows the command is often \texttt{py} instead of \texttt{python3} (\texttt{py -{}-version}, \texttt{py decrypt.py}).
+No Python? Get it from \link{https://www.python.org/downloads/}; on Windows tick \emph{Add python.exe to PATH} in the installer.
+
+\begin{tip}
+\faDesktop\ \textbf{Interactive simulators.} The slides also link to pages that show each algorithm step by step,
+in the browser, nothing to install: \link{https://ksawerym.github.io/Cryptography-simulators/}
+\end{tip}
+
+\end{document}

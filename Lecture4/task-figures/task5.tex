@@ -1,0 +1,43 @@
+% Task 5: ElGamal in Python. Values from Task5/elgamal.py.
+% CHECKED (python3): y = pow(2, x, P) starts with 19681741201639 and has 617 digits; x has 617 digits;
+%   text_to_number("Meet me at the old bridge at noon.") has 271 bits (smaller than P).
+%   C1 and C2 are new on every run (a random k), so they are not shown; the result is not shown.
+\documentclass[12pt,tikz,border=6pt]{standalone}
+\input{common}
+\begin{document}
+\pagecolor{white}
+\begin{tikzpicture}[>=Stealth]
+  % Bob's keys
+  \bob{bo}{13.2,2.3}
+  \node[pubv, font=\small, anchor=east] (y) at (11.9,2.75) {public key\quad $y = g^{x} \bmod p$ = \texttt{19681741201639\ldots}};
+  \node[secv, font=\small, anchor=east] (x) at (11.9,1.85) {\faLock\ private key\quad $x$ = \texttt{30211086908663\ldots}};
+  \node[font=\scriptsize, text=gray, anchor=east] at (11.9,3.45) {both ready in \texttt{elgamal.py}, 617 digits each; $p$ and $g = 2$ from RFC 3526};
+
+  % the message
+  \node[msgv, font=\small, anchor=south east] (m) at (2.35,-1.0) {``Meet me at the old bridge at noon.''};
+  \alice{al}{-4.6,-0.25}
+  \node[font=\scriptsize, text=nInk, anchor=east] at (1.45,-1.6) {\texttt{text\_to\_number} $\rightarrow$ $M$, a 271-bit number};
+
+  % encrypt
+  \node[todo, font=\ttfamily\small, minimum width=3.6cm, minimum height=0.9cm] (enc) at (2.2,-2.6) {encrypt(M, y)}; \todotag{enc}
+  \draw[data] ([xshift=-0.6cm]enc.north |- m.south) -- ([xshift=-0.6cm]enc.north);
+  \draw[data, rPub] (y.west) -| ([xshift=0.5cm]enc.north);
+  \node[secv, font=\scriptsize] (k) at (-0.6,-2.6) {\faDice\ a new\\ random $k$};
+  \draw[data] (k) -- (enc);
+  \node[shv, draw=nLine, fill=nFill, font=\small, minimum width=2.6cm] (c) at (7.0,-2.6) {$(C_1, C_2)$};
+  \draw[data] (enc) -- (c);
+  % decrypt
+  \node[todo, font=\ttfamily\small, minimum width=3.6cm, minimum height=0.9cm] (dec) at (11.6,-2.6) {decrypt(C1, C2, x)}; \todotag{dec}
+  \draw[data] (c) -- (dec);
+  \draw[data, rSec] ([xshift=-1.0cm]x.south east) -- ([xshift=-1.0cm]x.south east |- dec.north);
+  \node[unkv, font=\small, minimum width=1.6cm] (out) at (11.6,-4.1) {$M$ again?};
+  \draw[data] (dec) -- (out);
+
+  % twice
+  \node[todo, font=\ttfamily\small, minimum width=3.6cm, minimum height=0.9cm, draw=nLine, fill=nFill, line width=0.8pt] (enc2) at (2.2,-4.1) {encrypt(M, y)};
+  \node[font=\scriptsize, text=nInk, anchor=east] at (enc2.west) {the same $M$ again\ };
+  \node[shv, draw=nLine, fill=nFill, font=\small, minimum width=2.6cm] (c2) at (7.0,-4.1) {$(C_1', C_2')$};
+  \draw[data] (enc2) -- (c2);
+  \node[font=\small\bfseries, text=AccentOrange] at (7.0,-3.35) {$C_1 \overset{?}{=} C_1'$};
+\end{tikzpicture}
+\end{document}

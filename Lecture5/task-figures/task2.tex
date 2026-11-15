@@ -1,0 +1,42 @@
+% Task 2: all points from G. Values from Task2/ec_toy.py and the slides (2G from "Doubling G", 3G from Task 1).
+% CHECKED (python3, Task2/solution/ec_toy.py): G = (5, 1), 2G = (6, 3), 3G = (10, 6); how many points: not shown
+\documentclass[12pt,tikz,border=6pt]{standalone}
+\input{common}
+\begin{document}
+\pagecolor{white}
+\begin{tikzpicture}[>=Stealth]
+  % the curve mod 17
+  \node[font=\normalsize\bfseries, text=nInk, anchor=west] at (-0.5,6.15) {$y^2 = x^3 + 2x + 2 \bmod 17$, \ $G = (5, 1)$};
+  \begin{scope}[x=0.32cm, y=0.32cm]
+    \gridbody
+    \draw[rChg, very thick, ->, shorten >=5pt, shorten <=5pt] (5,1) to[bend left=25] node[left, font=\scriptsize\bfseries] {$+G$} (6,3);
+    \draw[rChg, very thick, ->, shorten >=5pt, shorten <=5pt] (6,3) to[bend left=25] node[below right, font=\scriptsize\bfseries] {$+G$} (10,6);
+    \draw[rChg, very thick, ->, dashed, shorten <=5pt] (10,6) to[bend left=25] (12.6,10.4);
+    \node[unk, font=\scriptsize\bfseries, inner sep=3pt] at (13.3,11.4) {4G = ?};
+    \gmark{5,1}{$G$}{below right}
+    \gmark{6,3}{$2G$}{right}
+    \gmark{10,6}{$3G$}{below right}
+  \end{scope}
+
+  % add(P, Q): what is ready and what you write
+  \begin{scope}[shift={(8.0,0)}]
+    \node[font=\normalsize\bfseries, text=nInk, anchor=west] at (0,6.15) {\texttt{add(P, Q)} in \texttt{ec\_toy.py}};
+    \foreach \y/\case/\res/\st in {5.2/{$P$ is $O$}/{$Q$}/r, 4.45/{$Q$ is $O$}/{$P$}/r, 3.7/{$Q = -P$}/{$O$}/r,
+        2.75/{$P = Q$}/{slope $s = (3x_1^2 + a) / (2y_1)$}/t, 2.0/{$P \ne Q$}/{slope $s = (y_2 - y_1) / (x_2 - x_1)$}/t,
+        1.05/{then}/{$x_3$, $y_3$ from $s$}/t} {
+      \node[font=\small, text=nInk, anchor=west] at (0,\y) {\case};
+      \node[font=\small, text=nInk, anchor=west] at (1.6,\y) {$\rightarrow$\ \res};
+      \if\st r
+        \node[font=\scriptsize\bfseries, text=aExec, anchor=west] at (7.9,\y) {\faCheck\ ready};
+      \else
+        \node[unk, font=\scriptsize\bfseries, inner sep=2pt, anchor=west] at (7.9,\y) {TODO};
+      \fi
+    }
+    \draw[nLine, dashed] (0,3.25) -- (9.3,3.25);
+    \node[font=\scriptsize, text=gray, anchor=west] at (1.6,0.45) {``$/\,v \bmod p$'' means ``$\times$ \texttt{pow(v, -1, p)}''};
+    % the loop
+    \node[role=rPub, anchor=north west, text width=8.6cm, align=left, font=\small] at (0,-0.3)
+      {print $G$, $2G$, $3G$, \ldots\ until $O$\\[2pt]\textbf{how many points?} \hfill\tikz\node[unk, font=\scriptsize\bfseries, inner sep=2pt] {TODO};};
+  \end{scope}
+\end{tikzpicture}
+\end{document}

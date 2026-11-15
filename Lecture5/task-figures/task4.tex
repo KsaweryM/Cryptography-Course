@@ -1,0 +1,42 @@
+% Task 4: X25519. Values from Task4/ecdh.py (the private keys of RFC 7748, section 6.1).
+% CHECKED (python3, Task4/solution/ecdh.py): both secrets are equal; the public keys, the secret and the key
+%   are the results of the task, so the figure shows them as unknown
+\documentclass[12pt,tikz,border=6pt]{standalone}
+\input{common}
+\begin{document}
+\pagecolor{white}
+\begin{tikzpicture}[>=Stealth]
+  \personnode{alice}{0,0}{rAli}{Alice}
+  \personnode{bob}{12,0}{rBob}{Bob}
+  % private keys
+  \node[role=rPriv, font=\scriptsize\ttfamily, anchor=north, text width=3.4cm, align=left] (pa) at (0,-1.25)
+    {\textbf{\normalfont\small\faKey\ private (32 bytes)}\\ 77076d0a7318a57d\ldots\\ \ldots b177fba51db92c2a};
+  \node[role=rPriv, font=\scriptsize\ttfamily, anchor=north, text width=3.4cm, align=left] (pb) at (12,-1.25)
+    {\textbf{\normalfont\small\faKey\ private (32 bytes)}\\ 5dab087e624a8a4b\ldots\\ \ldots 1c2f8b27ff88e0eb};
+  % public keys
+  \node[unk, font=\small\bfseries, draw=rPub, text=rPubText, fill=rPubBg] (qa) at (3.6,0.2) {public A = ?};
+  \node[unk, font=\small\bfseries, draw=rPub, text=rPubText, fill=rPubBg] (qb) at (8.4,0.2) {public B = ?};
+  \draw[data] (alice) -- node[above, font=\scriptsize\ttfamily, text=nInk] {public\_key} (qa);
+  \draw[data] (bob) -- node[above, font=\scriptsize\ttfamily, text=nInk] {public\_key} (qb);
+  \draw[data, rPub] (qa.north) to[bend left=25] node[above, font=\scriptsize, text=nInk, pos=0.5] {to Bob} ([xshift=0.6cm]qb.north);
+  \draw[data, rPub] (qb.south) to[bend left=25] node[below, font=\scriptsize, text=nInk, pos=0.5] {to Alice} ([xshift=-0.6cm]qa.south);
+  % Eve
+  \node[person=rEve, minimum size=0.9cm, font=\normalsize] (eve) at (6,2.6) {\faUserSecret};
+  \node[font=\scriptsize\bfseries, text=rEve, anchor=west] at (6.5,2.55) {Eve sees A and B};
+  \draw[rEve, thick, dashed] (eve.south) -- (6,1.55);
+  % shared secrets
+  \node[unk, font=\small\bfseries, draw=rPriv, text=rPrivText, fill=rPrivBg, anchor=north] (sa) at (3.9,-2.3) {secret = ?};
+  \node[unk, font=\small\bfseries, draw=rPriv, text=rPrivText, fill=rPrivBg, anchor=north] (sb) at (8.1,-2.3) {secret = ?};
+  \draw[data] (pa.east |- sa) -- (sa.west);
+  \node[font=\scriptsize\ttfamily, text=nInk, anchor=south] at (sa.north) {x25519(private, B)};
+  \draw[data] (pb.west |- sb) -- (sb.east);
+  \node[font=\scriptsize\ttfamily, text=nInk, anchor=south] at (sb.north) {x25519(private, A)};
+  \node[font=\large\bfseries, text=rChg] (eq) at (6,-2.6) {$=$ ?};
+  % HKDF
+  \cogbox{kdf}{6,-4.0}{hkdf}{2.6cm}
+  \draw[data] (sa.south) |- (kdf.west);
+  \node[font=\scriptsize\ttfamily, text=gray, anchor=north] at (kdf.south) {info = b"lecture 5 chat key"};
+  \node[unk, font=\small\bfseries, draw=rPriv, text=rPrivText, fill=rPrivBg, anchor=west] (key) at (8.2,-4.0) {ChaCha20 key, 32 bytes = ?};
+  \draw[data] (kdf.east) -- (key.west);
+\end{tikzpicture}
+\end{document}

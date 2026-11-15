@@ -1,0 +1,40 @@
+% Task 2: a real exchange. Values from Task2/dh.py.
+% CHECKED (python3): P of RFC 3526 group 14 has 2048 bits and 617 digits and starts with 32317006071311;
+%   a and b are new random 256-bit numbers on every run, so A, B and the secret are not shown.
+\documentclass[12pt,tikz,border=6pt]{standalone}
+\input{common}
+\begin{document}
+\pagecolor{white}
+\begin{tikzpicture}[>=Stealth]
+  % the public group
+  \node[pubv, minimum width=9.4cm, minimum height=1.3cm] (grp) at (6,2.3) {};
+  \node[font=\small\bfseries, text=rPubText, anchor=north west] at ([xshift=4pt,yshift=-3pt]grp.north west) {\faEye\ public: everybody, Eve too};
+  \node[font=\small, text=nInk] at (6,2.05) {$p$ = \texttt{32317006071311\ldots} (2048 bits, 617 digits)\qquad $g = 2$};
+  \node[font=\scriptsize, text=gray, anchor=north] at (grp.south) {group 14 from RFC 3526, ready in \texttt{dh.py}};
+
+  \alice{al}{0,0}
+  \bob{bo}{12,0}
+
+  % secrets
+  \node[secv, font=\small, minimum width=3.2cm] (a) at (0,-1.9) {\faLock\ $a$ = ?\\ \scriptsize random, 256 bits};
+  \node[secv, font=\small, minimum width=3.2cm] (b) at (12,-1.9) {\faLock\ $b$ = ?\\ \scriptsize random, 256 bits};
+  % public values
+  \node[pubv, font=\small, minimum width=3.2cm] (A) at (0,-3.6) {$A = g^{a} \bmod p$};
+  \node[pubv, font=\small, minimum width=3.2cm] (B) at (12,-3.6) {$B = g^{b} \bmod p$};
+  \draw[data] (a) -- (A); \draw[data] (b) -- (B);
+  \draw[wire] (A.east) ++(0,0.15) -- node[above=3pt, font=\small, text=nInk] {$A$ (about 617 digits)} ([yshift=0.15cm]B.west);
+  \draw[wire] (B.west) ++(0,-0.15) -- node[below=3pt, font=\small, text=nInk] {$B$} ([yshift=-0.15cm]A.east);
+
+  % the shared secret on both sides
+  \node[shv, font=\small, minimum width=3.2cm] (sa) at (0,-5.6) {$B^{a} \bmod p$};
+  \node[shv, font=\small, minimum width=3.2cm] (sb) at (12,-5.6) {$A^{b} \bmod p$};
+  \draw[data] (A) -- (sa); \draw[data] (B) -- (sb);
+  \node[font=\Huge\bfseries, text=AccentOrange] at (6,-5.6) {$\overset{?}{=}$};
+  \draw[nLine, thick, dashed] (sa.east) -- (5.4,-5.6); \draw[nLine, thick, dashed] (6.6,-5.6) -- (sb.west);
+  \node[font=\small, text=nInk, align=center] at (6,-6.5) {equal? the first 20 digits?};
+
+  % the timer
+  \node[font=\Large, text=nInk] at (6,0.25) {\faStopwatch};
+  \node[font=\small, text=nInk, align=center] at (6,-0.4) {the whole exchange: how many ms?};
+\end{tikzpicture}
+\end{document}
