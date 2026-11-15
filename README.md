@@ -22,15 +22,17 @@ instead of only reading about them.
   is fast on any processor, and **ChaCha20-Poly1305**, which also protects integrity.
 - **Lecture 3** starts from the problems of one shared key and solves them with a **key pair**.
   It explains the hard problems behind public-key cryptography (factoring, the discrete
-  logarithm), **arithmetic modulo n** and Euclid's algorithm, **RSA** keys, encryption and
-  **digital signatures**, and why real RSA needs padding (OAEP, PSS).
+  logarithm), **arithmetic modulo n**, **RSA** keys and encryption, and why real RSA needs
+  randomness (OAEP). Euclid's algorithm and fast powers are explained step by step in the
+  simulators (see below).
 - **Lecture 4** agrees on a secret in public with **Diffie-Hellman**, shows why it is safe while
   the discrete logarithm is hard, the **man in the middle** and forward secrecy. Then
-  **ElGamal** encryption and signatures, and what happens when the random number is reused.
+  **ElGamal** encryption, and what happens when the random number is reused.
 - **Lecture 5** shows why **elliptic curves** give the same safety with keys about 12 times
   shorter: points on a curve modulo p, **adding points** by hand, **scalar multiplication** and
-  the ECDLP, **ECDH and X25519** with HKDF, ElGamal and **ECDSA** on a curve, and the famous
-  case of a games console that reused one random number in every signature.
+  the ECDLP, **ECDH and X25519** with HKDF, and ElGamal on a curve.
+
+Digital signatures are not part of this course.
 
 Author: **Ksawery Możdżyński**
 
@@ -44,11 +46,19 @@ The course is divided into five lectures:
 |---|-------|--------|
 | **1** | Stream Ciphers and RC4 | Block vs. stream, XOR, one-time pad, keystream, keystream reuse, bit flipping and integrity, RC4 (KSA and PRGA), brute force, biases, WEP, nonces, the end of RC4 |
 | **2** | Salsa20 and ChaCha20 | Keystream from a counter, nonce, add-rotate-XOR, Salsa20, the ChaCha20 state and quarter round, 20 rounds and diffusion, speed without special hardware, ChaCha20-Poly1305 |
-| **3** | Public-Key Cryptography and RSA | Problems of a shared key, key pairs, hybrid encryption, factoring and the discrete logarithm, arithmetic modulo n, Euclid's algorithm, RSA keys, encryption and signatures, OAEP and PSS |
-| **4** | Diffie-Hellman and ElGamal | Agreeing on a key in public, Diffie-Hellman, the discrete logarithm, ephemeral keys and forward secrecy, the man in the middle, ElGamal encryption and signatures, reusing k |
-| **5** | Elliptic-Curve Cryptography | Why shorter keys, curves modulo p, point addition and doubling, scalar multiplication, the ECDLP, ECDH and X25519, HKDF, ElGamal and ECDSA on a curve, key sizes and speed |
+| **3** | Public-Key Cryptography and RSA | Problems of a shared key, key pairs, hybrid encryption, factoring and the discrete logarithm, arithmetic modulo n, the modular inverse, RSA keys and encryption, OAEP |
+| **4** | Diffie-Hellman and ElGamal | Agreeing on a key in public, Diffie-Hellman, the discrete logarithm, ephemeral keys and forward secrecy, the man in the middle, ElGamal encryption, reusing k |
+| **5** | Elliptic-Curve Cryptography | Why shorter keys, curves modulo p, point addition and doubling, scalar multiplication, the ECDLP, ECDH and X25519, HKDF, ElGamal on a curve, key sizes and speed |
 
 Each lecture takes about 130 to 145 minutes, tasks included.
+
+---
+
+## Simulators
+
+The slides link to interactive pages that show each algorithm step by step:
+https://ksawerym.github.io/Cryptography-simulators/ (RC4, ChaCha20, RSA, Diffie-Hellman,
+elliptic curves, and the mathematics behind them). Some demos in the lectures are run there.
 
 ---
 
