@@ -9,4 +9,4 @@ nonce = bytes.fromhex("000000000000000000000001")
 # TODO 2: flip one byte of the packet
 
 # TODO 3: try open_(key, nonce, packet) and print what happens
-#         try: ... except ValueError as e: print(e)
+#         try: ... except ValueError as e: print("open_ raises:", e)

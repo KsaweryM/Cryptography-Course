@@ -1,0 +1,65 @@
+% Task 2: jump to the middle of an encrypted film. Values from Task2/jump.py and Task2/film.bin.
+% CHECKED (python3, Task2/chacha.py, key 5eed..., nonce 00..02):
+%   film.bin has 64 000 bytes = 1000 blocks of 64 bytes; block n was encrypted with counter n.
+%   the first bytes of blocks 0, 1, 2, 699, 700, 701, 999:
+%     4D A0, D7 96, 25 1C, 23 6D, 98 72, 1C 7E, 55 BC
+%   block 700 = bytes 44 800 to 44 863; with counter 700 it decrypts to "Frame 0700: ..." (the result: not shown)
+\documentclass[12pt,tikz,border=6pt]{standalone}
+\input{common}
+\begin{document}
+\pagecolor{white}
+\begin{tikzpicture}[>=Stealth]
+  \def\w{1.55}
+  % one frame of the film strip: \frame{x}{block number}{first bytes}{byte offset}{style extra}
+  \newcommand{\filmblock}[5]{%
+    \fill[nInk] ({#1-\w/2},-0.95) rectangle ({#1+\w/2},0.95);
+    \foreach \h in {-0.5,-0.2,0.1,0.4} {
+      \fill[white] ({#1+\h*\w/1.1-0.06},0.72) rectangle ({#1+\h*\w/1.1+0.06},0.84);
+      \fill[white] ({#1+\h*\w/1.1-0.06},-0.84) rectangle ({#1+\h*\w/1.1+0.06},-0.72);}
+    \node[draw=rCt, thick, fill=rCtBg, minimum width={\w cm-0.22cm}, minimum height=1.2cm, rounded corners=1pt, #5] at (#1,0) {};
+    \node[font=\scriptsize\bfseries, text=nInk] at (#1,0.25) {block #2};
+    \node[font=\ttfamily\scriptsize, text=rCtText] at (#1,-0.2) {#3};
+    \node[ctrb, minimum width=1.25cm, font=\ttfamily\scriptsize] at (#1,-1.45) {ctr #2};
+    \node[font=\scriptsize, text=gray] at (#1,1.2) {byte #4};}
+  \newcommand{\gap}[1]{%
+    \fill[nInk] ({#1-0.45},-0.95) rectangle ({#1+0.45},0.95);
+    \node[text=white, font=\large] at (#1,0) {\ldots};}
+
+  % title
+  \node[font=\normalsize\bfseries, text=nInk, anchor=west] at (-1.0,2.75)
+    {\faFilm\ \texttt{film.bin}: 1000 blocks of 64 bytes = 64\,000 bytes of ciphertext};
+
+  \filmblock{0.0}{0}{4D A0}{0}{}
+  \filmblock{1.6}{1}{D7 96}{64}{}
+  \filmblock{3.2}{2}{25 1C}{128}{}
+  \gap{4.5}
+  \filmblock{5.8}{699}{23 6D}{44\,736}{}
+  \filmblock{7.4}{700}{98 72}{44\,800}{draw=AccentOrange, line width=2pt, fill=AccentOrange!15}
+  \filmblock{9.0}{701}{1C 7E}{44\,864}{}
+  \gap{10.3}
+  \filmblock{11.6}{999}{55 BC}{63\,936}{}
+  \node[note, anchor=west, text=rCtrText, align=left] at (12.55,-1.45) {block $n$ was encrypted\\ with counter $n$};
+
+  % the slow way: all blocks from the start
+  \draw[nLine, line width=5pt] (-0.75,1.7) -- (8.0,1.7);
+  \draw[-{Stealth}, nLine, line width=2pt] (7.9,1.7) -- (8.3,1.7);
+  \node[note, anchor=west] at (8.45,1.7)
+    {\textcolor{nLine}{\faHourglassHalf}\ \textbf{slow:} all 701 blocks, counter 0 to 700};
+
+  % the fast way: jump to block 700
+  \draw[-{Stealth}, AccentOrange, line width=2pt] (7.4,-1.8) -- (7.4,-3.05);
+  \node[font=\small\bfseries, text=AccentOrange, anchor=west] at (7.55,-2.4) {\faBolt\ fast: jump straight to block 700};
+  \node[actorlight=rKey, font=\small, minimum height=0.65cm] (k) at (3.7,-3.45) {\faKey\ key};
+  \node[inbox=rNonce, font=\small, minimum height=0.65cm] (n) at (5.3,-3.45) {nonce};
+  \node[ctrb, minimum width=2.1cm, minimum height=0.65cm, font=\ttfamily\small\bfseries, draw=AccentOrange, line width=1.4pt] (c) at (7.4,-3.45) {counter 700};
+  \node[hwmain, minimum width=3.2cm, minimum height=1.2cm] (cc) at (10.9,-3.45) {};
+  \node[text=white, font=\Large] at (9.85,-3.45) {\faCogs};
+  \node[text=white, font=\normalsize\bfseries] at (11.25,-3.45) {ChaCha20};
+  \draw[data] (c) -- (cc);
+  \draw[decorate, decoration={brace, mirror, amplitude=5pt}, nInk] (2.95,-3.9) -- (8.45,-3.9)
+    node[midway, below=6pt, font=\scriptsize, text=nInk] {the same key and nonce as the whole film};
+  \node[font=\scriptsize, text=nInk, anchor=north] at (10.9,-4.1) {only 64 bytes in};
+  \draw[data] (12.5,-3.45) -- (13.3,-3.45);
+  \node[font=\ttfamily\small, text=nInk, anchor=west] at (13.35,-3.45) {Frame 0700: ? ? ?};
+\end{tikzpicture}
+\end{document}

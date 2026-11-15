@@ -1,0 +1,58 @@
+% Task 1: ChaCha20 as a black box on the example of RFC 8439, section 2.4.2.
+% Values from Task1/use_chacha.py. CHECKED (python3, Task1/chacha.py):
+%   key = 00 01 02 ... 1F, nonce = 00 00 00 00 00 00 00 4A 00 00 00 00, counter 1,
+%   the ciphertext has 114 bytes and starts 6E 2E 35 9A 25 68 F9 80;
+%   chacha20(key, nonce, 1, ciphertext) gives "Ladies and Gentlemen ...": the result of the task, not shown.
+\documentclass[12pt,tikz,border=6pt]{standalone}
+\input{common}
+\begin{document}
+\pagecolor{white}
+\begin{tikzpicture}[>=Stealth]
+  \def\dx{0.85}
+  % ---------- the four inputs ----------
+  \node[rowlabel] at (-0.3,2.4) {\textcolor{rKeyText}{\faKey\ key}};
+  \byterow{0.25}{2.4}{keyb}{00,01,02,03}{\dx}
+  \node[font=\large, text=nInk] at ({0.25+4*\dx},2.4) {\ldots};
+  \node[keyb] at ({0.25+5*\dx},2.4) {1F};
+  \node[note, anchor=west, text=rKeyText] at ({0.25+5.6*\dx},2.4) {32 bytes, secret};
+
+  \node[rowlabel] at (-0.3,1.2) {\textcolor{rNonceText}{nonce}};
+  \byterow{0.25}{1.2}{nonceb, minimum width=0.64cm, font=\ttfamily\footnotesize}{00,00,00,00,00,00,00,4A,00,00,00,00}{0.7}
+  \node[note, anchor=west, text=rNonceText] at ({0.25+11.55*0.7},1.2) {12 bytes, public};
+
+  \node[rowlabel] at (-0.3,0.0) {\textcolor{rCtrText}{counter}};
+  \node[ctrb, minimum width=1.1cm, font=\ttfamily\normalsize\bfseries] at (0.35,0.0) {1};
+  \node[note, anchor=west, text=rCtrText] at (1.05,0.0) {the number of the first 64-byte block};
+
+  \node[rowlabel] at (-0.3,-1.2) {\textcolor{rCtText}{ciphertext}};
+  \byterow{0.25}{-1.2}{ctb}{6E,2E,35,9A,25,68,F9,80}{\dx}
+  \node[font=\large, text=nInk] at ({0.25+8*\dx},-1.2) {\ldots};
+  \node[note, anchor=west, text=rCtText] at ({0.25+8.5*\dx},-1.2) {114 bytes};
+
+  % the source: RFC 8439
+  \node[draw=nLine, thick, fill=white, rounded corners=2pt, minimum width=1.6cm, minimum height=2.0cm] (doc) at (-3.6,0.6) {};
+  \node[font=\small\bfseries, text=nInk, anchor=north] at ([yshift=-0.12cm]doc.north) {RFC};
+  \node[font=\small\bfseries, text=nInk, anchor=north] at ([yshift=-0.55cm]doc.north) {8439};
+  \foreach \d in {1.1,1.32,1.54,1.76} \draw[nLight, thick] ([shift={(0.22,-\d)}]doc.north west) -- ([shift={(-0.22,-\d)}]doc.north east);
+  \node[font=\footnotesize, text=nInk, align=center, anchor=north] at ([yshift=-0.1cm]doc.south) {section\\ 2.4.2};
+
+  % ---------- the black box ----------
+  \node[hwmain, minimum width=3.0cm, minimum height=4.4cm] (cc) at (13.6,0.6) {};
+  \node[text=white, font=\huge] at (13.6,1.35) {\faCogs};
+  \node[text=white, font=\large\bfseries] at (13.6,0.35) {ChaCha20};
+  \node[text=white, font=\scriptsize] at (13.6,-0.2) {black box};
+  \node[font=\ttfamily\small, text=nInk, anchor=south] at (13.6,2.9) {chacha20(key, nonce, counter, data)};
+  \foreach \y/\c in {2.4/rKey, 1.2/rNonce, 0.0/rCtr, -1.2/rCt}
+    \draw[-{Stealth}, very thick, \c] (11.45,\y) -- (12.1,\y);
+
+  % ---------- the output ----------
+  \draw[data] (15.1,0.6) -- (16.2,0.6);
+  \node[note, anchor=south, font=\small\bfseries] at (18.55,1.1) {\faEnvelopeOpen[regular]\ the message, 114 bytes};
+  \foreach \k in {0,...,4} \node[unk] at ({16.7+\dx*\k},0.6) {?};
+  \node[font=\large, text=nInk] at ({16.7+5*\dx},0.6) {\ldots};
+  \node[note, anchor=north, align=center] at (18.55,0.05) {\badge{1}\ decrypt with counter 1\\[2pt] \badge{2}\ print it as text};
+
+  \node[note, anchor=north, align=center] at (6.5,-2.0)
+    {The same call \textbf{encrypts and decrypts}: it XORs the data with the keystream of (key, nonce, counter).};
+\end{tikzpicture}
+\end{document}

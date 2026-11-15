@@ -192,6 +192,19 @@
     \footnotesize\href{\ghbase/#1}{\textcolor{DeepBlue}{\texttt{github.com/KsaweryM/Cryptography-Course/tree/main/Lecture2/#1}}}\\[6pt]
     \small on \ghlink{#1}: the steps, the starter files and how to run them\ifx&#2&\else\qquad\faClock[regular]\ #2\fi
   \end{beamercolorbox}}
+% a page of the simulator website, printed in full so that students can type it:
+%   \simlink{chacha20/\#2} prints and links ksawerym.github.io/Cryptography-simulators/chacha20/#2
+\newcommand{\simbase}{ksawerym.github.io/Cryptography-simulators}
+\newcommand{\simlink}[1]{\href{https://\simbase/#1}{\textcolor{DeepBlue}{\texttt{\simbase/#1}}}}
+% a slide that sends the room to the simulator (shown live by the lecturer): \opensim{chacha20/\#5}
+\newcommand{\opensim}[1]{%
+  \begin{beamercolorbox}[rounded=true,sep=0.35cm,wd=\linewidth]{block body example}
+    \centering
+    {\LARGE\faDesktop\ \textbf{Open the simulator}}\\[8pt]
+    \normalsize\simlink{#1}
+  \end{beamercolorbox}}
+% "For the curious" line under a frame: \curious{chacha20/\#2}
+\newcommand{\curious}[1]{{\footnotesize\textcolor{gray}{\faSearch\ For the curious:}\ \simlink{#1}}}
 
 % speaker notes (Polish): printed only in the notes PDF (make notes)
 \setbeamertemplate{note page}[default]
@@ -604,7 +617,8 @@
         \node[font=\scriptsize\bfseries, text=AccentOrange, fill=white, inner sep=1pt] at (2.3,1.0) {remembers};
       \end{tikzpicture}\\[0.2cm]
       \small OUT still ``remembers'' IN\\[0.1cm]
-      $\rightarrow$ WEP key recovered from traffic
+      $\rightarrow$ WEP key recovered from traffic\\[0.5cm]
+      {\scriptsize\textcolor{gray}{\faSearch\ For the curious:}\\ \simlink{rc4/\#4.1}\\ \simlink{rc4/\#4.2}}
     \column{0.48\textwidth}
       \centering\textbf{(b) the stream is biased}\\[0.2cm]
       % CHECKED: Lecture 1, checks/bias_10M.c: the 2nd RC4 byte is 0 in 0.784% of keys, any value: 0.391%
@@ -624,7 +638,7 @@
   \end{columns}
   \vfill
   \keymsg{A good keystream looks random. RC4's does not, in two ways.}
-  \say{Dwa błędy RC4, ale to jeden problem: keystream nie wygląda losowo. Raz widać to od strony klucza (wyjście go pamięta), raz od strony wyjścia (drugi bajt jest skrzywiony). Liczby pokażę w sekcji 3, na żywo.}
+  \say{Dwa błędy RC4, ale to jeden problem: keystream nie wygląda losowo. Raz widać to od strony klucza (wyjście go pamięta), raz od strony wyjścia (drugi bajt jest skrzywiony). Liczby pokażę w sekcji 3, na żywo. Link na dole: symulator RC4 z wykładu 1, gdyby ktoś chciał to sobie przypomnieć.}
 \end{frame}
 
 \begin{frame}{RC4 problem: no nonce}
@@ -758,9 +772,10 @@
       Today we use ChaCha20.
   \end{columns}
   \vfill
+  \curious{chacha20/\#1}
   \fixtag{1}%
   \keymsg{Three inputs in, 64 bytes out. We use it before we open it.}
-  \say{ChaCha20 jako czarna skrzynka: klucz, nonce, licznik na wejściu, 64 bajty na wyjściu. Od razu widać różnicę z RC4: nonce ma własne wejście. Najpierw go użyjemy, dopiero potem zajrzymy do środka.}
+  \say{ChaCha20 jako czarna skrzynka: klucz, nonce, licznik na wejściu, 64 bajty na wyjściu. Od razu widać różnicę z RC4: nonce ma własne wejście. Najpierw go użyjemy, dopiero potem zajrzymy do środka. W symulatorze z linku można zmieniać licznik i patrzeć, jak wiadomość przesuwa się po keystreamie.}
 \end{frame}
 
 \begin{frame}{Task 1: use ChaCha20}
@@ -890,9 +905,10 @@
   \end{center}
   \vfill
   \bigdef{\textbf{State}: everything the cipher works on, 16 words, 4 by 4.}
+  \curious{chacha20/\#2}
   \fixtag{2}%
   \keymsg{Everything that should change the keystream is in the table.}
-  \say{Wnętrze ChaCha20 to jedna tabela 4 na 4: stałe, klucz, licznik, nonce. To wszystko, na czym szyfr pracuje. Nie uczymy się liczb, tylko co gdzie siedzi. (Słowo ma 32 bity, czyli 4 bajty: klucz to 8 słów, nonce 3, licznik 1.)}
+  \say{Wnętrze ChaCha20 to jedna tabela 4 na 4: stałe, klucz, licznik, nonce. To wszystko, na czym szyfr pracuje. Nie uczymy się liczb, tylko co gdzie siedzi. (Słowo ma 32 bity, czyli 4 bajty: klucz to 8 słów, nonce 3, licznik 1.) W symulatorze z linku widać tę tabelę dla własnego klucza i nonce.}
 \end{frame}
 
 \begin{frame}{Three simple steps, no tables}
@@ -941,9 +957,10 @@
   \begin{center}\small = \textbf{ARX} (add, rotate, xor). No lookup tables in memory.\\[3pt]
     RC4 reads a table (S); ChaCha20 does not.\end{center}
   \vfill
+  \curious{chacha20/\#4}
   \fixtag{2}%
   \keymsg{Three cheap steps on words. Nothing depends on a memory table.}
-  \say{Cały szyfr to trzy tanie operacje na słowach: dodawanie, rotacja, XOR. Nazywa się to ARX. Na rysunku 8 bitów, żeby było widać; w ChaCha20 słowa mają 32 bity, a rotacje są o 16, 12, 8 i 7. Ważne: żadnej tablicy w pamięci, inaczej niż RC4. Wrócę do tego w sekcji o szybkości.}
+  \say{Cały szyfr to trzy tanie operacje na słowach: dodawanie, rotacja, XOR. Nazywa się to ARX. Na rysunku 8 bitów, żeby było widać; w ChaCha20 słowa mają 32 bity, a rotacje są o 16, 12, 8 i 7. Ważne: żadnej tablicy w pamięci, inaczej niż RC4. Wrócę do tego w sekcji o szybkości. Link: te trzy operacje bit po bicie, na 32-bitowych słowach.}
 \end{frame}
 
 \begin{frame}{Mix it twenty times}
@@ -982,18 +999,22 @@
   \begin{center}\small Each round stirs the whole table with add, rotate and xor, until every output bit depends on every input bit.\\[3pt]
     At the end: add the starting table back. (Without it, you could undo the rounds and read the key.)\end{center}
   \vfill
+  \curious{chacha20/\#3}
   \fixtag{2}%
   \keymsg{Twenty rounds, until everything depends on everything.}
-  \say{Te trzy kroki powtarzamy na całej tabeli 20 razy. Nie rysujemy ćwiartki rundy ani kolumn i przekątnych: intuicja to ,,miesza w kółko, aż wszystko zależy od wszystkiego''. Na końcu dodajemy tabelę początkową, inaczej dałoby się rundy cofnąć i odczytać klucz. (Liczby pod tabelami to pierwsze słowo przykładu z RFC 8439, punkt 2.3.2.)}
+  \say{Te trzy kroki powtarzamy na całej tabeli 20 razy. Nie rysujemy ćwiartki rundy ani kolumn i przekątnych: intuicja to ,,miesza w kółko, aż wszystko zależy od wszystkiego''. Na końcu dodajemy tabelę początkową, inaczej dałoby się rundy cofnąć i odczytać klucz. (Liczby pod tabelami to pierwsze słowo przykładu z RFC 8439, punkt 2.3.2.) Kto chce zobaczyć ćwiartki rundy, kolumny i przekątne, ma je w symulatorze z linku.}
 \end{frame}
 
-\begin{frame}{Try it: does the output remember the key?}
-  \begin{center}\terminal{python3 remember.py}\quad {\small\ (\texttt{Demo}, \ghlink{Demo})}\end{center}
+\begin{frame}{See it: does the output remember the key?}
+  \opensim{chacha20/\#5}
   \vfill
-  \begin{center}\small 100\,000 random keys: is the first output byte == \texttt{key[0]}?\end{center}
+  \begin{enumerate}\small
+    \item Card 1: many random keys. (100\,000 here). Is the first output byte \texttt{key[0]}? Press \textbf{run}.
+    \item RC4 says yes far too often; ChaCha20 as often as chance. Tick \textbf{seed 2026} for the numbers below.
+  \end{enumerate}
   \vfill
   \begin{center}
-    % CHECKED: Demo/remember.py, random.seed(2026), 100 000 keys: RC4 36.75%, ChaCha20 0.40% (chance 0.39%), 22 s
+    % CHECKED: random.seed(2026), 100 000 keys: RC4 36.75%, ChaCha20 0.40% (chance 0.39%)
     \begin{tikzpicture}
       \fill[AccentOrange] (0,0.7) rectangle ({36.75*0.14},1.15);
       \node[font=\small\bfseries, text=nInk, anchor=east] at (-0.15,0.92) {RC4\ \ \texttt{S[0] == key[0]}};
@@ -1007,17 +1028,20 @@
   \vfill
   \fixtag{2}%
   \keymsg{That was RC4 mistake 1. ChaCha20's output remembers nothing.}
-  \say{Gotowy przykład do uruchomienia (Demo/remember.py), liczy około 20 sekund. RC4 w 37\% zdradza pierwszy bajt klucza (jak w Task 7 z wykładu 1), ChaCha20 tylko w 0,4\%, czyli jak przypadek. To był błąd 1 RC4. Ziarno losowania jest stałe, więc każdy dostanie te same liczby.}
+  \say{Pokazać na żywo w symulatorze, karta pierwsza. RC4 w 37\% zdradza pierwszy bajt klucza (jak w Task 7 z wykładu 1), ChaCha20 tylko w 0,4\%, czyli jak przypadek. To był błąd 1 RC4. Z zaznaczonym ziarnem 2026 wychodzą liczby ze slajdu.}
 \end{frame}
 
 \samedot
-\begin{frame}{Try it: the second byte}
-  \begin{center}\terminal{python3 second\_byte.py}\quad {\small\ (\texttt{Demo}, \ghlink{Demo})}\end{center}
+\begin{frame}{See it: the second byte}
+  \opensim{chacha20/\#5}
   \vfill
-  \begin{center}\small 100\,000 random keys: how often is the second keystream byte 0?\end{center}
+  \begin{enumerate}\small
+    \item Card 2: many random keys. (100\,000 here). How often is the second byte 0? Press \textbf{run}.
+    \item RC4 hits 0 twice too often; ChaCha20 stays at chance. Tick \textbf{seed 2026} for the numbers below.
+  \end{enumerate}
   \vfill
   \begin{center}
-    % CHECKED: Demo/second_byte.py, random.seed(2026), 100 000 keys: RC4 0.78% (779 keys), ChaCha20 0.36% (362 keys), 19 s;
+    % CHECKED: random.seed(2026), 100 000 keys: RC4 0.78% (779 keys), ChaCha20 0.36% (362 keys);
     %          362 is within the noise of 100 000 / 256 = 391 (one standard deviation is about 20)
     \begin{tikzpicture}
       \fill[AccentOrange] (0,0.7) rectangle ({0.78*10},1.15);
@@ -1025,15 +1049,15 @@
       \node[font=\small, text=nInk, anchor=west] at ({0.78*10+0.15},0.92) {\textbf{0.78\%}\ \ (twice too often)};
       \fill[nLine] (0,-0.22) rectangle ({0.36*10},0.22);
       \node[font=\small\bfseries, text=nInk, anchor=east] at (-0.15,0) {ChaCha20};
-      \node[font=\small, text=nInk, anchor=west] at ({0.39*10+0.25},0) {\textbf{0.36\%}\ \ (like chance)};
-      \draw[DeepBlue, very thick, dashed] (3.906,-0.45) -- (3.906,1.45) node[above, font=\scriptsize] {chance: 1/256 = 0.39\%};
+      \node[font=\small, text=nInk, anchor=west] at ({0.39*10+0.25},0) {\textbf{0.36\%}\ \ (like chance: \textcolor{DeepBlue}{1/256 = 0.39\%})};
+      \draw[DeepBlue, very thick, dashed] (3.906,-0.4) -- (3.906,1.3);
       \draw[nLine] (0,-0.45) -- (0,1.4);
     \end{tikzpicture}
   \end{center}
   \vfill
   \fixtag{2}%
   \keymsg{RC4 leaked two ways; ChaCha20's mixing closes both.}
-  \say{Drugi przykład (Demo/second\_byte.py), około 20 sekund. To był błąd 2 RC4: drugi bajt bywa 0 dwa razy za często. ChaCha20 daje 0,36\%: to szum losowania, przy 100\,000 kluczy spodziewamy się około 390 zer, plus minus 20. Domknięcie: błędy 1 i 2 to jeden mechanizm, dokładne mieszanie, zmierzony raz od strony klucza, raz od strony wyjścia.}
+  \say{Pokazać na żywo w symulatorze, karta druga. To był błąd 2 RC4: drugi bajt bywa 0 dwa razy za często. ChaCha20 daje 0,36\%: to szum losowania, przy 100\,000 kluczy spodziewamy się około 390 zer, plus minus 20. Domknięcie: błędy 1 i 2 to jeden mechanizm, dokładne mieszanie, zmierzony raz od strony klucza, raz od strony wyjścia.}
 \end{frame}
 
 \begin{frame}{How do we know it is secure?}
