@@ -108,7 +108,7 @@ make clean
 ```
 
 The Makefile automatically places the resulting PDFs in `builded_presentation/`.
-Each lecture folder also has its own `Makefile` (`make` inside `Lecture4/` builds only that lecture).
+Each lecture folder also has its own `Makefile` (`make` inside `Lecture04-Diffie-Hellman/` builds only that lecture).
 
 ---
 

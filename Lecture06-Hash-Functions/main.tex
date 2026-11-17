@@ -1,0 +1,2226 @@
+\documentclass[aspectratio=169,10pt]{beamer}
+% notes.tex defines \NOTESONLY and reads this file: then only the speaker notes are printed
+\ifdefined\NOTESONLY
+  \setbeameroption{show only notes}
+\fi
+
+\usepackage{lmodern}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[polish,english]{babel}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{colortbl}
+\usepackage{xcolor}
+\usepackage{fontawesome5}
+\usepackage{listings}
+\usepackage{etoolbox}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, calc, positioning, fit, decorations.pathreplacing, decorations.pathmorphing}
+\usepackage{pgfplots}
+% layers for the code windows drawn in TikZ: the window, then the line that runs now, then the text
+\pgfdeclarelayer{codebg}\pgfdeclarelayer{codehl}\pgfsetlayers{codebg,codehl,main}
+\pgfplotsset{compat=1.18}
+
+\usetheme{Madrid}
+\useinnertheme{rounded}
+\useoutertheme{miniframes}
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{itemize items}[circle]
+\setbeamertemplate{enumerate items}[default]
+\setbeamertemplate{blocks}[rounded][shadow=true]
+% one dot per idea, not per frame: \samedot before a frame gives it the dot of the frame before
+% (it undoes the step of the dot counter that the next frame makes)
+\newcommand{\samedot}{\addtocounter{subsectionslide}{-1}}
+% the default dot step of the circle dots (0.1 cm dots)
+\setbeamersize{mini frame size=.14cm,mini frame offset=-.01cm}
+
+% ======================================================================
+% Colour rules for presentations (Beamer + TikZ), from Agents/colors
+% ======================================================================
+
+% ---------- template ----------
+\definecolor{DeepBlue}{HTML}{283593}      % title bar, headings, links, control-flow arrows
+\definecolor{AccentOrange}{HTML}{EB5A14}  % annotations: step numbers, "look here", code highlight, conclusions
+\definecolor{LightGray}{HTML}{F5F6FA}     % background of information blocks
+\setbeamercolor{palette primary}{bg=DeepBlue,fg=white}
+\setbeamercolor{palette secondary}{bg=DeepBlue!80!black,fg=white}
+\setbeamercolor{palette tertiary}{bg=DeepBlue!90!black,fg=white}
+\setbeamercolor{title}{bg=DeepBlue,fg=white}
+\setbeamercolor{frametitle}{bg=DeepBlue,fg=white}
+\setbeamercolor{structure}{fg=DeepBlue}
+\setbeamercolor{item}{fg=AccentOrange}
+\setbeamercolor{alerted text}{fg=AccentOrange}
+\setbeamercolor{block title}{bg=DeepBlue,fg=white}
+\setbeamercolor{block body}{bg=LightGray,fg=black}
+\setbeamercolor{block title example}{bg=AccentOrange,fg=white}
+\setbeamercolor{block body example}{bg=AccentOrange!10,fg=black}
+\setbeamercolor{enumerate item}{fg=DeepBlue}
+\setbeamerfont{enumerate item}{series=\bfseries}
+
+% ---------- actors and categories: fills only (S1 to S6) ----------
+\definecolor{sIndigo}{HTML}{5C6BC0}   % S1
+\definecolor{sPink}{HTML}{EC407A}     % S2
+\definecolor{sViolet}{HTML}{7E57C2}   % S3
+\definecolor{sAmber}{HTML}{FFB300}    % S4: black text on it
+\definecolor{sTeal}{HTML}{26A69A}     % S5
+\definecolor{sBrown}{HTML}{8D6E63}    % S6
+% text variants that stay readable on white
+\definecolor{sPinkText}{HTML}{C2185B}
+\definecolor{sAmberText}{HTML}{A06A00}
+\definecolor{sTealText}{HTML}{00796B}
+
+% ---------- actions: frames only; results: signs only ----------
+\definecolor{aExec}{HTML}{43A047}     % runs now
+\definecolor{aRead}{HTML}{1E88E5}     % is read
+\definecolor{aWrite}{HTML}{E53935}    % is written
+
+% ---------- neutral (Blue Grey) ----------
+\definecolor{nInk}{HTML}{37474F}      % text in figures, waveforms, wires, data-flow arrows
+\definecolor{nLine}{HTML}{90A4AE}     % borders, axes
+\definecolor{nLight}{HTML}{CFD8DC}    % inactive lines, grids, empty places (dashed)
+\definecolor{nFill}{HTML}{ECEFF1}     % fill of boxes and used cells
+\definecolor{nIdle}{HTML}{E0E0E0}     % time lost (idle, busy waiting, bubbles)
+
+% ---------- TikZ styles ----------
+\tikzset{
+  aexec/.style={draw=aExec, line width=1.6pt},
+  aexecm/.style={aexec, label={[text=aExec, inner sep=1pt, font=\tiny]left:$\blacktriangleright$}},
+  aread/.style={draw=aRead, line width=1.6pt, dash pattern=on 3pt off 2pt},
+  awrite/.style={draw=aWrite, line width=2.4pt},
+  hw/.style={draw=nLine, thick, fill=nFill, text=nInk, rounded corners=3pt, align=center, inner sep=4pt},
+  hwmain/.style={draw=nInk, thick, fill=nInk, text=white, rounded corners=3pt, align=center, inner sep=4pt},
+  cell/.style={draw=nLine, thick, fill=white, text=nInk, font=\ttfamily\scriptsize},
+  cellused/.style={cell, fill=nFill},
+  cellfree/.style={cell, dashed, draw=nLight},
+  container/.style={draw=nLine, thick, dashed, rounded corners=5pt},
+  actor/.style={fill=#1, draw=#1, text=white, rounded corners=3pt, align=center, font=\scriptsize\bfseries, inner sep=4pt},
+  actorlight/.style={fill=#1!15, draw=#1, thick, text=nInk, rounded corners=3pt, align=center, inner sep=4pt},
+  suspended/.style={fill=#1!30, draw=#1, dashed, line width=0.9pt, text=nInk, rounded corners=3pt, align=center, inner sep=4pt},
+  ready/.style={fill=white, draw=#1, line width=0.8pt, text=nInk, rounded corners=3pt, align=center, inner sep=4pt},
+  idle/.style={fill=nIdle, draw=none, text=nInk, rounded corners=3pt, align=center, inner sep=4pt},
+  flow/.style={-{Stealth}, very thick, DeepBlue},
+  data/.style={-{Stealth}, very thick, nInk},
+  holds/.style={-{Stealth}, very thick, nInk},
+  waits/.style={-{Stealth}, very thick, nLine, dashed},
+  annot/.style={draw=AccentOrange, line width=1.4pt, rounded corners=3pt},
+}
+\tikzset{actoramber/.style={actor=sAmber, text=black}}
+
+% ---------- signs and small helpers ----------
+\newcommand{\ok}{\textcolor{aExec}{\faCheck}}
+\newcommand{\nok}{\textcolor{aWrite}{\faTimes}}
+\newcommand{\badge}[1]{\tikz[baseline=(b.base)]\node[circle,fill=AccentOrange,text=white,
+  inner sep=1.2pt,font=\bfseries\tiny] (b) {#1};}
+\newcommand{\bigbadge}[1]{\tikz[baseline=(b.base)]\node[circle,fill=AccentOrange,text=white,
+  inner sep=2pt,font=\bfseries\small] (b) {#1};}
+% ---------- text boxes ----------
+\newcommand{\defbox}[1]{%
+  \begin{beamercolorbox}[rounded=true,sep=0.1cm,wd=\linewidth]{block body example}
+    \footnotesize #1
+  \end{beamercolorbox}\vspace{0.06cm}}
+% a large definition in the middle of the slide
+\newcommand{\bigdef}[1]{%
+  \begin{beamercolorbox}[rounded=true,sep=0.25cm,wd=\linewidth]{block body example}
+    \centering\normalsize #1
+  \end{beamercolorbox}\vspace{0.06cm}}
+\newcommand{\stepbox}[2]{%
+  \begin{beamercolorbox}[rounded=true,sep=0.09cm,wd=\linewidth]{block body}
+    \footnotesize\textbf{#1}\\ #2
+  \end{beamercolorbox}\vspace{0.06cm}}
+\newcommand{\keymsg}[1]{%
+  \begin{beamercolorbox}[rounded=true,sep=0.1cm,wd=\textwidth]{block body example}
+    \centering\footnotesize #1
+  \end{beamercolorbox}}
+% a grey box without a title
+\newcommand{\plainbox}[1]{%
+  \begin{beamercolorbox}[rounded=true,sep=0.12cm,wd=\linewidth]{block body}
+    \centering\footnotesize #1
+  \end{beamercolorbox}\vspace{0.06cm}}
+\setbeamercolor{block body problem}{bg=AccentOrange!10,fg=black}
+\newcommand{\probbox}[2]{%
+  \begin{beamercolorbox}[rounded=true,sep=0.09cm,wd=\linewidth]{block body problem}
+    \footnotesize\textbf{\textcolor{AccentOrange}{\faExclamationTriangle}\ #1}\\ #2
+  \end{beamercolorbox}\vspace{0.06cm}}
+
+% ---------- code: dark window, grey dots, syntax colours ----------
+\definecolor{VSDarkBg}{RGB}{25,25,25}
+\definecolor{VSText}{RGB}{245,245,245}
+\definecolor{VSBlue}{RGB}{80,180,255}
+\definecolor{VSPurple}{RGB}{210,110,210}
+\definecolor{VSString}{RGB}{255,140,80}
+\definecolor{VSComment}{RGB}{80,220,80}
+\setbeamercolor{vscodelisting}{bg=VSDarkBg}
+\lstdefinestyle{code}{basicstyle=\color{VSText}\ttfamily\scriptsize, keywordstyle=\color{VSBlue}\bfseries,
+  stringstyle=\color{VSString}, commentstyle=\color{VSComment}\itshape, emphstyle=\color{VSPurple},
+  numbers=none, columns=fixed, basewidth=0.52em, keepspaces=true, showstringspaces=false, xleftmargin=6pt}
+\lstdefinestyle{py}{style=code, language=Python, emph={print,chr,zip,range,len,bytes,ord,hex}}
+\BeforeBeginEnvironment{lstlisting}{%
+  \begin{beamercolorbox}[rounded=true,sep=2mm,wd=\linewidth]{vscodelisting}%
+  \begin{tikzpicture}
+    \fill[nLine] (0,0) circle (3pt); \fill[nLine] (0.35,0) circle (3pt); \fill[nLine] (0.70,0) circle (3pt);
+  \end{tikzpicture}%
+  \vspace{-0.2cm}}
+\AfterEndEnvironment{lstlisting}{\end{beamercolorbox}}
+\newcommand{\hlcode}[1]{{\setlength{\fboxsep}{1pt}\colorbox{AccentOrange}{\textcolor{white}{\bfseries #1}}}}
+\newcommand{\eol}{\tikz[remember picture, overlay]\coordinate (eol) at (0,0.08);}
+\newcommand{\codenote}[3][0pt]{%
+  \begin{tikzpicture}[remember picture, overlay, >=Stealth]
+    \node[draw=AccentOrange, very thick, fill=AccentOrange!6, rounded corners=4pt, text width=0.33\paperwidth,
+      align=left, inner sep=6pt, font=\footnotesize, anchor=west] (cal)
+      at ([yshift=#1]eol -| {$(current page.west)!0.6!(current page.east)$}) {\textbf{\textcolor{AccentOrange}{#2}}\\[3pt]#3};
+    \draw[->, very thick, AccentOrange] (eol -| cal.west) -- ([xshift=4pt]eol);
+  \end{tikzpicture}}
+% program output: a light terminal line
+\newcommand{\terminal}[1]{%
+  \begin{tikzpicture}
+    \node[draw=nLine, thick, fill=nFill, rounded corners=3pt, inner sep=5pt, font=\ttfamily\small, text=nInk]
+      {\textcolor{nLine}{\$}\ #1};
+  \end{tikzpicture}}
+
+% ======================================================================
+% Course macros
+% ======================================================================
+% the starter files on GitHub: the word "GitHub" is the link.
+%   \ghlink{Task4} opens the folder of Task 4, \ghlink{} opens the folder of this lecture
+\newcommand{\ghbase}{https://github.com/KsaweryM/Cryptography-Course/tree/main/Lecture06-Hash-Functions}
+\newcommand{\ghlink}[1]{\href{\ghbase/#1}{\textcolor{DeepBlue}{\textbf{GitHub}}}}
+% the task slides: the steps are in the README on GitHub, the slide only opens the task
+%   \taskgoal{one line}   \taskready{the ready modules}   \opentask{Task2}{about 6 minutes}
+%   a task on paper: the question on the slide, then \onpaper{about 6 minutes}
+\newcommand{\taskgoal}[1]{{\centering\large\textcolor{AccentOrange}{\faBullseye}\ \textbf{Goal:} #1\par}\vspace{0.2cm}}
+\newcommand{\taskready}[1]{{\centering\normalsize\textcolor{nInk}{\faBox}\ \textbf{Ready:} #1\par}\vspace{0.2cm}}
+\newcommand{\opentask}[2]{%
+  \begin{beamercolorbox}[rounded=true,sep=0.35cm,wd=\linewidth]{block body example}
+    \centering
+    {\LARGE\faGithub\ \textbf{Open the task:}\ \href{\ghbase/#1}{\textcolor{DeepBlue}{\textbf{\texttt{#1}}}}}\\[8pt]
+    \footnotesize\href{\ghbase/#1}{\textcolor{DeepBlue}{\texttt{github.com/KsaweryM/Cryptography-Course/tree/main/Lecture06-Hash-Functions/#1}}}\\[6pt]
+    \small on \ghlink{#1}: the steps, the starter files and how to run them\ifx&#2&\else\qquad\faClock[regular]\ #2\fi
+  \end{beamercolorbox}}
+\newcommand{\onpaper}[1]{%
+  \begin{beamercolorbox}[rounded=true,sep=0.3cm,wd=\linewidth]{block body example}
+    \centering
+    {\LARGE\faPencil*\ \textbf{On paper}}\ifx&#1&\else\qquad\small\faClock[regular]\ #1\fi
+  \end{beamercolorbox}}
+
+% a page of the simulator website, printed in full so that students can type it:
+%   \simlink{hash/\#2} prints and links ksawerym.github.io/Cryptography-simulators/hash/#2
+\newcommand{\simbase}{ksawerym.github.io/Cryptography-simulators}
+\newcommand{\simlink}[1]{\href{https://\simbase/#1}{\textcolor{DeepBlue}{\texttt{\simbase/#1}}}}
+% a slide that sends the room to the simulator (shown live by the lecturer): \opensim{hash/\#1}
+\newcommand{\opensim}[1]{%
+  \begin{beamercolorbox}[rounded=true,sep=0.35cm,wd=\linewidth]{block body example}
+    \centering
+    {\LARGE\faDesktop\ \textbf{Open the simulator}}\\[8pt]
+    \normalsize\simlink{#1}
+  \end{beamercolorbox}}
+% "For the curious" line under a frame: \curious{hash/\#2}
+\newcommand{\curious}[1]{{\footnotesize\textcolor{gray}{\faSearch\ For the curious:}\ \simlink{#1}}}
+
+% speaker notes (Polish): printed only in the notes PDF (make notes)
+\setbeamertemplate{note page}[default]
+\setbeamerfont{note page}{size=\normalsize}
+\newcommand{\say}[1]{\note{\selectlanguage{polish}#1}}
+
+
+% ======================================================================
+% Colour mapping of Lectures 6 to 8 (colour rules, section 6); the same in the slides,
+% the task figures (task-figures/common.tex) and the simulators (hash/, passwords/, signatures/)
+%   S1 sIndigo : Alice (and what only Alice can make)
+%   S2 sPink   : Eve (only listens) and Mallory (changes data): the attackers
+%   S3 sViolet : the message, the file, the data: the input of a hash
+%   S4 sAmber  : a secret value: the random r of a commitment, the seed of a hash chain
+%                (lecture 7: the salt; lecture 8: the MAC key)
+%   S5 sTeal   : Bob, the server, the one who checks
+%   S6 sBrown  : the digest (hash value): the output that is published, stored and compared
+%   mechanisms (the hash function, the compression function, the state A to H) are neutral (dark box)
+%   results: the digests match \ok (aExec), they do not \nok (aWrite)
+% ======================================================================
+\tikzset{
+  person/.style={circle, fill=#1, draw=#1, text=white, minimum size=1.15cm, font=\Large, inner sep=0pt},
+  msgval/.style={draw=sViolet, thick, fill=sViolet!12, text=nInk, rounded corners=3pt, align=center, inner sep=4pt},
+  dgval/.style={draw=sBrown, thick, fill=sBrown!15, text=nInk, rounded corners=3pt, align=center, inner sep=4pt},
+  secval/.style={draw=sAmber, thick, fill=sAmber!25, text=nInk, rounded corners=3pt, align=center, inner sep=4pt},
+  unk/.style={draw=AccentOrange, thick, dashed, fill=white, text=AccentOrange, rounded corners=3pt, align=center,
+    inner sep=4pt, font=\bfseries},
+  bar/.style={draw=none, rounded corners=1.5pt},
+  bitcell/.style={draw=nLine, fill=white, minimum width=0.19cm, minimum height=0.3cm, inner sep=0pt},
+}
+\newcommand{\msgt}[1]{\textcolor{sViolet}{\textbf{#1}}}
+\newcommand{\dgt}[1]{\textcolor{sBrown}{\textbf{#1}}}
+\newcommand{\sect}[1]{\textcolor{sAmberText}{\textbf{#1}}}
+\newcommand{\hl}[1]{\textcolor{AccentOrange}{\textbf{#1}}}
+% a person: \personnode{name}{x,y}{colour}{caption}; \attacker{name}{x,y}{caption} (Mallory: a ninja, Eve: a spy)
+\newcommand{\personnode}[4]{%
+  \node[person=#3] (#1) at (#2) {\faUser};
+  \node[font=\small\bfseries, text=#3, below=0.08cm of #1] (#1lbl) {#4};}
+\newcommand{\mallorynode}[2]{%
+  \node[person=sPink] (#1) at (#2) {\faUserNinja};
+  \node[font=\small\bfseries, text=sPinkText, below=0.08cm of #1] (#1lbl) {Mallory};}
+\newcommand{\evenode}[2]{%
+  \node[person=sPink] (#1) at (#2) {\faUserSecret};
+  \node[font=\small\bfseries, text=sPinkText, below=0.08cm of #1] (#1lbl) {Eve};}
+% the hash function as a dark box: \hashnode[width]{name}{x,y}{label}
+\newcommand{\hashnode}[4][2.4cm]{%
+  \node[hwmain, minimum width=#1, minimum height=1.0cm, font=\small\bfseries] (#2) at (#3) {\faCogs\ #4};}
+
+% a step of a calculation: an orange arrow when it is the step of this slide
+\newcommand{\now}{\makebox[0.45cm][l]{\textcolor{AccentOrange}{\faCaretRight}}}
+\newcommand{\notnow}{\makebox[0.45cm][l]{}}
+
+\title{Cryptography}
+\subtitle{Hash Functions}
+\author{Ksawery Możdżyński}
+\date{}
+
+\begin{document}
+% ======================================================================
+% Opening
+% ======================================================================
+
+\begin{frame}
+  \titlepage
+  \say{Wykład 6 z 12. Po pięciu wykładach o szyfrowaniu (RC4, ChaCha20, RSA, Diffie-Hellman, krzywe eliptyczne) dziś narzędzie bez klucza: funkcja skrótu. Na nim stoją dwa kolejne wykłady (łamanie skrótów i hasła, podpis cyfrowy) i cała część o PKI. Cały dzień to ok. 220 minut netto, z tego ok. 80 minut na 10 zadań. Zadania są na GitHubie, w folderze Lecture06-Hash-Functions; potrzebny jest tylko Python 3.8 lub nowszy, bez dodatkowych bibliotek.}
+\end{frame}
+
+\begin{frame}{Agenda For Today}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \foreach \ic/\t [count=\k from 0] in {
+          {\faFingerprint}/{Compute fingerprints of texts and files, and see how one changed bit changes everything.},
+          {\faLock}/{Learn what exactly must be hard for an attacker, then use hashes for downloads, Git, commitments and one-time passwords.},
+          {\faCogs}/{Open SHA-256: blocks, a state and 64 rounds; compare MD5, SHA-1 and SHA-256 today.}} {
+        \node[circle, fill=DeepBlue, text=white, minimum size=1.3cm, font=\LARGE] at (0,{-1.9*\k}) {\ic};
+        \node[anchor=west, text width=12cm, font=\large, align=left, execute at begin node={\hyphenpenalty=10000 }] at (1.0,{-1.9*\k}) {\t};
+      }
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \say{Trzy części dnia. Najpierw czarna skrzynka: liczymy skróty w Pythonie i patrzymy, co się dzieje przy małej zmianie. Potem: co dokładnie musi być trudne dla atakującego i do czego skróty służą w praktyce (pobrane pliki, Git, zobowiązania, jednorazowe hasła). Na końcu zaglądamy do środka SHA-256 i porównujemy MD5, SHA-1, SHA-256. Nazwy sekcji są na pasku u góry slajdu, kropki pokazują postęp.}
+\end{frame}
+
+\begin{frame}{The question of today}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \personnode{alice}{0,0}{sIndigo}{Alice}
+      \node[font=\scriptsize, text=gray, below=0.0cm of alicelbl] {writes a text editor};
+      \node[hw, minimum width=2.2cm, minimum height=1.5cm, font=\small] (mir) at (5.2,0) {\faServer\\[2pt] a mirror\\ \scriptsize (someone else's server)};
+      \personnode{bob}{10.4,0}{sTeal}{Bob}
+      \node[msgval, font=\scriptsize] (f1) at (2.5,0.75) {\faFile*\ editor.bin, 5 GB};
+      \node[msgval, font=\scriptsize] (f2) at (7.9,0.75) {\faFile*\ editor.bin, 5 GB};
+      \draw[data] (alice) -- (mir);
+      \draw[data] (mir) -- (bob);
+      \mallorynode{mal}{5.2,-2.0}
+      \draw[sPink, very thick, dashed, -{Stealth}] (mal.north) -- (mir.south);
+      \node[font=\small\bfseries, text=AccentOrange] at (7.9,1.4) {the same bytes?};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \bigdef{\textbf{How do we know data has not changed?}}
+  \vfill
+  \say{To jest pytanie całego dnia, na koniec sekcji 3 będzie na nie pełna odpowiedź. Sytuacja: Alice pisze edytor tekstu i publikuje plik instalacyjny. Plik jest duży, więc rozsyłają go serwery lustrzane (mirrors): cudze serwery, które trzymają kopię, żeby pobieranie było szybkie na całym świecie (tak dystrybuuje się np. Linuksa). Bob pobiera z takiego serwera. Czy dostał dokładnie te bajty, które wydała Alice? Mogły się zepsuć po drodze albo Mallory (tak nazywamy atakującego, który zmienia dane; Eve tylko podsłuchuje) mógł podmienić plik na serwerze. Zapytać salę: jak byście to sprawdzili? Typowe odpowiedzi: porównać rozmiar (za mało, Mallory zachowa rozmiar), pobrać drugi raz od Alice (5 GB, a Alice nie chce serwować wszystkim). Przejść dalej.}
+\end{frame}
+
+% ======================================================================
+\section[A fingerprint]{A fingerprint of data}
+% ======================================================================
+
+\begin{frame}{Recall: integrity in lectures 1 and 2}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.48\textwidth}
+      \centering\textbf{Lecture 1: bit flipping}\\[6pt]
+      \begin{tikzpicture}[>=Stealth]
+        \node[cell, minimum width=3.2cm, minimum height=0.6cm, font=\small\ttfamily] (c) at (0,0) {C = 5f 21 \textbf{9c} 0e};
+        \node[cell, minimum width=3.2cm, minimum height=0.6cm, font=\small\ttfamily] (c2) at (0,-1.5) {C' = 5f 21 \textbf{94} 0e};
+        \draw[awrite] ([xshift=0.25cm]c2.center) ++(-0.3,-0.22) rectangle ++(0.6,0.44);
+        \draw[data] (c) to node[right, font=\scriptsize] {Mallory XORs one byte} (c2);
+      \end{tikzpicture}\\[6pt]
+      \small A stream cipher does not notice: the message changes in the same bit.
+    \column{0.48\textwidth}
+      \centering\textbf{Lecture 2: a tag with a key}\\[6pt]
+      \begin{tikzpicture}[>=Stealth]
+        \node[msgval, font=\small] (m) at (0,0) {ciphertext};
+        \node[secval, font=\small] (k) at (2.6,0) {\faKey\ shared key};
+        \node[hwmain, font=\small\bfseries] (p) at (1.3,-1.3) {Poly1305};
+        \draw[data] (m) -- (p); \draw[data] (k) -- (p);
+        \node[cell, font=\small\ttfamily, minimum width=1.6cm] (t) at (1.3,-2.4) {tag};
+        \draw[data] (p) -- (t);
+      \end{tikzpicture}\\[6pt]
+      \small Detects any change, but both sides need the same secret key.
+  \end{columns}
+  \vfill
+  \keymsg{Today: a check that needs no key at all, so anybody can do it.}
+  \say{Krótko, 2 minuty. W wykładzie 1 Mallory zmieniał bity szyfrogramu i odbiorca tego nie widział. W wykładzie 2 ChaCha20-Poly1305 dodawał znacznik (tag), który wykrywa każdą zmianę, ale wymaga wspólnego tajnego klucza. Bob i Alice z poprzedniego slajdu nie mają wspólnego klucza, a Alice chce, żeby każdy na świecie mógł sprawdzić jej plik. Dlatego dziś: sprawdzenie bez klucza.}
+\end{frame}
+
+\samedot
+\begin{frame}{Compare without sending the file again}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \personnode{alice}{0,0}{sIndigo}{Alice}
+      \personnode{bob}{10.4,0}{sTeal}{Bob}
+      \node[msgval, minimum width=2.6cm, minimum height=1.1cm, anchor=west] (fa) at (1.0,0) {\faFile*\ 5 GB};
+      \node[msgval, minimum width=2.6cm, minimum height=1.1cm, anchor=east] (fb) at (9.4,0) {\faFile*\ 5 GB};
+      \node[font=\Large\bfseries, text=AccentOrange] at (5.2,0) {$=$ ?};
+      \draw[nLine, thick, dashed, -{Stealth}] (fa.south) to[bend right=15] node[below, font=\scriptsize, text=gray] {send all 5 GB again? \nok} (fb.south);
+      \node[dgval, font=\scriptsize\ttfamily, minimum width=2.6cm] (da) at (2.3,1.6) {32 bytes};
+      \node[dgval, font=\scriptsize\ttfamily, minimum width=2.6cm] (db) at (8.1,1.6) {32 bytes};
+      \draw[data] (fa.north) -- (da.south);
+      \draw[data] (fb.north) -- (db.south);
+      \draw[very thick, sBrown, <->] (da.east) to node[above, font=\scriptsize, text=nInk] {compare 32 bytes \ok} (db.west);
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \keymsg{We need a short value that stands for the whole file.}
+  \say{Porównanie bajt po bajcie wymaga, żeby oba pliki były w jednym miejscu, czyli 5 GB jeszcze raz. Pomysł: z każdego pliku policzyć krótki odcisk (jak odcisk palca człowieka: mały, a wskazuje jedną osobę), np. 32 bajty, i porównać tylko odciski. Alice może wydrukować swój odcisk na stronie WWW, Bob liczy swój u siebie. Funkcja, która robi taki odcisk, to funkcja skrótu.}
+\end{frame}
+
+\begin{frame}{Hash function: the black box}
+  \bigdef{\textbf{Hash function}: any data in, a short \dgt{digest} of fixed size out. Same data, same digest.}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \foreach \y/\txt/\sz in {1.2/{"abc"}/3 bytes, 0/{invoice.txt}/161 bytes, -1.2/{Ubuntu installer}/5.8 GB} {
+        \node[msgval, minimum width=3.4cm, font=\small, anchor=east] at (0,\y) {\txt\ \textcolor{gray}{\scriptsize(\sz)}};
+        \draw[data] (0.05,\y) -- (1.6,0);
+      }
+      \hashnode[2.6cm]{h}{2.9,0}{SHA-256}
+      \foreach \y in {1.2,0,-1.2} {
+        \draw[data] (4.2,0) -- (5.6,\y);
+        \node[dgval, font=\scriptsize\ttfamily, anchor=west, minimum width=3.3cm] at (5.6,\y) {32 bytes};
+      }
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small Other names for the digest: \textbf{hash value}, \textbf{hash}, \textbf{fingerprint}, \textbf{checksum}.\end{center}
+  \say{Definicja na dziś. Wejście: dowolne dane, od zera bajtów do wielu gigabajtów. Wyjście: skrót (digest) o stałej długości, dla SHA-256 zawsze 32 bajty, czyli 256 bitów. To samo wejście daje zawsze ten sam skrót, na każdym komputerze. W wykładzie 4 była już jedna linijka o funkcji skrótu: klucz = SHA-256(wspólny sekret). Kolory na dzisiejszych slajdach: fioletowe są dane wejściowe, brązowe są skróty, ciemne pudełko to funkcja (mechanizm). Słowo checksum bywa używane jak skrót, ale za 20 minut zobaczymy, że zwykła suma kontrolna to coś słabszego.}
+\end{frame}
+
+\samedot
+\begin{frame}{Recall: hex}
+  \vfill
+  % CHECKED: python3 hashlib.sha256(b"abc").hexdigest() = ba7816bf...f20015ad (FIPS 180-4 example)
+  \begin{center}
+    \begin{tikzpicture}
+      \foreach \b [count=\k from 0] in {ba,78,16,bf,8f,01,cf,ea,41,41,40,de,5d,ae,22,23} {
+        \node[cell, fill=sBrown!15, draw=sBrown, minimum width=0.75cm, minimum height=0.6cm, font=\ttfamily] at ({0.8*\k},0.4) {\b};
+      }
+      \foreach \b [count=\k from 0] in {b0,03,61,a3,96,17,7a,9c,b4,10,ff,61,f2,00,15,ad} {
+        \node[cell, fill=sBrown!15, draw=sBrown, minimum width=0.75cm, minimum height=0.6cm, font=\ttfamily] at ({0.8*\k},-0.4) {\b};
+      }
+      \draw[nLine, thick, decorate, decoration={brace, amplitude=5pt}] (-0.4,0.85) -- (0.4,0.85)
+        node[midway, above=5pt, font=\scriptsize, text=nInk] {1 byte};
+      \node[font=\small, text=nInk, anchor=west] at (12.6,0) {32 bytes};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}
+    \small One byte (0 to 255) = two hex digits, \texttt{00} to \texttt{ff}:\quad \texttt{ba} $= 11 \times 16 + 10 = 186$.\\[6pt]
+    32 bytes = \textbf{64 hex digits}: \quad \texttt{ba7816bf8f01cfea\ldots b410ff61f20015ad}
+  \end{center}
+  \vfill
+  \keymsg{A SHA-256 digest is always written as 64 hex digits.}
+  \say{Przypomnienie zapisu szesnastkowego, bo dziś wszystkie skróty są w hex. Cyfry 0 do 9 i a do f (a = 10, f = 15); dwie cyfry na bajt. Na slajdzie prawdziwy skrót SHA-256 trzech liter abc, 32 bajty w dwóch rzędach. W Pythonie .hex() na bajtach daje ten napis, bytes.fromhex() robi odwrotnie. Jeśli ktoś pyta: w C to printf("\%02x", b) dla każdego bajtu.}
+\end{frame}
+
+\samedot
+\begin{frame}{The same input, the same digest}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \node[hw, minimum width=3.2cm, minimum height=1.1cm, font=\small] (pc) at (0,1.1) {\faLaptop\ Alice's laptop\\\scriptsize Linux, 2019};
+      \node[hw, minimum width=3.2cm, minimum height=1.1cm, font=\small] (ph) at (0,-1.1) {\faMobile*\ Bob's phone\\\scriptsize Android, 2026};
+      \node[msgval, font=\small] (m1) at (4.1,1.1) {"abc"};
+      \node[msgval, font=\small] (m2) at (4.1,-1.1) {"abc"};
+      \hashnode[2.2cm]{h1}{6.6,1.1}{SHA-256}
+      \hashnode[2.2cm]{h2}{6.6,-1.1}{SHA-256}
+      \node[dgval, font=\scriptsize\ttfamily, anchor=west] (d1) at (8.3,1.1) {ba7816bf\ldots f20015ad};
+      \node[dgval, font=\scriptsize\ttfamily, anchor=west] (d2) at (8.3,-1.1) {ba7816bf\ldots f20015ad};
+      \draw[data] (pc) -- (m1); \draw[data] (m1) -- (h1); \draw[data] (h1) -- (d1);
+      \draw[data] (ph) -- (m2); \draw[data] (m2) -- (h2); \draw[data] (h2) -- (d2);
+      \draw[very thick, sBrown, <->] (d1.south) to node[right, font=\small, text=nInk] {equal \ok} (d2.north);
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small No randomness, no key, no settings: the digest depends only on the bytes.\end{center}
+  \keymsg{Two people who never talked compute the same digest from the same bytes.}
+  \say{Funkcja skrótu jest deterministyczna. Dzięki temu Alice liczy skrót u siebie, publikuje go, a Bob liczy u siebie na zupełnie innym sprzęcie i porównuje. Uwaga: chodzi o bajty. Ten sam tekst zapisany z innym końcem linii (Windows: \textbackslash r\textbackslash n, Linux: \textbackslash n) albo w innym kodowaniu to inne bajty, więc inny skrót; to częsta pułapka w zadaniach.}
+\end{frame}
+
+\samedot
+\begin{frame}{Any size in, 32 bytes out}
+  \vfill
+  % CHECKED: python3 Task1/solution/first_digests.py: 0 bytes e3b0c442...7852b855; 1 000 000 zero bytes d29751f2...24cc8025
+  % CHECKED: hashlib.sha256(b"a").hexdigest() = ca978112...afee48bb
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \foreach \y/\lbl/\w/\dg in {1.5/{0 bytes}/0.05/e3b0c44298fc1c14\ldots a495991b7852b855,
+                               0.5/{1 byte: "a"}/0.15/ca978112ca1bbdca\ldots b9807785afee48bb,
+                               -0.5/{1 000 000 zero bytes}/5.0/d29751f2649b32ff\ldots b0b692b924cc8025} {
+        \node[font=\small, text=nInk, anchor=east] at (-0.1,\y) {\lbl};
+        \fill[sViolet!25, draw=sViolet] (0,\y-0.22) rectangle (\w,\y+0.22);
+        \node[dgval, font=\scriptsize\ttfamily, anchor=west, inner sep=3pt] at (6.6,\y) {\dg};
+        \draw[data, nLine] (\w+0.1,\y) -- (6.5,\y);
+      }
+      \node[font=\scriptsize, text=gray] at (2.5,-1.1) {input (to scale)};
+      \node[font=\scriptsize, text=gray] at (8.9,-1.1) {always 32 bytes};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small And it is fast: hundreds of megabytes per second on a laptop \textcolor{gray}{(Task 10 measures it)}.\end{center}
+  \keymsg{The digest has the same size for every input, even an empty one.}
+  \say{Trzy prawdziwe skróty. Nawet puste wejście ma skrót: e3b0c442...; ten napis warto rozpoznawać, bo w logach często oznacza ,,plik był pusty''. Szybkość: setki MB/s w Pythonie na laptopie; dokładne liczby zmierzymy w zadaniu 10 na końcu dnia. Szybkość jest ważna, bo skróty liczy się dla gigabajtów danych (kopie zapasowe, Git, pobrane pliki).}
+\end{frame}
+
+\begin{frame}[fragile]{SHA-256 in Python}
+\begin{lstlisting}[style=py]
+import hashlib
+
+d = hashlib.sha256(b"abc").digest()       # 32 bytes
+h = hashlib.sha256(b"abc").hexdigest()    # the same, as 64 hex digits
+print(len(d), h)
+\end{lstlisting}
+  \vspace{0.2cm}
+  \terminal{32 ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad}
+  \vspace{0.3cm}
+
+  \small
+  \begin{itemize}
+    \item \texttt{hashlib}: part of Python, no installation.
+    \item \texttt{b"abc"}: a \texttt{bytes} object, three bytes \texttt{61 62 63}; a hash function takes bytes, not text.
+    \item In C with OpenSSL the same is \texttt{SHA256(data, len, out)}, with \texttt{unsigned char out[32]}.
+  \end{itemize}
+  \say{Cała czarna skrzynka to jedna linijka. digest() zwraca 32 bajty (typ bytes), hexdigest() te same bajty jako napis 64 cyfr szesnastkowych. Funkcja skrótu przyjmuje bajty: tekst trzeba zamienić na bajty, np. "abc".encode() (UTF-8), stąd literał b"abc". Porównanie z C dla tych, którzy znają OpenSSL: SHA256(dane, długość, bufor\_wyjściowy). hashlib w CPythonie pod spodem woła właśnie OpenSSL.}
+\end{frame}
+
+\samedot
+\begin{frame}{A test value from the standard}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \node[hw, text width=10.8cm, align=left, font=\small, inner sep=8pt] (doc) {
+        \textbf{\faBook\ FIPS 180-4, Secure Hash Standard} \textcolor{gray}{(NIST, the standard of SHA-256)}\\[6pt]
+        Example: the message \texttt{"abc"}, 24 bits. The digest:\\[3pt]
+        \texttt{ba7816bf 8f01cfea 414140de 5dae2223 b00361a3 96177a9c b410ff61 f20015ad}};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small Your result $=$ the standard's \ok\quad: your tool computes SHA-256 correctly.\\[3pt]
+    \textcolor{gray}{Every standard hash comes with such test values (``test vectors'').}\end{center}
+  \vfill
+  \keymsg{Check your tool against the standard before you trust it.}
+  \say{Każdy standard kryptograficzny publikuje wartości testowe. Dla SHA-256 najsłynniejsza to skrót słowa abc (przykład dołączony do FIPS 180-4, wydany przez NIST). Zanim zaufamy programowi albo własnej implementacji, sprawdzamy ją na takich wartościach; zrobimy to w zadaniu 1 i jeszcze raz w zadaniu 9, gdzie złożymy SHA-256 z części.}
+\end{frame}
+
+
+\begin{frame}{Task 1: first digests}
+  \vfill
+  \taskgoal{hash a short text, empty data, a file and one megabyte; check \texttt{abc} against the standard.}
+  \taskready{\texttt{first\_digests.py} with the value of FIPS 180-4, and \texttt{invoice.txt}.}
+  \vfill
+  \opentask{Task1}{about 6 minutes}
+  \vfill
+  \say{Około 6 minut. Polecenia są w README na GitHubie (folder Lecture06-Hash-Functions/Task1). Cztery TODO: skrót abc i porównanie ze standardem; skrót krótkiego tekstu i pustych danych; skrót pliku (open(..., "rb").read()); skrót miliona bajtów zerowych bytes(1000000). Nieruszony plik wypisuje ,,not done yet: TODO n''. Jeśli ktoś utknie: hashlib.sha256(dane).digest() albo .hexdigest(), dane muszą być bajtami (b"..."). Typowy błąd: open bez "rb" daje str i hashlib zgłasza TypeError. Rozwiązanie: local/rozwiazania/Lecture06-Hash-Functions-rozwiazania.md.}
+\end{frame}
+
+\samedot
+\begin{frame}{Task 1: what we saw}
+  % CHECKED: python3 Task1/solution/first_digests.py, 2026-11-17
+  \vfill
+  \begin{center}
+    \renewcommand{\arraystretch}{1.35}
+    \begin{tabular}{@{}l@{\qquad}r@{\qquad}r@{\qquad}l@{}}
+      \toprule
+      \textbf{input} & \textbf{bytes in} & \textbf{bytes out} & \textbf{digest} \\
+      \midrule
+      \texttt{abc} & 3 & 32 & \texttt{ba7816bf\ldots f20015ad}\ \ \ok\ \scriptsize as FIPS 180-4 \\
+      \texttt{Hello, Bob!} & 11 & 32 & \texttt{2558308e\ldots 7caa8d7f} \\
+      empty & 0 & 32 & \texttt{e3b0c442\ldots 7852b855} \\
+      \texttt{invoice.txt} & 161 & 32 & \texttt{1bb10a59\ldots 3e46ba94} \\
+      one million zero bytes & 1\,000\,000 & 32 & \texttt{d29751f2\ldots 24cc8025} \\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+  \vfill
+  \keymsg{From 0 bytes to a megabyte: always 32 bytes out, and \texttt{abc} matches the standard.}
+  \say{Wyniki z rozwiązania (pełne skróty w przewodniku). Zapytać: kto dostał inny skrót invoice.txt? Najczęstsza przyczyna: plik zapisany na nowo w edytorze (inne końce linii) albo skopiowany tekst zamiast pliku. To dobry moment, żeby powiedzieć: skrót zależy od każdego bajtu, także niewidocznych.}
+\end{frame}
+
+\begin{frame}{Pay Bob 100 or 900?}
+  % CHECKED: python3: sha256(b"Pay Bob 100 GBP") = b392dc89...84300b24, sha256(b"Pay Bob 900 GBP") = 8ac91a50...13b110e0;
+  %   '1' = 0x31 = 0011 0001, '9' = 0x39 = 0011 1001: one bit; the two digests differ in 128 of 256 bits
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \node[msgval, font=\small\ttfamily, anchor=east] (m1) at (0,0.9) {Pay Bob \textbf{1}00 GBP};
+      \node[msgval, font=\small\ttfamily, anchor=east] (m2) at (0,-0.9) {Pay Bob \textbf{9}00 GBP};
+      \hashnode[2.0cm]{h1}{1.7,0.9}{SHA-256}
+      \hashnode[2.0cm]{h2}{1.7,-0.9}{SHA-256}
+      \draw[data] (m1) -- (h1); \draw[data] (m2) -- (h2);
+      \node[dgval, font=\scriptsize\ttfamily, anchor=west, text width=5.6cm] (d1) at (3.2,0.9) {b392dc8944a7f1ef60ccecab976a2140\\21539fc692acc9eccf84ea0484300b24};
+      \node[dgval, font=\scriptsize\ttfamily, anchor=west, text width=5.6cm] (d2) at (3.2,-0.9) {8ac91a50448dbe4771331d25a9de9a99\\d1aabed830e11978dc313aab13b110e0};
+      \draw[data] (h1) -- (d1); \draw[data] (h2) -- (d2);
+      \node[font=\scriptsize, text=gray, align=center] at (-1.9,0) {\texttt{'1'} = 0011 0\textbf{0}01\\ \texttt{'9'} = 0011 1\textbf{0}01};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small The messages differ in \textbf{one bit}. The digests differ in \textbf{128 of 256 bits}, with no visible pattern.\end{center}
+  \keymsg{A tiny change of the input gives a completely different digest.}
+  \say{Znaki 1 (0x31) i 9 (0x39) różnią się dokładnie jednym bitem (bit o wartości 8). Wiadomości różnią się więc jednym bitem z 120. Skróty nie mają ze sobą nic wspólnego: liczyłem, różnią się w 128 bitach na 256, czyli dokładnie w połowie. Zapytać salę: dlaczego to dobrze dla Boba? Odpowiedź: Mallory nie może ,,trochę'' zmienić skrótu tak, żeby pasował do zmienionej kwoty; każda zmiana daje zupełnie nowy, nieprzewidywalny skrót.}
+\end{frame}
+
+\samedot
+\begin{frame}{The avalanche effect}
+  \bigdef{\textbf{Avalanche effect}: change one bit of the input, and about \textbf{half} of the output bits change, in places nobody can predict.}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \node[font=\small, text=nInk, anchor=east] at (-0.2,0.45) {digest 1};
+      \node[font=\small, text=nInk, anchor=east] at (-0.2,-0.45) {digest 2};
+      % CHECKED: the first 32 bits of the two digests of the slide before: b392dc89 and 8ac91a50
+      \foreach \b [count=\k from 0] in {1,0,1,1,0,0,1,1,1,0,0,1,0,0,1,0,1,1,0,1,1,1,0,0,1,0,0,0,1,0,0,1} {
+        \node[bitcell, minimum width=0.29cm, minimum height=0.4cm, font=\tiny\ttfamily, fill=sBrown!15] at ({0.3*\k},0.45) {\b};
+      }
+      \foreach \b/\d [count=\k from 0] in {1/0,0/0,0/1,0/1,1/1,0/0,1/0,0/1,1/0,1/1,0/0,0/1,1/1,0/0,0/1,1/1,0/1,0/1,0/0,1/0,1/0,0/1,1/1,0/0,0/1,1/1,0/0,1/1,0/1,0/0,0/0,0/1} {
+        \node[bitcell, minimum width=0.29cm, minimum height=0.4cm, font=\tiny\ttfamily, fill=sBrown!15] (b\k) at ({0.3*\k},-0.45) {\b};
+        \ifnum\d=1 \draw[awrite, line width=1.2pt] (b\k.south west) rectangle (b\k.north east); \fi
+      }
+      \node[font=\small, text=gray, anchor=west, align=left] at (9.6,0) {18 of these 32 changed\\ \ldots 224 more bits};
+      \node[font=\scriptsize, text=aWrite, anchor=north] at (4.6,-0.8) {red frame: the bit changed};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small Why we want it: digests of similar files are not similar, so a digest tells nothing about \emph{how} the input changed.\end{center}
+  \keymsg{No ``close'' digests: Mallory cannot steer the output with small edits.}
+  \say{Definicja efektu lawiny. Na rysunku pierwsze 32 bity obu skrótów z poprzedniego slajdu (b392dc89 i 8ac91a50), czerwona ramka tam, gdzie bit jest inny. Pytanie do sali: ile czerwonych ramek spodziewamy się na 256 bitach? Nie odpowiadać, to zadanie 2. Dlaczego połowa, a nie wszystkie: gdyby zmieniały się wszystkie bity, skrót drugi byłby po prostu negacją pierwszego, czyli przewidywalny. Połowa to dokładnie tyle, ile różnią się dwie zupełnie losowe liczby.}
+\end{frame}
+
+\begin{frame}{Recall: XOR shows the differing bits}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \foreach \row/\lbl/\bits/\y in {a/{$a = $ \texttt{0xb3}}/{1,0,1,1,0,0,1,1}/1, b/{$b = $ \texttt{0x8a}}/{1,0,0,0,1,0,1,0}/0.2, x/{$a \oplus b$}/{0,0,1,1,1,0,0,1}/-0.9} {
+        \node[font=\small, text=nInk, anchor=east] at (-0.3,\y) {\lbl};
+        \foreach \v [count=\k from 0] in \bits {
+          \node[cell, minimum width=0.55cm, minimum height=0.55cm, font=\ttfamily] (\row\k) at ({0.6*\k},\y) {\v};
+        }
+      }
+      \draw[nInk, thick] (-0.4,-0.4) -- (4.6,-0.4);
+      \foreach \k in {2,3,4,7} \draw[awrite, line width=1.4pt] (x\k.south west) rectangle (x\k.north east);
+      \node[font=\small, text=nInk, anchor=west] at (5.2,-0.9) {four 1s: \textbf{4 bits differ}};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small XOR gives 1 exactly where the two bits differ (lecture 1).\\
+    Count the 1s: \quad \texttt{while (x) \{ count += x \& 1; x >>= 1; \}}\end{center}
+  \keymsg{Differing bits of two digests = the 1s in their XOR.}
+  \say{Przypomnienie XOR z wykładu 1, potrzebne w zadaniu 2. Bajty 0xb3 i 0x8a to pierwsze bajty skrótów z poprzedniego slajdu. XOR daje 1 tam, gdzie bity są różne; liczba jedynek to liczba różnych bitów. Liczenie jedynek: pętla jak w C, sprawdzamy najniższy bit (x \& 1) i przesuwamy w prawo. Liczba jedynek w słowie nazywa się popcount (Hamming weight), procesory mają na to instrukcję, ale w zadaniu piszemy pętlę.}
+\end{frame}
+
+\begin{frame}{Task 2: count the changed bits}
+  \begin{columns}[c,onlytextwidth]
+    \column{0.58\textwidth}
+      \taskgoal{change one bit of a message and count the changed bits of its digest; then 1000 times.}
+      \taskready{\texttt{avalanche.py}: the message and \texttt{flip\_bit(data, i)}.}
+      \probbox{Predict first}{How many of the 256 bits change? Always the same number?}
+    \column{0.4\textwidth}
+      \centering
+      \begin{tikzpicture}[>=Stealth]
+        \node[msgval, font=\scriptsize\ttfamily, text width=3.6cm] (m) at (0,1.0) {\textbf{M}eet Carol at the library at 10:00};
+        \node[msgval, font=\scriptsize\ttfamily, text width=3.6cm] (m2) at (0,0) {\textbf{L}eet Carol at the library at 10:00};
+        \node[unk, font=\small] (q) at (0,-1.0) {changed bits = ?};
+        \draw[data] (m2) -- (q);
+      \end{tikzpicture}
+  \end{columns}
+  \vfill
+  \opentask{Task2}{about 8 minutes}
+  \say{Około 8 minut. Najpierw zebrać przewidywania (zapisać 2 do 3 liczby na tablicy). Trzy TODO: funkcja liczenia różnych bitów (XOR i pętla), jedna para (M zamienione na L przez zmianę najniższego bitu: 0x4D na 0x4C), potem 1000 prób, każda z inną wiadomością i innym zmienionym bitem; program sam rysuje histogram z krzyżyków. Jeśli ktoś utknie w TODO 1: for i in range(len(a)): x = a[i] \^{} b[i], potem while x != 0. Typowy błąd: porównywanie napisów hexdigest zamiast bajtów digest (XOR na znakach nie ma sensu).}
+\end{frame}
+
+% CHECKED: python3 Task2/solution/avalanche.py: one pair 121 bits; 1000 trials smallest 104, largest 152, average 127.723;
+%   groups of 4: 104-107: 2, 108: 19, 112: 48, 116: 89, 120: 154, 124: 191, 128: 172, 132: 155, 136: 95, 140: 42, 144: 23, 148: 9, 152: 1
+\samedot
+\begin{frame}{Task 2: what we saw}
+  \begin{columns}[c,onlytextwidth]
+    \column{0.36\textwidth}
+      \small One pair: \textbf{121 of 256} bits changed.\\[8pt]
+      1000 pairs:\\[3pt]
+      smallest \textbf{104}, largest \textbf{152},\\ average \textbf{127.7}.\\[8pt]
+      \textcolor{gray}{Two random 256-bit numbers differ in 128 bits on average.}
+    \column{0.62\textwidth}
+      \centering
+      \begin{tikzpicture}[x=0.36cm, y=0.018cm]
+        \foreach \lo/\n in {104/2,108/19,112/48,116/89,120/154,124/191,128/172,132/155,136/95,140/42,144/23,148/9,152/1} {
+          \fill[sBrown, bar] ({(\lo-100)/4*1.0},0) rectangle ({(\lo-100)/4*1.0+0.85},\n);
+          \node[font=\tiny, text=nInk, anchor=south] at ({(\lo-100)/4*1.0+0.42},\n) {\n};
+        }
+        \draw[nLine, thick] (0,0) -- (14.2,0);
+        \foreach \lo in {104,112,120,128,136,144,152}
+          \node[font=\tiny, text=gray, anchor=north] at ({(\lo-100)/4*1.0+0.42},0) {\lo};
+        \draw[AccentOrange, thick, dashed] (7.0,0) -- (7.0,215) node[above, font=\scriptsize\bfseries] {128 = half};
+        \node[font=\scriptsize, text=gray] at (7.1,-22) {changed bits (groups of 4)};
+      \end{tikzpicture}
+  \end{columns}
+  \vfill
+  \keymsg{One changed bit changes about half of the digest, every time; never just a few bits.}
+  \say{Wyniki z rozwiązania. Jedna para: 121 bitów. 1000 prób: od 104 do 152, średnio 127,7, rozkład jak dzwon wokół 128. Dokładnie tak zachowują się dwie niezależne losowe liczby 256-bitowe: każdy bit różni się z prawdopodobieństwem 1/2. Czyli skrót lekko zmienionej wiadomości wygląda jak zupełnie losowa, niezwiązana liczba. Porównać z przewidywaniami z tablicy.}
+\end{frame}
+
+\begin{frame}{A hash is not encryption}
+  \vfill
+  \begin{center}
+    \renewcommand{\arraystretch}{1.5}
+    \begin{tabular}{@{}l@{\qquad}c@{\qquad}c@{}}
+      \toprule
+      & \textbf{encryption} (ChaCha20, RSA) & \textbf{hash} (SHA-256) \\
+      \midrule
+      needs a key & yes & \textbf{no} \\
+      can be undone & yes, with the key & \textbf{no, by nobody} \\
+      output size & about the input size & \textbf{always 32 bytes} \\
+      purpose & hide the data & \textbf{stand for} the data \\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+  \vfill
+  \begin{center}\small ``We encrypted the passwords with SHA-256'' is a wrong sentence: nothing was encrypted.\end{center}
+  \keymsg{A hash has no key and no way back: it is a fingerprint, not a locked box.}
+  \say{Częste pomylenie pojęć, także w mediach i w kodzie. Szyfrowanie jest odwracalne dla posiadacza klucza, a szyfrogram ma mniej więcej długość tekstu jawnego. Skrót nie ma klucza, ma stałą długość i nie da się go odwrócić. Zdanie ,,zaszyfrowaliśmy hasła SHA-256'' jest błędne; hasłami zajmiemy się w wykładzie 7. Zapytać salę: czy z 32 bajtów skrótu filmu 5 GB da się odzyskać film? Nie: następny slajd.}
+\end{frame}
+
+\samedot
+\begin{frame}{Why a hash cannot be undone}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \foreach \t/\y in {{"abc"}/1.6, {a 5 GB film}/0.8, {invoice.txt}/0, {\ldots}/-0.8, {endless other inputs}/-1.6} {
+        \node[msgval, font=\scriptsize, minimum width=3.2cm] at (0,\y) {\t};
+      }
+      \node[hw, minimum width=3.4cm, minimum height=3.8cm, font=\small, align=center] (o) at (7.6,0) {};
+      \node[font=\small\bfseries, text=nInk, anchor=north] at (o.north) {$2^{256}$ digests};
+      \foreach \y in {0.9,0.3,-0.3,-0.9} \node[dgval, font=\tiny, minimum width=2.6cm, inner sep=2pt] at (7.6,\y) {};
+      \foreach \y/\ty in {1.6/0.9, 0.8/-0.3, 0/0.3, -0.8/-0.9, -1.6/0.3} \draw[data, nLine] (1.7,\y) -- (6.25,\ty);
+      \node[font=\scriptsize, text=gray] at (4.0,-2.3) {infinitely many inputs share the $2^{256}$ outputs};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small A 5 GB film does not fit into 32 bytes: the digest keeps almost nothing of the input.\\
+    Each digest belongs to \textbf{endlessly many} inputs; nobody can tell which one it was.\end{center}
+  \say{Intuicja nieodwracalności. Wejść jest nieskończenie wiele, skrótów tylko $2^{256}$. Skrót filmu nie może zawierać filmu: 32 bajty to za mało. Informacja ginie, więc nie ma czego ,,odszyfrować''. To jednak nie cała prawda o bezpieczeństwie: jeśli wejście jest krótkie i przewidywalne (np. wynik meczu), można zgadywać wejścia i porównywać skróty. To zobaczymy w zadaniu 7.}
+\end{frame}
+
+\samedot
+\begin{frame}{Collisions must exist}
+  \bigdef{\textbf{Collision}: two different inputs with the same digest, $H(m_1) = H(m_2)$ with $m_1 \neq m_2$.}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \foreach \k in {0,...,4} \node[hw, minimum width=1.6cm, minimum height=1.2cm] (b\k) at ({2*\k},0) {};
+      \foreach \k/\n in {0/1,1/1,2/2,3/1,4/1} \foreach \j in {1,...,\n}
+        \node[circle, fill=sViolet, minimum size=0.35cm, inner sep=0pt] at ({2*\k+0.45*(\j-1)-0.22*(\n-1)},0) {};
+      \draw[annot] (b2.south west) rectangle (b2.north east);
+      \node[font=\scriptsize, text=gray] at (4,-0.95) {6 letters, 5 boxes: one box gets two};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small More inputs than digests, so collisions \textbf{exist}, very many of them.\\
+    But for SHA-256 \textbf{nobody has ever found one}.\end{center}
+  \keymsg{Collisions exist for every hash function; a good one makes them impossible to find.}
+  \say{Zasada szufladkowa (pigeonhole principle): 6 listów do 5 skrzynek, któraś dostanie dwa. Wejść jest więcej niż skrótów, więc kolizje muszą istnieć, i to bardzo wiele. Dobra funkcja skrótu nie obiecuje, że ich nie ma; obiecuje, że nikt nie umie żadnej znaleźć. Dla SHA-256 do dziś nikt nie pokazał ani jednej pary. Dla starszych MD5 i SHA-1 znaleziono kolizje: o tym na końcu dnia jednym zdaniem, a szczegóły w wykładzie 7.}
+\end{frame}
+
+% ======================================================================
+\section[What must be hard]{What must be hard}
+% ======================================================================
+
+\begin{frame}{Why not a simple checksum?}
+  % CHECKED: python3: sum(b"PAY BOB 190 GBP") = 912, 912 mod 256 = 144
+  \begin{center}\small A \textbf{checksum}: add all bytes, keep the sum modulo 256. One byte, very fast.\end{center}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \foreach \c/\v [count=\k from 0] in {P/80,A/65,Y/89,{\textvisiblespace}/32,B/66,O/79,B/66,{\textvisiblespace}/32,1/49,9/57,0/48,{\textvisiblespace}/32,G/71,B/66,P/80} {
+        \node[cell, fill=sViolet!12, draw=sViolet, minimum width=0.72cm, minimum height=0.55cm, font=\ttfamily] at ({0.78*\k},0.5) {\c};
+        \node[font=\scriptsize\ttfamily, text=nInk] at ({0.78*\k},-0.1) {\v};
+      }
+      \node[font=\small, text=nInk, anchor=west] at (-0.4,-0.9) {$80 + 65 + 89 + \ldots + 80 = 912$, \quad $912 \bmod 256 = 144$};
+      \node[dgval, font=\large\ttfamily, anchor=west] at (8.2,-0.9) {checksum = 144};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small It catches a random error: one changed byte changes the sum.\\
+    \textbf{Alice} sends the order and its checksum. Can \textbf{Mallory} change the amount and keep the checksum?\end{center}
+  \say{Przed funkcją skrótu ludzie używali (i nadal używają) prostych sum kontrolnych. Najprostsza: dodać wszystkie bajty, wynik modulo 256. Pod znakami ich kody ASCII (P = 80, spacja = 32, cyfra 1 = 49 itd.). Suma 912, modulo 256 daje 144. Jeden przypadkowo zmieniony bajt zmienia sumę, więc błąd transmisji zostanie wykryty. Ale czy suma powstrzyma kogoś, kto zmienia dane celowo? To jest zadanie na kartce.}
+\end{frame}
+
+\begin{frame}{Task 3: beat the checksum}
+  \begin{columns}[c,onlytextwidth]
+    \column{0.6\textwidth}
+      \small Alice sends: \quad \texttt{PAY BOB 190 GBP}, \quad checksum \textbf{144}.\\[8pt]
+      You are Mallory. Change \textbf{only the three digits} so that:
+      \begin{enumerate}\setlength{\itemsep}{4pt}
+        \item Bob gets \textbf{more money},
+        \item the checksum is still \textbf{144}.
+      \end{enumerate}
+      \vspace{0.2cm}
+      What is the \textbf{largest} amount you can make?\\[4pt]
+      \textcolor{gray}{Digits: \texttt{'0'} = 48, \texttt{'1'} = 49, \ldots, \texttt{'9'} = 57.}
+      \vspace{0.3cm}
+      \onpaper{about 6 minutes}
+    \column{0.37\textwidth}
+      \centering
+      \begin{tikzpicture}[>=Stealth]
+        \node[msgval, font=\ttfamily] (m) at (0,1.2) {PAY BOB 190 GBP};
+        \node[dgval, font=\small] at (0,0.45) {checksum 144};
+        \mallorynode{mal}{0,-1.0}
+        \node[unk, font=\ttfamily] at (0,-2.6) {PAY BOB ??? GBP};
+      \end{tikzpicture}
+  \end{columns}
+  \say{Około 6 minut, na kartce, można w parach. Wskazówka, jeśli sala milczy po 2 minutach: suma zależy od tego, jakie cyfry są w kwocie, ale nie od ich kolejności. Inna wskazówka: jedną cyfrę zwiększ o 1, inną zmniejsz o 1. Nie zdradzać odpowiedzi przed upływem czasu.}
+\end{frame}
+
+\samedot
+\begin{frame}{Task 3: what we saw}
+  % CHECKED: python3: sum(b"PAY BOB 910 GBP") = sum(b"PAY BOB 280 GBP") = 912, mod 256 = 144
+  \vfill
+  \begin{center}
+    \renewcommand{\arraystretch}{1.4}
+    \begin{tabular}{@{}l@{\qquad}l@{\qquad}c@{}}
+      \toprule
+      \textbf{order} & \textbf{how} & \textbf{checksum} \\
+      \midrule
+      \texttt{PAY BOB 190 GBP} & Alice's order & 144 \\
+      \texttt{PAY BOB 280 GBP} & one digit $+1$, another $-1$ & 144 \ \ok \\
+      \texttt{PAY BOB 910 GBP} & the same digits, another order & 144 \ \ok \\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+  \vfill
+  \begin{center}\small Any three digits that add up to $1 + 9 + 0 = 10$ give the same checksum. The largest: \textbf{910}.\end{center}
+  \keymsg{For a checksum, finding another input with the same value takes seconds, on paper.}
+  \say{Odpowiedzi: każda kwota, której cyfry sumują się do 10, ma tę samą sumę kontrolną, bo kod ASCII cyfry to 48 + cyfra. Największa: 910 GBP zamiast 190. Inne poprawne: 280, 370, 460, 550, 901 i tak dalej. Wniosek: suma kontrolna nie jest funkcją skrótu w sensie kryptograficznym. Mallory w kilka sekund znajduje inną wiadomość z tą samą wartością. Zapytać: czy z SHA-256 dałoby się zrobić to samo? Nie, z powodu lawiny: każda zmiana daje inny, nieprzewidywalny skrót. Tę różnicę nazwiemy za chwilę dokładnie.}
+\end{frame}
+
+\samedot
+\begin{frame}{Checksums catch accidents, not Mallory}
+  \begin{columns}[c,onlytextwidth]
+    \column{0.48\textwidth}
+      \centering\textbf{Noise}\\[6pt]
+      \begin{tikzpicture}
+        \node[hw, font=\small, minimum width=4.6cm] {\faWifi\ a flipped bit on a cable};
+      \end{tikzpicture}\\[6pt]
+      \small Random, does not aim for anything.\\ A checksum such as \textbf{CRC-32} catches it.\\
+      \textcolor{gray}{\scriptsize (Ethernet frames, ZIP files)}
+    \column{0.48\textwidth}
+      \centering\textbf{Mallory}\\[6pt]
+      \begin{tikzpicture}
+        \node[person=sPink, minimum size=0.9cm] {\faUserNinja};
+      \end{tikzpicture}\\[6pt]
+      \small Chooses the change, knows the checksum,\\ \textbf{fixes it up} as in Task 3.\\
+      Only a cryptographic hash stops her.
+  \end{columns}
+  \vfill
+  \keymsg{A checksum protects against nature; a cryptographic hash also protects against people.}
+  \say{Sumy kontrolne mają swoje miejsce: CRC-32 jest w każdej ramce Ethernetu i w plikach ZIP, wykrywa przypadkowe błędy transmisji i zapisu, jest bardzo szybki. Ale CRC jest liniowy i łatwo go dopasować, podobnie jak naszą sumę. Atakujący nie jest losowy: wybiera zmianę i poprawia sumę. Od funkcji skrótu kryptograficznej (SHA-256) wymagamy więcej. Co dokładnie: trzy własności na następnych slajdach.}
+\end{frame}
+
+\begin{frame}{Property 1: second-preimage resistance}
+  \bigdef{\textbf{Second-preimage resistance}: given $m$, it is infeasible to find another $m' \neq m$ with $H(m') = H(m)$.}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \node[msgval, font=\small] (m) at (0,0.8) {$m$: Alice's installer};
+      \node[dgval, font=\small] (d) at (5.6,0) {$H(m)$, on Alice's website};
+      \node[unk, font=\small] (m2) at (0,-0.8) {$m'$ = ? \quad (Mallory's installer)};
+      \draw[data] (m) -- (d);
+      \draw[data, dashed, sPink] (m2) to node[below right, font=\scriptsize, text=sPinkText] {same digest?} (d);
+      \mallorynode{mal}{-3.6,-0.8}
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small \textbf{Protects:} the download. Mallory has Alice's file and needs a different file that matches the published digest. \textcolor{gray}{(Task 3: easy for a checksum.)}\end{center}
+  \say{Pierwsza własność, ta najważniejsza dla naszego problemu z pobieraniem. Dane jest konkretne wejście m (plik Alice) i jego skrót. Atakujący szuka innego wejścia m' z tym samym skrótem. ,,Infeasible'' znaczy: praktycznie niewykonalne, tyle pracy, że nie zrobi tego nikt, nawet z wszystkimi komputerami świata. W zadaniu 3 dla sumy kontrolnej to było łatwe: m' = ,,PAY BOB 910 GBP''. Nazwa ,,druga przeciwdziedzina'' (second preimage): m' to drugie wejście dla tego samego skrótu.}
+\end{frame}
+
+\samedot
+\begin{frame}{Property 2: preimage resistance}
+  \bigdef{\textbf{Preimage resistance} (one-way): given only a digest $d$, it is infeasible to find any $m$ with $H(m) = d$.}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \node[dgval, font=\small\ttfamily] (d) at (5.6,0) {$d$ = 9f86d081\ldots};
+      \node[unk, font=\small] (m) at (0,0) {$m$ = ? \quad any input at all};
+      \draw[data, dashed, sPink] (m) to node[above, font=\scriptsize, text=sPinkText] {gives $d$?} (d);
+      \mallorynode{mal}{-3.6,0}
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small \textbf{Protects:} a hidden value. Only the digest is public (a commitment, a one-time password, later: stored passwords); the input must stay unknown.\end{center}
+  \say{Druga własność: jednokierunkowość. Mallory ma tylko skrót, nie ma żadnego wejścia; szuka dowolnego wejścia, które da ten skrót. To jest dokładne znaczenie zdania ,,skrótu nie da się odwrócić''. Chroni sytuacje, w których publikujemy tylko skrót, a wejście ma zostać tajne: zobowiązania i jednorazowe hasła zobaczymy w sekcji 3, przechowywanie haseł w wykładzie 7. Różnica wobec poprzedniej: tu Mallory nie zna żadnego wejścia.}
+\end{frame}
+
+\samedot
+\begin{frame}{Property 3: collision resistance}
+  \bigdef{\textbf{Collision resistance}: it is infeasible to find any two inputs $m_1 \neq m_2$ with $H(m_1) = H(m_2)$.}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \mallorynode{mal}{-3.6,0}
+      \node[unk, font=\small] (m1) at (0,0.8) {$m_1$ = ? \quad a harmless contract};
+      \node[unk, font=\small] (m2) at (0,-0.8) {$m_2$ = ? \quad a harmful contract};
+      \node[dgval, font=\small] (d) at (5.6,0) {the same digest};
+      \draw[data, dashed, sPink] (m1) -- (d); \draw[data, dashed, sPink] (m2) -- (d);
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small Here Mallory chooses \textbf{both} inputs. \textbf{Protects:} anything where someone vouches for a digest that Mallory prepared: Bob approves $m_1$, Mallory later shows $m_2$ \textcolor{gray}{(signatures, lecture 8)}.\end{center}
+  \say{Trzecia własność: Mallory sama wybiera oba wejścia, nic nie jest ustalone z góry. To daje jej najwięcej swobody, więc to najsłabsza z trzech gwarancji i pierwsza, która pada (MD5, SHA-1). Kiedy to groźne: Mallory przygotowuje dwie umowy z tym samym skrótem, Bob akceptuje (podpisuje) niewinną, a potem Mallory pokazuje szkodliwą z tym samym skrótem. Podpisy cyfrowe są w wykładzie 8, prawdziwe kolizje w wykładzie 7; tu tylko pojęcie.}
+\end{frame}
+
+\samedot
+\begin{frame}{The three side by side}
+  \vfill
+  \begin{center}
+    \renewcommand{\arraystretch}{1.6}
+    \begin{tabular}{@{}l@{\qquad}l@{\qquad}l@{}}
+      \toprule
+      \textbf{property} & \textbf{Mallory is given} & \textbf{Mallory looks for} \\
+      \midrule
+      preimage & a digest $d$ & any $m$ with $H(m) = d$ \\
+      second preimage & an input $m$ (so also $H(m)$) & $m' \neq m$ with $H(m') = H(m)$ \\
+      collision & nothing & any $m_1 \neq m_2$ with $H(m_1) = H(m_2)$ \\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+  \vfill
+  \begin{center}\small Going down the table, Mallory has \textbf{more freedom}, so her task gets easier.\end{center}
+  \keymsg{Preimage: hit a given digest. Second preimage: match a given file. Collision: any matching pair.}
+  \say{Zestawienie, które warto zostawić na ekranie i omówić. Pytanie kontrolne do sali: Mallory podmienia plik na serwerze, a skrót na stronie Alice został; którą własność atakuje? (druga przeciwdziedzina). Mallory widzi tylko skrót tajnej liczby; którą? (preimage). Mallory przygotowuje dwa dokumenty; którą? (kolizja). Im niżej w tabeli, tym łatwiejsze zadanie atakującego, co zobaczymy w kosztach.}
+\end{frame}
+
+\begin{frame}{The generic attack: try and compare}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \mallorynode{mal}{-0.6,0}
+      \foreach \t/\y in {"0"/1.2, "1"/0.4, "2"/-0.4, \ldots/-1.2} \node[msgval, font=\small\ttfamily, minimum width=1.2cm] (t\y) at (1.6,\y) {\t};
+      \hashnode[2.0cm]{h}{4.4,0}{SHA-256}
+      \foreach \y in {1.2,0.4,-0.4,-1.2} \draw[data, nLine] (2.25,\y) -- (3.35,0);
+      \node[dgval, font=\small, minimum width=2.6cm] (d) at (7.6,0) {$=$ target?};
+      \draw[data] (h) -- (d);
+      \node[font=\small, text=nInk, align=left, anchor=west] at (9.2,0) {\nok\ no: next try\\ \ok\ yes: found};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small Each try gives a digest that looks random: it matches a given $n$-bit digest with chance $1/2^n$.\\[4pt]
+    So Mallory needs about \textbf{$2^n$ tries} for a preimage or a second preimage.\end{center}
+  \keymsg{Against a good hash, trying is the only way: about $2^n$ tries for an $n$-bit digest.}
+  \say{Atak ogólny działa na każdą funkcję skrótu, bez znajomości jej wnętrza: podawać kolejne wejścia i porównywać. Dzięki lawinie każdy skrót wygląda jak losowa liczba n-bitowa, więc szansa trafienia w konkretny skrót to 1 na $2^n$, a średnio potrzeba ok. $2^n$ prób (rozkład geometryczny). Dobra funkcja skrótu to taka, dla której nie istnieje nic lepszego niż ten atak. Dla SHA-256 n = 256. Ile to jest, zmierzymy na krótszym skrócie.}
+\end{frame}
+
+\samedot
+\begin{frame}{A shorter hash for experiments}
+  % CHECKED: python3: sha256(b"Alice: the door code is 0886") starts with these bits (Task4/solution, short_hash)
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \foreach \k in {0,...,31} {
+        \node[bitcell, minimum width=0.33cm, minimum height=0.45cm, fill=sBrown!15] (c\k) at ({0.35*\k},0) {};
+      }
+      \node[font=\small, text=gray, anchor=west] at (11.3,0) {\ldots 224 more bits};
+      \foreach \k/\lbl in {11/12, 15/16, 19/20} {
+        \draw[AccentOrange, very thick] ($(c\k.north east)+(0.01,0.15)$) -- ($(c\k.south east)+(0.01,-0.15)$);
+        \node[font=\scriptsize\bfseries, text=AccentOrange, anchor=south] at ($(c\k.north east)+(0,0.15)$) {$k = \lbl$};
+      }
+      \draw[nLine, thick, decorate, decoration={brace, amplitude=5pt, mirror}] (c0.south west) ++(0,-0.2) -- ($(c19.south east)+(0,-0.2)$)
+        node[midway, below=6pt, font=\scriptsize, text=nInk] {keep only the first $k$ bits};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small A $k$-bit digest needs about $2^k$ tries: $2^{12} = 4096$, \; $2^{16} = 65\,536$, \; $2^{20} = 1\,048\,576$.\\[3pt]
+    Small enough for a laptop; then we \textbf{extrapolate} to 256 bits.\end{center}
+  \keymsg{Cutting the digest to $k$ bits lets us measure the cost of the attack.}
+  \say{Na prawdziwych 256 bitach atak nigdy się nie skończy, więc robimy eksperyment na skróconym skrócie: zostawiamy tylko pierwsze k bitów (truncated hash). Sam atak jest identyczny. Mierzymy, ile prób i sekund potrzeba dla 12, 16, 20 bitów, a potem rachunkiem przenosimy wynik na 256 bitów. Każde 4 bity więcej to 16 razy więcej pracy.}
+\end{frame}
+
+\begin{frame}{Task 4: invert a short hash}
+  \begin{columns}[c,onlytextwidth]
+    \column{0.58\textwidth}
+      \taskgoal{find an input with the same first $k$ bits as Alice's note, $k$ = 12, 16, 20; extrapolate to 256.}
+      \taskready{\texttt{invert\_short.py}: the note and \texttt{short\_hash(data, k)}.}
+      \probbox{Predict first}{12 bits: about 4096 tries. 16 bits? 20 bits?}
+    \column{0.4\textwidth}
+      \centering
+      \begin{tikzpicture}[>=Stealth]
+        \node[msgval, font=\scriptsize\ttfamily, text width=3.3cm, align=center] (n) at (0,1.2) {Alice: the door code is 0886};
+        \node[dgval, font=\scriptsize] (t) at (0,0.2) {first $k$ bits: the target};
+        \draw[data] (n) -- (t);
+        \node[unk, font=\small, align=center] at (0,-1.0) {tries = ?\\ seconds = ?};
+      \end{tikzpicture}
+  \end{columns}
+  \vfill
+  \opentask{Task4}{about 10 minutes}
+  \say{Około 10 minut, z czego ok. 3 sekundy liczy program. Zebrać przewidywania. Trzy TODO: pętla po i = 0, 1, 2, ... z wejściem str(i).encode(), pomiar czasu dla k = 12, 16, 20, na koniec szybkość (skróty na sekundę) i liczba lat dla 256 bitów. Pułapka: niektórzy liczą 2\^{}256 jako XOR w Pythonie; potęga to **. Liczby prób zależą od celu; u wszystkich będą takie same, bo cel i kolejność wejść są ustalone, ale czasy będą różne.}
+\end{frame}
+
+\samedot
+\begin{frame}{Task 4: what we saw}
+  % CHECKED: python3 Task4/solution/invert_short.py, i5-8265U, Python 3.12, 2026-11-17:
+  %   k=12: 3715 tries 0.01 s; k=16: 64050 tries 0.16 s; k=20: 1017612 tries 2.12 s; 480081 hashes/s; 7.6e+63 years
+  \vfill
+  \begin{center}
+    \renewcommand{\arraystretch}{1.4}
+    \begin{tabular}{@{}c@{\qquad}r@{\qquad}r@{\qquad}r@{}}
+      \toprule
+      $k$ & \textbf{tries} & $2^k$ & \textbf{time} \\
+      \midrule
+      12 & 3\,715 & 4\,096 & 0.01 s \\
+      16 & 64\,050 & 65\,536 & 0.16 s \\
+      20 & 1\,017\,612 & 1\,048\,576 & 2.1 s \\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+  \vfill
+  \begin{center}\small Python on a laptop: about \textbf{480\,000 hashes per second}.\\
+    All 256 bits: $2^{256} / 480\,000$ per second $\approx$ \textbf{$7.6 \times 10^{63}$ years}.\end{center}
+  \vfill
+  \keymsg{Each 4 more bits multiply the work by 16; 256 bits are out of reach.}
+  \say{Wyniki z rozwiązania, laptop z Intel Core i5-8265U, Python 3.12. Liczby prób blisko $2^k$ (dla jednego celu to los; średnio $2^k$; tę notatkę Alice wybrałem tak, żeby wyniki były typowe). Każde 4 bity więcej: 16 razy więcej prób i czasu. Dla 256 bitów wychodzi liczba lat z 64 cyframi; wiek Wszechświata to ok. $1{,}4 \cdot 10^{10}$ lat.}
+\end{frame}
+
+\begin{frame}{From a laptop to all the miners of Bitcoin}
+  % CHECKED: Bitcoin hashrate about 1 000 EH/s = 1e21 per second (Axel Adler Jr chart, 2026-11-03: 1 039.9 EH/s;
+  %   Hashrate Index Q2 2026 30-day average 1 004 EH/s); 2^128 / 1e21 / 3.156e7 s = 1.08e10 years; 2^256 -> 3.7e48 years
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \node[hw, minimum width=4.2cm, minimum height=1.4cm, font=\small] at (0,0) {\faLaptop\ our laptop, Python\\[2pt] $4.8 \times 10^{5}$ hashes/s};
+      \node[hw, minimum width=4.6cm, minimum height=1.4cm, font=\small] at (6.2,0) {\faIndustry\ all Bitcoin miners, 2026\\[2pt] about $10^{21}$ SHA-256 tries/s};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}
+    \renewcommand{\arraystretch}{1.4}
+    \begin{tabular}{@{}l@{\qquad}r@{}}
+      \toprule
+      \textbf{work} & \textbf{all Bitcoin miners need} \\
+      \midrule
+      $2^{128}$ tries & $\approx 1.1 \times 10^{10}$ years \textcolor{gray}{\ (the universe: $1.4 \times 10^{10}$)} \\
+      $2^{256}$ tries & $\approx 3.7 \times 10^{48}$ years \\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+  \vfill
+  \keymsg{Even the largest computing effort on Earth gets nowhere near $2^{256}$.}
+  \say{Bitcoin to największy na świecie ,,komputer'' do liczenia SHA-256: górnicy szukają nagłówka bloku, którego skrót zaczyna się od wielu zer, czyli robią dokładnie nasz atak z zadania 4 na skróconym skrócie. W 2026 roku sieć liczy ok. $10^{21}$ prób na sekundę (ok. 1000 EH/s, dane z listopada 2026). Nawet ta moc potrzebowałaby na $2^{128}$ prób ok. 11 miliardów lat, prawie wiek Wszechświata. Liczba $2^{128}$ wróci za chwilę przy kolizjach. Ten slajd można pominąć przy braku czasu.}
+\end{frame}
+
+\begin{frame}{Collisions are cheaper: about $2^{n/2}$}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \mallorynode{mal}{0,0}
+      \node[msgval, font=\small, text width=7.6cm, align=left, anchor=west] at (1.2,0.5) {Mallory hashes many inputs and keeps \textbf{all} digests.};
+      \node[msgval, font=\small, text width=7.6cm, align=left, anchor=west] at (1.2,-0.5) {Any two equal digests among them win, not one given digest.};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \bigdef{A collision of an $n$-bit hash takes only about $\mathbf{2^{n/2}}$ tries.\\ \small For SHA-256: $2^{128}$, still far too much.}
+  \vfill
+  \begin{center}\small Why exactly the square root (the birthday paradox), and real collisions: \textbf{lecture 7}.\end{center}
+  \say{Tylko zapowiedź, bez wyprowadzenia; pełne omówienie, paradoks urodzin i szukanie kolizji na skróconym SHA-256 są w wykładzie 7. Intuicja: w kolizji wygrywa każda para równych skrótów spośród wszystkich policzonych, a par jest dużo więcej niż skrótów, więc wystarczy ok. pierwiastka z $2^n$, czyli $2^{n/2}$ prób. Dlatego skrót musi mieć dwa razy więcej bitów niż chcemy bitów bezpieczeństwa: SHA-256 daje 128 bitów odporności na kolizje.}
+\end{frame}
+
+\samedot
+\begin{frame}{The cost of the three attacks}
+  \vfill
+  \begin{center}
+    \renewcommand{\arraystretch}{1.6}
+    \begin{tabular}{@{}l@{\qquad}c@{\qquad}c@{}}
+      \toprule
+      \textbf{attack} & \textbf{generic cost, $n$-bit hash} & \textbf{SHA-256} \\
+      \midrule
+      preimage & $2^n$ & $2^{256}$ \\
+      second preimage & $2^n$ & $2^{256}$ \\
+      collision & $2^{n/2}$ & $2^{128}$ \\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+  \vfill
+  \begin{center}\small A hash is \textbf{broken} when someone finds a way that is clearly cheaper than this table.\end{center}
+  \keymsg{SHA-256: $2^{256}$ against preimages, $2^{128}$ against collisions; both far out of reach.}
+  \say{To jest miara, którą ocenia się każdą funkcję skrótu. ,,Złamana'' znaczy: ktoś znalazł sposób wyraźnie tańszy niż ten atak ogólny, nawet jeśli wciąż drogi. Na końcu dnia zobaczymy, że MD5 i SHA-1 są złamane właśnie w ostatnim wierszu (kolizje). Dla SHA-256 nikt nie zna sposobu lepszego niż ta tabela.}
+\end{frame}
+
+% ======================================================================
+\section[Using hashes]{Using hashes}
+% ======================================================================
+
+\begin{frame}{Checking a download}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \personnode{alice}{0,1.2}{sIndigo}{Alice}
+      \node[hw, minimum width=3.2cm, font=\small] (web) at (3.6,1.2) {\faGlobe\ Alice's website};
+      \node[dgval, font=\scriptsize\ttfamily, anchor=west] (sum) at (5.6,1.2) {SHA256SUMS: 347ec73c\ldots};
+      \draw[data] (alice) -- (web);
+      \node[hw, minimum width=3.2cm, font=\small] (mir) at (3.6,-0.9) {\faServer\ a mirror};
+      \node[msgval, font=\scriptsize, anchor=west] (file) at (5.6,-0.9) {editor.bin};
+      \personnode{bob}{11.4,0.1}{sTeal}{Bob}
+      \draw[data] (sum.east) -- (bob);
+      \draw[data] (file.east) -- (bob);
+      \node[font=\small, text=nInk, align=left, anchor=west] at (8.0,-2.2) {\bigbadge{1} hash the downloaded file\\[3pt] \bigbadge{2} compare with SHA256SUMS};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small Big file from anywhere (fast); tiny digest from the publisher (trusted). Equal digests $\Rightarrow$ the same file.\end{center}
+  \keymsg{Second-preimage resistance turns ``same digest'' into ``same file''.}
+  \say{Tak wygląda sprawdzanie pobrań w praktyce. Duży plik pochodzi z dowolnego miejsca (mirror, sieć P2P, pendrive kolegi), a mały plik ze skrótem (zwykle nazywa się SHA256SUMS) z samej strony wydawcy. Bob liczy skrót pobranego pliku i porównuje. Dlaczego to wystarcza: żeby oszukać Boba, Mallory musiałaby zrobić inny plik o tym samym skrócie, czyli znaleźć drugą przeciwdziedzinę: $2^{256}$ prób.}
+\end{frame}
+
+\samedot
+\begin{frame}{A real example: Ubuntu}
+  % CHECKED: curl https://releases.ubuntu.com/24.04/SHA256SUMS, 2026-11-17: the line of ubuntu-24.04.5.1-desktop-amd64.iso;
+  %   the directory also holds SHA256SUMS.gpg; the ISO is 5.8 GB (directory listing)
+  \begin{center}\small \texttt{releases.ubuntu.com/24.04/} offers the installers \textbf{and} two small files:\end{center}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \node[hw, text width=12.4cm, align=left, font=\small, inner sep=8pt] {
+        \faFile*\ \texttt{ubuntu-24.04.5.1-desktop-amd64.iso} \hfill 5.8 GB\\[3pt]
+        \faFile*[regular]\ \texttt{SHA256SUMS} \hfill 1 KB\\[2pt]
+        \faFile*[regular]\ \texttt{SHA256SUMS.gpg} \hfill 1 KB};
+    \end{tikzpicture}\\[10pt]
+    \small One line of \texttt{SHA256SUMS}:\\[4pt]
+    \begin{tikzpicture}
+      \node[dgval, font=\scriptsize\ttfamily] {4da4a0c9035da8e68a59a838674f403f0a54472c78a83b4fb7f78d03588f85a7 *ubuntu-24.04.5.1-desktop-amd64.iso};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small The format: 64 hex digits, a space, a star (``binary file''), the file name.\end{center}
+  \say{Prawdziwy przykład, zapisany 17 listopada 2026 ze strony releases.ubuntu.com/24.04. Obok obrazów ISO leżą SHA256SUMS (skróty wszystkich plików, jedna linia na plik) i SHA256SUMS.gpg. Ten drugi to podpis cyfrowy pliku ze skrótami; po co jest, zobaczymy za trzy slajdy, a jak działa, w wykładzie 8. Gwiazdka przed nazwą to znacznik trybu binarnego programu sha256sum.}
+\end{frame}
+
+\begin{frame}[fragile]{A big file in pieces: update()}
+\begin{lstlisting}[style=py]
+h = hashlib.sha256()
+with open("editor.bin", "rb") as f:
+    while True:
+        piece = f.read(4096)
+        if piece == b"":           # end of the file
+            break
+        h.update(piece)            # add the next piece
+print(h.hexdigest())
+\end{lstlisting}
+  \vspace{0.2cm}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.5\textwidth}
+      \small A 5 GB file needs only a 4 KB buffer.\\ The result is the same as hashing everything at once.
+    \column{0.48\textwidth}
+      \small In C with OpenSSL: \texttt{SHA256\_Init}, then \texttt{SHA256\_Update} per piece, then \texttt{SHA256\_Final}.
+  \end{columns}
+  \vfill
+  \keymsg{update() feeds the data piece by piece; the digest does not depend on the size of the pieces.}
+  \say{Plik 5 GB nie zmieści się wygodnie w pamięci, więc liczymy skrót kawałkami. Obiekt hashlib.sha256() przechowuje stan, update(kawałek) dokłada kolejne bajty, hexdigest() kończy. Wynik jest identyczny jak dla całego pliku naraz, niezależnie od rozmiaru kawałków. Dlaczego to w ogóle możliwe, zobaczymy w sekcji 4 (budowa Merkle-Damgård: funkcja przetwarza blok po bloku i pamięta stan). W C to trójka Init / Update / Final; w nowszym OpenSSL funkcje EVP\_Digest*, ale idea ta sama.}
+\end{frame}
+
+\samedot
+\begin{frame}[fragile]{The same in the terminal: sha256sum}
+  \vspace{0.2cm}
+  \small Linux and macOS (\texttt{shasum -a 256} on macOS):\\[6pt]
+  \terminal{sha256sum ubuntu-24.04.5.1-desktop-amd64.iso}\\[4pt]
+  \terminal{sha256sum -c SHA256SUMS --ignore-missing}\\[4pt]
+  \hspace{0.5cm}\texttt{\small ubuntu-24.04.5.1-desktop-amd64.iso: OK}
+  \vspace{0.4cm}
+
+  Windows PowerShell:\\[6pt]
+  \terminal{Get-FileHash ubuntu-24.04.5.1-desktop-amd64.iso -Algorithm SHA256}
+  \vfill
+  \keymsg{Every system has a ready tool; \texttt{-c} compares with the list for you.}
+  \say{Te same obliczenia bez programowania. sha256sum -c czyta plik SHA256SUMS, liczy skróty plików, które ma na dysku (--ignore-missing pomija te, których nie pobraliśmy) i wypisuje OK albo FAILED. Na Windowsie Get-FileHash w PowerShellu, na macOS shasum -a 256. Można poprosić kogoś z sali, żeby sprawdził plik z zadania 5 poleceniem sha256sum.}
+\end{frame}
+
+\begin{frame}{Task 5: which mirror is honest?}
+  \begin{columns}[c,onlytextwidth]
+    \column{0.55\textwidth}
+      \taskgoal{hash Alice's installer from three mirrors, reading in pieces; compare with her website, then with each mirror's own list.}
+      \taskready{\texttt{check\_mirrors.py}, \texttt{read\_sums}, the files of three mirrors.}
+    \column{0.43\textwidth}
+      \centering
+      \begin{tikzpicture}[>=Stealth]
+        \node[dgval, font=\scriptsize] (w) at (0,1.5) {website: 347ec73c\ldots};
+        \foreach \m/\x in {a/-1.4,b/0,c/1.4} {
+          \node[hw, font=\scriptsize, minimum width=1.2cm, align=center] (m\m) at (\x,0) {mirror-\m\\ \faFile*};
+          \node[unk, font=\scriptsize, inner sep=2pt] at (\x,-0.9) {?};
+        }
+      \end{tikzpicture}
+  \end{columns}
+  \vfill
+  \opentask{Task5}{about 8 minutes}
+  \say{Około 8 minut. Trzy TODO: funkcja liczenia skrótu pliku kawałkami po 4096 bajtów (jak na slajdzie z update), porównanie każdego mirrora ze skrótem ze strony Alice, potem porównanie każdego mirrora z jego własnym plikiem SHA256SUMS. Przed TODO 3 zapytać: jeśli plik zgadza się z listą leżącą obok niego na tym samym serwerze, czy to dowód? Typowy błąd: porównanie hexdigest z bajtami digest (zawsze False).}
+\end{frame}
+
+\samedot
+\begin{frame}{Task 5: what we saw}
+  % CHECKED: python3 Task5/solution/check_mirrors.py, 2026-11-17 (files from checks/make_task5.py)
+  \vfill
+  \begin{center}
+    \renewcommand{\arraystretch}{1.45}
+    \begin{tabular}{@{}l@{\qquad}c@{\qquad}c@{\qquad}l@{}}
+      \toprule
+      & \textbf{vs Alice's website} & \textbf{vs its own SHA256SUMS} & \\
+      \midrule
+      mirror-a & \ok\ OK & \ok\ OK & Alice's file \\
+      mirror-b & \nok\ CHANGED & \nok\ CHANGED & one bit of byte 123\,456 changed \\
+      mirror-c & \nok\ CHANGED & \ok\ \textbf{OK} & Mallory's file \textbf{and} Mallory's list \\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+  \vfill
+  \begin{center}\small One changed bit in 200\,000 bytes: caught. But mirror-c agrees \textbf{with itself}.\end{center}
+  \keymsg{A digest only proves that the file matches that digest. Where the digest came from matters.}
+  \say{Wyniki rozwiązania. Mirror-a jest uczciwy. W mirror-b zmieniony jest jeden bit (bajt 123456), wykryte natychmiast mimo 200 000 bajtów. Mirror-c jest najciekawszy: Mallory podmieniła plik i napisała do niego nową listę skrótów. Sprawdzenie względem listy z tego samego serwera przechodzi! Zapytać salę, czego to uczy, zanim pokażemy następny slajd.}
+\end{frame}
+
+\begin{frame}{Mallory replaces the file and the digest}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \node[hw, minimum width=4.4cm, minimum height=2.6cm] (mir) at (0,0) {};
+      \node[font=\small\bfseries, text=nInk, anchor=north] at (mir.north) {\faServer\ mirror-c};
+      \node[msgval, font=\scriptsize] (f) at (0,0.1) {editor.bin \textcolor{sPinkText}{(Mallory's)}};
+      \node[dgval, font=\scriptsize] (s) at (0,-0.8) {SHA256SUMS \textcolor{sPinkText}{(Mallory's)}};
+      \mallorynode{mal}{-4.2,0}
+      \draw[sPink, very thick, -{Stealth}] (mal.east) -- (f.west);
+      \draw[sPink, very thick, -{Stealth}] (mal.east) -- (s.west);
+      \personnode{bob}{5.0,0}{sTeal}{Bob}
+      \node[font=\small, text=nInk, anchor=west, align=left] at (5.8,0) {file and list agree \ok\\ \textbf{but it is not Alice's file}};
+      \draw[data] (mir.east) -- (bob.west);
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small A hash has \textbf{no key}: whoever can change the file can compute the matching digest too.\end{center}
+  \keymsg{A hash alone detects changes only if Mallory cannot also change the digest.}
+  \say{To jest najważniejsze ograniczenie samej funkcji skrótu, i odpowiedź na pytanie, czego skrót nie daje. Skoro skrót nie ma klucza, każdy może go policzyć, także Mallory dla swojego pliku. Skrót wykrywa zmianę danych, ale nie mówi, kto policzył skrót. Jeśli Mallory kontroluje miejsce, z którego pochodzi skrót, sprawdzenie nic nie daje.}
+\end{frame}
+
+\samedot
+\begin{frame}{The digest must come from somewhere Mallory cannot change}
+  \vfill
+  \begin{columns}[T,onlytextwidth]
+    \column{0.48\textwidth}
+      \centering\textbf{A trusted channel}\\[8pt]
+      \small
+      \begin{itemize}
+        \item the publisher's own website, over HTTPS (the padlock)
+        \item printed on paper, read over the phone
+        \item a digest you saved earlier
+      \end{itemize}
+    \column{0.48\textwidth}
+      \centering\textbf{A digest protected by a key}\\[8pt]
+      \small
+      \begin{itemize}
+        \item a \textbf{MAC}: a hash with a shared secret key
+        \item a \textbf{digital signature}: only Alice can make it, anybody can check it \textcolor{gray}{(\texttt{SHA256SUMS.gpg})}
+      \end{itemize}
+      \vspace{3pt}
+      \centering\textcolor{gray}{\scriptsize both: lecture 8}
+  \end{columns}
+  \vfill
+  \keymsg{The hash moves the problem from a 5 GB file to a 32-byte digest; protecting those 32 bytes is a separate job.}
+  \say{Dwa rozwiązania. Pierwsze: skrót przychodzi kanałem, którego Mallory nie kontroluje: strona wydawcy przez HTTPS (protokół kłódki w przeglądarce z wykładu 1), papier, telefon. Drugie: skrót chroniony kluczem. MAC wymaga wspólnego klucza (jak Poly1305), podpis cyfrowy robi tylko Alice swoim kluczem prywatnym, a sprawdzić może każdy jej kluczem publicznym; to właśnie SHA256SUMS.gpg u Ubuntu. Oba są tematem wykładu 8. Zysk z funkcji skrótu: zamiast chronić 5 GB, chronimy 32 bajty.}
+\end{frame}
+
+\samedot
+\begin{frame}{Today's question, answered}
+  \vfill
+  \begin{center}\large How do we know data has not changed?\end{center}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \foreach \t [count=\k] in {
+          {Hash the data you have: $H(\text{data})$, 32 bytes.},
+          {Compare with a digest from a source Mallory cannot change.},
+          {Equal: the data is the same, because a different file with the same digest takes about $2^{256}$ tries.}} {
+        \node[hw, text width=11.6cm, align=left, minimum height=0.85cm, anchor=west, font=\small] at (0.8,{-1.0*\k}) {\t};
+        \node[circle, fill=AccentOrange, text=white, font=\bfseries, minimum size=0.65cm] at (0.4,{-1.0*\k}) {\k};
+      }
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \keymsg{A hash turns ``is this the same file?'' into ``is this the same 32 bytes?''.}
+  \say{Odpowiedź na pytanie z początku dnia, w trzech krokach. Ostatni krok to druga przeciwdziedzina i koszt $2^{256}$ z sekcji 2; drugi krok to lekcja z zadania 5. Zapytać, czy ktoś widzi lukę. Typowa uwaga studentów: a co, jeśli strona Alice też jest przejęta? Wtedy potrzebny podpis i sposób, żeby wiedzieć, który klucz publiczny jest Alice; to temat wykładów 8 i 9 do 12 (PKI).}
+\end{frame}
+
+\begin{frame}{Names made from content}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \node[msgval, font=\small, minimum width=3.0cm] (f) at (0,0) {\faFile*\ some content};
+      \hashnode[2.0cm]{h}{3.4,0}{hash};
+      \node[dgval, font=\small\ttfamily, minimum width=3.4cm] (n) at (7.0,0) {its name};
+      \draw[data] (f) -- (h); \draw[data] (h) -- (n);
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small\renewcommand{\arraystretch}{1.3}
+    \begin{tabular}{@{}l@{\qquad}l@{}}
+      same content & same name: store it once \\
+      different content & different name \\
+      the name & checks the content, when you fetch it again \\
+    \end{tabular}
+  \end{center}
+  \vfill
+  \bigdef{\textbf{Content addressing}: the name of a piece of data is its digest.}
+  \say{Nowy pomysł: zamiast wymyślać nazwy plików, nazwą jest skrót zawartości. Z tego od razu wynikają trzy rzeczy z tabeli: identyczne dane mają tę samą nazwę (można je przechowywać raz), różne dane mają różne nazwy, a pobierając coś po nazwie, od razu można sprawdzić, czy zawartość pasuje do nazwy. Tak działa Git, kontenery Dockera i wiele systemów kopii zapasowych.}
+\end{frame}
+
+\samedot
+\begin{frame}[fragile]{Git names every object by its digest}
+  % CHECKED: printf 'Hello, Bob!\n' > hello.txt; git hash-object hello.txt = 0ff518c55df1d5b8395004c05e3de0c5fee37a44 (Git 2.43);
+  %   python3 hashlib.sha1(b"blob 12\0Hello, Bob!\n") gives the same
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \node[cell, font=\small\ttfamily, minimum height=0.7cm] (hd) at (0,0) {blob 12\textcolor{AccentOrange}{\textbackslash 0}};
+      \node[msgval, font=\small\ttfamily, anchor=west, minimum height=0.7cm] (c) at (hd.east) {Hello, Bob!\textbackslash n};
+      \node[font=\scriptsize, text=gray, anchor=north east] at ($(hd.south east)+(0,-0.15)$) {header: type, size, a zero byte};
+      \node[font=\scriptsize, text=gray, anchor=north west] at ($(c.south west)+(0.1,-0.15)$) {the content of \texttt{hello.txt}};
+      \hashnode[1.8cm]{h}{6.2,0}{SHA-1}
+      \draw[data] (c.east) -- (h.west);
+      \node[dgval, font=\scriptsize\ttfamily] (id) at (6.2,-1.6) {0ff518c55df1d5b8395004c05e3de0c5fee37a44};
+      \draw[data] (h) -- (id);
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \terminal{git hash-object hello.txt \quad $\rightarrow$ \quad 0ff518c55df1d5b8395004c05e3de0c5fee37a44}
+  \vfill
+  \begin{center}\small \textbf{SHA-1}: an older hash, 20-byte digest (more in the last section). New Git can also use SHA-256.\end{center}
+  \say{Git przechowuje każdy plik jako obiekt typu blob. Identyfikator obiektu to skrót nagłówka (słowo blob, spacja, rozmiar dziesiętnie, bajt zerowy) połączonego z zawartością. Git od początku używa SHA-1: starszej funkcji skrótu z 20-bajtowym (160-bitowym) wynikiem, czyli 40 cyfr hex. Od Gita 2.29 (2020) można utworzyć repozytorium z SHA-256 (git init --object-format=sha256), a Git 3.0 ma to zrobić domyślnym; dlaczego Git odchodzi od SHA-1, powie wykład 7. Wynik sprawdzony: git hash-object daje dokładnie ten skrót.}
+\end{frame}
+
+\samedot
+\begin{frame}{A commit names its parent}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \foreach \k/\x/\pr in {1/0/{(none)}, 2/4.2/{id of commit 1}, 3/8.4/{id of commit 2}} {
+        \node[hw, text width=3.3cm, align=left, font=\scriptsize, minimum height=1.8cm] (c\k) at (\x,0) {
+          \textbf{commit \k}\\[2pt]
+          tree: \textcolor{sBrown}{id of the files}\\
+          parent: \textcolor{sBrown}{\pr}\\
+          author, date, message};
+        \node[dgval, font=\scriptsize] (i\k) at (\x,-1.55) {id = SHA-1(commit \k)};
+        \draw[data] (c\k) -- (i\k);
+      }
+      \draw[data, sBrown] (i1.east) -- ++(0.35,0) |- ([yshift=-0.1cm]c2.west);
+      \draw[data, sBrown] (i2.east) -- ++(0.35,0) |- ([yshift=-0.1cm]c3.west);
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small Change one old file: its id changes, so the tree's id, so commit 1's id, and every later commit's id.\end{center}
+  \keymsg{The id of the newest commit vouches for the whole history behind it.}
+  \say{Commit to też obiekt: tekst, w którym jest identyfikator drzewa plików (tree), identyfikator commita-rodzica (parent), autor, data i opis. Jego identyfikator to skrót tego tekstu. Skoro każdy commit zawiera skrót poprzedniego, zmiana czegokolwiek w historii zmienia identyfikatory wszystkich późniejszych commitów. Dlatego wystarczy znać skrót ostatniego commita (np. z wydania), żeby sprawdzić całą historię. Ten pomysł, łańcuch skrótów, wróci za kilka slajdów.}
+\end{frame}
+
+\begin{frame}{Task 6: a Git object id}
+  \begin{columns}[c,onlytextwidth]
+    \column{0.56\textwidth}
+      \taskgoal{compute Git's id of a recipe with \texttt{hashlib} and compare it with Git; then change one character.}
+      \taskready{\texttt{git\_id.py}: the output of \texttt{git hash-object}, and \texttt{recipe.txt}.}
+    \column{0.42\textwidth}
+      \centering
+      \begin{tikzpicture}[>=Stealth]
+        \node[msgval, font=\scriptsize, text width=3.4cm] (r) at (0,0.6) {recipe.txt: Pancakes for four, 2 eggs, 250 ml milk\ldots};
+        \node[unk, font=\small] at (0,-0.7) {object id = ?};
+      \end{tikzpicture}
+  \end{columns}
+  \vfill
+  \opentask{Task6}{about 7 minutes}
+  \say{Około 7 minut. Trzy TODO: nagłówek b"blob " + długość + bajt zerowy, potem SHA-1 nagłówka i zawartości, potem to samo po zmianie ,,2 eggs'' na ,,3 eggs''. Najczęstszy błąd: brak bajtu zerowego albo spacji po blob; wtedy wynik się nie zgadza. Kto ma Gita, może uruchomić git hash-object recipe.txt (bez repozytorium też działa).}
+\end{frame}
+
+\samedot
+\begin{frame}{Task 6: what we saw}
+  % CHECKED: python3 Task6/solution/git_id.py; git hash-object recipe.txt (Git 2.43) = e2fcdc71...; changed: ac97bb42... (also git hash-object --stdin)
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \node[cell, font=\small\ttfamily] (h) at (0,0) {blob 108\textbackslash 0};
+      \node[msgval, font=\small, anchor=west] (c) at (h.east) {recipe.txt, 108 bytes};
+      \node[dgval, font=\small\ttfamily, anchor=west] (i) at (6.0,0) {e2fcdc71d93339fed5fc9b69eecf7c2b4712665c};
+      \draw[data] (c) -- (i);
+      \node[font=\small, text=nInk, anchor=west] at (6.0,-0.6) {\ok\ the same as \texttt{git hash-object}};
+      \node[msgval, font=\small, anchor=west] (c2) at (h.east |- 0,-1.6) {\textbf{3} eggs instead of 2};
+      \node[dgval, font=\small\ttfamily, anchor=west] (i2) at (6.0,-1.6) {ac97bb421067a34b98a0a7b7eded80535b9749d4};
+      \draw[data] (c2) -- (i2);
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \keymsg{Git's ids are plain SHA-1 digests of the content, so any change of any file gets a new id.}
+  \say{Wyniki rozwiązania. Nagłówek ma 9 bajtów: blob, spacja, 108, bajt zerowy. Identyfikator zgadza się z Gitem co do znaku. Po zmianie jednej cyfry nowy identyfikator nie ma nic wspólnego ze starym (lawina). Dlatego git status wie, które pliki się zmieniły, a dwa identyczne pliki w repozytorium zajmują miejsce tylko raz.}
+\end{frame}
+
+\begin{frame}{Storing each file once}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \foreach \n/\y/\c in {Alice/1.3/sIndigo, Bob/0/sTeal, Carol/-1.3/sViolet} {
+        \node[person=\c, minimum size=0.8cm, font=\normalsize] (p\n) at (0,\y) {\faUser};
+        \node[font=\scriptsize\bfseries, text=nInk, anchor=west] at (0.5,\y) {\n};
+        \node[msgval, font=\scriptsize] (f\n) at (2.8,\y) {python image, 1 GB};
+        \draw[data] (f\n.east) -- (5.4,0);
+      }
+      \node[hw, minimum width=4.2cm, minimum height=2.2cm, align=center, font=\small] (st) at (7.6,0) {};
+      \node[font=\small\bfseries, text=nInk, anchor=north] at (st.north) {\faDatabase\ storage};
+      \node[dgval, font=\scriptsize\ttfamily] at (7.6,-0.1) {sha256:\textit{64 hex digits}};
+      \node[font=\scriptsize, text=gray] at (7.6,-0.75) {stored once, 1 GB};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small Docker names every image layer by its SHA-256 (``\texttt{sha256:...}''); backup tools name chunks of files the same way.\end{center}
+  \bigdef{\textbf{Deduplication}: same digest, so same data, so keep only one copy.}
+  \say{Deduplikacja: magazyn danych liczy skrót każdego pliku (albo fragmentu) i jeśli taki skrót już zna, nie zapisuje drugiej kopii. Przykład: obrazy kontenerów Dockera składają się z warstw, a każda warstwa jest nazwana swoim skrótem SHA-256 (napis sha256: i 64 cyfry hex); tysiące obrazów opartych na tym samym obrazie bazowym przechowują wspólne warstwy raz. Podobnie robią narzędzia do kopii zapasowych, np. restic.}
+\end{frame}
+
+\samedot
+\begin{frame}{Deduplication needs collision resistance}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \node[msgval, font=\small] (a) at (0,0.8) {file A};
+      \node[msgval, font=\small] (b) at (0,-0.8) {file B $\neq$ A};
+      \node[dgval, font=\small] (d) at (4.2,0) {the same digest};
+      \draw[data] (a) -- (d); \draw[data] (b) -- (d);
+      \node[hw, font=\small, align=center] (st) at (8.2,0) {storage keeps\\ only file A};
+      \draw[data] (d) -- (st);
+      \node[font=\small\bfseries, text=aWrite, anchor=west] at (9.6,0) {\nok\ file B is lost};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small If collisions could be found, Mallory could upload a file B that silently replaces someone's file A.\end{center}
+  \keymsg{Wherever ``same digest'' is read as ``same data'', a collision breaks the system.}
+  \say{Dlaczego deduplikacja jest bezpieczna tylko z funkcją odporną na kolizje: gdyby dwa różne pliki miały ten sam skrót, magazyn uznałby je za jeden, i jeden z nich przepadłby albo został podmieniony. Dlatego SVN i inne systemy miały kłopoty, kiedy w 2017 pokazano kolizję SHA-1 (szczegóły w wykładzie 7). Dla SHA-256 to nie jest praktyczne zagrożenie: $2^{128}$ prób.}
+\end{frame}
+
+\begin{frame}{A sealed prediction}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \personnode{alice}{0,0}{sIndigo}{Alice}
+      \personnode{bob}{9.6,0}{sTeal}{Bob}
+      \node[msgval, font=\small] (p) at (2.4,1.2) {``Bob wins the chess final''};
+      \node[hw, minimum width=1.8cm, minimum height=1.2cm, font=\LARGE] (env) at (4.8,0) {\faEnvelope};
+      \node[font=\scriptsize, text=gray] at (4.8,-0.9) {sealed today, opened on Sunday};
+      \draw[data] (alice) -- (env); \draw[data] (env) -- (bob);
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small
+    Alice wants to \textbf{prove later} that she knew it today,\\
+    but \textbf{not tell} Bob now (he would play differently).\\[4pt]
+    Bob wants to be sure that Alice cannot \textbf{change} the prediction after the final.
+  \end{center}
+  \vfill
+  \keymsg{We need a sealed envelope made of bytes.}
+  \say{Nowy problem: zobowiązanie (commitment). Alice przewiduje wynik finału szachowego, w którym gra Bob. Nie chce mówić teraz (to mogłoby wpłynąć na grę), ale po finale chce udowodnić, że wiedziała. Bob z kolei chce mieć pewność, że Alice nie zmieni przewidywania po fakcie. W świecie papieru: zapieczętowana koperta oddana komuś na przechowanie. Takie zobowiązania występują w aukcjach z zamkniętymi ofertami, w grach przez sieć, w protokołach kryptograficznych.}
+\end{frame}
+
+\samedot
+\begin{frame}{A commitment with a hash}
+  % CHECKED: python3: r = 8d2e61f04ab39c7715e0d2c94f6a1b38, sha256(r + b"Bob wins the chess final") = 4d5f2932...0a78b5174b3 (first and last 8 digits shown)
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \node[font=\small\bfseries, text=nInk, anchor=west] at (-0.6,1.5) {Today: commit};
+      \node[secval, font=\scriptsize] (r) at (0.6,0.6) {\faKey\ $r$: 16 random bytes};
+      \node[msgval, font=\scriptsize, anchor=west] (m) at (r.east) {Bob wins the chess final};
+      \hashnode[2.0cm]{h}{6.6,0.6}{SHA-256}
+      \draw[data] (m) -- (h);
+      \node[dgval, font=\scriptsize\ttfamily, anchor=west] (c) at (8.0,0.6) {$c$ = 4d5f2932\ldots 8b5174b3};
+      \draw[data] (h) -- (c);
+      \node[font=\scriptsize, text=gray, anchor=north] at (c.south) {published};
+      \node[font=\small\bfseries, text=nInk, anchor=west] at (-0.6,-0.6) {Sunday: open};
+      \node[font=\small, text=nInk, anchor=west, align=left] at (-0.6,-1.4) {Alice reveals $r$ and the prediction. Bob computes $H(r \,\|\, \text{prediction})$ and compares with $c$.};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small
+    \textbf{Hiding:} $c$ tells nothing (preimage resistance). \quad
+    \textbf{Binding:} two predictions with the same $c$ would be a collision.
+  \end{center}
+  \say{Zobowiązanie z funkcją skrótu: c = H(r ‖ przewidywanie), gdzie ‖ znaczy ,,połączone bajty'', a r to losowe 16 bajtów, tajne do dnia otwarcia (bursztynowy kolor: wartość tajna). Alice publikuje tylko c. W niedzielę ujawnia r i przewidywanie, Bob przelicza skrót i porównuje. Dwie własności: ukrycie (z c nic nie wynika: odporność na odwrócenie) i wiązanie (Alice nie może otworzyć c jako innego przewidywania: musiałaby z góry przygotować dwa przewidywania z tym samym skrótem, czyli kolizję, bo to ona wybiera oba teksty; a jeśli zmienia zdanie dopiero po fakcie, potrzebuje drugiej przeciwdziedziny). Po co r: następny slajd.}
+\end{frame}
+
+\samedot
+\begin{frame}{Why the random r?}
+  % CHECKED: python3: sha256(b"yes") = 8a798890..., sha256(b"no") = 9390298f...
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \node[dgval, font=\small\ttfamily] (c) at (-0.6,0) {$c = H(\text{prediction})$ = 8a798890\ldots};
+      \personnode{bob}{-4.4,0}{sTeal}{Bob}
+      \node[msgval, font=\small\ttfamily, anchor=west] (y) at (3.2,0.6) {$H$("yes") = 8a798890\ldots \ \ok};
+      \node[msgval, font=\small\ttfamily, anchor=west] (n) at (3.2,-0.6) {$H$("no") \ \, = 9390298f\ldots};
+      \draw[data, nLine] (c.east) -- (y.west); \draw[data, nLine] (c.east) -- (n.west);
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small Without $r$, a prediction with few possible values is found by \textbf{trying them all}.\\
+    With 16 random bytes in front, Bob would have to try $2^{128}$ values of $r$.\end{center}
+  \keymsg{Preimage resistance hides only what cannot be guessed; $r$ makes the input unguessable.}
+  \say{Bez r zobowiązanie można ,,otworzyć'' bez klucza: jeśli możliwych przewidywań jest mało (tak/nie, 100 wyników meczu, 20 drużyn), Bob liczy skrót każdego i porównuje. To nie łamie SHA-256; to po prostu zgadywanie wejścia. Odporność na odwrócenie mówi tylko, że nie da się cofnąć funkcji; nie chroni, gdy wejście da się odgadnąć. Ta sama lekcja wróci w wykładzie 7 przy hasłach (sól). Dodanie 16 losowych bajtów sprawia, że możliwości jest $2^{128}$ razy więcej.}
+\end{frame}
+
+\begin{frame}{Task 7: commitments}
+  \begin{columns}[c,onlytextwidth]
+    \column{0.56\textwidth}
+      \taskgoal{check Alice's and Mallory's revealed predictions of a football score; read Carol's prediction from her commitment without $r$.}
+      \taskready{\texttt{commit.py}: three commitments, two reveals.}
+    \column{0.42\textwidth}
+      \centering
+      \begin{tikzpicture}
+        \foreach \n/\y/\c in {Alice/1.0/sIndigo, Mallory/0/sPink, Carol/-1.0/sViolet} {
+          \node[font=\small\bfseries, text=nInk, anchor=east] at (-0.6,\y) {\n};
+          \node[unk, font=\scriptsize, anchor=west] at (-0.4,\y) {match?};
+        }
+      \end{tikzpicture}
+  \end{columns}
+  \vfill
+  \opentask{Task7}{about 9 minutes}
+  \say{Około 9 minut. Mecz Coventry City z Leeds United, przewidywania w postaci b"2:1". Trzy TODO: funkcja commit (skrót r połączonego z przewidywaniem), funkcja check (przelicz i porównaj), na końcu dwie zagnieżdżone pętle po wynikach od 0:0 do 9:9 dla zobowiązania Carol, które nie ma r. Zapytać po TODO 2: czemu Mallory nie przechodzi, skoro podaje prawdziwy wynik? (zobowiązała się do innego). Typowy błąd: łączenie w złej kolejności (prediction + r).}
+\end{frame}
+
+\samedot
+\begin{frame}{Task 7: what we saw}
+  % CHECKED: python3 Task7/solution/commit.py, 2026-11-17: Alice True, Mallory False, Carol 3:1 after 32 tries
+  \vfill
+  \begin{center}
+    \renewcommand{\arraystretch}{1.45}
+    \begin{tabular}{@{}l@{\qquad}l@{\qquad}l@{}}
+      \toprule
+      \textbf{who} & \textbf{result} & \textbf{why} \\
+      \midrule
+      Alice & \ok\ 2:1 matches & she committed to 2:1 on Monday \\
+      Mallory & \nok\ 2:1 does not match & she committed to something else \\
+      Carol & 3:1, found in 32 tries & only 100 possible scores, no $r$ \\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+  \vfill
+  \keymsg{With $r$ the commitment hides and binds; without $r$ anybody can open it by guessing.}
+  \say{Wyniki rozwiązania. Alice przechodzi. Mallory zobowiązała się w poniedziałek do 0:2 i teraz twierdzi, że przewidziała 2:1: żeby to przeszło, musiałaby znaleźć drugą przeciwdziedzinę. Zobowiązanie Carol otwieramy bez jej udziału w 32 próbach, bo wyników 0:0 do 9:9 jest tylko 100. To samo w praktyce: aukcja z zamkniętymi ofertami bez losowego dodatku pozwala odgadnąć oferty.}
+\end{frame}
+
+\begin{frame}{A hash chain}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \node[secval, font=\small, minimum width=1.2cm] (x0) at (0,0) {$x_0$};
+      \foreach \k/\x in {1/2.0, 2/4.0, 3/6.0} {
+        \node[dgval, font=\small, minimum width=1.2cm] (x\k) at (\x,0) {$x_\k$};
+      }
+      \draw[data] (x0) to node[above, font=\scriptsize] {$H$} (x1);
+      \draw[data] (x1) to node[above, font=\scriptsize] {$H$} (x2);
+      \draw[data] (x2) to node[above, font=\scriptsize] {$H$} (x3);
+      \node[font=\large, text=nInk] (dots) at (7.6,0) {$\cdots$};
+      \draw[data] (x3) -- (dots);
+      \node[dgval, font=\small, minimum width=1.2cm] (x99) at (9.4,0) {$x_{99}$};
+      \node[dgval, font=\small, minimum width=1.2cm] (x100) at (11.4,0) {$x_{100}$};
+      \draw[data] (dots) -- (x99);
+      \draw[data] (x99) to node[above, font=\scriptsize] {$H$} (x100);
+      \draw[-{Stealth}, very thick, aExec] (2.0,-0.8) to node[below, font=\scriptsize, text=nInk] {easy: hash again} (6.0,-0.8);
+      \draw[-{Stealth}, very thick, aWrite, dashed] (11.4,-0.8) to node[below, font=\scriptsize, text=nInk] {impossible: a preimage each step} (7.4,-0.8);
+      \node[font=\scriptsize, text=gray, anchor=north] at (x0.south) {secret seed};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small $x_{k+1} = H(x_k)$. Going right is one hash per step; going left is a preimage per step.\end{center}
+  \keymsg{A hash chain can be walked forwards by anybody, backwards only by the owner of the seed.}
+  \say{Łańcuch skrótów: zaczynamy od tajnego ziarna $x_0$ (bursztynowe: wartość tajna) i hashujemy w kółko. Z $x_k$ każdy policzy $x_{k+1}$. W drugą stronę trzeba by odwrócić funkcję skrótu: preimage. Ale właściciel ziarna zna wszystkie wartości, bo może je policzyć od początku. Ta asymetria daje jednorazowe hasła.}
+\end{frame}
+
+\samedot
+\begin{frame}{One-time passwords from a chain}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \personnode{alice}{0,0}{sIndigo}{Alice}
+      \node[font=\scriptsize, text=gray, anchor=north] at (alicelbl.south) {knows $x_0$, so every $x_k$};
+      \node[hw, minimum width=3.4cm, minimum height=1.4cm, font=\small] (srv) at (9.0,0) {\faServer\ Bob's server};
+      \node[dgval, font=\small, anchor=north] (st) at (srv.south) {stores $x_{100}$};
+      \draw[data] (1.0,0.6) to node[above, font=\small] {login 1: sends $x_{99}$} (7.2,0.6);
+      \node[font=\small, text=nInk, anchor=west, align=left] at (2.0,-0.5) {server: $H(x_{99}) = x_{100}$? \ok\\ then it stores $x_{99}$};
+      \node[font=\small, text=nInk, anchor=west] at (2.0,-1.6) {login 2: sends $x_{98}$, \quad checks $H(x_{98}) = x_{99}$, \ldots};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small Lamport, 1981; used in the S/KEY system (1995). 100 values = 100 logins, then a new chain.\end{center}
+  \keymsg{The server stores only the last value; each login uses the next one down the chain.}
+  \say{Pomysł Leslie Lamporta z 1981 roku (artykuł w Communications of the ACM), wdrożony m.in. jako S/KEY (RFC 1760, 1995). Przy zakładaniu konta Alice (jej telefon albo kartka z hasłami) liczy łańcuch i daje serwerowi tylko $x_{100}$. Przy logowaniu wysyła wartość o jeden krok niżej; serwer hashuje ją raz, porównuje z tym, co ma, i jeśli się zgadza, zapamiętuje nową wartość. Serwer nie przechowuje żadnego sekretu: wyciek bazy serwera nic nie daje.}
+\end{frame}
+
+\samedot
+\begin{frame}{Why Eve cannot log in}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \evenode{eve}{0,0}
+      \node[dgval, font=\small, anchor=west] (h) at (1.2,0.5) {heard $x_{99}$ on the network};
+      \node[font=\small, text=nInk, anchor=west, align=left] at (1.2,-0.7) {\nok\ send $x_{99}$ again: the server now expects $x_{98}$\\
+        \nok\ compute $x_{98}$ from $x_{99}$: a preimage of SHA-256};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small A stolen value is already used. The next one is \textbf{behind} it in the chain.\end{center}
+  \keymsg{Replaying fails, and computing the next password needs a preimage.}
+  \say{Eve podsłuchuje sieć (Eve tylko słucha; Mallory zmienia dane, ale tu oba ataki wyglądają podobnie). Ma $x_{99}$. Wysłanie go jeszcze raz (atak powtórzenia, replay) nie działa, bo serwer czeka już na $x_{98}$. Policzenie $x_{98}$ z $x_{99}$ to odwrócenie SHA-256. Hasło wykradzione jest bezwartościowe. Dla porównania: zwykłe hasło podsłuchane raz działa zawsze.}
+\end{frame}
+
+\begin{frame}{Task 8: logins with a hash chain}
+  \begin{columns}[c,onlytextwidth]
+    \column{0.56\textwidth}
+      \taskgoal{build Alice's chain from her seed, then play the server: accept or reject five logins.}
+      \taskready{\texttt{chain\_login.py}: the seed, the server's $x_{100}$, five logins, \texttt{H(x)}.}
+    \column{0.42\textwidth}
+      \centering
+      \begin{tikzpicture}
+        \foreach \k in {1,...,5} \node[unk, font=\scriptsize, minimum width=3.4cm] at (0,{-0.5*\k}) {login \k: OK or REJECTED?};
+      \end{tikzpicture}
+  \end{columns}
+  \vfill
+  \opentask{Task8}{about 9 minutes}
+  \say{Około 9 minut. Dwa TODO: pętla 100 razy x = H(x) od ziarna (wynik ma się zgodzić z wartością na serwerze), potem pętla po pięciu logowaniach z aktualizacją zapamiętanej wartości. Po zrobieniu: zapytać, które odrzucone logowanie to powtórka (replay) Eve, a które to wymysł Mallory (patrząc na wartości hex). Typowy błąd: nie aktualizować stored po udanym logowaniu; wtedy drugie logowanie jest odrzucone.}
+\end{frame}
+
+\samedot
+\begin{frame}{Task 8: what we saw}
+  % CHECKED: python3 Task8/solution/chain_login.py, 2026-11-17: x100 matches; logins OK, OK, REJECTED, REJECTED, OK
+  \vfill
+  \begin{center}
+    \renewcommand{\arraystretch}{1.4}
+    \begin{tabular}{@{}c@{\qquad}l@{\qquad}l@{}}
+      \toprule
+      \textbf{login} & \textbf{value} & \textbf{server} \\
+      \midrule
+      1 & $x_{99}$ & \ok\ OK, stores $x_{99}$ \\
+      2 & $x_{98}$ & \ok\ OK, stores $x_{98}$ \\
+      3 & $x_{98}$ again (Eve's replay) & \nok\ REJECTED \\
+      4 & made up by Mallory & \nok\ REJECTED \\
+      5 & $x_{97}$ & \ok\ OK \\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+  \vfill
+  \keymsg{Only the next value down the chain passes, and only Alice can compute it.}
+  \say{Wyniki rozwiązania. Logowanie 3 to dokładna kopia logowania 2 (ten sam hex), czyli powtórka Eve; odrzucone, bo serwer już przesunął się na $x_{98}$. Logowanie 4 to losowe bajty Mallory. Logowanie 5 przechodzi mimo dwóch odrzuconych wcześniej: serwer po prostu dalej czeka na $x_{97}$. Dzisiejsze aplikacje uwierzytelniające (kody 6-cyfrowe, TOTP) działają inaczej (HMAC z kluczem i czasem), ale pomysł Lamporta wraca np. w podpisach odpornych na komputery kwantowe.}
+\end{frame}
+
+\begin{frame}{Chains of blocks}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \foreach \k/\x in {1/0, 2/4.0, 3/8.0} {
+        \node[hw, text width=2.8cm, align=left, font=\scriptsize, minimum height=1.5cm] (b\k) at (\x,0) {
+          \textbf{block \k}\\[2pt] \textcolor{sBrown}{digest of block \the\numexpr\k-1\relax}\\ transactions \ldots};
+      }
+      \draw[data, sBrown] (b1.east) -- (b2.west);
+      \draw[data, sBrown] (b2.east) -- (b3.west);
+      \draw[awrite] (b1.south west) rectangle (b1.north east);
+      \node[font=\scriptsize, text=aWrite, anchor=north] at (b1.south) {changed};
+      \node[font=\scriptsize, text=aWrite, anchor=north, align=center] at (6.0,-1.0) {block 2 and block 3 no longer match \nok};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small Git commits (each names its parent), Bitcoin blocks (each holds the SHA-256 of the previous one),\\ public logs of certificates \textcolor{gray}{(later in the course)}.\end{center}
+  \keymsg{Each element holds the digest of the one before, so no old element can change unnoticed.}
+  \say{Uogólnienie łańcucha: każdy element (commit, blok, wpis w dzienniku) zawiera skrót poprzedniego. Zmiana starego elementu psuje wszystkie powiązania po nim. W Bitcoinie nagłówek bloku zawiera skrót SHA-256 nagłówka poprzedniego bloku (stąd nazwa blockchain); w Gicie commit zawiera identyfikator rodzica. Publiczne dzienniki certyfikatów (Certificate Transparency) pojawią się w części o PKI.}
+\end{frame}
+
+\samedot
+\begin{frame}{Two more uses, coming soon}
+  \vfill
+  \begin{columns}[T,onlytextwidth]
+    \column{0.48\textwidth}
+      \centering
+      \begin{tikzpicture}
+        \node[circle, fill=DeepBlue, text=white, minimum size=1.3cm, font=\LARGE] {\faKey};
+      \end{tikzpicture}\\[6pt]
+      \textbf{Passwords} \textcolor{gray}{(lecture 7)}\\[4pt]
+      \small A server should not store your password, only something made from it with a hash. Why a plain hash is not enough, and what is.
+    \column{0.48\textwidth}
+      \centering
+      \begin{tikzpicture}
+        \node[circle, fill=DeepBlue, text=white, minimum size=1.3cm, font=\LARGE] {\faSignature};
+      \end{tikzpicture}\\[6pt]
+      \textbf{Digital signatures} \textcolor{gray}{(lecture 8)}\\[4pt]
+      \small Alice signs the 32-byte digest instead of the 5 GB file: the hash makes signing any file short and fast.
+  \end{columns}
+  \vfill
+  \keymsg{Hashes are the building block under passwords and signatures.}
+  \say{Dwie najważniejsze zastosowania, które dostaną własne wykłady. Hasła: serwer przechowuje coś wyliczonego z hasła, ale sam skrót nie wystarcza (atak słownikowy, sól, wolne funkcje): wykład 7. Podpisy: podpisuje się skrót, a nie cały plik, więc podpis jest krótki i szybki dla dowolnie dużego pliku; tu przydaje się odporność na kolizje: wykład 8.}
+\end{frame}
+
+% ======================================================================
+\section[Inside]{Inside a hash function}
+% ======================================================================
+
+\begin{frame}{Any length in, but a fixed-size machine}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \node[msgval, minimum width=9.6cm, minimum height=0.7cm, font=\small] (m) at (0,1.4) {a message of any length: 3 bytes, or 5 GB};
+      \node[hwmain, minimum width=3.2cm, minimum height=1.3cm, font=\small\bfseries, align=center] (f) at (0,-0.6) {\faCogs\ a mixing machine\\ \scriptsize\normalfont takes exactly 64 bytes};
+      \draw[data, dashed] (m.south) to node[right, font=\small, text=AccentOrange] {\textbf{how?}} (f.north);
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small A circuit or a function in C works on fixed-size buffers. Yet the input may be any length,\\
+    and the data may arrive in pieces (a download, a stream).\end{center}
+  \keymsg{We need a way to feed any amount of data into a machine that eats fixed-size blocks.}
+  \say{Teraz zaglądamy do środka. Problem konstrukcyjny: funkcja, która miesza bity, działa na buforze stałej wielkości (jak funkcja w C z tablicą uint32\_t[16]). A wejście może mieć dowolną długość i może przychodzić kawałkami, jak przy update() z zadania 5. Jak połączyć jedno z drugim? Pomysł na następnym slajdzie; zapytać salę, czy ktoś zgadnie (podpowiedź: podobnie jak szyfr strumieniowy trzymał stan).}
+\end{frame}
+
+\samedot
+\begin{frame}{Cut into blocks, keep a state}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \foreach \k/\x in {1/0, 2/3.0, 3/6.0} \node[msgval, minimum width=2.7cm, minimum height=0.6cm, font=\small] at (\x,1.2) {block \k: 64 bytes};
+      \node[font=\small, text=gray] at (8.6,1.2) {\ldots};
+      \node[hw, minimum width=8.8cm, minimum height=0.7cm, font=\small] (st) at (3.0,-0.4) {a state: 32 bytes that remember everything seen so far};
+      \foreach \x in {0,3.0,6.0} \draw[data] (\x,0.85) -- (\x,-0.05);
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small Read one block, mix it into the state, forget the block, take the next one.\\
+    At the end, the state \textbf{is} the digest.\end{center}
+  \keymsg{A hash reads its input block by block and carries a small state from block to block.}
+  \say{Pomysł: pociąć wiadomość na bloki stałej wielkości (w SHA-256 po 64 bajty) i trzymać mały stan (32 bajty), w który wmieszamy po kolei każdy blok. Po ostatnim bloku stan jest skrótem. Dlatego update() może przyjmować dane kawałkami, a pamięć jest stała: trzeba trzymać tylko stan i niepełny blok. Ten sposób budowy ma nazwę: następny slajd.}
+\end{frame}
+
+% the Merkle-Damgard picture, used on several slides: \mdpic{highlight}
+%   highlight: none, f, pad
+\newcommand{\mdpic}[1]{%
+  \begin{tikzpicture}[>=Stealth]
+    \node[cell, fill=nFill, minimum width=1.3cm, minimum height=0.8cm, font=\small\bfseries] (iv) at (0,0) {IV};
+    \foreach \k/\x in {1/2.6, 2/5.2, 3/7.8} {
+      \node[hwmain, minimum width=1.2cm, minimum height=0.8cm, font=\small\bfseries] (f\k) at (\x,0) {$f$};
+      \ifnum\k=3
+        \node[msgval, minimum width=1.9cm, font=\scriptsize] (b\k) at (\x,1.5) {block 3 + \textbf{padding}};
+      \else
+        \node[msgval, minimum width=1.9cm, font=\scriptsize] (b\k) at (\x,1.5) {block \k};
+      \fi
+      \draw[data] (b\k) -- (f\k);
+    }
+    \draw[data] (iv) -- (f1); \draw[data] (f1) -- (f2); \draw[data] (f2) -- (f3);
+    \node[dgval, minimum width=1.6cm, minimum height=0.8cm, font=\small\bfseries] (d) at (10.4,0) {digest};
+    \draw[data] (f3) -- (d);
+    \node[font=\scriptsize, text=gray, anchor=north] at (iv.south) {fixed start};
+    \foreach \x/\k in {1.3/0, 3.9/1, 6.5/2} \node[font=\scriptsize, text=gray, anchor=north] at (\x,-0.1) {$s_\k$};
+    \ifx#1f\draw[annot] (f2.south west) ++(-0.1,-0.1) rectangle ($(f2.north east)+(0.1,0.1)$);\fi
+    \ifx#1p\draw[annot] (b3.south west) ++(-0.1,-0.1) rectangle ($(b3.north east)+(0.1,0.1)$);\fi
+  \end{tikzpicture}}
+
+\samedot
+\begin{frame}{The Merkle-Damgård construction}
+  \vfill
+  \begin{center}\mdpic{n}\end{center}
+  \vfill
+  \begin{center}\small
+    $s_0 = \mathrm{IV}$, \qquad $s_k = f(s_{k-1},\ \text{block}_k)$, \qquad digest $=$ the last state.
+  \end{center}
+  \vfill
+  \begin{center}\small Ralph Merkle and Ivan Damgård, independently, 1989. MD5, SHA-1 and SHA-256 are all built this way.\end{center}
+  \say{Konstrukcja Merkle-Damgård: stan zaczyna się od stałej wartości IV (ustalonej w standardzie), każdy blok wchodzi do funkcji kompresji f razem z poprzednim stanem, wynik to nowy stan. Ostatni blok jest dopełniony (padding), o tym za dwa slajdy. Opublikowali to niezależnie Ralph Merkle i Ivan Damgård na konferencji CRYPTO w 1989. Ten sam rysunek wróci na kolejnych slajdach z wyróżnieniem tego, o czym mówimy. Uwaga terminologiczna: MD w nazwie MD5 to Message Digest, nie Merkle-Damgård.}
+\end{frame}
+
+\samedot
+\begin{frame}{The compression function f}
+  \begin{center}\mdpic{f}\end{center}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \node[hw, font=\small, minimum width=2.8cm] (s) at (0,0.5) {state: 32 bytes};
+      \node[msgval, font=\small, minimum width=2.8cm] (b) at (0,-0.5) {block: 64 bytes};
+      \node[hwmain, minimum width=1.6cm, minimum height=1.2cm, font=\large\bfseries] (f) at (3.6,0) {$f$};
+      \node[hw, font=\small, minimum width=2.8cm] (n) at (7.2,0) {new state: 32 bytes};
+      \draw[data] (s.east) -- (f); \draw[data] (b.east) -- (f); \draw[data] (f) -- (n);
+      \node[font=\scriptsize, text=gray] at (3.6,-1.0) {96 bytes in, 32 bytes out};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \keymsg{$f$ squeezes 96 bytes into 32: it ``compresses'', and it must itself be hard to invert and to collide.}
+  \say{Funkcja kompresji to serce konstrukcji: wejście to 32 bajty stanu i 64 bajty bloku, wyjście to 32 bajty. ,,Kompresja'' nie znaczy tu ZIP: to po prostu funkcja z większego wejścia na mniejsze wyjście, której też nie da się odwrócić i dla której nie da się znaleźć kolizji. Na razie traktujemy ją jak czarną skrzynkę; jej wnętrze w SHA-256 pokażemy po zadaniu 9.}
+\end{frame}
+
+\begin{frame}{Padding: why}
+  \begin{center}\mdpic{p}\end{center}
+  \vfill
+  \begin{columns}[T,onlytextwidth]
+    \column{0.48\textwidth}
+      \small\textbf{1. The last block must be full.}\\[3pt]
+      A message of 3 bytes still needs 64 bytes for $f$.
+    \column{0.48\textwidth}
+      \small\textbf{2. Different messages, different padded blocks.}\\[3pt]
+      Simply adding zeros would make \texttt{"abc"} and \texttt{"abc\textbackslash 0"} equal. So the padding ends with the \textbf{length} of the message.
+  \end{columns}
+  \vfill
+  \keymsg{Padding fills the last block and writes the message length into it.}
+  \say{Dopełnienie (padding) ma dwa zadania. Pierwsze, oczywiste: f potrzebuje pełnych 64 bajtów. Drugie, subtelne: gdybyśmy po prostu dopisywali zera, wiadomości abc i abc z dodatkowym bajtem zerowym dałyby po dopełnieniu ten sam blok, czyli ten sam skrót: kolizja za darmo. Dlatego najpierw dopisujemy bajt 0x80 (bit 1, potem zera), który zaznacza koniec wiadomości, a na końcu długość wiadomości w bitach. Długość na końcu jest też potrzebna w dowodzie bezpieczeństwa (następny slajd).}
+\end{frame}
+
+\samedot
+\begin{frame}{Padding of ``abc''}
+  % CHECKED: python3 Task9/sha256_ready.pad(b"abc"): 61 62 63 80, 52 zero bytes, 00 00 00 00 00 00 00 18 (24 bits); 64 bytes
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \foreach \v/\st [count=\k from 0] in {61/m,62/m,63/m,80/p,00/z,00/z,00/z,00/z} {
+        \ifx\st m\def\fc{sViolet!12}\def\dc{sViolet}\else\ifx\st p\def\fc{AccentOrange!15}\def\dc{AccentOrange}\else\def\fc{white}\def\dc{nLine}\fi\fi
+        \node[cell, fill=\fc, draw=\dc, minimum width=0.62cm, minimum height=0.55cm, font=\small\ttfamily] (c\k) at ({0.66*\k},0) {\v};
+      }
+      \node[font=\small, text=gray] (dots) at (6.2,0) {\ldots};
+      \foreach \v [count=\k from 0] in {00,00,00,00,00,00,00,18} {
+        \node[cell, fill=nFill, minimum width=0.62cm, minimum height=0.55cm, font=\small\ttfamily] (e\k) at ({7.1+0.66*\k},0) {\v};
+      }
+      \draw[nLine, thick, decorate, decoration={brace, amplitude=4pt}] ($(c0.north west)+(0,0.1)$) -- ($(c2.north east)+(0,0.1)$) node[midway, above=5pt, font=\scriptsize, text=nInk] {``abc''};
+      \node[font=\scriptsize, text=AccentOrange, anchor=south] at ($(c3.north)+(0,0.1)$) {the end};
+      \draw[nLine, thick, decorate, decoration={brace, amplitude=4pt, mirror}] ($(c4.south west)+(0,-0.1)$) -- ($(e0.south west)+(-0.1,-0.1)$) node[midway, below=5pt, font=\scriptsize, text=nInk] {52 zero bytes};
+      \draw[nLine, thick, decorate, decoration={brace, amplitude=4pt}] ($(e0.north west)+(0,0.1)$) -- ($(e7.north east)+(0,0.1)$) node[midway, above=5pt, font=\scriptsize, text=nInk] {length in bits: 24 = 0x18, 8 bytes};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small $3 + 1 + 52 + 8 = 64$ bytes: one block. The rule: append \texttt{80}, then zeros until 8 bytes are left, then the length.\end{center}
+  \keymsg{After padding, the message length is always a multiple of 64 bytes.}
+  \say{Dopełnienie SHA-256 według FIPS 180-4 dla wiadomości abc. 3 bajty wiadomości (fioletowe), bajt 0x80 (czyli bit 1 i siedem zer), 52 bajty zerowe, 8 bajtów długości w bitach w kolejności big-endian: 24 bity = 0x18. Razem 64 bajty, jeden blok. Zapytać salę: ile bloków będzie dla wiadomości 55 bajtów, a ile dla 56? Nie odpowiadać, to część zadania 9.}
+\end{frame}
+
+\begin{frame}{Why Merkle-Damgård is safe}
+  \begin{center}\mdpic{f}\end{center}
+  \vfill
+  \bigdef{If $f$ is collision-resistant, then the whole hash is collision-resistant.\\ \small (Merkle, Damgård 1989; the length in the padding is part of the proof.)}
+  \vfill
+  \begin{center}\small Intuition: two messages with one digest must meet in the last $f$. Either the inputs of that $f$ differ\\ (a collision of $f$), or they are equal, and we step back one block and ask again.\end{center}
+  \keymsg{The designers only have to build one good compression function; the construction does the rest.}
+  \say{Dlaczego ta konstrukcja jest dobra: twierdzenie Merkle'a i Damgårda mówi, że kolizja całego skrótu daje kolizję funkcji f. Intuicja na slajdzie: jeśli dwie wiadomości dają ten sam skrót, to ostatnie wywołanie f dało ten sam wynik. Jeśli jego wejścia (stan i blok) są różne, mamy kolizję f. Jeśli są równe, cofamy się o blok i pytamy jeszcze raz. Długość w dopełnieniu gwarantuje, że wiadomości różnej długości różnią się w ostatnim bloku, więc gdzieś musimy trafić na różne wejścia. Szczegóły: dla ciekawych, nie na egzamin. Uwaga: ta konstrukcja ma też słabość (length extension), która ma znaczenie przy kluczach: wykład 8.}
+\end{frame}
+
+\samedot
+\begin{frame}{That is why update() works}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \node[hw, minimum width=4.6cm, minimum height=2.2cm, align=left, font=\small] (o) at (0,0) {};
+      \node[font=\small\bfseries, text=nInk, anchor=north west] at (o.north west) {\ the object \texttt{h}};
+      \node[hw, fill=white, font=\scriptsize, anchor=west] at (-2.1,0.1) {state: 32 bytes};
+      \node[msgval, font=\scriptsize, anchor=west] at (-2.1,-0.6) {unfinished block: 0 to 63 bytes};
+      \node[font=\small\ttfamily, text=nInk, anchor=west] (u) at (3.4,0.6) {h.update(piece)};
+      \node[font=\scriptsize, text=gray, anchor=west] at (3.4,0.2) {every full block goes through $f$ at once};
+      \node[font=\small\ttfamily, text=nInk, anchor=west] (d) at (3.4,-0.5) {h.hexdigest()};
+      \node[font=\scriptsize, text=gray, anchor=west] at (3.4,-0.9) {pads the last block, one more $f$};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \keymsg{update() keeps 32 bytes of state and at most 63 waiting bytes: constant memory for any file size.}
+  \say{Połączenie z zadaniem 5: obiekt hashlib trzyma stan i niepełny blok. update() dokłada bajty i każdy pełny 64-bajtowy blok od razu przepuszcza przez f. hexdigest() dopisuje dopełnienie i liczy ostatnie f. Dlatego pamięć jest stała, a wynik nie zależy od tego, jak pokroimy dane. Teraz złożymy SHA-256 sami z gotowej funkcji f.}
+\end{frame}
+
+\begin{frame}{Task 9: build SHA-256 from its parts}
+  \vfill
+  \taskgoal{pad, cut into blocks and call the compression function in a loop; get exactly the digest of \texttt{hashlib}.}
+  \taskready{\texttt{sha256\_ready.py}: \texttt{IV}, \texttt{pad}, \texttt{compress}, \texttt{state\_to\_bytes}.}
+  \probbox{Predict first}{How many 64-byte blocks for messages of 3, 55, 56 and 64 bytes?}
+  \vfill
+  \opentask{Task9}{about 12 minutes}
+  \say{Około 12 minut. Najpierw zebrać przewidywania dla 3, 55, 56, 64 bajtów. Dwa TODO: wypisanie liczby bloków po dopełnieniu, potem pętla Merkle-Damgård: state = IV, dla i = 0, 64, 128, ... state = compress(state, padded[i:i+64]); na końcu state\_to\_bytes. Test porównujący z hashlib jest gotowy. Funkcja compress jest w pliku gotowym i nie trzeba jej czytać (jej wnętrze to następne slajdy). Typowe błędy: range(len(padded)) zamiast range(0, len(padded), 64); wywołanie compress na niedopełnionej wiadomości (ValueError).}
+\end{frame}
+
+\samedot
+\begin{frame}{Task 9: what we saw}
+  % CHECKED: python3 Task9/solution/build_sha256.py, 2026-11-17: 3 -> 64 (1), 55 -> 64 (1), 56 -> 128 (2), 64 -> 128 (2);
+  %   abc: after block 1 ba7816bf; 79-byte message: after block 1 26988411, after block 2 8c166dba = digest; the same: True
+  \begin{columns}[c,onlytextwidth]
+    \column{0.42\textwidth}
+      \centering
+      \renewcommand{\arraystretch}{1.3}
+      \begin{tabular}{@{}r@{\quad}r@{\quad}c@{}}
+        \toprule
+        \textbf{message} & \textbf{padded} & \textbf{blocks} \\
+        \midrule
+        3 bytes & 64 & 1 \\
+        55 bytes & 64 & 1 \\
+        \textbf{56 bytes} & \textbf{128} & \textbf{2} \\
+        64 bytes & 128 & 2 \\
+        \bottomrule
+      \end{tabular}\\[6pt]
+      \scriptsize $55 + 1 + 8 = 64$; \ $56 + 1 + 8 = 65 > 64$
+    \column{0.56\textwidth}
+      \small 79-byte message, first word of the state:\\[6pt]
+      \begin{tikzpicture}[>=Stealth]
+        \node[cell, fill=nFill, font=\scriptsize\ttfamily] (iv) at (0,0) {6a09e667};
+        \node[cell, fill=nFill, font=\scriptsize\ttfamily] (s1) at (2.2,0) {26988411};
+        \node[dgval, font=\scriptsize\ttfamily] (s2) at (4.4,0) {8c166dba};
+        \draw[data] (iv) to node[above, font=\tiny] {$f$} (s1);
+        \draw[data] (s1) to node[above, font=\tiny] {$f$} (s2);
+        \node[font=\tiny, text=gray, anchor=north] at (iv.south) {IV};
+        \node[font=\tiny, text=gray, anchor=north] at (s1.south) {after block 1};
+        \node[font=\tiny, text=gray, anchor=north] at (s2.south) {after block 2};
+      \end{tikzpicture}\\[8pt]
+      \small The last state $=$ \texttt{8c166dba\ldots}, the same as \texttt{hashlib} \ok
+  \end{columns}
+  \vfill
+  \keymsg{SHA-256 is exactly: pad, then one compression per block, then the last state.}
+  \say{Wyniki rozwiązania. 55 bajtów mieści się w jednym bloku (55 + bajt 0x80 + 8 bajtów długości = 64), 56 już nie, i dopełnienie dokłada cały drugi blok. Wiadomość 79-bajtowa ma dwa bloki; stan po bloku 2 to cały skrót. Dla abc stan po jedynym bloku zaczyna się od ba7816bf, czyli od wartości z FIPS 180-4. Własny SHA-256 zgadza się z hashlib bit w bit.}
+\end{frame}
+
+% the inside of f: 8 words, the round box
+\begin{frame}{Inside $f$: 8 words and 64 rounds}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \foreach \r [count=\k from 0] in {A,B,C,D,E,F,G,H} {
+        \node[cell, fill=nFill, minimum width=1.05cm, minimum height=0.6cm, font=\small\ttfamily] (r\r) at ({1.15*\k},1.4) {\r};
+      }
+      \node[font=\scriptsize, text=gray, anchor=south] at (4.0,1.75) {the state: 8 words of 32 bits};
+      \node[hwmain, minimum width=9.0cm, minimum height=0.8cm, font=\small\bfseries] (rnd) at (4.0,0) {one round};
+      \draw[data] (4.0,1.05) -- (rnd.north);
+      \draw[data] (rnd.south) -- (4.0,-0.7) node[below, font=\small, text=nInk] {repeat 64 times, \;$t = 0, 1, \ldots, 63$};
+      \node[msgval, font=\small] (w) at (11.0,0.3) {$W_t$: a word from the block};
+      \node[cell, fill=nFill, font=\small] (k) at (11.0,-0.5) {$K_t$: a constant};
+      \draw[data] (w.west) -- ([yshift=0.15cm]rnd.east);
+      \draw[data] (k.west) -- ([yshift=-0.15cm]rnd.east);
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small The 32-byte state is split into 8 words, \texttt{uint32\_t A..H}. Each round mixes in one word of the block.\end{center}
+  \keymsg{$f$ of SHA-256: 64 rounds on 8 words of 32 bits.}
+  \say{Wnętrze funkcji f w SHA-256, na poziomie intuicji. Stan 32 bajty = 8 słów po 32 bity, nazywanych A do H (w C: uint32\_t). 64 rundy; w każdej rundzie do stanu wchodzi jedno 32-bitowe słowo $W_t$ wyliczone z bloku i jedna stała $K_t$ ze standardu. Dokładne wzory są w FIPS 180-4 (sekcja 6.2.2) i na slajdzie z kodem w C za dwa slajdy; na slajdach pokażemy, co się dzieje w jednej rundzie i po co.}
+\end{frame}
+
+\samedot
+\begin{frame}{One round}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \foreach \r [count=\k from 0] in {A,B,C,D,E,F,G,H} {
+        \node[cell, fill=nFill, minimum width=1.05cm, minimum height=0.6cm, font=\small\ttfamily] (o\r) at ({1.3*\k},2.0) {\r};
+        \node[cell, fill=white, minimum width=1.05cm, minimum height=0.6cm, font=\small\ttfamily] (n\r) at ({1.3*\k},-1.4) {\r};
+      }
+      % shifts
+      \foreach \a/\b in {A/B,B/C,C/D,E/F,F/G,G/H} \draw[data, nLine] (o\a.south) -- (n\b.north);
+      % the mix
+      \node[hwmain, minimum width=4.2cm, minimum height=0.8cm, font=\small] (mix) at (4.55,0.3) {mix all 8 words, $W_t$, $K_t$};
+      \draw[awrite] (nA.south west) rectangle (nA.north east);
+      \draw[awrite] (nE.south west) rectangle (nE.north east);
+      \draw[data] (mix.south west) ++(0.3,0) -- (nA.north);
+      \draw[data] (mix.south east) ++(-0.3,0) -- (nE.north);
+      \node[font=\scriptsize, text=gray, anchor=west] at (10.0,2.0) {before};
+      \node[font=\scriptsize, text=gray, anchor=west] at (10.0,-1.4) {after};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small Two new words are computed (\textcolor{aWrite}{\textbf{red}}: new A and new E); the other six just move one place to the right.\end{center}
+  \keymsg{Each round changes two words and shifts the rest; after a few rounds every bit depends on every other.}
+  \say{Jedna runda: z wszystkich ośmiu słów, słowa bloku $W_t$ i stałej $K_t$ powstają dwa nowe słowa, które trafiają na miejsce A i E (czerwone ramki: zapis). Pozostałe sześć przesuwa się o jedno miejsce (A do B, B do C, C do D, E do F, F do G, G do H). Szare strzałki to przesunięcia, ciemne: nowe wartości. Rundy są proste, ale jest ich 64, więc mieszanie się sumuje. Ile rund trzeba, żeby jeden bit rozlał się na pół stanu, pokazuje slajd za chwilę.}
+\end{frame}
+
+\samedot
+\begin{frame}[fragile]{The operations: C on uint32\_t}
+\begin{lstlisting}[style=code, language=C]
+uint32_t rotr(uint32_t x, int n) { return (x >> n) | (x << (32 - n)); }
+
+S1 = rotr(e, 6) ^ rotr(e, 11) ^ rotr(e, 25);
+ch = (e & f) ^ (~e & g);                  // "choose": e picks bits of f or g
+t1 = h + S1 + ch + K[t] + W[t];           // addition wraps modulo 2^32
+S0 = rotr(a, 2) ^ rotr(a, 13) ^ rotr(a, 22);
+maj = (a & b) ^ (a & c) ^ (b & c);        // "majority" of three bits
+t2 = S0 + maj;
+h = g; g = f; f = e; e = d + t1;  d = c; c = b; b = a; a = t1 + t2;
+\end{lstlisting}
+  \vspace{0.1cm}
+  \small Only rotations, XOR, AND, NOT and addition: fast on every processor, no tables.
+  \vfill
+  \keymsg{Mixing $+$ (with carries) and XOR (without) is what makes the round hard to undo.}
+  \say{Cała runda SHA-256 w C, z FIPS 180-4, sekcja 6.2.2. Nie trzeba tego zapamiętywać; to pokazuje, że w środku nie ma nic magicznego: rotacje, XOR, AND, NOT i dodawanie modulo $2^{32}$ (w C uint32\_t przepełnia się samo). Ch (choose): bit e wybiera bit z f albo z g. Maj (majority): wynik to bit, który ma większość z a, b, c. Po co mieszać dodawanie i XOR: każde z osobna jest ,,liniowe'' w swoim świecie i łatwe do odwrócenia układem równań; razem tworzą coś, czego nikt nie umie rozwikłać. Ostatnia linia to przesunięcie słów z poprzedniego slajdu.}
+\end{frame}
+
+\samedot
+\begin{frame}{Every round gets a word: the message schedule}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \foreach \k in {0,...,15} \node[cell, fill=sViolet!12, draw=sViolet, minimum width=0.5cm, minimum height=0.5cm, font=\tiny] (w\k) at ({0.55*\k},0) {};
+      \node[font=\scriptsize, text=nInk, anchor=south] at (4.1,0.35) {$W_0 \ldots W_{15}$: the 64-byte block as 16 words};
+      \foreach \k in {16,...,23} \node[cell, fill=nFill, minimum width=0.5cm, minimum height=0.5cm, font=\tiny] (w\k) at ({0.55*\k},0) {};
+      \node[font=\small, text=gray] at (13.5,0) {\ldots\ $W_{63}$};
+      \draw[data, nLine] (w1.south) to[bend right=30] (w16.south);
+      \draw[data, nLine] (w9.south) to[bend right=20] (w16.south);
+      \draw[data, nLine] (w14.south) to[bend right=25] (w16.south);
+      \node[font=\scriptsize, text=gray, anchor=north] at (7.0,-0.9) {each new word: rotations and XOR of 4 earlier words};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small 16 words are not enough for 64 rounds, so the block is \textbf{stretched} to 64 words.\\
+    Every bit of the block reaches many rounds.\end{center}
+  \keymsg{The schedule spreads each bit of the block over many of the 64 rounds.}
+  \say{Blok ma 64 bajty = 16 słów, a rund jest 64. Pozostałe 48 słów liczy się z wcześniejszych: każde nowe $W_t$ powstaje z $W_{t-2}$, $W_{t-7}$, $W_{t-15}$, $W_{t-16}$ przez rotacje, XOR i dodawanie (na rysunku dla $W_{16}$ strzałki z trzech z nich, czwarte to $W_0$). Dzięki temu każdy bit bloku wpływa na wiele rund, nie tylko na jedną.}
+\end{frame}
+
+\samedot
+\begin{frame}{Add the old state at the end}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \node[hw, font=\small, minimum width=2.6cm] (s) at (0,0) {state $s_{k-1}$};
+      \node[hwmain, font=\small, minimum width=3.0cm, minimum height=0.9cm] (r) at (4.2,0) {64 rounds};
+      \node[msgval, font=\small] (b) at (4.2,1.3) {block $k$};
+      \node[circle, draw=nInk, thick, inner sep=1pt, font=\large] (p) at (7.6,0) {$+$};
+      \node[hw, font=\small, minimum width=2.6cm] (n) at (10.4,0) {state $s_k$};
+      \draw[data] (s) -- (r); \draw[data] (b) -- (r); \draw[data] (r) -- (p); \draw[data] (p) -- (n);
+      \draw[data, AccentOrange] (s.south) -- ++(0,-1.0) -| node[below, pos=0.25, font=\scriptsize, text=AccentOrange] {the old state, added word by word} (p.south);
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small Without this step, every round could be run backwards (each round is undoable when you know the block).\\
+    With it, going back needs the old state, which is exactly what you do not know.\end{center}
+  \keymsg{The final addition makes $f$ one-way, even though every single round can be undone.}
+  \say{Ostatni krok f: do wyniku 64 rund dodajemy słowo po słowie stan sprzed rund (feed-forward; ostatnia pętla w compress w zadaniu 9). Dlaczego: same rundy, przy znanym bloku, da się odwrócić krok po kroku (z nowego A i E można odtworzyć stare słowa). Dodanie starego stanu psuje to: żeby cofnąć, trzeba znać stary stan, a to właśnie on jest niewiadomą. To konstrukcja Daviesa-Meyera; nazwy nie trzeba pamiętać.}
+\end{frame}
+
+\begin{frame}{One bit through the rounds}
+  % CHECKED: python3 (Task9/sha256_ready rounds), block = pad(b"abc") and the same with bit 0 of byte 0 flipped:
+  %   differing state bits after round 1: 3, 2: 23, 3: 48, 4: 80, 5: 109, 6: 120, 7: 135, 8: 132, 9: 122, 11: 122, 17: 109, 33: 132, 64: 132
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[x=0.6cm, y=0.012cm]
+      \draw[nLine, thick] (0,0) -- (16.8,0);
+      \draw[nLine, thick] (0,0) -- (0,260);
+      \foreach \v in {0,64,128,192,256} {
+        \draw[nLine] (-0.15,\v) -- (0,\v);
+        \node[font=\tiny, text=gray, anchor=east] at (-0.2,\v) {\v};
+      }
+      \draw[AccentOrange, thick, dashed] (0,128) -- (16.8,128) node[right, font=\scriptsize\bfseries] {half};
+      \foreach \r/\d [count=\k from 1] in {1/3,2/23,3/48,4/80,5/109,6/120,7/135,8/132,9/122,11/122,17/109,33/132,64/132} {
+        \fill[sBrown, bar] ({\k*1.2-0.4},0) rectangle ({\k*1.2+0.4},\d);
+        \node[font=\tiny, text=nInk, anchor=south] at ({\k*1.2},\d) {\d};
+        \node[font=\tiny, text=gray, anchor=north] at ({\k*1.2},0) {\r};
+      }
+      \node[font=\scriptsize, text=gray] at (8.4,-30) {after round};
+      \node[font=\scriptsize, text=gray, rotate=90] at (-1.6,128) {state bits changed};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small ``abc'' with one bit flipped: after 4 rounds 80 bits differ, after about 7 rounds half of the state.\end{center}
+  \keymsg{A few rounds spread one bit over the whole state; the other rounds are the safety margin.}
+  \say{Eksperyment: blok abc i ten sam blok z jednym zmienionym bitem; liczymy, ile z 256 bitów stanu się różni po każdej rundzie. Po rundzie 1: 3 bity, po 4: 80, po ok. 7 rundach połowa, i dalej już tylko wahania wokół 128. To jest lawina z zadania 2, widziana od środka. Po co 64 rundy, skoro 7 wystarcza do wymieszania? Ataki są znacznie sprytniejsze niż liczenie bitów; najlepsze znane ataki na SHA-256 dotyczą wersji skróconych do kilkudziesięciu rund, więc reszta to zapas bezpieczeństwa.}
+\end{frame}
+
+\begin{frame}{Good to know: constants with nothing up the sleeve}
+  % CHECKED: python3 Decimal: frac(sqrt(2)) * 2^32 = 0x6a09e667 ... frac(sqrt(19)) * 2^32 = 0x5be0cd19 (all 8 = IV in Task9/sha256_ready.py);
+  %   frac(cbrt(2)) * 2^32 = 0x428a2f98 = K[0]
+  \vfill
+  \begin{center}
+    \renewcommand{\arraystretch}{1.5}
+    \begin{tabular}{@{}l@{\qquad}l@{\qquad}l@{}}
+      \toprule
+      \textbf{constant} & \textbf{made from} & \textbf{example} \\
+      \midrule
+      IV, 8 words & square roots of the first 8 primes & $\sqrt{2} = 1.\underline{6a09e667}\ldots$ (hex) \\
+      $K_0 \ldots K_{63}$ & cube roots of the first 64 primes & $\sqrt[3]{2} = 1.\underline{428a2f98}\ldots$ (hex) \\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+  \vfill
+  \begin{center}\small The first 32 bits after the point. Anybody can recompute them, so the designers could not hide a weakness in them.\end{center}
+  \keymsg{Constants from a public recipe leave no room for a hidden back door.}
+  \say{Ciekawostka, można pominąć. Skąd liczby 6a09e667 i 428a2f98? To pierwsze 32 bity części ułamkowej pierwiastka kwadratowego z 2 i pierwiastka sześciennego z 2, zapisane w hex. Wszystkie stałe SHA-256 powstają tak z kolejnych liczb pierwszych. Takie stałe nazywa się nothing-up-my-sleeve: każdy może je przeliczyć, więc projektant (tu NSA) nie mógł w nich ukryć tylnych drzwi. Policzyłem je w Pythonie (moduł decimal); zgadzają się z FIPS 180-4.}
+\end{frame}
+
+
+% ======================================================================
+\section[MD5, SHA-1, SHA-256]{MD5, SHA-1, SHA-256 today}
+% ======================================================================
+
+\begin{frame}{Three generations}
+  % CHECKED: RFC 1321 (April 1992, R. Rivest); NIST news 2022-12-15: SHA-1 in FIPS 180-1 since 1995, original SHA 1993;
+  %   FIPS 180-2 proposed 2001-05-30 (66 FR 29287), approved August 2002 (csrc.nist.gov/pubs/fips/180-2/final);
+  %   FIPS 202 August 2015, Keccak chosen October 2012 (csrc.nist.gov/pubs/fips/202/final)
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[x=0.36cm]
+      \draw[nLine, very thick, -{Stealth}] (0,0) -- (31,0);
+      \foreach \y in {1990,1995,...,2020} {
+        \draw[nLine, thick] (\y-1990+1,-0.12) -- (\y-1990+1,0.12);
+        \node[font=\scriptsize, text=gray, anchor=north] at (\y-1990+1,-0.15) {\y};
+      }
+      \foreach \y/\h/\name/\who in {1992/1.3/MD5/{Ron Rivest, RFC 1321}, 1995/2.6/SHA-1/{NSA and NIST, FIPS 180-1}, 2001/1.3/SHA-256/{NSA and NIST, SHA-2 family}, 2015/2.6/SHA-3/{Keccak, from a public contest}} {
+        \fill[AccentOrange] (\y-1990+1,0) circle (4pt);
+        \draw[nLine, thick] (\y-1990+1,0) -- (\y-1990+1,\h-0.35);
+        \node[hwmain, font=\small\bfseries, minimum width=2.0cm] at (\y-1990+1,\h) {\name};
+        \node[font=\scriptsize, text=gray, anchor=south] at (\y-1990+1,\h+0.3) {\who};
+      }
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small SHA-256 was proposed in 2001 and standardised in 2002 (FIPS 180-2), together with SHA-384 and SHA-512.\end{center}
+  \keymsg{MD5 (1992), SHA-1 (1995), SHA-2 (2001), SHA-3 (2015): each generation answered weaknesses of the one before.}
+  \say{Krótka historia. MD5 zaprojektował Ron Rivest (ten sam R z RSA), opisany w RFC 1321 z kwietnia 1992. SHA-1 to standard NIST z 1995 (FIPS 180-1), poprawiona wersja pierwotnego SHA z 1993, zaprojektowana przez NSA. Rodzina SHA-2 (SHA-224, SHA-256, SHA-384, SHA-512) została zaproponowana w 2001 i zatwierdzona w sierpniu 2002 jako FIPS 180-2. SHA-3 wybrano w otwartym konkursie NIST (zwycięzca Keccak, 2012), standard FIPS 202 z sierpnia 2015.}
+\end{frame}
+
+\samedot
+\begin{frame}{Sizes}
+  \vfill
+  \begin{center}
+    \renewcommand{\arraystretch}{1.45}
+    \begin{tabular}{@{}l@{\qquad}r@{\qquad}r@{\qquad}r@{\qquad}r@{}}
+      \toprule
+      & \textbf{digest} & \textbf{block} & \textbf{rounds} & \textbf{generic collision cost} \\
+      \midrule
+      MD5 & 128 bits & 64 bytes & 64 & $2^{64}$ \\
+      SHA-1 & 160 bits & 64 bytes & 80 & $2^{80}$ \\
+      SHA-256 & 256 bits & 64 bytes & 64 & $2^{128}$ \\
+      SHA-512 & 512 bits & 128 bytes & 80 & $2^{256}$ \\
+      SHA3-256 & 256 bits & 136 bytes & 24 & $2^{128}$ \\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+  \vfill
+  \begin{center}\small MD5, SHA-1, SHA-256 and SHA-512 are Merkle-Damgård hashes; SHA-3 is built differently.\end{center}
+  \keymsg{The digest size sets the generic cost; MD5's $2^{64}$ was already too small for today.}
+  \say{Rozmiary według RFC 1321, FIPS 180-4 i FIPS 202. MD5 ma 64 kroki (4 rundy po 16), SHA-1 80, SHA-256 64, SHA-512 80; SHA3-256 ma 24 rundy permutacji Keccak i przetwarza 136 bajtów na raz (tzw. rate). Ostatnia kolumna to koszt ataku ogólnego na kolizje, $2^{n/2}$. Już samo $2^{64}$ dla MD5 jest dziś w zasięgu dużych zasobów, nawet bez żadnej słabości. Te liczby wypisze zadanie 10.}
+\end{frame}
+
+\begin{frame}{Task 10: how fast?}
+  \vfill
+  \taskgoal{print the digest size of MD5, SHA-1, SHA-256, SHA-512 and SHA3-256, and measure each on 50 MB.}
+  \taskready{\texttt{speed.py}: the names and 50 MB of data.}
+  \probbox{Predict first}{Which one is the fastest? Which the slowest? Is the longer SHA-512 slower than SHA-256?}
+  \vfill
+  \opentask{Task10}{about 6 minutes}
+  \say{Około 6 minut. Zebrać przewidywania, zwłaszcza o SHA-512 kontra SHA-256. Dwa TODO: hashlib.new(nazwa) i digest\_size, potem pomiar czasu z time.perf\_counter() dla 50 MB. Wyniki będą różne na różnych laptopach i nawet między uruchomieniami (temperatura, tryb oszczędzania energii), ale kolejność zwykle podobna.}
+\end{frame}
+
+\samedot
+\begin{frame}{Task 10: what we saw}
+  % CHECKED: python3 hashlib on 50 MB, best of 5 runs, i5-8265U (no SHA extensions), Python 3.12, OpenSSL 3.0.13, 2026-11-17:
+  %   md5 435, sha1 612, sha256 236, sha512 329, sha3_256 261 MB/s
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[x=0.014cm]
+      \foreach \y/\name/\v in {0/MD5/435, -0.7/SHA-1/612, -1.4/SHA-256/236, -2.1/SHA-512/329, -2.8/SHA3-256/261} {
+        \node[font=\small, text=nInk, anchor=east] at (-10,\y) {\name};
+        \fill[nLine, bar] (0,\y-0.25) rectangle (\v,\y+0.25);
+        \node[font=\small\bfseries, text=nInk, anchor=west] at (\v+10,\y) {\v\ MB/s};
+      }
+      \draw[annot] (-260,-1.68) rectangle (420,-1.12);
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small Python 3.12 with OpenSSL, laptop Intel Core i5-8265U, best of 5 runs. Your numbers will differ.\\
+    SHA-512 beats SHA-256 here: 64-bit words, 128 bytes per block. Chips with SHA instructions run SHA-256 several times faster.\end{center}
+  \keymsg{All are fast enough for gigabytes; speed is no reason to pick a broken hash.}
+  \say{Wyniki na moim laptopie (Intel Core i5-8265U, bez instrukcji SHA w procesorze; Python 3.12 z OpenSSL 3.0.13), najlepszy z 5 pomiarów na 50 MB. Wszystkie liczą setki MB/s. SHA-512 jest szybszy od SHA-256 na procesorze 64-bitowym, bo działa na słowach 64-bitowych i przetwarza 128 bajtów na blok przy 80 rundach. Nowsze procesory Intel, AMD i ARM mają instrukcje sprzętowe do SHA-256 i wtedy SHA-256 jest kilka razy szybszy. MD5 i SHA-1 są szybsze, ale to nie powód, żeby ich używać (następny slajd).}
+\end{frame}
+
+\begin{frame}{Status today}
+  \vfill
+  \begin{center}
+    \renewcommand{\arraystretch}{1.5}
+    \begin{tabular}{@{}l@{\qquad}c@{\qquad}c@{\qquad}l@{}}
+      \toprule
+      & \textbf{collisions} & \textbf{preimages} & \textbf{use for security?} \\
+      \midrule
+      MD5 & \nok\ found in seconds & \ok\ still hard & \nok\ no \\
+      SHA-1 & \nok\ found (2017) & \ok\ still hard & \nok\ no \\
+      SHA-256 & \ok\ none known & \ok\ none known & \ok\ yes \\
+      SHA-3 & \ok\ none known & \ok\ none known & \ok\ yes \\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+  \vfill
+  \begin{center}\small How MD5 and SHA-1 collisions are made, and what attackers did with them: \textbf{lecture 7}.\end{center}
+  \keymsg{MD5 and SHA-1 are broken for collisions; SHA-256 and SHA-3 have no attack better than trying.}
+  \say{Jedno zdanie o złamaniu, bez szczegółów (to wykład 7): dla MD5 kolizje znaleziono w 2004 i dziś liczy się je na laptopie w sekundy; dla SHA-1 pierwszą kolizję pokazano w 2017. W obu przypadkach odwrócenie (preimage) wciąż jest niepraktyczne, ale ponieważ złamana jest jedna z trzech własności, nie używamy ich tam, gdzie chodzi o bezpieczeństwo. SHA-256 i SHA-3: nikt nie zna ataku lepszego niż ogólny.}
+\end{frame}
+
+\samedot
+\begin{frame}{What to use today}
+  % CHECKED: NIST news 2022-12-15: SHA-1 should be phased out by 31 December 2030
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \node[hw, text width=5.4cm, align=left, minimum height=2.4cm, font=\small] (y) at (0,0) {\textbf{\ok\ For anything new}\\[4pt] SHA-256 (or SHA-512, SHA-3).\\ Default in TLS, Git's new format, software downloads.};
+      \node[hw, text width=5.4cm, align=left, minimum height=2.4cm, font=\small] (n) at (6.4,0) {\textbf{\nok\ Only where no attacker matters}\\[4pt] MD5, SHA-1: e.g. finding duplicate photos on your own disk. NIST: stop SHA-1 by the end of 2030.};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \keymsg{Choose SHA-256 by default; treat MD5 and SHA-1 like a plain checksum.}
+  \say{Praktyczna rada. Do nowych zastosowań SHA-256 (albo SHA-512, SHA-3). MD5 i SHA-1 wolno używać tylko tam, gdzie nie ma atakującego, czyli jak sumy kontrolnej: wykrywanie przypadkowych błędów, szukanie duplikatów na własnym dysku. NIST w grudniu 2022 ogłosił, że SHA-1 ma zniknąć z zastosowań do 31 grudnia 2030. W starych systemach wciąż ich pełno, i to jest temat wykładu 7.}
+\end{frame}
+
+\samedot
+\begin{frame}{SHA-3: a different inside}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \node[hw, minimum width=6.6cm, minimum height=1.1cm, font=\small] (st) at (0,0) {a big state: 200 bytes};
+      \node[msgval, font=\scriptsize] (b1) at (-2.2,1.3) {block 1};
+      \node[msgval, font=\scriptsize] (b2) at (0,1.3) {block 2};
+      \node[msgval, font=\scriptsize] (b3) at (2.2,1.3) {block 3};
+      \draw[data] (b1.south) to node[right, font=\tiny] {XOR} (-2.2,0.55);
+      \draw[data] (b2.south) to node[right, font=\tiny] {XOR} (0,0.55);
+      \draw[data] (b3.south) to node[right, font=\tiny] {XOR} (2.2,0.55);
+      \node[hwmain, font=\small, minimum width=6.6cm] (p) at (0,-1.1) {the same permutation, 24 rounds, after every block};
+      \draw[data] (st) -- (p);
+      \node[dgval, font=\small] (d) at (5.6,-1.1) {digest};
+      \draw[data] (p) to node[above, font=\tiny] {read part} (d);
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small A ``sponge'': blocks are XORed into a large state, the state is stirred; no compression function, no Merkle-Damgård.\end{center}
+  \keymsg{SHA-3 is a spare with a different design, ready if SHA-2 ever falls.}
+  \say{Tylko jedno zdanie na temat SHA-3: zbudowano go zupełnie inaczej niż MD5, SHA-1 i SHA-256, jako ,,gąbkę'' (sponge): duży stan 200 bajtów (1600 bitów), do którego kolejne bloki dodaje się XOR-em, a po każdym bloku stan miesza się tą samą permutacją (Keccak-f, 24 rundy); skrót odczytuje się z części stanu. Nie jest następcą wymuszonym słabością SHA-2: SHA-2 trzyma się dobrze; SHA-3 to zapas o innej budowie, na wypadek gdyby kiedyś znaleziono atak na konstrukcję Merkle-Damgård albo na SHA-2. W praktyce wciąż dominuje SHA-256.}
+\end{frame}
+
+\begin{frame}[fragile]{Good to know: Python's hash() is something else}
+\begin{lstlisting}[style=py]
+print(hash("abc"))      # run 1: a 64-bit number
+print(hash("abc"))      # run 2 of the program: another number
+\end{lstlisting}
+  \vspace{0.2cm}
+  \small
+  \begin{itemize}
+    \item \texttt{hash()} serves dictionaries (hash tables, as in a C course): fast, 64 bits, \textbf{not} cryptographic.
+    \item Since Python 3.3 it uses a random key per run, so the value changes between runs.
+    \item For files, passwords, commitments: always \texttt{hashlib}.
+  \end{itemize}
+  \vfill
+  \keymsg{``Hash'' in a hash table and ``hash'' in cryptography share a name, not the requirements.}
+  \say{Ciekawostka, ale ważna dla programistów. Wbudowana funkcja hash() w Pythonie służy słownikom i zbiorom (tablice z haszowaniem, znane z kursu C lub algorytmów). Daje 64 bity, jest szybka, nie ma żadnej z trzech własności, a od Pythona 3.3 dla napisów i bajtów używa losowego klucza przy każdym uruchomieniu (ochrona przed atakami na słowniki), więc wynik zmienia się między uruchomieniami; można to wyłączyć zmienną PYTHONHASHSEED. Do wszystkiego z dzisiejszego wykładu: hashlib.}
+\end{frame}
+
+\begin{frame}{Summary: which property for which use}
+  \vfill
+  \begin{center}
+    \renewcommand{\arraystretch}{1.45}
+    \begin{tabular}{@{}l@{\qquad}c@{\qquad}c@{\qquad}c@{\qquad}l@{}}
+      \toprule
+      \textbf{use} & \textbf{preimage} & \textbf{2nd preimage} & \textbf{collision} & \textbf{also needs} \\
+      \midrule
+      checking a download & & \ok & & a trusted digest \\
+      Git ids, deduplication & & \ok & \ok & \\
+      commitment & \ok & \ok & \ok & a random $r$ \\
+      hash chain, one-time passwords & \ok & & & a secret seed \\
+      passwords \textcolor{gray}{(lecture 7)} & \ok & & & salt, slow hashing \\
+      signatures \textcolor{gray}{(lecture 8)} & & \ok & \ok & a key pair \\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+  \vfill
+  \keymsg{Know which property your use relies on; then pick SHA-256 and protect what the hash cannot.}
+  \say{Podsumowanie, które pokazuje coś nowego: zestawienie zastosowań z tą własnością, na której każde z nich stoi, i z tym, czego sama funkcja skrótu nie daje (ostatnia kolumna). Pobieranie: druga przeciwdziedzina plus zaufane źródło skrótu. Git i deduplikacja: równość skrótów czytana jako równość danych, więc także kolizje. Zobowiązanie: ukrycie (preimage) i wiązanie (kolizje), plus losowe r. Łańcuch: preimage, plus tajne ziarno. Hasła i podpisy: następne wykłady. Na koniec dnia zapytać salę: która własność padła w MD5 i SHA-1, i które wiersze tej tabeli to psuje? (kolizje: Git, deduplikacja, zobowiązania, podpisy). To zapowiedź wykładu 7.}
+\end{frame}
+\end{document}

@@ -13,8 +13,8 @@
 PDF      := builded_presentation
 LECTURES := $(sort $(patsubst %/main.tex,%,$(wildcard Lecture*/main.tex)))
 
-# Lecture number, e.g. Lecture4 -> 4
-number = $(patsubst Lecture%,%,$(1))
+# Lecture number from the folder name, e.g. Lecture04-Diffie-Hellman -> 4
+number = $(shell echo $(1) | sed -E 's/^Lecture0*([0-9]+).*/\1/')
 # PDF name of a lecture, read from its Makefile, e.g. Lecture_4_Diffie-Hellman_and_ElGamal
 name   = $(strip $(shell sed -n 's/^NAME *:= *//p' $(1)/Makefile))
 

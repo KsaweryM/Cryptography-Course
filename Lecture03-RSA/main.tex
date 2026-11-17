@@ -1,0 +1,1412 @@
+% Lecture 3: Public-Key Cryptography and RSA. Built from 3-kryptografia-asymetryczna-i-rsa-draft.md, slide by slide.
+\documentclass[aspectratio=169,10pt]{beamer}
+
+\usepackage{lmodern}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[polish,english]{babel}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{colortbl}
+\usepackage{xcolor}
+\usepackage{fontawesome5}
+\usepackage{etoolbox}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, calc, positioning, fit, decorations.pathreplacing, decorations.pathmorphing, shapes.geometric}
+\usepackage{pgfplots}
+% layers for the code windows drawn in TikZ: the window, then the line that runs now, then the text
+\pgfdeclarelayer{codebg}\pgfdeclarelayer{codehl}\pgfsetlayers{codebg,codehl,main}
+\pgfplotsset{compat=1.18}
+
+\usetheme{Madrid}
+\useinnertheme{rounded}
+\useoutertheme{miniframes}
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{itemize items}[circle]
+\setbeamertemplate{enumerate items}[default]
+\setbeamertemplate{blocks}[rounded][shadow=true]
+% one dot per idea, not per frame: \samedot before a frame gives it the dot of the frame before
+% (it undoes the step of the dot counter that the next frame makes)
+\newcommand{\samedot}{\addtocounter{subsectionslide}{-1}}
+% the default dot step of the circle dots (0.1 cm dots)
+\setbeamersize{mini frame size=.14cm,mini frame offset=-.01cm}
+
+% ======================================================================
+% Colour rules for presentations (Beamer + TikZ), from Agents/colors
+% ======================================================================
+
+% ---------- template ----------
+\definecolor{DeepBlue}{HTML}{283593}      % title bar, headings, links, control-flow arrows
+\definecolor{AccentOrange}{HTML}{EB5A14}  % annotations: step numbers, "look here", code highlight, conclusions
+\definecolor{LightGray}{HTML}{F5F6FA}     % background of information blocks
+\setbeamercolor{palette primary}{bg=DeepBlue,fg=white}
+\setbeamercolor{palette secondary}{bg=DeepBlue!80!black,fg=white}
+\setbeamercolor{palette tertiary}{bg=DeepBlue!90!black,fg=white}
+\setbeamercolor{title}{bg=DeepBlue,fg=white}
+\setbeamercolor{frametitle}{bg=DeepBlue,fg=white}
+\setbeamercolor{structure}{fg=DeepBlue}
+\setbeamercolor{item}{fg=AccentOrange}
+\setbeamercolor{alerted text}{fg=AccentOrange}
+\setbeamercolor{block title}{bg=DeepBlue,fg=white}
+\setbeamercolor{block body}{bg=LightGray,fg=black}
+\setbeamercolor{block title example}{bg=AccentOrange,fg=white}
+\setbeamercolor{block body example}{bg=AccentOrange!10,fg=black}
+\setbeamercolor{enumerate item}{fg=DeepBlue}
+\setbeamerfont{enumerate item}{series=\bfseries}
+
+% ---------- actors and categories: fills only (S1 to S6) ----------
+\definecolor{sIndigo}{HTML}{5C6BC0}   % S1
+\definecolor{sPink}{HTML}{EC407A}     % S2
+\definecolor{sViolet}{HTML}{7E57C2}   % S3
+\definecolor{sAmber}{HTML}{FFB300}    % S4: black text on it
+\definecolor{sTeal}{HTML}{26A69A}     % S5
+\definecolor{sBrown}{HTML}{8D6E63}    % S6
+% text variants that stay readable on white
+\definecolor{sPinkText}{HTML}{C2185B}
+\definecolor{sAmberText}{HTML}{A06A00}
+\definecolor{sTealText}{HTML}{00796B}
+
+% ---------- actions: frames only; results: signs only ----------
+\definecolor{aExec}{HTML}{43A047}     % runs now
+\definecolor{aRead}{HTML}{1E88E5}     % is read
+\definecolor{aWrite}{HTML}{E53935}    % is written
+
+% ---------- neutral (Blue Grey) ----------
+\definecolor{nInk}{HTML}{37474F}      % text in figures, waveforms, wires, data-flow arrows
+\definecolor{nLine}{HTML}{90A4AE}     % borders, axes
+\definecolor{nLight}{HTML}{CFD8DC}    % inactive lines, grids, empty places (dashed)
+\definecolor{nFill}{HTML}{ECEFF1}     % fill of boxes and used cells
+\definecolor{nIdle}{HTML}{E0E0E0}     % time lost (idle, busy waiting, bubbles)
+
+% ---------- TikZ styles ----------
+\tikzset{
+  aexec/.style={draw=aExec, line width=1.6pt},
+  aexecm/.style={aexec, label={[text=aExec, inner sep=1pt, font=\tiny]left:$\blacktriangleright$}},
+  aread/.style={draw=aRead, line width=1.6pt, dash pattern=on 3pt off 2pt},
+  awrite/.style={draw=aWrite, line width=2.4pt},
+  hw/.style={draw=nLine, thick, fill=nFill, text=nInk, rounded corners=3pt, align=center, inner sep=4pt},
+  hwmain/.style={draw=nInk, thick, fill=nInk, text=white, rounded corners=3pt, align=center, inner sep=4pt},
+  cell/.style={draw=nLine, thick, fill=white, text=nInk, font=\ttfamily\scriptsize},
+  cellused/.style={cell, fill=nFill},
+  cellfree/.style={cell, dashed, draw=nLight},
+  container/.style={draw=nLine, thick, dashed, rounded corners=5pt},
+  actor/.style={fill=#1, draw=#1, text=white, rounded corners=3pt, align=center, font=\scriptsize\bfseries, inner sep=4pt},
+  actorlight/.style={fill=#1!15, draw=#1, thick, text=nInk, rounded corners=3pt, align=center, inner sep=4pt},
+  suspended/.style={fill=#1!30, draw=#1, dashed, line width=0.9pt, text=nInk, rounded corners=3pt, align=center, inner sep=4pt},
+  ready/.style={fill=white, draw=#1, line width=0.8pt, text=nInk, rounded corners=3pt, align=center, inner sep=4pt},
+  idle/.style={fill=nIdle, draw=none, text=nInk, rounded corners=3pt, align=center, inner sep=4pt},
+  flow/.style={-{Stealth}, very thick, DeepBlue},
+  data/.style={-{Stealth}, very thick, nInk},
+  holds/.style={-{Stealth}, very thick, nInk},
+  waits/.style={-{Stealth}, very thick, nLine, dashed},
+  annot/.style={draw=AccentOrange, line width=1.4pt, rounded corners=3pt},
+}
+\tikzset{actoramber/.style={actor=sAmber, text=black}}
+
+% ---------- signs and small helpers ----------
+\newcommand{\ok}{\textcolor{aExec}{\faCheck}}
+\newcommand{\nok}{\textcolor{aWrite}{\faTimes}}
+\newcommand{\badge}[1]{\tikz[baseline=(b.base)]\node[circle,fill=AccentOrange,text=white,
+  inner sep=1.2pt,font=\bfseries\tiny] (b) {#1};}
+\newcommand{\bigbadge}[1]{\tikz[baseline=(b.base)]\node[circle,fill=AccentOrange,text=white,
+  inner sep=2pt,font=\bfseries\small] (b) {#1};}
+% the replacement character U+FFFD that Python prints for a byte that is not a letter: a black diamond with "?"
+\newcommand{\repl}{\tikz[baseline=-0.6ex]\node[diamond, fill=black, text=white, inner sep=0.2pt, font=\tiny\bfseries\rmfamily] {?};}
+% ---------- text boxes ----------
+\newcommand{\defbox}[1]{%
+  \begin{beamercolorbox}[rounded=true,sep=0.1cm,wd=\linewidth]{block body example}
+    \footnotesize #1
+  \end{beamercolorbox}\vspace{0.06cm}}
+% a large definition in the middle of the slide
+\newcommand{\bigdef}[1]{%
+  \begin{beamercolorbox}[rounded=true,sep=0.25cm,wd=\linewidth]{block body example}
+    \centering\normalsize #1
+  \end{beamercolorbox}\vspace{0.06cm}}
+\newcommand{\stepbox}[2]{%
+  \begin{beamercolorbox}[rounded=true,sep=0.09cm,wd=\linewidth]{block body}
+    \footnotesize\textbf{#1}\\ #2
+  \end{beamercolorbox}\vspace{0.06cm}}
+\newcommand{\keymsg}[1]{%
+  \begin{beamercolorbox}[rounded=true,sep=0.1cm,wd=\textwidth]{block body example}
+    \centering\footnotesize #1
+  \end{beamercolorbox}}
+% a grey box without a title
+\newcommand{\plainbox}[1]{%
+  \begin{beamercolorbox}[rounded=true,sep=0.12cm,wd=\linewidth]{block body}
+    \centering\footnotesize #1
+  \end{beamercolorbox}\vspace{0.06cm}}
+\setbeamercolor{block body problem}{bg=AccentOrange!10,fg=black}
+\newcommand{\probbox}[2]{%
+  \begin{beamercolorbox}[rounded=true,sep=0.09cm,wd=\linewidth]{block body problem}
+    \footnotesize\textbf{\textcolor{AccentOrange}{\faExclamationTriangle}\ #1}\\ #2
+  \end{beamercolorbox}\vspace{0.06cm}}
+
+% ======================================================================
+% Course macros
+% ======================================================================
+% the starter files on GitHub: the word "GitHub" is the link.
+%   \ghlink{Task4} opens the folder of Task 4, \ghlink{} opens the folder of this lecture
+\newcommand{\ghbase}{https://github.com/KsaweryM/Cryptography-Course/tree/main/Lecture03-RSA}
+\newcommand{\ghlink}[1]{\href{\ghbase/#1}{\textcolor{DeepBlue}{\textbf{GitHub}}}}
+% the task slides: the steps are in the README on GitHub, the slide only opens the task
+%   \taskgoal{one line}   \taskready{the ready modules}   \opentask{Task2}{about 6 minutes}
+%   a task on paper: the question on the slide, then \onpaper{about 3 minutes}
+\newcommand{\taskgoal}[1]{{\centering\large\textcolor{AccentOrange}{\faBullseye}\ \textbf{Goal:} #1\par}\vspace{0.2cm}}
+\newcommand{\taskready}[1]{{\centering\normalsize\textcolor{nInk}{\faBox}\ \textbf{Ready:} #1\par}\vspace{0.2cm}}
+\newcommand{\opentask}[2]{%
+  \begin{beamercolorbox}[rounded=true,sep=0.35cm,wd=\linewidth]{block body example}
+    \centering
+    {\LARGE\faGithub\ \textbf{Open the task:}\ \href{\ghbase/#1}{\textcolor{DeepBlue}{\textbf{\texttt{#1}}}}}\\[8pt]
+    \footnotesize\href{\ghbase/#1}{\textcolor{DeepBlue}{\texttt{github.com/KsaweryM/Cryptography-Course/tree/main/Lecture03-RSA/#1}}}\\[6pt]
+    \small on \ghlink{#1}: the steps, the starter files and how to run them\ifx&#2&\else\qquad\faClock[regular]\ #2\fi
+  \end{beamercolorbox}}
+\newcommand{\onpaper}[1]{%
+  \begin{beamercolorbox}[rounded=true,sep=0.3cm,wd=\linewidth]{block body example}
+    \centering
+    {\LARGE\faPencil*\ \textbf{On paper}}\ifx&#1&\else\qquad\small\faClock[regular]\ #1\fi
+  \end{beamercolorbox}}
+
+% a page of the simulator website, printed in full so that students can type it:
+%   \simlink{math/extended-euclid/} prints and links ksawerym.github.io/Cryptography-simulators/math/extended-euclid/
+\newcommand{\simbase}{ksawerym.github.io/Cryptography-simulators}
+\newcommand{\simlink}[1]{\href{https://\simbase/#1}{\textcolor{DeepBlue}{\texttt{\simbase/#1}}}}
+% "For the curious" line under a frame: \curious{math/extended-euclid/}
+\newcommand{\curious}[1]{{\footnotesize\textcolor{gray}{\faSearch\ For the curious:}\ \simlink{#1}}}
+
+% speaker notes (Polish): \note pages, kept in the source for the lecturer (the slides do not show them)
+\setbeamertemplate{note page}[default]
+\setbeamerfont{note page}{size=\normalsize}
+\newcommand{\say}[1]{\note{\selectlanguage{polish}#1}}
+
+% ======================================================================
+% Colour mapping for this lecture (colour rules, section 6)
+%   S1 sIndigo : Alice, the sender
+%   S2 sPink   : Eve and Mallory, the attackers
+%   S3 sViolet : plaintext, the message
+%   S4 sAmber  : a shared symmetric key
+%   S5 sTeal   : Bob, the receiver, and his key pair (public key light, private key full)
+%   S6 sBrown  : ciphertext sent over the network
+%   mechanisms (RSA, ChaCha20, the network, tables of numbers) are neutral
+% ======================================================================
+\tikzset{
+  person/.style={circle, fill=#1, text=white, minimum size=1.05cm, font=\Large, inner sep=0pt},
+  pname/.style={font=\scriptsize\bfseries, text=nInk},
+  net/.style={-, very thick, nLine, decorate, decoration={snake, amplitude=1.4pt, segment length=8pt}},
+  netarrow/.style={-{Stealth}, very thick, nInk, decorate, decoration={snake, amplitude=1.4pt, segment length=8pt, post length=4pt}},
+  pubkey/.style={draw=sTeal, thick, fill=sTeal!15, text=nInk, rounded corners=3pt, inner sep=4pt, font=\scriptsize, align=center},
+  privkey/.style={draw=sTeal, thick, fill=sTeal, text=white, rounded corners=3pt, inner sep=4pt, font=\scriptsize\bfseries, align=center},
+  apubkey/.style={draw=sIndigo, thick, fill=sIndigo!15, text=nInk, rounded corners=3pt, inner sep=4pt, font=\scriptsize, align=center},
+  aprivkey/.style={draw=sIndigo, thick, fill=sIndigo, text=white, rounded corners=3pt, inner sep=4pt, font=\scriptsize\bfseries, align=center},
+  symkey/.style={draw=sAmber, thick, fill=sAmber!30, text=nInk, rounded corners=3pt, inner sep=4pt, font=\scriptsize, align=center},
+  msg/.style={draw=sViolet, thick, fill=sViolet!15, text=nInk, rounded corners=3pt, inner sep=4pt, font=\scriptsize, align=center},
+  ctx/.style={draw=sBrown, thick, fill=sBrown!15, text=nInk, rounded corners=3pt, inner sep=4pt, font=\scriptsize, align=center},
+  mech/.style={draw=nInk, thick, fill=nInk, text=white, rounded corners=4pt, align=center, inner sep=5pt, font=\small\bfseries},
+  numcell/.style={draw=nLine, thick, fill=white, text=nInk, font=\ttfamily\small, minimum width=1.0cm, minimum height=0.6cm},
+  pubtag/.style={font=\tiny\bfseries, text=gray},
+  sectag/.style={font=\tiny\bfseries, text=sPinkText},
+}
+% people: \alice{pos}, \bob{pos}, \eve{pos} (each draws a named node A, B or E)
+\newcommand{\alice}[1]{\node[person=sIndigo] (A) at (#1) {\faUser}; \node[pname, below=1pt of A] {Alice};}
+\newcommand{\bob}[1]{\node[person=sTeal] (B) at (#1) {\faUser}; \node[pname, below=1pt of B] {Bob};}
+\newcommand{\eve}[2][Eve]{\node[person=sPink] (E) at (#2) {\faUserSecret}; \node[pname, below=1pt of E] {#1};}
+% a padlock box: \lockbox{name}{pos}{colour}{open or closed}
+\newcommand{\pad}[1]{\ifstrequal{#1}{open}{\faLockOpen}{\faLock}}
+% labels "public" and "secret" next to a value: two channels (text and icon), neutral or warning text
+\newcommand{\public}{\textcolor{gray}{\scriptsize\faEye\ public}}
+\newcommand{\secret}{\textcolor{sPinkText}{\scriptsize\faEyeSlash\ secret}}
+
+\title{Cryptography}
+\subtitle{Public-Key Cryptography and RSA}
+\author{Ksawery Możdżyński}
+\date{}
+
+\begin{document}
+
+% ======================================================================
+% Opening
+% ======================================================================
+
+\begin{frame}
+  \titlepage
+  \say{Dziś: jak dwie osoby, które nigdy się nie spotkały, mogą rozmawiać tajnie, i jak działa najbardziej znany szyfr, który to umożliwia.}
+\end{frame}
+
+\begin{frame}{Agenda For Today}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      % what we will do today: one icon and one sentence per point (the section names are in the bar at the top)
+      \foreach \ic/\t [count=\k from 0] in {
+          {\faKey}/{See what one shared key cannot do when many people talk.},
+          {\faCalculator}/{Learn the arithmetic behind RSA: powers modulo n and the modular inverse.},
+          {\faCogs}/{Build RSA keys from two primes, encrypt a message, and see how RSA is used for real.}} {
+        \node[circle, fill=DeepBlue, text=white, minimum size=1.3cm, font=\LARGE] at (0,{-1.9*\k}) {\ic};
+        \node[anchor=west, text width=12cm, font=\large, align=left, execute at begin node={\hyphenpenalty=10000 }] at (1.0,{-1.9*\k}) {\t};
+      }
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \say{Najpierw problem, którego nie rozwiąże żaden szyfr z poprzednich zajęć. Potem pomysł, matematyka i RSA krok po kroku. Nazwy sekcji są na pasku u góry.}
+\end{frame}
+
+% ======================================================================
+\section[One shared key]{One shared key}
+% ======================================================================
+
+\begin{frame}{Recall: a symmetric cipher}
+  \bigdef{\textbf{Symmetric cipher}: the same secret key encrypts and decrypts.\\ Examples: RC4, ChaCha20, AES.}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \alice{0,0}
+      \bob{12,0}
+      \node[mech] (enc) at (3,0) {\faCogs\\ encrypt};
+      \node[mech] (dec) at (9,0) {\faCogs\\ decrypt};
+      \node[symkey] (k1) at (3,1.45) {\faKey\ key K};
+      \node[symkey] (k2) at (9,1.45) {\faKey\ key K};
+      \draw[data] (k1) -- (enc); \draw[data] (k2) -- (dec);
+      \draw[data] (A) -- (enc) node[midway, below=4pt, msg] {plaintext};
+      \draw[netarrow] (enc) -- (dec) node[midway, above=3pt, ctx] {ciphertext};
+      \draw[data] (dec) -- (B) node[midway, below=4pt, msg] {plaintext};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \keymsg{Both sides must already have the same key.}
+  \say{Wszystkie szyfry z poprzednich zajęć są symetryczne. Są szybkie, ale wymagają wspólnego klucza.}
+\end{frame}
+
+\begin{frame}{Problem 1: how do we share the key?}
+  \begin{center}\small Alice and Bob have never met. The internet is all they have.\end{center}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \alice{0,0}
+      \bob{11,0}
+      \draw[net] (0.7,0) -- (10.3,0);
+      \node[font=\scriptsize, text=nInk, fill=white] at (5.5,0.35) {\faGlobe\ internet};
+      \node[symkey] at (2.6,0.55) {\faKey\ K ?};
+      \eve{5.5,-1.6}
+      \draw[data, dashed] (5.5,-0.1) -- (E.north);
+      \node[font=\scriptsize, text=sPinkText, anchor=west] at (6.2,-1.6) {Eve hears everything};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small If Alice sends the key over the internet, Eve has it too.\end{center}
+  \vfill
+  \keymsg{To talk secretly, we first need a secret.}
+  \say{Zapytać salę, jak to rozwiązać. Typowe odpowiedzi: spotkać się, wysłać pocztą, zadzwonić. Każda wymaga drugiego, bezpiecznego kanału.}
+\end{frame}
+
+% five people, every pair connected: used on the task and its solution
+\newcommand{\fivegraph}[1]{%
+  \begin{tikzpicture}
+    \foreach \i in {0,...,4} \coordinate (P\i) at ({90+72*\i}:1.6);
+    \ifnum#1=1
+      \foreach \i in {0,...,4} \foreach \j in {0,...,4} {\ifnum\i<\j \draw[sAmber, very thick] (P\i) -- (P\j);\fi}
+    \fi
+    \foreach \i in {0,...,4} \node[person=nInk, minimum size=0.7cm, font=\normalsize] at (P\i) {\faUser};
+  \end{tikzpicture}}
+
+\samedot
+\begin{frame}{Task 1: how many keys?}
+  \begin{columns}[c,onlytextwidth]
+    \column{0.4\textwidth}
+      \begin{center}\fivegraph{0}\end{center}
+    \column{0.6\textwidth}
+      Every pair of people needs its own key: nobody else may read their messages.\\[0.4cm]
+      How many keys do we need for
+      \begin{itemize}
+        \item 5 people?
+        \item 30 people (this room)?
+        \item 10\,000 people (a company)?
+      \end{itemize}
+  \end{columns}
+  \vfill
+  \onpaper{about 3 minutes}
+  \vfill
+  \say{Około 3 minut, na kartce. Podpowiedź dla wolniejszych: narysować 5 osób i połączyć każdą z każdą.}
+\end{frame}
+
+\samedot
+\begin{frame}{Task 1: what we saw}
+  \begin{columns}[c,onlytextwidth]
+    \column{0.4\textwidth}
+      \begin{center}\fivegraph{1}\\[0.2cm]\scriptsize 5 people, 10 keys\end{center}
+    \column{0.6\textwidth}
+      \begin{center}
+        $n$ people, each pair one key: \quad $\dfrac{n\,(n-1)}{2}$\\[0.4cm]
+        \begin{tabular}{rr}
+          \toprule
+          people & keys \\
+          \midrule
+          5 & 10 \\
+          30 & 435 \\
+          10\,000 & 49\,995\,000 \\
+          \bottomrule
+        \end{tabular}\\[0.3cm]
+        \footnotesize Each person has $n-1$ partners, and each key is shared by two people.
+      \end{center}
+  \end{columns}
+  \vfill
+  \keymsg{The number of keys grows with the square of the number of people.}
+  % CHECKED: python3: k*(k-1)//2 for 5, 30, 10000 = 10, 435, 49995000
+  \say{Liczby sprawdzone. Dla firmy z 10 000 pracowników prawie 50 milionów kluczy.}
+\end{frame}
+
+\begin{frame}{Problem 2: keeping track of keys}
+  \begin{center}\small Each person stores a key for every partner.\end{center}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \foreach \x/\ic/\t/\r in {0/\faUserPlus/a new person joins/new keys with everybody,
+                               4.4/\faUserMinus/a person leaves/all their keys must be replaced,
+                               8.8/\faHistory/a key is old/replace it on both sides at once} {
+        \node[hw, minimum width=3.8cm, minimum height=2.4cm] (b) at (\x,0) {};
+        \node[text=nInk, font=\huge] at (\x,0.45) {\ic};
+        \node[font=\small\bfseries, text=nInk] at (\x,-0.35) {\t};
+        \node[font=\scriptsize, text=nInk, text width=3.4cm, align=center] at (\x,-0.85) {\r};
+        \foreach \k in {0,1,2} \node[symkey, inner sep=1.5pt, font=\tiny] at ({\x-0.5+0.5*\k},-1.6) {\faKey};
+      }
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \say{To zarządzanie kluczami: przy tysiącach osób jest to osobny, trudny problem organizacyjny.}
+\end{frame}
+
+\begin{frame}{Two problems, one cause}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \foreach \y/\n/\t/\d in {0.7/1/sharing the key/we need a secret channel first,
+                               -0.7/2/many keys/{$n(n-1)/2$ keys}} {
+        \node[hw, minimum width=6.4cm, minimum height=0.95cm, align=left, anchor=west] (b\n) at (0,\y)
+          {\textbf{\n. \t}\\ \scriptsize \d};
+        \draw[data] (b\n.east) -- (7.8,0);
+      }
+      \node[symkey, minimum width=3.4cm, minimum height=1.6cm, font=\small] at (9.6,0)
+        {\faKey\ \faKey\\[2pt] \textbf{both sides hold}\\ \textbf{the same secret}};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \say{Oba wynikają z tego, że klucz do zamykania i do otwierania jest jeden i ten sam.}
+\end{frame}
+
+\samedot
+\begin{frame}{What if the key for locking were public?}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \foreach \x in {0,1.1,2.2,3.3} \node[text=sTeal, font=\fontsize{30}{32}\selectfont] at (\x,0) {\faLockOpen};
+      \node[font=\large\bfseries, text=nInk] at (1.65,-1.2) {Anybody may lock.};
+      \node[privkey, font=\fontsize{26}{28}\selectfont] at (8,0) {\faKey};
+      \node[font=\large\bfseries, text=nInk] at (8,-1.2) {Only one person can unlock.};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \say{Pytanie do sali przed następnym slajdem: czy to w ogóle możliwe? Jak by to wyglądało z kłódką?}
+\end{frame}
+
+% ======================================================================
+\section[A pair of keys]{A pair of keys}
+% ======================================================================
+
+\begin{frame}{A padlock anyone can close}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      % step 1: Bob hands out open padlocks
+      \bob{0,0}
+      \foreach \i in {0,1,2} \node[text=sTeal, font=\Large] at ({1.2+0.55*\i},0.9) {\faLockOpen};
+      \node[privkey, font=\small] at (0,1.35) {\faKey};
+      \node[font=\scriptsize, text=nInk, text width=3.6cm, align=center] at (0.9,-1.4) {\bigbadge{1} hands out open padlocks, keeps the only key};
+      % step 2: Alice locks a box
+      \alice{5.2,0}
+      \node[msg, minimum width=1.3cm, minimum height=0.9cm] (box) at (6.8,0) {\faEnvelope};
+      \node[text=sTeal, font=\Large] at (6.8,0.95) {\faLock};
+      \node[font=\scriptsize, text=nInk, text width=3.4cm, align=center] at (6,-1.4) {\bigbadge{2} Alice closes a box with Bob's padlock};
+      % step 3: only Bob opens it
+      \node[msg, minimum width=1.3cm, minimum height=0.9cm] (box2) at (10.4,0) {\faEnvelopeOpen};
+      \node[privkey, font=\small] at (11.4,0) {\faKey};
+      \node[font=\scriptsize, text=nInk, text width=3.6cm, align=center] at (10.8,-1.4) {\bigbadge{3} nobody can open it, not even Alice; only Bob, with his key};
+      \draw[flow] (2.9,0) -- (4.4,0);
+      \draw[flow] (7.7,0) -- (9.5,0);
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \keymsg{Closing is public. Opening is private.}
+  \say{Alice nie musi znać żadnego sekretu Boba. Eve może mieć tyle kłódek, ile chce, i nic jej to nie daje.}
+\end{frame}
+
+\samedot
+\begin{frame}{A key pair}
+  \bigdef{\textbf{Public key}: locks (encrypts). Everybody may know it.\\
+    \textbf{Private key}: unlocks (decrypts). Only its owner knows it.\\
+    They are made together, and the private key cannot be computed from the public one in practice.}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \node[pubkey, font=\normalsize, minimum width=3.4cm, minimum height=1.4cm] (pu) at (0,0) {\faLockOpen\ \textbf{public key}\\ \scriptsize\public};
+      \node[privkey, font=\normalsize, minimum width=3.4cm, minimum height=1.4cm] (pr) at (6,0) {\faKey\ private key\\ \scriptsize\faEyeSlash\ secret};
+      \draw[nLine, very thick, dash pattern=on 6pt off 3pt] (pu) -- node[above, font=\scriptsize, text=nInk] {made together} (pr);
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small This is \textbf{public-key} (asymmetric) cryptography.\end{center}
+  \say{Asymetryczna, bo klucze do szyfrowania i odszyfrowania są różne. Słowo praktycznie jest ważne: da się policzyć klucz prywatny z publicznego, ale zajęłoby to miliardy lat.}
+\end{frame}
+
+% the flow in 5 steps, the same picture on 5 slides: \flowpic{step}
+\newcommand{\flowpic}[1]{%
+  \begin{tikzpicture}[>=Stealth]
+    \useasboundingbox (-0.9,-3.1) rectangle (13.9,2.2);
+    \alice{0,0}
+    \bob{13,0}
+    \draw[net] (0.8,0) -- (12.2,0);
+    \node[font=\scriptsize, text=nInk, fill=white] at (6.5,0.32) {\faGlobe\ internet};
+    \eve{6.5,-2.1}
+    \draw[data, dashed] (6.5,-0.1) -- (E.north);
+    \node[draw=nLine, thick, fill=white, rounded corners=2pt, minimum width=2.6cm, minimum height=1.3cm,
+      anchor=west, align=left, font=\tiny, text=nInk] (nb) at (7.4,-2.1) {};
+    \node[font=\tiny\bfseries, text=nInk, anchor=north west] at (nb.north west) {Eve has seen:};
+    \ifnum#1>0
+      \node[pubkey] (pu) at (12.2,1.55) {\faLockOpen\ public};
+      \node[privkey] (pr) at (13.75,1.55) {\faKey\ private};
+    \fi
+    \ifnum#1>1
+      \node[pubkey] (pu2) at (1.4,1.55) {\faLockOpen\ Bob's public key};
+      \draw[flow] (pu) -- node[above, font=\scriptsize, text=DeepBlue] {published} (pu2);
+      \node[pubkey, font=\tiny, anchor=west] at ([xshift=2pt,yshift=-0.75cm]nb.north west) {\faLockOpen\ public key};
+    \fi
+    \ifnum#1>2
+      \node[mech, font=\scriptsize\bfseries] (enc) at (3.4,0) {encrypt};
+      \node[msg] (m) at (1.6,-1.25) {message};
+      \draw[data] (m) -- (enc);
+      \draw[data] (pu2.south -| enc) -- (enc);
+    \fi
+    \ifnum#1>3
+      \node[ctx] at (8.3,0.75) {\faEnvelope\ ciphertext};
+      \draw[data, very thick] (enc.east) -- (6.0,0) ;
+      \node[ctx, font=\tiny, anchor=west] at ([xshift=1.55cm,yshift=-0.75cm]nb.north west) {\faEnvelope\ ciphertext};
+    \fi
+    \ifnum#1>4
+      \node[mech, font=\scriptsize\bfseries] (dec) at (10.6,0) {decrypt};
+      \draw[data] (pr.south) |- ([yshift=0.6cm]dec.north) -- (dec.north);
+      \node[msg] (m2) at (12.2,-1.25) {message};
+      \draw[data] (dec) -- (m2);
+    \fi
+  \end{tikzpicture}}
+\newcommand{\flowtext}[1]{\ifcase#1\or Bob makes a key pair.\or Bob publishes the public key.\or
+  Alice encrypts with Bob's public key.\or Alice sends the ciphertext. Eve sees it.\or
+  Bob decrypts with his private key.\fi}
+\newcommand{\flowframe}[3]{%
+\begin{frame}{The flow, step #1}
+  \vfill
+  \begin{center}\resizebox{0.78\linewidth}{!}{\flowpic{#1}}\end{center}
+  \vfill
+  \begin{center}\large\bigbadge{#1}\ \flowtext{#1}\quad\textcolor{gray}{\scriptsize step #1 of 5}\end{center}
+  \vfill
+  #3
+  \say{#2}
+\end{frame}}
+\flowframe{1}{Bob robi to raz, a nie dla każdej wiadomości.}{}
+\samedot
+\flowframe{2}{Klucz publiczny może być na stronie internetowej albo w stopce e-maila.}{}
+\samedot
+\flowframe{3}{Alice nie potrzebuje żadnego sekretu.}{}
+\samedot
+\flowframe{4}{Eve widzi szyfrogram, tak jak przy szyfrach symetrycznych.}{}
+\samedot
+\flowframe{5}{Tylko Bob ma klucz prywatny. Nawet Alice nie odszyfruje już swojej wiadomości. W symulatorze z linku ta sama historia krok po kroku, na prawdziwych (małych) liczbach RSA. Litery w symulatorze ({d, n}, C = P\textsuperscript{e} mod n) wyjaśnimy w sekcji 5; teraz wystarczy obrazek.}{\curious{rsa/\#1}\par\keymsg{Eve saw the public key and the ciphertext. Neither helps her.}}
+
+% a horizontal bar on a log scale: \logbar{y}{log10 of the value}{style}{label}; 1.3 cm per power of ten
+\newcommand{\logbar}[4]{%
+  \pgfmathsetmacro{\len}{1.3*#2}
+  \fill[#3] (0,{#1-0.17}) rectangle (\len,{#1+0.17});
+  \node[anchor=west, font=\scriptsize, text=nInk] at (\len,#1) {#4};}
+\begin{frame}{How many keys now?}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \foreach \y/\t in {2.6/5 people, 1.3/30 people, 0/10\,000 people} \node[anchor=east, font=\small, text=nInk] at (-0.15,{\y+0.2}) {\t};
+      \foreach \y/\a/\b/\la/\lb in {2.6/1/0.699/10/5, 1.3/2.638/1.477/435/30, 0/7.699/4/49\,995\,000/10\,000} {
+        \logbar{\y+0.2}{\a}{sAmber!70}{\la}
+        \logbar{\y-0.2}{\b}{sTeal!70}{\lb}
+      }
+      \draw[nLine, thick] (0,-0.6) -- (0,3.2);
+      \draw[nLine, thick] (0,-0.6) -- (11,-0.6);
+      \foreach \k in {0,...,8} \node[font=\tiny, text=gray] at ({1.3*\k},-0.85) {$10^{\k}$};
+      \node[font=\scriptsize, text=nInk] at (5.5,-1.25) {number of keys (log scale)};
+      \fill[sAmber!70] (8,2.9) rectangle (8.3,3.1); \node[anchor=west, font=\scriptsize, text=nInk] at (8.35,3.0) {shared keys};
+      \fill[sTeal!70] (8,2.5) rectangle (8.3,2.7); \node[anchor=west, font=\scriptsize, text=nInk] at (8.35,2.6) {key pairs};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \keymsg{One key pair per person, however many partners they have.}
+  \say{Nowa osoba robi jedną parę kluczy i publikuje klucz publiczny. Nikt inny nie musi nic zmieniać.}
+\end{frame}
+
+\begin{frame}{Task 2: use RSA}
+  \vfill
+  \taskgoal{you are Bob: decrypt Alice's message, then encrypt a reply for her.}
+  \taskready{\texttt{rsa\_ready.py}, the functions \texttt{encrypt} and \texttt{decrypt}.}
+  \vfill
+  \opentask{Task2}{about 6 minutes}
+  \vfill
+  \say{Około 6 minut. RSA to najbardziej znany szyfr z kluczem publicznym; najpierw jako czarna skrzynka. rsa\_ready.py jest w folderze zadania, do środka zajrzymy w sekcji 5. Klucze mają 2048 bitów, czyli liczby po około 617 cyfr; wystarczy je przekazać funkcjom. Ostatni krok: Bob próbuje odszyfrować własną odpowiedź. Każde zadanie jest samodzielne, nic nie trzeba instalować.}
+\end{frame}
+
+\samedot
+\begin{frame}{Task 2: what we saw}
+  \vfill
+  % CHECKED: Task2/solution/use_rsa.py, python3 3.12: "Alice says: Can we meet on Friday at the library?" and
+  %          "my key on my reply: '\x06<?><?>Z<?><?><?>1'" (<?> = U+FFFD, the replacement character, drawn by \repl)
+  \begin{center}
+    \begin{minipage}{0.62\textwidth}
+      \stepbox{Alice's message}{\ttfamily Can we meet on Friday at the library?}
+      \vspace{0.2cm}
+      \probbox{Bob decrypts his own reply}{\ttfamily my key on my reply: '\textbackslash x06\repl\repl Z\repl\repl\repl 1'\rmfamily\ (nonsense)}
+    \end{minipage}
+  \end{center}
+  \vfill
+  \keymsg{What is locked with Alice's public key, only Alice's private key opens.}
+  \say{Sprawdzone, dokładnie to wypisuje rozwiązanie. Każdy romb ze znakiem zapytania to bajt, który nie jest poprawną literą (Python wstawia wtedy znak zastępczy). Bob nie odczyta własnej odpowiedzi, bo zamknął ją kłódką Alice.}
+\end{frame}
+
+\begin{frame}{How fast is RSA?}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      % 1.15 cm per power of ten
+      \node[anchor=east, font=\small, text=nInk, align=right] at (-0.15,1.9) {RSA-2048\\[-2pt]\scriptsize decrypt (private key)};
+      \node[anchor=east, font=\small, text=nInk, align=right] at (-0.15,0.95) {RSA-2048\\[-2pt]\scriptsize encrypt (public key)};
+      \node[anchor=east, font=\small, text=nInk] at (-0.15,0) {ChaCha20};
+      \fill[nLine] (0,1.73) rectangle ({1.15*5.65},2.07); \node[anchor=west, font=\scriptsize, text=nInk] at ({1.15*5.65},1.9) {1800 per second, 256 bytes each: 0.46 MB/s};
+      \fill[nLine] (0,0.78) rectangle ({1.15*7.20},1.12); \node[anchor=west, font=\scriptsize, text=nInk] at ({1.15*7.20},0.95) {62\,000 per second: 16 MB/s};
+      \fill[nInk] (0,-0.17) rectangle ({1.15*9.477},0.17); \node[anchor=east, font=\scriptsize\bfseries, text=white] at ({1.15*9.477},0) {about 3 GB/s};
+      \draw[nLine, thick] (0,-0.45) -- (0,2.3); \draw[nLine, thick] (0,-0.45) -- (11.5,-0.45);
+      \foreach \k in {0,2,4,6,8} \node[font=\tiny, text=gray] at ({1.15*\k},-0.68) {$10^{\k}$};
+      \node[font=\scriptsize, text=nInk] at (5.75,-1.0) {bytes per second (log scale)};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small Why: every RSA operation is a power of a 617-digit number; ChaCha20 only adds, rotates and XORs 32-bit words.\\[3pt]
+    A 1 GB file piece by piece with RSA: encrypting takes \textbf{about a minute}, decrypting \textbf{more than half an hour}.\\
+    \footnotesize\textcolor{gray}{measured with OpenSSL on a laptop (Intel Core i5-8265U)}\end{center}
+  \vfill
+  \keymsg{Public-key crypto is far too slow for bulk data.}
+  % CHECKED: openssl speed -seconds 2 and -seconds 3 rsa2048, OpenSSL 3.0.13, i5-8265U (2026-11-17): private key (decrypt)
+  %          0.56 to 0.58 ms, 1700 to 1800/s; public key (encrypt, e = 65537) 0.016 ms, 60 000 to 62 500/s.
+  %          1 GB / 256 B = 3.9 million operations: x 0.56 ms = about 37 min, x 0.016 ms = about 62 s.
+  %          Python 3.12 pow() on the 2048-bit key of Task2: 0.17 ms with e = 65537, 25 ms with d (OpenSSL uses the CRT and faster code).
+  %          ChaCha20 3.0 GB/s from Lecture 2. log10: 0.46 MB/s = 5.65, 16 MB/s = 7.20, 3 GB/s = 9.48
+  \say{Pomiar openssl speed na laptopie z i5-8265U. Szyfrowanie kluczem publicznym jest szybsze, bo publiczny wykładnik e = 65537 jest mały: 0,016 ms na operację. Odszyfrowanie kluczem prywatnym to 0,56 ms, bo prywatny wykładnik d jest dużo większy od e = 65537 (około 2048 bitów); oba zobaczymy w sekcji 5. 1 GB podzielony na kawałki po 256 bajtów to około 4 miliony operacji: około minuty na szyfrowanie i około 37 minut na odszyfrowanie. ChaCha20 robi to samo w jedną trzecią sekundy. Gdyby ktoś pytał: sam Python (pow) jest wolniejszy, 0,17 ms i 25 ms.}
+\end{frame}
+
+% an envelope drawn with its flap: \bigenvelope{name}{centre}{width}{height}{colour}
+\newcommand{\bigenvelope}[5]{%
+  \node[draw=#5, very thick, fill=#5!12, minimum width=#3, minimum height=#4, rounded corners=2pt] (#1) at (#2) {};
+  \draw[#5, very thick, line join=round] (#1.north west) -- ([yshift=-0.42*#4]#1.north) -- (#1.north east);
+  \draw[#5!60, thick] (#1.south west) -- ([yshift=0.3*#4]#1.center) (#1.south east) -- ([yshift=0.3*#4]#1.center);}
+\samedot
+\begin{frame}{Hybrid encryption}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \alice{-0.4,0}
+      % the big envelope: the data, locked with the symmetric key K
+      \bigenvelope{big}{4.2,0.25}{4.4cm}{2.3cm}{sViolet}
+      \node[font=\small\bfseries, text=nInk, fill=sViolet!12, inner sep=2pt] at (4.2,-0.35) {\faFile*\ the data};
+      \node[font=\scriptsize, text=nInk, fill=sViolet!12, inner sep=1pt] at (4.2,-0.75) {1 GB, any size};
+      \node[symkey, font=\small] (kb) at (4.2,1.7) {\faLock\ locked with \faKey\ K\ \textcolor{gray}{\scriptsize ChaCha20, fast}};
+      % the small envelope: K, locked with Bob's public key
+      \bigenvelope{small}{4.2,-1.95}{2.4cm}{1.2cm}{sTeal}
+      \node[symkey, font=\scriptsize, inner sep=2pt] at (4.2,-2.15) {\faKey\ K, 32 bytes};
+      \node[pubkey, font=\scriptsize] at (6.9,-2.1) {\faLock\ Bob's public key\\ \textcolor{gray}{\tiny RSA, slow, only 32 bytes}};
+      \draw[data] (A.east) -- (big.west);
+      \draw[data] (A.east) -- (small.west);
+      \node[font=\scriptsize, text=nInk, align=left] at (-0.4,-2.0) {\badge{1} random K,\\ \phantom{\badge{1}} the session key\\ \badge{2} lock K\\ \badge{3} lock the data};
+      % Bob opens the small one first, then the big one
+      \bob{11.6,0}
+      \draw[netarrow] (big.east) -- (10.8,0.35) node[pos=0.5, above, font=\scriptsize, text=nInk] {\badge{4} both are sent};
+      \draw[netarrow] (small.north east) -- (10.9,-0.5);
+      \node[privkey, font=\scriptsize] at (11.6,-1.7) {\faKey\ \badge{5} opens the small one,\\ then the big one with K};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \curious{rsa/\#5.5}
+  \keymsg{Public-key crypto moves the key, symmetric crypto moves the data.\quad \ok\ Both problems of a shared key are solved.}
+  \say{Tak działa prawie każde zastosowanie kryptografii asymetrycznej: ona tylko przenosi klucz, resztę robi szybki szyfr symetryczny. Oba problemy wspólnego klucza są rozwiązane: klucz publiczny może podróżować jawnie, a każda osoba ma jedną parę kluczy. Co się dzieje, gdy wycieknie klucz prywatny, zobaczymy na końcu wykładu. Klucz K, losowany na jedną rozmowę, to klucz sesji. W symulatorze z linku (karta szyfrowania hybrydowego w kroku 5) ta sama koperta z prawdziwymi rozmiarami w bajtach.}
+\end{frame}
+
+
+\begin{frame}{But why can nobody compute the private key?}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \node[pubkey, font=\normalsize, minimum width=3cm, minimum height=1.2cm] (pu) at (0,0) {\faLockOpen\ public key};
+      \node[privkey, font=\normalsize, minimum width=3cm, minimum height=1.2cm] (pr) at (6,0) {\faKey\ private key};
+      \draw[nLine, very thick, dash pattern=on 6pt off 3pt] (pu) -- node[above, font=\scriptsize, text=nInk] {mathematics} (pr);
+      \eve{3,-2}
+      \node[font=\Huge\bfseries, text=AccentOrange] at (4.1,-1.8) {?};
+    \end{tikzpicture}\\[0.4cm]
+    \small The two keys are made together, so they must be connected by mathematics.\\
+    \textbf{Why can Eve not run that mathematics backwards?}
+  \end{center}
+  \vfill
+  \say{Pytanie prowadzące do sekcji 3. Poczekać na odpowiedzi.}
+\end{frame}
+
+% ======================================================================
+\section[Hard problems]{Hard problems}
+% ======================================================================
+
+\begin{frame}{Easy one way, hard the other}
+  \bigdef{\textbf{Trapdoor one-way function}: easy to compute, practically impossible to reverse,\\
+    unless you know a secret (the \textbf{trapdoor}).}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth, scale=1.5, transform shape]
+      \foreach \x/\c in {0/sAmber, 1.5/sTeal} {
+        \draw[nInk, thick, fill=\c!70] (\x-0.45,0.6) -- (\x-0.35,-0.5) -- (\x+0.35,-0.5) -- (\x+0.45,0.6);
+        \draw[nInk, thick] (\x-0.45,0.6) -- (\x+0.45,0.6);
+      }
+      \draw[nInk, thick, fill=sAmber!50!sTeal!70] (5.4,0.8) -- (5.5,-0.6) -- (6.6,-0.6) -- (6.7,0.8);
+      \draw[nInk, thick] (5.4,0.8) -- (6.7,0.8);
+      \draw[data] (2.3,0.25) -- node[above, font=\small, text=nInk] {mixing: easy} (4.9,0.25);
+      \draw[data] (4.9,-0.35) -- node[below, font=\small, text=nInk] {separating: hard} (2.3,-0.35);
+      \node[font=\Large, text=aWrite] at (3.6,-0.35) {\faTimes};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \keymsg{Encrypting with the public key is the one-way function; the private key is the trapdoor that goes back.}
+  \say{Klucz publiczny pozwala liczyć w przód, klucz prywatny to furtka, która pozwala cofnąć. Na rysunku nie ma furtki: farb nie da się rozdzielić nikomu. W RSA funkcją jednokierunkową jest szyfrowanie P\textsuperscript{e} mod n, furtką klucz prywatny d, a d chroni trudność rozkładu n na czynniki (następne slajdy i sekcja 5).}
+\end{frame}
+
+\samedot
+\begin{frame}{Multiplying is easy}
+  \vfill
+  \begin{center}
+    {\LARGE\ttfamily 35\,573 $\times$ 38\,839 = \textbf{1\,381\,619\,747}}\\[0.8cm]
+    \textcolor{aExec}{\Large\faBolt}\quad Python does it in about 0.03 microseconds,\\
+    and in about 1 microsecond for two numbers with 300 digits.
+  \end{center}
+  \vfill
+  % CHECKED: python3: 35573 * 38839 = 1381619747
+  % CHECKED: python3 3.12, i5-8265U, min of timeit.repeat: a*b with these numbers 34 ns;
+  %          two random 997-bit numbers (300 digits each) 1.25 us
+  \say{Mnożenie liczb po 300 cyfr to dla komputera nic.}
+\end{frame}
+
+\samedot
+\begin{frame}{Factoring is hard}
+  \vfill
+  \begin{center}
+    {\LARGE\ttfamily 1\,381\,619\,747 = \textcolor{AccentOrange}{?} $\times$ \textcolor{AccentOrange}{?}}\\[0.8cm]
+    The simple way: try every divisor 2, 3, 5, 7, \dots\ until one fits.\\[0.4cm]
+    Breaking a number into primes is called \textbf{factoring}.
+  \end{center}
+  \vfill
+  \keymsg{Multiplying is easy. Going back is hard.}
+  \say{Liczba pierwsza dzieli się tylko przez 1 i siebie. Każdą liczbę da się zapisać jako iloczyn liczb pierwszych, a znalezienie ich to faktoryzacja.}
+\end{frame}
+
+\begin{frame}{Task 3: factor it}
+  \vfill
+  \taskgoal{factor four numbers (32, 40, 48 and 55 bits) and time each one.}
+  \taskready{the numbers and the time measurement, in \texttt{factor.py}.}
+  \plainbox{Why: an RSA public key contains $n = p \times q$. Whoever finds p and q can compute the private key (section 5).}
+  \vfill
+  \opentask{Task3}{about 7 minutes}
+  \vfill
+  \say{Około 7 minut. Najpierw zapytać salę: każda liczba jest o 8 bitów dłuższa, ile razy dłużej to potrwa? Zapisać przewidywania na tablicy. Ostatnia liczba liczy się około 10 sekund. Jeśli ktoś pyta, czemu wystarczy szukać do pierwiastka: jeśli n ma dzielnik większy od pierwiastka, to ma też mniejszy.}
+\end{frame}
+
+\samedot
+\begin{frame}{Task 3: what we saw}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[scale=1.15]
+      % 1 cm per power of ten above 0.001 s
+      \foreach \y/\l/\t/\f in {1.5/0.477/0.003 s/50119 x 64157, 0.6/1.672/0.047 s/737039 x 992809,
+                               -0.3/2.892/0.78 s/12100201 x 14470207, -1.2/4.004/10.1 s/162019679 x 197590889} {
+        \fill[nInk] (0,{\y-0.15}) rectangle ({1.0*\l},{\y+0.15});
+        \node[anchor=west, font=\small\bfseries, text=nInk] at ({1.0*\l+0.05},\y) {\t};
+        \node[anchor=west, font=\scriptsize, text=gray] at (0,{\y+0.32}) {\f};
+      }
+      \foreach \y/\b in {1.5/32, 0.6/40, -0.3/48, -1.2/55} \node[anchor=east, font=\small, text=nInk] at (-0.1,\y) {\b\ bits};
+      \node[font=\scriptsize, text=gray] at (2.5,-1.85) {time, log scale};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \keymsg{Every 8 more bits make factoring about 16 times slower.}
+  % CHECKED: Task3/solution/factor.py, python3 3.12, i5-8265U: 0.003 s, 0.047 s, 0.775 s, 10.113 s; 64 bits in my own run: 295 s
+  \say{Pomiar z mojego laptopa. 8 bitów więcej to około 16 razy dłużej, bo czynniki są o 4 bity dłuższe. Porównać z przewidywaniami z tablicy. Mój pomiar dla 64 bitów: 295 sekund.}
+\end{frame}
+
+\begin{frame}{How long for 2048 bits?}
+  \vfill
+  \begin{center}
+    An RSA number has \textbf{2048 bits}. Its factors have 1024 bits each.\\[0.6cm]
+    \begin{tikzpicture}
+      \draw[nLine, thick] (0,0) -- (12,0);
+      \foreach \x/\t in {0.4/32, 0.6/40, 0.8/48, 1.1/55} \fill[nInk] (\x,0) circle (2.5pt);
+      \node[font=\scriptsize, text=nInk, below] at (0.75,-0.1) {our numbers};
+      \draw[nLine, thick, dashed] (6,-0.25) -- (6.3,0.25); \draw[nLine, thick, dashed] (6.2,-0.25) -- (6.5,0.25);
+      \fill[AccentOrange] (11.6,0) circle (3.5pt);
+      \node[font=\scriptsize\bfseries, text=AccentOrange, below] at (11.6,-0.1) {2048 bits};
+      \node[font=\scriptsize, text=nInk, above] at (11.6,0.15) {about $2^{1023}$ divisions};
+    \end{tikzpicture}\\[0.6cm]
+    More than the number of atoms in the universe, many times over.
+  \end{center}
+  \vfill
+  \say{Cztery kropki to cztery liczby z zadania 3. Skąd 2\textsuperscript{1023}: dzielników trzeba próbować aż do pierwiastka z n, czyli do około 2\textsuperscript{1024}, a próbujemy tylko liczb nieparzystych, czyli co drugiej: 2\textsuperscript{1024} / 2 = 2\textsuperscript{1023}. To liczba z ponad 300 cyframi. Atomów we wszechświecie jest około 10\textsuperscript{80}.}
+\end{frame}
+
+\samedot
+\begin{frame}{Better methods exist}
+  \begin{center}\small The best known method is the \textbf{number field sieve}. It is much faster, but still not enough.\end{center}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \draw[nLine, thick] (0,0) -- (12.5,0);
+      \foreach \x in {0,2.5,...,12.5} \draw[nLine] (\x,-0.08) -- (\x,0.08);
+      \foreach \x/\b in {0/0, 2.5/500, 7.5/1500, 10/2000} \node[font=\tiny, text=gray, below] at (\x,-0.1) {\b\ bits};
+      \fill[nInk] (4.145,0) circle (3pt); \node[font=\scriptsize, text=nInk, align=center, above] at (3.6,0.15) {RSA-250\\829 bits, 2020};
+      \fill[nInk] (4.48,0) circle (3pt); \node[font=\scriptsize, text=nInk, align=center, below] at (5.0,-0.4) {RSA-896\\896 bits, Sept.\ 2026};
+      \fill[AccentOrange] (10.24,0) circle (4pt); \node[font=\scriptsize\bfseries, text=AccentOrange, align=center, above] at (10.24,0.15) {a real key\\2048 bits};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\footnotesize RSA-250 (2020): about 2700 years of one processor core.\\ RSA-896 (2026), the current public record: up to 2048 graphics cards for 10 days.\end{center}
+  \vfill
+  \keymsg{RSA is safe as long as nobody can factor 2048-bit numbers.}
+  % source: RSA-250, 28 Feb 2020, Boudot, Gaudry, Guillevic, Heninger, Thome, Zimmermann, CADO-NFS, about 2700 core-years
+  %         (https://caramba.loria.fr/rsa250.txt)
+  % source: RSA-260 (862 bits): Eric Lu, Cognition, announced 3 Sep 2026, https://cognition.com/blog/factoring-rsa-260 (GPU GNFS)
+  % source: RSA-896 (896 bits, 270 digits): Stephen A. Weis, 19 Sep 2026, https://saweis.net/posts/rsa-896.html
+  %         (GPU CADO-NFS, 10.07 days on up to 256 nodes x 8 H100 = 2048 GPUs); listed as factored on Wikipedia "RSA numbers"
+  % CHECKED: python3: the published factors of RSA-260 and RSA-896 multiply to the challenge numbers (Wikipedia "RSA numbers"),
+  %          862 and 896 bits; 4.48 = 896/200 on the axis
+  \say{RSA-250 rozłożyli Boudot, Gaudry, Guillevic, Heninger, Thomé i Zimmermann, 28 lutego 2020. We wrześniu 2026 padły dwa rekordy w dwa tygodnie: RSA-260 (862 bity, Eric Lu z Cognition, 3 września) i RSA-896 (896 bitów, Stephen Weis, 19 września), oba tym samym sitem liczbowym, ale na kartach graficznych. Wszystko to liczby z konkursu RSA, nie prawdziwe klucze. Do 2048 bitów nadal bardzo daleko: każde kilkadziesiąt bitów więcej to wielokrotnie więcej pracy.}
+\end{frame}
+
+\begin{frame}{Four algorithms, two problems}
+  \vfill
+  \begin{center}
+    \renewcommand{\arraystretch}{1.4}\setlength{\tabcolsep}{4.5pt}
+    \begin{tabular}{llll}
+      \toprule
+      algorithm & year & hard problem & used for \\
+      \midrule
+      Diffie-Hellman & 1976 & discrete logarithm & agreeing on a key \hfill\textcolor{gray}{\scriptsize lecture 4}\\
+      \rowcolor{AccentOrange!10} \textbf{RSA} & 1977 & \textbf{factoring} & encryption, proving who you are \hfill\textcolor{gray}{\scriptsize later in the course}\\
+      ElGamal & 1985 & discrete logarithm & encryption \hfill\textcolor{gray}{\scriptsize lecture 4}\\
+      ECC & 1985 & discrete logarithm on a curve & all of these, with shorter keys \hfill\textcolor{gray}{\scriptsize lecture 5}\\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+  \vfill
+  \keymsg{Every public-key algorithm stands on one hard problem.}
+  % source: Diffie, Hellman, "New Directions in Cryptography", 1976; Rivest, Shamir, Adleman, MIT memo 1977, CACM 1978;
+  %         ElGamal, IEEE Trans. Inf. Theory 31(4), 1985; Koblitz 1985/1987 and Miller, CRYPTO 85
+  \say{Dziś tylko nazwa drugiego problemu: logarytm dyskretny to odwracanie potęgi modulo liczba pierwsza (znając 5, 23 i wynik 5\textsuperscript{x} mod 23, znaleźć x); dla liczb 2048-bitowych nikt tego nie umie. Dokładnie w następnym wykładzie. Diffie-Hellman i ElGamal w następnym wykładzie, krzywe eliptyczne (ECC) w wykładzie 5. Rok RSA to memorandum MIT z 1977 roku; artykuł ukazał się w 1978.}
+\end{frame}
+
+
+% ======================================================================
+\section[Arithmetic modulo n]{Arithmetic modulo n}
+% ======================================================================
+
+% a clock with n positions and one marked value: \modclock{n}{marked}{radius}
+\newcommand{\modclock}[3]{%
+  \begin{tikzpicture}
+    \draw[nLine, very thick] (0,0) circle (#3);
+    \pgfmathtruncatemacro{\last}{#1-1}
+    \foreach \h in {0,...,\last} {
+      \pgfmathsetmacro{\ang}{90-360*\h/#1}
+      \ifnum\h=#2
+        \node[circle, draw=AccentOrange, very thick, font=\scriptsize\bfseries, text=nInk, inner sep=1.5pt] at (\ang:{#3-0.35}) {\h};
+      \else
+        \node[font=\scriptsize, text=nInk] at (\ang:{#3-0.35}) {\h};
+      \fi
+    }
+  \end{tikzpicture}}
+
+\begin{frame}{Recall: mod}
+  \begin{columns}[c,onlytextwidth]
+    \column{0.42\textwidth}
+      \begin{center}
+        \begin{tikzpicture}
+          \draw[nLine, very thick] (0,0) circle (1.5);
+          \foreach \h in {1,...,12} \node[font=\scriptsize, text=nInk] at ({90-30*\h}:1.2) {\h};
+          \draw[DeepBlue, very thick, -{Stealth}] ({90-30*10}:1.75) arc ({90-30*10}:{90-30*15}:1.75);
+          \node[font=\scriptsize, text=DeepBlue] at (0,-2.05) {10 o'clock + 5 hours};
+        \end{tikzpicture}
+      \end{center}
+    \column{0.55\textwidth}
+      \stepbox{a mod n}{the remainder after dividing a by n}
+      \stepbox{examples}{17 mod 5 = 2\qquad (10 + 5) mod 12 = 3}
+      \stepbox{in Python}{\texttt{17 \% 5}}
+  \end{columns}
+  \say{Przypomnienie z poprzednich wykładów. Od teraz, i w całym RSA, liczymy modulo.}
+\end{frame}
+
+\begin{frame}{Multiplying modulo n}
+  \begin{columns}[c,onlytextwidth]
+    \column{0.45\textwidth}
+      \begin{center}\modclock{10}{6}{1.5}\end{center}
+    \column{0.55\textwidth}
+      Multiply, then keep the remainder:\\[0.4cm]
+      {\Large $7 \times 8 \bmod 10 = 56 \bmod 10 = \textbf{6}$}\\[0.5cm]
+      \stepbox{The result is always between 0 and n - 1.}{Whatever the numbers, it stays smaller than n.}
+  \end{columns}
+  \say{Wynik nie rośnie: niezależnie od liczb zostaje mniejszy od n.}
+\end{frame}
+
+\samedot
+\begin{frame}{Powers modulo n}
+  \begin{columns}[c,onlytextwidth]
+    \column{0.45\textwidth}
+      \begin{center}
+        \begin{tikzpicture}[>=Stealth]
+          % the powers of 3 mod 7 in order around the rim: 3^1 at the top, then clockwise; the arrows run along the rim
+          \foreach \k/\v in {1/3, 2/2, 3/6, 4/4, 5/5, 6/1} {
+            \pgfmathsetmacro{\ang}{90-60*(\k-1)}
+            \ifnum\k=4
+              \node[circle, draw=AccentOrange, very thick, fill=AccentOrange!12, font=\small\bfseries, text=nInk, minimum size=0.62cm, inner sep=0pt] at (\ang:1.35) {\v};
+            \else
+              \node[circle, draw=nLine, thick, fill=white, font=\small, text=nInk, minimum size=0.62cm, inner sep=0pt] at (\ang:1.35) {\v};
+            \fi
+            \node[font=\scriptsize, text=gray] at (\ang:1.98) {$3^{\k}$};
+            \draw[DeepBlue, thick, -{Stealth}] ({\ang-14}:1.35) arc ({\ang-14}:{\ang-46}:1.35);
+          }
+          \node[font=\scriptsize, text=DeepBlue, align=center] at (0,0) {$\times 3$\\ mod 7};
+        \end{tikzpicture}
+      \end{center}
+    \column{0.55\textwidth}
+      {\Large $3^4 \bmod 7 = 81 \bmod 7 = \textbf{4}$}\\[0.4cm]
+      \stepbox{powers of 3 mod 7}{3, 2, 6, 4, 5, 1, 3, 2, \dots\quad a circle of $6 = 7 - 1$ steps}
+      \stepbox{in Python}{\texttt{pow(3, 4, 7)}\quad even for numbers with 600 digits}
+      \stepbox{Why mod n?}{Without mod, $88^{7}$ could be undone with an ordinary 7th root. Mod n wraps around, so the root no longer works; it also keeps the numbers below n.}
+  \end{columns}
+  \say{Na rysunku kolejne potęgi 3 idą po okręgu: każda strzałka to mnożenie przez 3 mod 7. 3\textsuperscript{4} mod 7 = 4 jest zaznaczone; po 6 = 7 - 1 krokach wracamy do 1, a potem znowu 3. Długość tego okręgu wróci w RSA jako phi (sekcja 5). Trzeci argument pow to n. Python nie liczy wtedy całej ogromnej potęgi, tylko od razu reszty, dlatego to działa dla liczb 2048-bitowych. Po co modulo: 88\textsuperscript{7} bez modulo to zwykła liczba i pierwiastek siódmego stopnia od razu daje 88; reszta z dzielenia zawija wynik i pierwiastek przestaje działać.}
+\end{frame}
+
+\begin{frame}{Greatest common divisor}
+  \bigdef{\textbf{gcd(a, b)}: the greatest number that divides both a and b.\\
+    If gcd(a, b) = 1, a and b are \textbf{coprime}.}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \draw[nLine, very thick, fill=sViolet!8] (0,0) circle (1.3); \draw[nLine, very thick, fill=sTeal!8, fill opacity=0.7] (1.6,0) circle (1.3);
+      \node[font=\scriptsize\bfseries, text=nInk] at (-0.4,1.55) {divisors of 12};
+      \node[font=\scriptsize\bfseries, text=nInk] at (2.0,1.55) {divisors of 18};
+      \node[font=\small, text=nInk] at (-0.6,0) {4, 12};
+      \node[font=\small, text=nInk] at (2.3,0) {9, 18};
+      \node[font=\small, text=nInk, align=center] at (0.8,0) {1, 2,\\3, \textbf{6}};
+      \node[font=\small, text=nInk, align=left, anchor=west] at (3.9,0.3) {gcd(12, 18) = \textbf{6}};
+      \node[font=\small, text=nInk, align=left, anchor=west] at (3.9,-0.4) {gcd(7, 160) = \textbf{1}\quad \textcolor{gray}{(coprime)}};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \say{NWD po angielsku to gcd. Względnie pierwsze znaczy: nie mają wspólnego dzielnika poza 1.}
+\end{frame}
+
+% CHECKED: python3: pow(7, -1, 160) = 23; Euclid on two random 2048-bit numbers: 1131 to 1262 divisions
+%          (200 pairs, mean 1196)
+\begin{frame}{The modular inverse}
+  \bigdef{The \textbf{inverse of a modulo b}: the number x with \ $a \times x \bmod b = 1$.\\ It exists only if gcd(a, b) = 1.}
+  \vfill
+  \begin{center}
+    {\Large the inverse of 7 mod 160 is \textbf{23},}\\[0.3cm]
+    {\large because \ $7 \times 23 = 161 = 160 + \tikz[baseline=(o.base)]\node[annot, inner sep=2pt] (o) {1};$}
+  \end{center}
+  \vfill
+  \begin{columns}[T,onlytextwidth]
+    \column{0.48\textwidth}
+      \stepbox{How to find x}{Trying x = 1, 2, 3, \dots\ never ends for a 617-digit b.
+        The \textbf{extended Euclidean algorithm} needs only about 1200 divisions.}
+    \column{0.48\textwidth}
+      \stepbox{In Python (3.8 or newer)}{\texttt{pow(a, -1, b)}\\ \texttt{pow(7, -1, 160)}\ gives 23}
+  \end{columns}
+  \vfill
+  \curious{math/extended-euclid/\#3}
+  \vfill
+  \keymsg{The inverse undoes a multiplication modulo b.}
+  \say{To odpowiednik dzielenia w świecie modulo. Litery a, b, x są tu ogólne; w RSA będzie to odwrotność e modulo phi, a wynik d będzie kluczem prywatnym (dokładnie te liczby: 7, 160 i 23). Algorytmu nie liczymy ręcznie: pow robi to za nas, od Pythona 3.8. Kogo ciekawi, jak to działa krok po kroku, ma link do symulatora.}
+\end{frame}
+
+% ======================================================================
+\section[RSA: keys and encryption]{RSA: keys and encryption}
+% ======================================================================
+
+% making the keys in 5 steps: the same table on 5 slides, the current row marked.
+% Fixed column widths, and the grey line under the table has a fixed height on every step,
+% so nothing moves between the steps.
+\newcommand{\keyrow}[6]{% #1 current step, #2 this row, #3 step text, #4 example, #5 public or secret, (#6 unused)
+  \ifnum#2>#1
+    \tikz[baseline=(b.base)]\node[circle, draw=nLight, text=nLight, inner sep=2pt, font=\bfseries\small] (b) {#2}; & \textcolor{nLight}{\rule{4.5cm}{0.4pt}} & & \\
+  \else
+    \ifnum#2=#1 \rowcolor{AccentOrange!12}\fi\bigbadge{#2} & #3 & #4 & #5 \\
+  \fi}
+\newcommand{\keytable}[1]{%
+  \begin{center}
+  \renewcommand{\arraystretch}{1.6}
+  \begin{tabular}{c p{5.3cm} p{4.7cm} p{1.5cm}}
+    \toprule
+    & step & example & \\
+    \midrule
+    \keyrow{#1}{1}{choose two primes p and q}{p = 17,\ q = 11}{\secret}{}
+    \keyrow{#1}{2}{n = p $\times$ q}{n = 17 $\times$ 11 = 187}{\public}{}
+    \keyrow{#1}{3}{phi = (p - 1)(q - 1)}{phi = 16 $\times$ 10 = 160}{\secret}{}
+    \keyrow{#1}{4}{choose e with gcd(e, phi) = 1}{e = 7,\ gcd(7, 160) = 1}{\public}{}
+    \keyrow{#1}{5}{d = the inverse of e mod phi}{d = 23,\ 7 $\times$ 23 mod 160 = 1}{\secret}{}
+    \bottomrule
+  \end{tabular}\\[0.25cm]
+  \parbox[t][1.1cm]{0.9\linewidth}{\centering\small\color{gray}\keynote{#1}}
+  \end{center}}
+% the grey line under the table: why this step is needed (fixed height, so nothing moves between the steps)
+\newcommand{\keynote}[1]{\ifcase#1\or
+  Why two primes and not one: step 3 shows it.\or
+  \or
+  phi = the length of the circle of powers (section 4) for n = p $\times$ q; it is used in step 5.\\
+  With one prime n, phi = n - 1 would be public, and anyone could compute d. With p $\times$ q, phi needs the factors.\or
+  gcd(e, phi) = 1 so that d exists (step 5).\quad In practice e = 65537.\or
+  In practice e = 65537.\fi}
+\newcommand{\keyframe}[2]{%
+\begin{frame}{Making the keys, step #1}
+  \vspace*{0.5cm}
+  \keytable{#1}
+  \vfill
+  \say{#2}
+\end{frame}}
+\keyframe{1}{W prawdziwym RSA każda ma 1024 bity. Przykład z podręcznika Stallingsa. Dlaczego dwie liczby pierwsze, wyjaśnia szara linia w kroku 3: dla jednej liczby pierwszej n phi wynosi n - 1, więc każdy policzyłby d; dla p razy q do phi trzeba rozłożyć n.}
+\samedot
+\keyframe{2}{Żeby wrócić od n do p i q, trzeba rozłożyć n: to trudny problem z sekcji 3.}
+\samedot
+\keyframe{3}{Phi to funkcja Eulera: ile liczb mniejszych od n jest względnie pierwszych z n. Z p i q liczymy ją od razu; bez nich trzeba by rozłożyć n. Szara linia: jak 6 = 7 - 1 kroków dla potęg 3 mod 7, po phi krokach potęgi modulo n wracają do 1 (dokładniej: długość każdego okręgu dzieli phi). Do tego wrócimy na slajdzie Why does the message come back.}
+\samedot
+\keyframe{4}{gcd(e, phi) = 1 jest potrzebne, bo tylko wtedy istnieje odwrotność d (krok 5, slajd o odwrotności modulo). W praktyce prawie zawsze e = 65537: liczba pierwsza z tylko dwiema jedynkami w zapisie binarnym, więc szyfrowanie jest szybkie. Tego e używa zadanie 5. Uwaga: e = 3 nie ma odwrotności dla liczb pierwszych z zadania 5 (gcd(3, phi) = 3); zadanie każe to sprawdzić.}
+\samedot
+\keyframe{5}{To jest wynik z sekcji 4: odwrotność e modulo phi. Bez phi nie da się policzyć d, a bez p i q nie da się policzyć phi.}
+
+% source: W. Stallings, "Cryptography and Network Security", example p = 17, q = 11, e = 7, d = 23, M = 88
+
+\samedot
+\begin{frame}{The two keys}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \node[pubkey, font=\Large, minimum width=4.6cm, minimum height=1.8cm] at (0,0) {\faLockOpen\ \{e, n\} = \{7, 187\}\\[2pt] \normalsize give it to everybody};
+      \node[privkey, font=\Large, minimum width=4.6cm, minimum height=1.8cm] at (6.2,0) {\faKey\ \{d, n\} = \{23, 187\}\\[2pt] \normalsize keep it secret};
+      \node[hw, dashed, font=\small] at (3.1,-2.0) {\faTrash\ \ p, q and phi: not needed any more; keep them secret or delete them};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \curious{rsa/\#2}
+  \keymsg{Whoever knows p and q can compute d: d is protected by the factoring of n.}
+  \say{Klucz publiczny i prywatny mają to samo n. Różnią się tylko wykładnikiem. W symulatorze z linku te pięć kroków dla własnych liczb pierwszych, z gotowym przykładem 17, 11, e = 7.}
+\end{frame}
+
+\begin{frame}{What Eve would need}
+  \begin{center}\small Eve has the public key \{7, 187\} and a ciphertext C. She has two ways to try.\end{center}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \eve{0,0}
+      % way (a): undo the power directly
+      \node[hw, anchor=west, minimum width=4.6cm, minimum height=1.0cm] (a) at (1.4,0.95) {\textbf{(a)} undo $C = P^{e} \bmod n$ directly};
+      \node[font=\small, text=aWrite, anchor=west] at ([xshift=4pt]a.east) {\nok\ no known way};
+      % way (b): get d, which needs phi, which needs p and q
+      \node[hw, anchor=west, minimum height=1.0cm] (b) at (1.4,-0.95) {\textbf{(b)} get d};
+      \node[hw, minimum height=1.0cm, right=0.7cm of b] (phi) {needs phi};
+      \node[hw, minimum height=1.0cm, right=0.7cm of phi] (pq) {needs p and q};
+      \node[hw, minimum height=1.0cm, right=0.7cm of pq, draw=AccentOrange, line width=1.2pt] (fac) {= factoring n};
+      \draw[data] (b) -- (phi); \draw[data] (phi) -- (pq); \draw[data] (pq) -- (fac);
+      \node[font=\scriptsize, text=aWrite, below=2pt of fac] {\nok\ hard (section 3)};
+      \draw[data] (E) -- (a.west); \draw[data] (E) -- (b.west);
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \curious{rsa/\#4}
+  \keymsg{RSA: the one-way function is $P^{e} \bmod n$, the trapdoor is d, and d is protected by the factoring of n.}
+  \say{Droga (a): nikt nie zna sposobu, żeby odwrócić potęgę modulo n bez d (poza zgadywaniem P, co zobaczymy w zadaniu 6). Droga (b): d to odwrotność e modulo phi, phi = (p - 1)(q - 1), więc potrzebne są p i q, czyli rozkład n, a to trudny problem z sekcji 3. W symulatorze z linku Eve rozkłada małe n w przeglądarce, potem liczy phi, d i czyta wiadomość; jest też oszacowanie czasu dla 2048 bitów.}
+\end{frame}
+
+\begin{frame}{Encrypt and decrypt}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \node[msg, font=\Large, minimum width=1.6cm] (p) at (0,0) {P};
+      \node[ctx, font=\Large, minimum width=1.6cm] (c) at (6,0) {C};
+      \node[msg, font=\Large, minimum width=1.6cm] (p2) at (12,0) {P};
+      \draw[data] (p) -- node[above=6pt, pubkey, font=\normalsize] {\faLockOpen\ $C = P^{e} \bmod n$} (c);
+      \draw[data] (c) -- node[above=6pt, privkey, font=\normalsize] {\faKey\ $P = C^{d} \bmod n$} (p2);
+      \node[font=\scriptsize, text=nInk] at (3,-0.6) {encrypt with the public key};
+      \node[font=\scriptsize, text=nInk] at (9,-0.6) {decrypt with the private key};
+    \end{tikzpicture}\\[0.6cm]
+    P is the message as a number smaller than n, e.g.\ text \texttt{"Hi"} $\to$ bytes \texttt{0x48 0x69}\\[2pt]
+    $\to$ read as one big-endian number \texttt{0x4869} = 18\,537.\\[4pt]
+    \small Why smaller than n: P and P + n give the same C, so Bob could not tell them apart.\\[4pt]
+    This bare formula, with nothing added, is called \textbf{textbook RSA}.
+  \end{center}
+  \vfill
+  \keymsg{Encryption and decryption are both one power modulo n.}
+  % CHECKED: python3: int.from_bytes(b"Hi", "big") = 0x4869 = 18537
+  \say{Tekst zamieniamy na liczbę: bajty czytamy jako jedną liczbę, najstarszy bajt pierwszy (big-endian), tak samo robiło rsa\_ready.py w zadaniu 2. 18 537 nie zmieściłoby się w naszym małym n = 187; prawdziwe n ma 617 cyfr. P i P + n dają ten sam szyfrogram, bo (P + n)\textsuperscript{e} mod n = P\textsuperscript{e} mod n. Dłuższe dane szyfrujemy hybrydowo, więc RSA i tak przenosi tylko krótki klucz.}
+\end{frame}
+
+\begin{frame}{The example: 88 $\to$ 11 $\to$ 88}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \node[msg, font=\LARGE] (p) at (0,0) {88};
+      \node[ctx, font=\LARGE] (c) at (5.5,0) {11};
+      \node[msg, font=\LARGE] (p2) at (11,0) {88};
+      \draw[data] (p) -- node[above=6pt, pubkey, font=\small] {\faLockOpen\ \{7, 187\}} (c);
+      \draw[data] (c) -- node[above=6pt, privkey, font=\small] {\faKey\ \{23, 187\}} (p2);
+      \node[font=\normalsize, text=nInk] at (2.75,-0.9) {$C = 88^{7} \bmod 187 = \mathbf{11}$};
+      \node[font=\normalsize, text=nInk] at (8.25,-0.9) {$P = 11^{23} \bmod 187 = \mathbf{88}$};
+      \node[font=\small\ttfamily, text=nInk] at (2.75,-1.6) {pow(88, 7, 187)};
+      \node[font=\small\ttfamily, text=nInk] at (8.25,-1.6) {pow(11, 23, 187)};
+      \node[font=\scriptsize, text=gray] at (2.75,-2.1) {encrypt with the public key};
+      \node[font=\scriptsize, text=gray] at (8.25,-2.1) {decrypt with the private key};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \curious{math/fast-exponentiation/\#2}
+  \keymsg{The private key undoes what the public key did: the message is back.}
+  % CHECKED: python3: pow(88, 7, 187) = 11, pow(11, 23, 187) = 88; by hand: pow(88, 2, 187) = 77, pow(88, 4, 187) = 132,
+  %          11^1, 11^2, 11^4, 11^8, 11^16 mod 187 = 11, 121, 55, 33, 154
+  \say{Klucze z poprzednich slajdów. Wynik zgadza się z przykładem Stallingsa. Liczymy w Pythonie, ręcznie nikt tego nie robi. Gdyby ktoś pytał, jak policzyć ręcznie: potęgę rozkładamy na potęgi dwójki i po każdym kroku bierzemy resztę, żeby liczby były małe. Szyfrowanie: 88\textsuperscript{2} mod 187 = 77, 88\textsuperscript{4} mod 187 = 77\textsuperscript{2} mod 187 = 132, a 7 = 4 + 2 + 1, więc 88\textsuperscript{7} = 132 razy 77 razy 88 mod 187 = 11. Odszyfrowanie: 23 = 16 + 4 + 2 + 1; 11\textsuperscript{1}, 11\textsuperscript{2}, 11\textsuperscript{4}, 11\textsuperscript{8}, 11\textsuperscript{16} mod 187 to 11, 121, 55, 33, 154, więc 11\textsuperscript{23} = 154 razy 55 razy 121 razy 11 mod 187 = 88. W symulatorze z linku dokładnie te dwie potęgi krok po kroku (gotowe przykłady). Dlaczego wiadomość wraca, pokazuje następny slajd.}
+\end{frame}
+
+% CHECKED: python3: pow(2, 160, 187) = 1, pow(2, 7, 187) = 128, pow(128, 23, 187) = 2, 7 * 23 = 161
+\samedot
+\begin{frame}{Why does the message come back?}
+  \vfill
+  \stepbox{1. Powers go round in a circle, as the powers of 3 mod 7 in section 4}{For every P that shares no factor with n:\quad
+    $P^{\,\text{phi}} \bmod n = 1$ \qquad e.g.\ $2^{160} \bmod 187 = 1$ \hfill\textcolor{gray}{(Euler)}}
+  \stepbox{2. d was chosen for this}{$e \times d = 7 \times 23 = 161 = 160 + 1$:\quad one full circle, plus one step.}
+  \stepbox{3. So decrypting undoes encrypting}{$(P^{7})^{23} = P^{161} = P^{160} \times P = 1 \times P = P \pmod{187}$}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \node[msg, font=\Large] (p) at (0,0) {2};
+      \node[ctx, font=\Large] (c) at (4,0) {128};
+      \node[msg, font=\Large] (p2) at (8,0) {2};
+      \draw[data] (p) -- node[above=4pt, pubkey] {\faLockOpen\ $2^{7} \bmod 187$} (c);
+      \draw[data] (c) -- node[above=4pt, privkey] {\faKey\ $128^{23} \bmod 187$} (p2);
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \keymsg{d makes $e \times d$ one more than a full circle (mod phi), so the message comes back.}
+  \say{To jest cała intuicja, bez dowodu. Phi to długość okręgu: po phi krokach potęgi wracają do 1 (twierdzenie Eulera). Dlatego d to odwrotność e modulo phi: e razy d to 1 plus pełne okręgi (ogólnie 1 + k razy phi, tu k = 1). Twierdzenie Eulera mówi tylko o P, które nie mają wspólnego dzielnika z n. Nasze 88 = 8 razy 11 akurat ma wspólny dzielnik 11, a mimo to wróciło; czy działa zawsze, sprawdzi zadanie 4. Nie zdradzać odpowiedzi.}
+\end{frame}
+
+\begin{frame}{Task 4: does it always work?}
+  \vfill
+  \taskgoal{key $n = 187$, $e = 7$, $d = 23$: does every $P$ from 0 to 186 come back?}
+  \taskready{the key, in \texttt{always.py}.}
+  \vfill
+  \opentask{Task4}{about 4 minutes}
+  \vfill
+  \say{Około 4 minut. Najpierw zapytać salę: a P = 17, które dzieli n? Większość powie, że 17 nie zadziała. Jedna pętla i jedno porównanie. Nieruszony plik wypisuje tylko not done yet, odpowiedzi nie zdradza.}
+\end{frame}
+
+\samedot
+\begin{frame}{Task 4: what we saw}
+  \vfill
+  % CHECKED: Task4/solution/always.py, python3 3.12: "checked: 187 values", "wrong:   []"; pow(17, 7, 187) = 85, pow(85, 23, 187) = 17
+  %          framed: the 27 multiples (with 0) of 11 or 17 below 187 (gcd(P, 187) > 1), as in Task4/figure.svg
+  \begin{columns}[c,onlytextwidth]
+    \column{0.5\textwidth}
+      \begin{center}
+      \begin{tikzpicture}
+        % every P from 0 to 186, 11 rows of 17 as in Task4/figure.svg: the multiples of 17 are the first column,
+        % the multiples of 11 run down a diagonal
+        \foreach \i in {0,...,186} {
+          \pgfmathtruncatemacro{\r}{\i/17} \pgfmathtruncatemacro{\c}{mod(\i,17)}
+          \pgfmathtruncatemacro{\aa}{mod(\i,11)} \pgfmathtruncatemacro{\bb}{mod(\i,17)}
+          \pgfmathtruncatemacro{\sh}{(\aa==0 || \bb==0) ? 1 : 0}
+          \ifnum\sh=1
+            \node[draw=AccentOrange, line width=1.1pt, fill=aExec!25, minimum size=0.3cm, inner sep=0pt] at ({0.37*\c},{-0.37*\r}) {};
+          \else
+            \node[draw=aExec, fill=aExec!25, minimum size=0.3cm, inner sep=0pt] at ({0.37*\c},{-0.37*\r}) {};
+          \fi
+        }
+        \node[font=\tiny, text=gray, anchor=east] at (-0.25,0) {0};
+        \node[font=\tiny, text=gray, anchor=west] at ({0.37*16+0.25},{-0.37*10}) {186};
+      \end{tikzpicture}
+      \end{center}
+    \column{0.48\textwidth}
+      {\small \textcolor{aExec}{\faSquare}\ came back\\[3pt]
+      \textcolor{AccentOrange}{\faSquare[regular]}\ a multiple of 11 or 17: came back too}\\[0.5cm]
+      {\ttfamily\small checked: 187 values\\ wrong:\ \ \ []}\\[0.4cm]
+      {\small for example\ \ $17 \to 85 \to 17$}
+  \end{columns}
+  \vfill
+  \curious{rsa/\#3}
+  \keymsg{RSA works for every P from 0 to n - 1.}
+  \say{Sprawdzone. Wszystkie 187 wartości wracają, także 17 i pozostałe wielokrotności 11 i 17 (w ramkach). Dlaczego zawsze działa, wynika z twierdzenia Eulera, a dla wielokrotności p i q z chińskiego twierdzenia o resztach; dowód pomijamy. W prawdziwym RSA P dzielące n praktycznie się nie zdarza. W symulatorze z linku ta sama siatka i uzasadnienie na liczbach.}
+\end{frame}
+
+% CHECKED: square-and-multiply: one squaring per bit and one multiplication per 1 bit, so at most 2 x 2048 for a
+%          2048-bit exponent (fast-exponentiation simulator, self-test); the naive way needs d - 1, about 2^2048
+\begin{frame}{Good to know: fast powers}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \node[hw, minimum width=5.6cm, minimum height=1.6cm, font=\small] (a) at (0,0) {multiply by $C$, again and again\\[2pt] \textbf{about $2^{2048}$ multiplications}};
+      \node[font=\LARGE, text=aWrite] at (0,-1.25) {\faTimes};
+      \node[hw, minimum width=5.6cm, minimum height=1.6cm, font=\small] (b) at (7,0) {square, and multiply where a bit is 1\\[2pt] \textbf{about $2 \times 2048$ multiplications}};
+      \node[font=\LARGE, text=aExec] at (7,-1.25) {\faCheck};
+    \end{tikzpicture}\\[0.6cm]
+    $C^{d} \bmod n$ with a 2048-bit d: Python's \texttt{pow(C, d, n)} does it the fast way.
+  \end{center}
+  \vfill
+  \curious{math/fast-exponentiation/}
+  \say{Można pominąć. Liczenie potęgi przez ciągłe mnożenie wymagałoby d - 1 mnożeń, dla 2048-bitowego d to około 2\textsuperscript{2048}. Square-and-multiply podnosi do kwadratu przy każdym bicie wykładnika i mnoży tylko przy bitach 1, czyli najwyżej 2 razy 2048 mnożeń; tak robi pow w Pythonie. Gdyby ktoś pytał: jeśli czas zależy od bitów klucza, atakujący może je odczytać z pomiaru czasu (atak bocznym kanałem); drabina Montgomery'ego robi tę samą pracę przy każdym bicie. Wszystko jest w symulatorze z linku.}
+\end{frame}
+
+\begin{frame}{Task 5: your own RSA}
+  \vfill
+  \taskgoal{build an RSA key from two given primes, then encrypt and decrypt 2026.}
+  \taskready{two primes with about 20 digits each, and $e = 65537$.}
+  \vfill
+  \opentask{Task5}{about 8 minutes}
+  \vfill
+  \say{Około 8 minut. Wzory są na slajdach Making the keys; e = 65537 jak w szarej linii. Odwrotność: pow(e, -1, phi). Liczby po 20 cyfr, żeby wynik mieścił się na ekranie; prawdziwe klucze mają po około 309 cyfr na p i q.}
+\end{frame}
+
+\samedot
+\begin{frame}{Task 5: what we saw}
+  \vfill
+  % CHECKED: Task5/solution/my_rsa.py, python3 3.12: the output is exactly as below; 65537 * d % phi = 1;
+  %          with e = 3: gcd(3, phi) = 3, pow(3, -1, phi) raises ValueError: base is not invertible for the given modulus
+  \begin{center}
+    \begin{minipage}{0.72\textwidth}
+      \stepbox{The output}{\ttfamily\small n = 2221701454780507748530735154427775990789\\ d = 1367151349159148221410861819858768950381\\
+        C = 736246060401132335090489988934276767570\\ P = 2026}
+      \stepbox{The check}{$e \times d \bmod \text{phi} = 1$ \ \ok\quad (this is what makes P come back)}
+      \probbox{With e = 3}{\ttfamily\small ValueError: base is not invertible for the given modulus\\
+        \rmfamily gcd(3, phi) = 3, not 1, so d does not exist (step 4 of making the keys).}
+    \end{minipage}
+  \end{center}
+  \vfill
+  \keymsg{Textbook RSA is five lines of Python.}
+  \say{Sprawdzone. e razy d mod phi = 1, więc P wraca. Dla e = 3: phi tych liczb dzieli się przez 3, więc odwrotności nie ma i pow zgłasza ValueError. Dlatego krok 4 wymaga gcd(e, phi) = 1.}
+\end{frame}
+
+\begin{frame}{Task 6: guess the PIN}
+  \vfill
+  \taskgoal{find a PIN encrypted with textbook RSA, without the private key.}
+  \taskready{the bank's public key (2048 bits) and an encrypted PIN, in \texttt{pin.py}.}
+  \vfill
+  \opentask{Task6}{about 7 minutes}
+  \vfill
+  % CHECKED: C in Task6/pin.py starts with 73320723855296 and has 616 digits
+  \say{Około 7 minut. Bank szyfruje PIN dokładnie tak jak na ostatnich slajdach, kluczem 2048-bitowym. Eve ma szyfrogram i klucz publiczny. Nie podpowiadać od razu. Jeśli nikt nie ma pomysłu: klucz publiczny jest publiczny, każdy może nim szyfrować. Pomiar czasu jest gotowy w pliku.}
+\end{frame}
+
+\samedot
+\begin{frame}{Task 6: what we saw}
+  \vfill
+  % CHECKED: Task6/solution/pin.py, python3 3.12, i5-8265U: PIN 4821 found in 0.40 s; all 10 000 about 0.9 s
+  \begin{center}
+    \begin{minipage}{0.6\textwidth}
+      \stepbox{The output}{\ttfamily PIN: 4821\quad found in 0.40 s}
+      \vspace{0.2cm}
+      \probbox{Why it works}{Encrypting is public, and there are only 10\,000 PINs.}
+    \end{minipage}
+  \end{center}
+  \vfill
+  \curious{rsa/\#5}
+  \keymsg{Textbook RSA: the same message always gives the same ciphertext.}
+  \say{Sprawdzone. Eve szyfruje każdy możliwy PIN kluczem publicznym i porównuje z C. Wszystkie 10 000 PIN-ów to około 0,9 s. Ta sama słabość dotyczy każdej wiadomości z małej liczby możliwości: tak, nie, kwota przelewu. W symulatorze z linku ten sam atak na klucz z Task 6, a do tego e = 3 z krótką wiadomością i szyfrowanie hybrydowe.}
+\end{frame}
+
+% CHECKED: textbook C starts with 7332072385 (Task6/pin.py, pow(4821, 65537, n)).
+% CHECKED: python3 3.12 + cryptography 41.0.7, the bank key of Task6/pin.py: RSAPublicNumbers(e, n).public_key().encrypt(
+%          (4821).to_bytes(2, "big"), OAEP(MGF1(SHA256), SHA256)) three times (the same number 4821 as on the left,
+%          as 2 bytes 0x12 0xD5), the ciphertext as a big-endian number starts with
+%          1203969986, 5124905972, 1358655143 (256 bytes each); a new run gives other numbers, that is the point
+\begin{frame}{Real RSA adds randomness: OAEP}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \node[font=\small\bfseries, text=nInk, anchor=west] at (-1,1.4) {textbook RSA:\quad $C = P^{e} \bmod n$};
+      \foreach \k in {0,1,2} {
+        \node[msg] (a\k) at (0.2,{0.6-0.6*\k}) {PIN 4821};
+        \node[ctx] (b\k) at (3.4,{0.6-0.6*\k}) {7332072385\dots};
+        \draw[data] (a\k) -- (b\k);
+      }
+      \node[font=\scriptsize, text=aWrite] at (1.8,-1.25) {\faTimes\ the same every time};
+      \node[font=\small\bfseries, text=nInk, anchor=west] at (6.3,1.4) {real RSA:\quad $C = \text{pad}(P, \text{random})^{e} \bmod n$};
+      \foreach \k/\v in {0/1203969986, 1/5124905972, 2/1358655143} {
+        \node[msg] (c\k) at (7.5,{0.6-0.6*\k}) {PIN 4821 + \faDice};
+        \node[ctx] (d\k) at (11.2,{0.6-0.6*\k}) {\v\dots};
+        \draw[data] (c\k) -- (d\k);
+      }
+      \node[font=\scriptsize, text=aExec] at (9.3,-1.25) {\faCheck\ different every time};
+    \end{tikzpicture}\\[0.4cm]
+    Both sides encrypt the same number 4821. The padding is called \textbf{OAEP}: the 2 bytes of 4821\\ are mixed with random bytes into 256 bytes. The receiver removes it after decrypting.\\[4pt]
+    \textbf{Eve can still encrypt 4821, but with her own random bytes: her C never equals the real one.}
+  \end{center}
+  \vfill
+  \keymsg{Never use textbook RSA alone.}
+  \say{Liczby po prawej są prawdziwe: ta sama liczba 4821 (2 bajty, 0x12 0xD5) zaszyfrowana trzy razy RSA-OAEP (biblioteka cryptography, SHA-256) kluczem banku z zadania 6. Uwaga: rsa\_ready.py z zadania 2 to też było RSA podręcznikowe, bez dopełnienia. Dopełnienie to dodatkowe losowe bajty wymieszane z wiadomością w określony sposób, tak że całość ma prawie tyle bajtów co n. Szczegółów OAEP nie omawiamy; wystarczy wiedzieć, że każda biblioteka robi to za nas. Atak z zadania 6 przestaje działać: Eve nie zna losowych bajtów, więc jej szyfrogramy nigdy nie pasują.}
+\end{frame}
+
+% ======================================================================
+\section[RSA in the real world]{RSA in the real world}
+% ======================================================================
+
+\begin{frame}{How long should the key be?}
+  \vfill
+  \begin{center}
+    \renewcommand{\arraystretch}{1.5}
+    \begin{tabular}{rrr}
+      \toprule
+      key size & security & private-key operation (OpenSSL) \\
+      \midrule
+      \rowcolor{AccentOrange!10} 2048 bits & 112 bits & 0.56 ms \\
+      3072 bits & 128 bits & 1.76 ms \\
+      4096 bits & between 128 and 192 bits & 3.76 ms \\
+      \bottomrule
+    \end{tabular}\\[0.5cm]
+    \textcolor{AccentOrange}{\faExclamationTriangle}\ NIST: 2048 bits is the minimum, and only until 2030.\\[4pt]
+    \footnotesize\textcolor{gray}{security 112 bits = as hard as trying $2^{112}$ keys}
+  \end{center}
+  \vfill
+  \keymsg{Longer keys are safer and slower.}
+  % CHECKED: openssl speed -seconds 2 rsa2048 rsa3072 rsa4096, OpenSSL 3.0.13, i5-8265U: 0.56, 1.76, 3.76 ms
+  % source: NIST SP 800-57 Part 1 Rev. 5, Table 2 (2048 = 112 bits, 3072 = 128 bits, 7680 = 192 bits; 4096 is not listed,
+  %         so it lies between 128 and 192; 112 bits allowed until 2030)
+  \say{112 bitów bezpieczeństwa znaczy: złamanie jest tak trudne jak sprawdzenie 2\textsuperscript{112} kluczy. Tabela NIST podaje tylko 3072 bity (128) i 7680 bitów (192); 4096 bitów jest pomiędzy, różne szacunki dają około 140. Czasy z openssl speed na tym laptopie. NIST to amerykański instytut standardów, jego zalecenia stosuje cały świat.}
+\end{frame}
+
+\begin{frame}{What if a private key leaks?}
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth, scale=0.82, transform shape]
+      \useasboundingbox (-2.6,-1.7) rectangle (11.0,1.95);
+      % the people who wrote to Bob, all with his public key
+      \foreach \y/\c/\n in {0.95/sIndigo/Alice, 0/nInk/Carol, -0.95/nInk/Dave} {
+        \node[person=\c] (w\n) at (-1.8,\y) {\faUser};
+        \node[pname, left=1pt of w\n] {\n};
+      }
+      \bob{3.0,0}
+      \foreach \y/\n in {0.95/Alice, 0/Carol, -0.95/Dave} \draw[data] (w\n) -- (B);
+      \node[font=\scriptsize, text=nInk, align=center] at (0.6,1.6) {each session key sent\\ with Bob's public key};
+      % Eve: she recorded everything, then steals the private key
+      \eve{8.2,0.2}
+      \foreach \i in {0,...,5} \node[ctx, minimum width=1.5cm, minimum height=0.7cm] at ({5.9+0.12*\i},{1.3-0.12*\i}) {\faEnvelope};
+      \node[font=\scriptsize, text=nInk] at (6.2,1.82) {recorded for years};
+      \node[privkey, font=\scriptsize] (k) at (8.2,-1.2) {\faKey\ Bob's private key};
+      \draw[data, dashed] (B.south east) to[bend right=20] node[below, font=\scriptsize, text=AccentOrange] {stolen} (k.west);
+      \node[font=\scriptsize\bfseries, text=AccentOrange, align=left, anchor=west] at (9.4,0.3)
+        {opens every\\ session key,\\ so every message};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{columns}[T,onlytextwidth]
+    \column{0.32\textwidth}\stepbox{\faHistory\ the past}{all recorded conversations, from everybody who wrote to Bob}
+    \column{0.32\textwidth}\stepbox{\faForward\ the future}{every new message, until Bob changes his key}
+    \column{0.32\textwidth}\stepbox{\faUsers\ how many}{a shared key opens one pair; this key opens all of them}
+  \end{columns}
+  \vfill
+  \curious{rsa/\#5.7}
+  \keymsg{RSA alone does not protect the past. The fix: keys that live for one session (forward secrecy).}
+  \say{Wyciek długo żyjącego klucza to nie jest problem wspólnego klucza, tylko każdego klucza, który żyje długo. Para kluczy tego nie naprawia, a nawet poszerza szkody: wspólny klucz otwiera rozmowy jednej pary, a klucz prywatny otwiera wiadomości wszystkich, którzy piszą do tej osoby. Eve mogła nagrywać latami i czekać na kradzież. Rozwiązanie to klucze sesji, które znikają po rozmowie: forward secrecy.}
+\end{frame}
+
+\begin{frame}{Where RSA lives}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \node[font=\small\bfseries, text=DeepBlue, anchor=west] at (-0.4,2.0) {Mostly today: proving who someone is};
+      \node[font=\scriptsize, text=gray, anchor=west] at (-0.4,1.6) {taught later in the course (Lectures 8 to 12)};
+      \foreach \y/\ic/\t/\d in {0.75/\faGlobe/a website/{when the browser connects to a website,\\ the server proves who it is with an RSA key},
+                               -0.55/\faTerminal/SSH/{an RSA key instead of a password\\ when you log in to a server},
+                               -1.85/\faRoute/VPN/{the two ends of the tunnel\\ prove who they are}} {
+        \node[text=DeepBlue, font=\huge] at (0.2,\y) {\ic};
+        \node[anchor=west, font=\small\bfseries, text=nInk] at (0.9,{\y+0.25}) {\t};
+        \node[anchor=west, font=\scriptsize, text=nInk, align=left] at (0.9,{\y-0.3}) {\d};
+      }
+      \draw[nLine, thick] (6.9,2.2) -- (6.9,-2.4);
+      \node[font=\small\bfseries, text=DeepBlue, anchor=west] at (7.3,2.0) {Less and less: carrying a key};
+      \node[font=\scriptsize, text=gray, anchor=west] at (7.3,1.6) {hybrid encryption, as in this lecture};
+      \node[text=DeepBlue, font=\huge] at (7.9,0.75) {\faEnvelope};
+      \node[anchor=west, font=\small\bfseries, text=nInk] at (8.6,1.0) {encrypted e-mail};
+      \node[anchor=west, font=\scriptsize, text=nInk, align=left] at (8.6,0.45) {OpenPGP and S/MIME: RSA locks\\ the key of each message};
+      \node[text=gray, font=\huge] at (7.9,-0.95) {\faGlobe};
+      \node[anchor=west, font=\small\bfseries, text=nInk] at (8.6,-0.7) {websites, until 2018};
+      \node[anchor=west, font=\scriptsize, text=nInk, align=left] at (8.6,-1.25) {the browser sent the session key with RSA;\\ removed in 2018, because of the leak (previous slide)};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \keymsg{RSA mostly proves who someone is today; keys are agreed in another way (next lecture).}
+  % source: TLS 1.3 (RFC 8446, Aug 2018) has no RSA key transport: "Static RSA and Diffie-Hellman cipher suites have been
+  %         removed; all public-key based key exchange mechanisms now provide forward secrecy" (RFC 8446, section 1.2);
+  %         RFC 9846 (July 2026) obsoletes RFC 8446 and keeps this. RSA stays for authentication (rsa_pss_* signature schemes).
+  % source: OpenPGP RFC 9580 (RSA still allowed for encryption keys); S/MIME 4.0 RFC 8551 with RSA key transport (RFC 8017).
+  % source: SSH: RFC 8332 (rsa-sha2-256/512 user and host keys); IPsec IKEv2: RFC 7296 (RSA authentication).
+  \say{Uczciwie: dziś RSA głównie potwierdza, kim jest serwer albo osoba; omówimy to później w kursie (podpis cyfrowy w wykładzie 8, certyfikaty w wykładach 9 do 12). Gdy przeglądarka łączy się ze stroną, serwer pokazuje klucz publiczny RSA i udowadnia, że ma pasujący klucz prywatny. Klucz sesji ustala się dziś inną metodą: standard z 2018 roku (RFC 8446, w 2026 zastąpiony przez RFC 9846) usunął przesyłanie klucza przez RSA, bo nie chroni przeszłości (poprzedni slajd: wyciek klucza prywatnego). Szyfrowanie RSA nadal żyje w poczcie: OpenPGP i S/MIME zamykają RSA klucz każdej wiadomości, czyli dokładnie szyfrowanie hybrydowe z tego wykładu. SSH i VPN używają kluczy RSA do logowania i do potwierdzenia, kim są obie strony.}
+\end{frame}
+
+\begin{frame}{Good to know: GCHQ was first}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \draw[nLine, very thick] (0,0) -- (11,0);
+      \foreach \x/\y/\t in {1.2/1973/{Clifford Cocks at GCHQ,\\the British intelligence agency,\\describes the same idea as RSA.},
+                            5.6/1977/{RSA is published\\by Rivest, Shamir, Adleman.},
+                            10/1997/{GCHQ makes it public,\\twenty years after RSA.}} {
+        \fill[DeepBlue] (\x,0) circle (3pt);
+        \node[font=\small\bfseries, text=DeepBlue, above] at (\x,0.1) {\y};
+        \node[font=\scriptsize, text=nInk, below, align=center] at (\x,-0.15) {\t};
+      }
+      \node[text=nInk, font=\Large] at (1.2,1.1) {\faFolder};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  % source: GCHQ released the papers on 16 Dec 1997; Cocks' note on "non-secret encryption", Nov 1973
+  \say{Można pominąć. Pomysł szyfrowania bez wspólnego sekretu miał wcześniej James Ellis, również w GCHQ.}
+\end{frame}
+
+\begin{frame}{Good to know: quantum computers}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \node[text=DeepBlue, font=\fontsize{40}{42}\selectfont] at (0,0) {\faAtom};
+      \draw[nLine, very thick] (2,-0.2) -- (10,-0.2);
+      \foreach \x/\t/\d in {3/2026/today, 6.5/2030/{RSA deprecated}, 9.5/2035/{RSA disallowed}} {
+        \fill[DeepBlue] (\x,-0.2) circle (3pt);
+        \node[font=\small\bfseries, text=DeepBlue, above] at (\x,-0.1) {\t};
+        \node[font=\scriptsize, text=nInk, below] at (\x,-0.3) {\d};
+      }
+    \end{tikzpicture}\\[0.6cm]
+    Shor's algorithm could factor large numbers fast on a big quantum computer.\\
+    No such computer exists yet, but NIST plans to move away from RSA after 2030.
+  \end{center}
+  \vfill
+  % source: NIST IR 8547 (final): RSA and ECDSA deprecated after 2030, disallowed after 2035
+  \say{Można pominąć. Plan NIST IR 8547: RSA przestarzałe po 2030, zakazane po 2035. Zastępują je nowe algorytmy odporne na komputery kwantowe.}
+\end{frame}
+
+\begin{frame}{Summary}
+  \vfill
+  \begin{enumerate}
+    \setlength{\itemsep}{6pt}
+    \item A shared key brings two problems: sharing it and too many keys.
+    \item A key pair solves sharing; in practice it moves a symmetric key (hybrid encryption).
+    \item RSA is safe because factoring is hard; DH, ElGamal and ECC use the discrete logarithm.
+    \item The private key d is the inverse of e modulo phi: \texttt{pow(e, -1, phi)}.
+    \item RSA encrypts with one power mod n; real RSA adds random padding (OAEP).
+    \item A leaked private key opens the past: forward secrecy fixes it.
+  \end{enumerate}
+  \vfill
+  \say{Po jednym zdaniu na każdy cel wykładu. W następnym wykładzie: jak ustalić klucz bez wysyłania go.}
+\end{frame}
+
+\end{document}

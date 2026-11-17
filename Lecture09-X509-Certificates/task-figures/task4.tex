@@ -1,0 +1,18 @@
+% Task 4: which certificate fits? Four certificates of Trusty CA (Lecture09-X509-Certificates/checks/make_files.py)
+\documentclass[12pt,tikz,border=6pt]{standalone}
+\input{common}
+\begin{document}
+\pagecolor{white}
+\begin{tikzpicture}[>=Stealth, card]
+  \foreach \l/\s [count=\k from 0] in {A/{www.alice-shop.example}, B/{Trusty CA Issuing 1}, C/{Carol Software Ltd}, D/{*.dave.example}} {
+    \node[cardbox, minimum width=3.6cm, minimum height=3.6cm] (c) at ({4.0*\k},0) {};
+    \node[text=nInk, font=\huge] at ({4.0*\k},0.8) {\faCertificate};
+    \node[font=\large\bfseries, text=nInk] at ({4.0*\k},-0.1) {cert\_\l.pem};
+    \node[font=\scriptsize\ttfamily, text=nInk] at ({4.0*\k},-0.7) {\s};
+    \node[font=\scriptsize, text=gray] at ({4.0*\k},-1.3) {SAN?\ \ CA?\ \ EKU?\ \ critical?};
+  }
+  \node[note, anchor=north west, align=left] at (-1.8,-2.3)
+    {\textcolor{AccentOrange}{\faQuestionCircle}\ Which one is a CA? \quad Which one may sign programs?\\[3pt]
+     \textcolor{AccentOrange}{\faQuestionCircle}\ Which one fits www.alice-shop.example, shop.dave.example, dave.example?};
+\end{tikzpicture}
+\end{document}

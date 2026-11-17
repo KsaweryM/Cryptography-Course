@@ -1,0 +1,1872 @@
+\documentclass[aspectratio=169,10pt]{beamer}
+% notes.tex defines \NOTESONLY and reads this file: then only the speaker notes are printed
+\ifdefined\NOTESONLY
+  \setbeameroption{show only notes}
+\fi
+
+\usepackage{lmodern}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[polish,english]{babel}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{colortbl}
+\usepackage{xcolor}
+\usepackage{fontawesome5}
+\usepackage{listings}
+\usepackage{etoolbox}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, calc, positioning, fit, decorations.pathreplacing, decorations.pathmorphing, shapes.symbols}
+\usepackage{pgfplots}
+% layers for the code windows drawn in TikZ: the window, then the line that runs now, then the text
+\pgfdeclarelayer{codebg}\pgfdeclarelayer{codehl}\pgfsetlayers{codebg,codehl,main}
+\pgfplotsset{compat=1.18}
+
+\usetheme{Madrid}
+\useinnertheme{rounded}
+\useoutertheme{miniframes}
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{itemize items}[circle]
+\setbeamertemplate{enumerate items}[default]
+\setbeamertemplate{blocks}[rounded][shadow=true]
+% one dot per idea, not per frame: \samedot before a frame gives it the dot of the frame before
+% (it undoes the step of the dot counter that the next frame makes)
+\newcommand{\samedot}{\addtocounter{subsectionslide}{-1}}
+% the default dot step of the circle dots (0.1 cm dots)
+\setbeamersize{mini frame size=.14cm,mini frame offset=-.01cm}
+
+% ======================================================================
+% Colour rules for presentations (Beamer + TikZ), from Agents/colors
+% ======================================================================
+
+% ---------- template ----------
+\definecolor{DeepBlue}{HTML}{283593}      % title bar, headings, links, control-flow arrows
+\definecolor{AccentOrange}{HTML}{EB5A14}  % annotations: step numbers, "look here", code highlight, conclusions
+\definecolor{LightGray}{HTML}{F5F6FA}     % background of information blocks
+\setbeamercolor{palette primary}{bg=DeepBlue,fg=white}
+\setbeamercolor{palette secondary}{bg=DeepBlue!80!black,fg=white}
+\setbeamercolor{palette tertiary}{bg=DeepBlue!90!black,fg=white}
+\setbeamercolor{title}{bg=DeepBlue,fg=white}
+\setbeamercolor{frametitle}{bg=DeepBlue,fg=white}
+\setbeamercolor{structure}{fg=DeepBlue}
+\setbeamercolor{item}{fg=AccentOrange}
+\setbeamercolor{alerted text}{fg=AccentOrange}
+\setbeamercolor{block title}{bg=DeepBlue,fg=white}
+\setbeamercolor{block body}{bg=LightGray,fg=black}
+\setbeamercolor{block title example}{bg=AccentOrange,fg=white}
+\setbeamercolor{block body example}{bg=AccentOrange!10,fg=black}
+\setbeamercolor{enumerate item}{fg=DeepBlue}
+\setbeamerfont{enumerate item}{series=\bfseries}
+
+% ---------- actors and categories: fills only (S1 to S6) ----------
+\definecolor{sIndigo}{HTML}{5C6BC0}   % S1
+\definecolor{sPink}{HTML}{EC407A}     % S2
+\definecolor{sViolet}{HTML}{7E57C2}   % S3
+\definecolor{sAmber}{HTML}{FFB300}    % S4: black text on it
+\definecolor{sTeal}{HTML}{26A69A}     % S5
+\definecolor{sBrown}{HTML}{8D6E63}    % S6
+% text variants that stay readable on white
+\definecolor{sPinkText}{HTML}{C2185B}
+\definecolor{sAmberText}{HTML}{A06A00}
+\definecolor{sTealText}{HTML}{00796B}
+
+% ---------- actions: frames only; results: signs only ----------
+\definecolor{aExec}{HTML}{43A047}     % runs now
+\definecolor{aRead}{HTML}{1E88E5}     % is read
+\definecolor{aWrite}{HTML}{E53935}    % is written
+
+% ---------- neutral (Blue Grey) ----------
+\definecolor{nInk}{HTML}{37474F}      % text in figures, waveforms, wires, data-flow arrows
+\definecolor{nLine}{HTML}{90A4AE}     % borders, axes
+\definecolor{nLight}{HTML}{CFD8DC}    % inactive lines, grids, empty places (dashed)
+\definecolor{nFill}{HTML}{ECEFF1}     % fill of boxes and used cells
+\definecolor{nIdle}{HTML}{E0E0E0}     % time lost (idle, busy waiting, bubbles)
+
+% ---------- TikZ styles ----------
+\tikzset{
+  aexec/.style={draw=aExec, line width=1.6pt},
+  aexecm/.style={aexec, label={[text=aExec, inner sep=1pt, font=\tiny]left:$\blacktriangleright$}},
+  aread/.style={draw=aRead, line width=1.6pt, dash pattern=on 3pt off 2pt},
+  awrite/.style={draw=aWrite, line width=2.4pt},
+  hw/.style={draw=nLine, thick, fill=nFill, text=nInk, rounded corners=3pt, align=center, inner sep=4pt},
+  hwmain/.style={draw=nInk, thick, fill=nInk, text=white, rounded corners=3pt, align=center, inner sep=4pt},
+  cell/.style={draw=nLine, thick, fill=white, text=nInk, font=\ttfamily\scriptsize},
+  cellused/.style={cell, fill=nFill},
+  cellfree/.style={cell, dashed, draw=nLight},
+  container/.style={draw=nLine, thick, dashed, rounded corners=5pt},
+  actor/.style={fill=#1, draw=#1, text=white, rounded corners=3pt, align=center, font=\scriptsize\bfseries, inner sep=4pt},
+  actorlight/.style={fill=#1!15, draw=#1, thick, text=nInk, rounded corners=3pt, align=center, inner sep=4pt},
+  suspended/.style={fill=#1!30, draw=#1, dashed, line width=0.9pt, text=nInk, rounded corners=3pt, align=center, inner sep=4pt},
+  ready/.style={fill=white, draw=#1, line width=0.8pt, text=nInk, rounded corners=3pt, align=center, inner sep=4pt},
+  idle/.style={fill=nIdle, draw=none, text=nInk, rounded corners=3pt, align=center, inner sep=4pt},
+  flow/.style={-{Stealth}, very thick, DeepBlue},
+  data/.style={-{Stealth}, very thick, nInk},
+  holds/.style={-{Stealth}, very thick, nInk},
+  waits/.style={-{Stealth}, very thick, nLine, dashed},
+  annot/.style={draw=AccentOrange, line width=1.4pt, rounded corners=3pt},
+}
+\tikzset{actoramber/.style={actor=sAmber, text=black}}
+
+% ---------- signs and small helpers ----------
+\newcommand{\ok}{\textcolor{aExec}{\faCheck}}
+\newcommand{\nok}{\textcolor{aWrite}{\faTimes}}
+\newcommand{\badge}[1]{\tikz[baseline=(b.base)]\node[circle,fill=AccentOrange,text=white,
+  inner sep=1.2pt,font=\bfseries\tiny] (b) {#1};}
+\newcommand{\bigbadge}[1]{\tikz[baseline=(b.base)]\node[circle,fill=AccentOrange,text=white,
+  inner sep=2pt,font=\bfseries\small] (b) {#1};}
+% ---------- text boxes ----------
+\newcommand{\defbox}[1]{%
+  \begin{beamercolorbox}[rounded=true,sep=0.1cm,wd=\linewidth]{block body example}
+    \footnotesize #1
+  \end{beamercolorbox}\vspace{0.06cm}}
+% a large definition in the middle of the slide
+\newcommand{\bigdef}[1]{%
+  \begin{beamercolorbox}[rounded=true,sep=0.25cm,wd=\linewidth]{block body example}
+    \centering\normalsize #1
+  \end{beamercolorbox}\vspace{0.06cm}}
+\newcommand{\stepbox}[2]{%
+  \begin{beamercolorbox}[rounded=true,sep=0.09cm,wd=\linewidth]{block body}
+    \footnotesize\textbf{#1}\\ #2
+  \end{beamercolorbox}\vspace{0.06cm}}
+\newcommand{\keymsg}[1]{%
+  \begin{beamercolorbox}[rounded=true,sep=0.1cm,wd=\textwidth]{block body example}
+    \centering\footnotesize #1
+  \end{beamercolorbox}}
+% a grey box without a title
+\newcommand{\plainbox}[1]{%
+  \begin{beamercolorbox}[rounded=true,sep=0.12cm,wd=\linewidth]{block body}
+    \centering\footnotesize #1
+  \end{beamercolorbox}\vspace{0.06cm}}
+\setbeamercolor{block body problem}{bg=AccentOrange!10,fg=black}
+\newcommand{\probbox}[2]{%
+  \begin{beamercolorbox}[rounded=true,sep=0.09cm,wd=\linewidth]{block body problem}
+    \footnotesize\textbf{\textcolor{AccentOrange}{\faExclamationTriangle}\ #1}\\ #2
+  \end{beamercolorbox}\vspace{0.06cm}}
+
+% ---------- code: dark window, grey dots, syntax colours ----------
+\definecolor{VSDarkBg}{RGB}{25,25,25}
+\definecolor{VSText}{RGB}{245,245,245}
+\definecolor{VSBlue}{RGB}{80,180,255}
+\definecolor{VSPurple}{RGB}{210,110,210}
+\definecolor{VSString}{RGB}{255,140,80}
+\definecolor{VSComment}{RGB}{80,220,80}
+\setbeamercolor{vscodelisting}{bg=VSDarkBg}
+\lstdefinestyle{code}{basicstyle=\color{VSText}\ttfamily\scriptsize, keywordstyle=\color{VSBlue}\bfseries,
+  stringstyle=\color{VSString}, commentstyle=\color{VSComment}\itshape, emphstyle=\color{VSPurple},
+  numbers=none, columns=fixed, basewidth=0.52em, keepspaces=true, showstringspaces=false, xleftmargin=6pt}
+\lstdefinestyle{py}{style=code, language=Python, emph={print,chr,zip,range,len,bytes,ord,hex}}
+\BeforeBeginEnvironment{lstlisting}{%
+  \begin{beamercolorbox}[rounded=true,sep=2mm,wd=\linewidth]{vscodelisting}%
+  \begin{tikzpicture}
+    \fill[nLine] (0,0) circle (3pt); \fill[nLine] (0.35,0) circle (3pt); \fill[nLine] (0.70,0) circle (3pt);
+  \end{tikzpicture}%
+  \vspace{-0.2cm}}
+\AfterEndEnvironment{lstlisting}{\end{beamercolorbox}}
+\newcommand{\hlcode}[1]{{\setlength{\fboxsep}{1pt}\colorbox{AccentOrange}{\textcolor{white}{\bfseries #1}}}}
+\newcommand{\eol}{\tikz[remember picture, overlay]\coordinate (eol) at (0,0.08);}
+\newcommand{\codenote}[3][0pt]{%
+  \begin{tikzpicture}[remember picture, overlay, >=Stealth]
+    \node[draw=AccentOrange, very thick, fill=AccentOrange!6, rounded corners=4pt, text width=0.33\paperwidth,
+      align=left, inner sep=6pt, font=\footnotesize, anchor=west] (cal)
+      at ([yshift=#1]eol -| {$(current page.west)!0.6!(current page.east)$}) {\textbf{\textcolor{AccentOrange}{#2}}\\[3pt]#3};
+    \draw[->, very thick, AccentOrange] (eol -| cal.west) -- ([xshift=4pt]eol);
+  \end{tikzpicture}}
+% program output: a light terminal line
+\newcommand{\terminal}[1]{%
+  \begin{tikzpicture}
+    \node[draw=nLine, thick, fill=nFill, rounded corners=3pt, inner sep=5pt, font=\ttfamily\small, text=nInk]
+      {\textcolor{nLine}{\$}\ #1};
+  \end{tikzpicture}}
+
+% ======================================================================
+% Course macros
+% ======================================================================
+% the starter files on GitHub: the word "GitHub" is the link.
+%   \ghlink{Task4} opens the folder of Task 4, \ghlink{} opens the folder of this lecture
+\newcommand{\ghbase}{https://github.com/KsaweryM/Cryptography-Course/tree/main/Lecture09-X509-Certificates}
+\newcommand{\ghlink}[1]{\href{\ghbase/#1}{\textcolor{DeepBlue}{\textbf{GitHub}}}}
+% the task slides: the steps are in the README on GitHub, the slide only opens the task
+%   \taskgoal{one line}   \taskready{the ready modules}   \opentask{Task2}{about 6 minutes}
+%   a task on paper: the question on the slide, then \onpaper{about 6 minutes}
+\newcommand{\taskgoal}[1]{{\centering\large\textcolor{AccentOrange}{\faBullseye}\ \textbf{Goal:} #1\par}\vspace{0.2cm}}
+\newcommand{\taskready}[1]{{\centering\normalsize\textcolor{nInk}{\faBox}\ \textbf{Ready:} #1\par}\vspace{0.2cm}}
+\newcommand{\opentask}[2]{%
+  \begin{beamercolorbox}[rounded=true,sep=0.35cm,wd=\linewidth]{block body example}
+    \centering
+    {\LARGE\faGithub\ \textbf{Open the task:}\ \href{\ghbase/#1}{\textcolor{DeepBlue}{\textbf{\texttt{#1}}}}}\\[8pt]
+    \footnotesize\href{\ghbase/#1}{\textcolor{DeepBlue}{\texttt{github.com/KsaweryM/Cryptography-Course/tree/main/Lecture09-X509-Certificates/#1}}}\\[6pt]
+    \small on \ghlink{#1}: the steps, the starter files and how to run them\ifx&#2&\else\qquad\faClock[regular]\ #2\fi
+  \end{beamercolorbox}}
+\newcommand{\onpaper}[1]{%
+  \begin{beamercolorbox}[rounded=true,sep=0.3cm,wd=\linewidth]{block body example}
+    \centering
+    {\LARGE\faPencil*\ \textbf{On paper}}\ifx&#1&\else\qquad\small\faClock[regular]\ #1\fi
+  \end{beamercolorbox}}
+
+% a page of the simulator website, printed in full so that students can type it:
+%   \simlink{elliptic-curves/\#2} prints and links ksawerym.github.io/Cryptography-simulators/elliptic-curves/#2
+\newcommand{\simbase}{ksawerym.github.io/Cryptography-simulators}
+\newcommand{\simlink}[1]{\href{https://\simbase/#1}{\textcolor{DeepBlue}{\texttt{\simbase/#1}}}}
+% "For the curious" line under a frame: \curious{elliptic-curves/\#2}
+\newcommand{\curious}[1]{{\footnotesize\textcolor{gray}{\faSearch\ For the curious:}\ \simlink{#1}}}
+
+% speaker notes (Polish): printed only in the notes PDF (make notes)
+\setbeamertemplate{note page}[default]
+\setbeamerfont{note page}{size=\normalsize}
+\newcommand{\say}[1]{\note{\selectlanguage{polish}#1}}
+
+% ======================================================================
+% Colour mapping for this lecture (colour rules, section 6)
+%   S1 sIndigo : Alice
+%   S2 sPink   : Mallory, the attacker
+%   S3 sViolet : public keys
+%   S4 sAmber  : private keys
+%   S5 sTeal   : Bob
+%   S6 sBrown  : the certificate authority (Trusty CA, WE1, GlobalSign) and its signature
+%   the certificate itself, hash functions, formats and tools are neutral
+% ======================================================================
+\tikzset{
+  person/.style={circle, fill=#1, draw=#1, text=white, minimum size=1.15cm, font=\Large, inner sep=0pt},
+  pubval/.style={draw=sViolet, thick, fill=sViolet!12, text=nInk, rounded corners=3pt, align=center, inner sep=4pt},
+  privval/.style={draw=sAmber, thick, fill=sAmber!25, text=nInk, rounded corners=3pt, align=center, inner sep=4pt},
+  caval/.style={draw=sBrown, thick, fill=sBrown!15, text=nInk, rounded corners=3pt, align=center, inner sep=4pt},
+  card/.style={draw=nLine, thick, fill=white, rounded corners=4pt},
+  seal/.style={circle, fill=sBrown, draw=sBrown!70!black, line width=1pt, text=white, inner sep=0pt},
+  frow/.style={anchor=west, font=\scriptsize, text=nInk, inner sep=1.5pt},
+  fkey/.style={anchor=west, font=\scriptsize\bfseries\ttfamily, text=nInk, inner sep=1.5pt},
+  tlv/.style={draw=nLine, thick, fill=white, text=nInk, font=\ttfamily\small, minimum height=0.6cm, inner sep=3pt},
+  tlvT/.style={tlv, fill=nInk, text=white, font=\ttfamily\scriptsize},
+  tlvL/.style={tlv, fill=nFill, font=\ttfamily\scriptsize},
+  tlvV/.style={tlv, font=\ttfamily\scriptsize},
+  msg/.style={draw=nInk, thick, fill=white, text=nInk, rounded corners=2pt, font=\scriptsize\ttfamily, inner sep=3pt},
+}
+% badges that are safe inside TikZ nodes (they do not take the size of the outer node)
+\renewcommand{\badge}[1]{\tikz[baseline=(b.base)]\node[circle,fill=AccentOrange,text=white,draw=none,
+  inner sep=1.2pt,minimum width=0pt,minimum height=0pt,font=\bfseries\tiny] (b) {#1};}
+\newcommand{\pub}[1]{\textcolor{sViolet}{\textbf{#1}}}
+\newcommand{\priv}[1]{\textcolor{sAmberText}{\textbf{#1}}}
+\newcommand{\cax}[1]{\textcolor{sBrown}{\textbf{#1}}}
+\newcommand{\hl}[1]{\textcolor{AccentOrange}{\textbf{#1}}}
+% a person: \personnode{name}{x,y}{colour}{caption}
+\newcommand{\personnode}[4]{%
+  \node[person=#3] (#1) at (#2) {\faUser};
+  \node[font=\small\bfseries, text=#3, below=0.08cm of #1] (#1lbl) {#4};}
+% Mallory: the same, with the spy icon
+\newcommand{\mallorynode}[2]{%
+  \node[person=sPink] (#1) at (#2) {\faUserSecret};
+  \node[font=\small\bfseries, text=sPinkText, below=0.08cm of #1] (#1lbl) {Mallory};}
+% a certificate authority: a building in brown. \canode{name}{x,y}{caption}
+\newcommand{\canode}[3]{%
+  \node[circle, fill=sBrown, text=white, minimum size=1.15cm, font=\Large, inner sep=0pt] (#1) at (#2) {\faLandmark};
+  \node[font=\small\bfseries, text=sBrown, below=0.08cm of #1] (#1lbl) {#3};}
+% a key: \pkey{name}{x,y}{text} (public, violet) and \skey{name}{x,y}{text} (private, amber)
+\newcommand{\pkey}[3]{\node[pubval, font=\scriptsize] (#1) at (#2) {\faKey\ #3};}
+\newcommand{\skey}[3]{\node[privval, font=\scriptsize] (#1) at (#2) {\faKey\ #3};}
+% the signature seal of a CA: \sealnode{name}{x,y}{size}
+\newcommand{\sealnode}[3]{\node[seal, minimum size=#3] (#1) at (#2) {\faStamp};}
+
+% the real values (CHECKED: python3 + cryptography 41.0.7, Lecture09-X509-Certificates/checks/make_files.py, openssl 3.0.13)
+%   Bob's Ed25519 public key, Mallory's, and the signature of Trusty CA on Bob's card (Task 2)
+\newcommand{\bobkey}{2fa8b9a6b0d5878b924cb42b1188f4e5f12cf7aa0d6faa0f2d715304702e3c40}
+\newcommand{\malkey}{456918eb304833d3885ff5c8f8091b98ca67d882d81deeb5c2590cfb539d5bcb}
+
+% a long command in a terminal box, on several lines: \cmdbox{line 1\\ line 2}
+% the five hyphens of a PEM line, without the TeX dash ligatures
+\newcommand{\five}{-{}-{}-{}-{}-}
+\newcommand{\cmdbox}[1]{%
+  \begin{tikzpicture}
+    \node[draw=nLine, thick, fill=nFill, rounded corners=3pt, inner sep=6pt, font=\scriptsize\ttfamily, text=nInk, align=left]
+      {\textcolor{nLine}{\$}\ #1};
+  \end{tikzpicture}}
+
+% ---------- Bob's certificate, drawn as a card ----------
+% CHECKED: openssl x509 -in Lecture09-X509-Certificates/checks/bob.pem -noout -text (the result of Task 3)
+% \bobcert{more TikZ drawing}: the rows are nodes v, sn, sa, is, va, su, pk, ex, alg, sig (west anchors)
+\newcommand{\bobcert}[1]{%
+  \begin{tikzpicture}[>=Stealth]
+    \node[card, minimum width=9.4cm, minimum height=6.05cm, anchor=north west] (crd) at (0,0) {};
+    \fill[nInk, rounded corners=4pt] (0,0) rectangle (9.4,-0.55);
+    \fill[nInk] (0,-0.3) rectangle (9.4,-0.55);
+    \node[text=white, font=\small\bfseries, anchor=west] at (0.15,-0.275) {\faCertificate\ Certificate: bob.example};
+    % tbsCertificate
+    \draw[nLine, thick, rounded corners=3pt, fill=nFill] (0.15,-0.7) rectangle (9.25,-4.6);
+    \node[font=\scriptsize\bfseries, text=gray, anchor=north east] at (9.2,-0.72) {tbsCertificate};
+    \foreach \nm/\y/\k/\v in {
+        v/-0.95/version/{v3 (the number 2)},
+        sn/-1.38/serialNumber/{\ttfamily 4F 3A 9C 2E 71 D0 5B 88},
+        sa/-1.81/signature/{Ed25519},
+        is/-2.24/issuer/{C=GB, O=Trusty CA Ltd, CN=Trusty CA},
+        va/-2.67/validity/{2026-11-01 00:00:00 to 2027-01-30 00:00:00 UTC},
+        su/-3.10/subject/{C=GB, O=Bob Ltd, CN=bob.example},
+        pk/-3.65/{subjectPublicKeyInfo}/{},
+        ex/-4.25/extensions/{none}} {
+      \node[fkey] (\nm k) at (0.3,\y) {\k};
+      \node[frow] (\nm) at (3.15,\y) {\v};
+    }
+    \node[pubval, font=\tiny\ttfamily, anchor=west, inner sep=2pt] at (3.15,-3.65) {\faKey\ Ed25519\; 2f a8 b9 a6 b0 d5 \ldots\ 2e 3c 40};
+    % signatureAlgorithm and signatureValue
+    \node[fkey] (algk) at (0.3,-4.92) {signatureAlgorithm};
+    \node[frow] (alg) at (3.15,-4.92) {Ed25519};
+    \node[fkey] (sigk) at (0.3,-5.5) {signatureValue};
+    \node[caval, font=\tiny\ttfamily, anchor=west, inner sep=2pt] (sig) at (3.15,-5.5) {55 5f 51 ae 3d 88 \ldots\ 60 0d \;(64 bytes)};
+    \sealnode{seal}{8.55,-5.3}{0.85cm}
+    #1
+  \end{tikzpicture}}
+
+\title{Cryptography}
+\subtitle{Why PKI and the X.509 Certificate}
+\author{Ksawery Możdżyński}
+\date{}
+
+\begin{document}
+
+% ======================================================================
+% Opening
+% ======================================================================
+
+\begin{frame}
+  \titlepage
+  \say{Pierwszy wykład tygodnia o PKI. Klucze publiczne znamy z wykładów 3 do 5, skróty i podpisy z wykładów 6 do 8. Dziś pytanie, którego jeszcze nie zadaliśmy: skąd wiadomo, czyj jest klucz publiczny.}
+\end{frame}
+
+\begin{frame}{Agenda For Today}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \foreach \ic/\t [count=\k from 0] in {
+          {\faUserSecret}/{See how Mallory swaps a public key, and how a signature stops her.},
+          {\faIdCard}/{Open an X.509 certificate: its fields, names and extensions.},
+          {\faSearch}/{Make, encode and read certificates in Python, up to a real website's.}} {
+        \node[circle, fill=DeepBlue, text=white, minimum size=1.3cm, font=\LARGE] at (0,{-1.9*\k}) {\ic};
+        \node[anchor=west, text width=12cm, font=\large, align=left, execute at begin node={\hyphenpenalty=10000 }] at (1.0,{-1.9*\k}) {\t};
+      }
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \say{Najpierw problem i pomysł, potem budowa certyfikatu X.509 pole po polu, na końcu prawdziwy certyfikat strony uczelni. Nazwy sekcji są na pasku u góry.}
+\end{frame}
+
+% ======================================================================
+\section[Whose key is it?]{Whose key is it?}
+% ======================================================================
+
+\begin{frame}{Recall: a key pair}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \personnode{bob}{0,0}{sTeal}{Bob}
+      \node[pubval, minimum width=4.6cm, minimum height=1.25cm, anchor=west, font=\small] (pk) at (2.0,0.85)
+        {\faKey\ \textbf{public key}\\ everybody may know it};
+      \node[privval, minimum width=4.6cm, minimum height=1.25cm, anchor=west, font=\small] (sk) at (2.0,-0.85)
+        {\faKey\ \textbf{private key}\\ only Bob knows it};
+      \draw[data] (bob.east) -- (pk.west);
+      \draw[data] (bob.east) -- (sk.west);
+      \node[font=\small, text=nInk, anchor=west, align=left] at (7.1,0.85) {encrypts a message for Bob\\checks Bob's signature};
+      \node[font=\small, text=nInk, anchor=west, align=left] at (7.1,-0.85) {decrypts the message\\makes Bob's signature};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small RSA (Lecture 3), Diffie-Hellman (Lecture 4), elliptic curves (Lecture 5).\end{center}
+  \keymsg{The public key may travel over any network. The private key never leaves its owner.}
+  \say{Przypomnienie. Klucz publiczny Boba może znać każdy; dzięki temu nie trzeba wcześniej wymieniać tajnego klucza. Dziś zobaczymy, że to wygodne założenie ma słaby punkt.}
+\end{frame}
+
+\samedot
+\begin{frame}{Recall: a hash function}
+  % CHECKED: printf hello | sha256sum, printf hellp | sha256sum
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \foreach \y/\in/\out in {0.8/hello/{2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824},
+          -0.8/hellp/{fdd7585e08c4e2afd71dcabdb4636c89d557a3f42db9e2040c8bbd1708aa4ce7}} {
+        \node[msg, font=\normalsize\ttfamily, minimum width=1.5cm] (i) at (0,\y) {\in};
+        \node[hwmain, minimum width=2.0cm, minimum height=0.9cm, font=\small\bfseries] (h) at (2.6,\y) {\faCogs\ SHA-256};
+        \node[cell, font=\tiny\ttfamily, anchor=west, minimum height=0.6cm] (o) at (4.4,\y) {\out};
+        \draw[data] (i) -- (h);
+        \draw[data] (h) -- (o);
+      }
+      \node[font=\scriptsize, text=AccentOrange, anchor=north] at (0,0.25) {one letter changed};
+      \node[font=\scriptsize, text=gray, anchor=north] at (9.9,-1.2) {always 32 bytes, completely different};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{columns}[t,onlytextwidth]
+    \column{0.32\textwidth}\stepbox{Fixed size}{Any input gives 32 bytes.}
+    \column{0.32\textwidth}\stepbox{One way}{From the hash you cannot get the input back.}
+    \column{0.32\textwidth}\stepbox{No collisions}{Nobody can find two inputs with the same hash.}
+  \end{columns}
+  \say{Z wykładu 6. Używamy jej jako czarnej skrzynki. Wartości policzone poleceniem sha256sum. Ten sam skrót wróci dziś jako odcisk palca certyfikatu.}
+\end{frame}
+
+\samedot
+\begin{frame}{Recall: a digital signature}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      % sign
+      \node[msg, font=\small\ttfamily] (d1) at (0,1.0) {data};
+      \skey{sk}{0,0.1}{Bob's private key}
+      \node[hwmain, minimum width=2.0cm, minimum height=1.6cm] (sg) at (3.2,0.55) {\Large\faCogs\\ \small\bfseries sign};
+      \node[caval, font=\small] (s1) at (6.0,0.55) {\faStamp\ signature};
+      \draw[data] (d1.east) -- (sg.west |- d1.east);
+      \draw[data] (sk.east) -- (sg.west |- sk.east);
+      \draw[data] (sg) -- (s1);
+      % verify
+      \node[msg, font=\small\ttfamily] (d2) at (0,-1.6) {data};
+      \pkey{pk}{0,-2.4}{Bob's public key}
+      \node[caval, font=\small] (s2) at (0,-3.2) {\faStamp\ signature};
+      \node[hwmain, minimum width=2.0cm, minimum height=2.0cm] (vf) at (3.2,-2.4) {\Large\faCogs\\ \small\bfseries verify};
+      \draw[data] (d2.east) -- (vf.west |- d2.east);
+      \draw[data] (pk.east) -- (vf.west |- pk.east);
+      \draw[data] (s2.east) -- (vf.west |- s2.east);
+      \node[font=\small, anchor=west] (r) at (5.0,-2.4) {\ok\ \texttt{True}\; or \;\nok\ \texttt{False}};
+      \draw[data] (vf) -- (r);
+      % what it guarantees
+      \node[hw, text width=4.6cm, align=left, font=\small, anchor=west] at (8.6,-0.9)
+        {\textbf{\texttt{True} means:}\\[3pt]
+         \badge{1}\ the data was not changed,\\[2pt]
+         \badge{2}\ it was signed with the private key that belongs to this public key.};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \say{Z wykładu 8: podpis jako czarna skrzynka, bez matematyki. sign bierze klucz prywatny, verify publiczny. W środku liczy się skrót danych, więc podpis jest krótki nawet dla dużego pliku. Zwrócić uwagę na punkt 2: podpis mówi o kluczu, nie o osobie.}
+\end{frame}
+
+\begin{frame}{Alice needs Bob's public key}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \personnode{alice}{0,0}{sIndigo}{Alice}
+      \personnode{bob}{12,0}{sTeal}{Bob}
+      \node[cloud, cloud puffs=11, draw=nLine, thick, fill=nFill, minimum width=4.6cm, minimum height=2.2cm] (net) at (6,0) {};
+      \node[text=nInk, font=\small\bfseries] at (6,0.25) {\faGlobe\ the internet};
+      \node[text=gray, font=\scriptsize] at (6,-0.3) {routers, Wi-Fi, servers\ldots};
+      \draw[data] (alice.east) to node[above, font=\scriptsize, text=nInk] {``send me your key''} (net.west);
+      \draw[data] (net.west) ++(0,-0.5) -- ++(-2.65,0);
+      \pkey{k}{2.4,-0.95}{2f a8 b9 a6 \ldots}
+      \draw[data] (bob.west) -- (net.east);
+      \node[font=\Huge\bfseries, text=AccentOrange] at (0,1.5) {?};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\large A key arrives. \textbf{How does Alice know it is Bob's?}\end{center}
+  \vfill
+  \say{Alice i Bob nigdy się nie spotkali. Alice chce wysłać Bobowi tajną wiadomość, więc potrzebuje jego klucza publicznego. Pyta przez sieć i coś dostaje. Pytanie do sali: czy to na pewno klucz Boba?}
+\end{frame}
+
+% the three steps of the attack on one drawing: \mitm{step}
+% CHECKED: the key bytes are the real Ed25519 keys of Task 2 (\bobkey, \malkey)
+\newcommand{\mitm}[1]{%
+  \begin{tikzpicture}[>=Stealth]
+    \personnode{alice}{0,0}{sIndigo}{Alice}
+    \personnode{bob}{13,0}{sTeal}{Bob}
+    \mallorynode{mal}{6.5,-1.9}
+    \draw[nLight, line width=3pt] (alice.east) -- (bob.west);
+    \node[font=\scriptsize, text=gray] at (6.5,0.25) {the network};
+    \draw[nLine, thick, dashed] (mal.north) -- (6.5,-0.05);
+    \ifnum#1=1
+      \pkey{kb}{10.6,0.85}{Bob: 2f a8 b9 a6\ldots}
+      \pkey{km}{2.6,0.85}{Mallory: 45 69 18 eb\ldots}
+      \draw[data] (bob.north west) to[bend right=15] (kb.east);
+      \draw[data] (kb.south west) to[bend right=25] node[pos=0.6, below right, font=\scriptsize, text=sPinkText] {kept} (mal.north east);
+      \draw[data] (mal.north west) to[bend right=25] node[pos=0.4, below left, font=\scriptsize, text=sPinkText] {sent instead} (km.south east);
+      \draw[data] (km.west) to[bend right=15] (alice.north east);
+      \node[font=\scriptsize, text=nInk, anchor=north] at (0,-1.2) {``this is Bob's key''};
+    \fi
+    \ifnum#1=2
+      \node[msg] (m1) at (2.8,0.9) {\faLock\ MEET AT 9 \textcolor{sViolet}{[Mallory's key]}};
+      \draw[data] (alice.north east) to[bend left=10] (m1.west);
+      \draw[data] (m1.south east) to[bend left=20] (mal.north west);
+      \node[privval, font=\scriptsize, anchor=west] at (7.4,-1.9) {\faKey\ her private key opens it: \textbf{MEET AT 9}};
+    \fi
+    \ifnum#1=3
+      \node[privval, font=\scriptsize, anchor=east] at (5.6,-1.9) {read: \textbf{MEET AT 9}};
+      \node[msg] (m2) at (10.2,0.9) {\faLock\ MEET AT 9 \textcolor{sViolet}{[Bob's key]}};
+      \draw[data] (mal.north east) to[bend left=20] (m2.south west);
+      \draw[data] (m2.east) to[bend left=10] (bob.north west);
+      \node[font=\scriptsize, text=nInk, anchor=north, align=center] at (13,-1.2) {decrypts it\\with his private key\\ \ok\ nothing looks wrong};
+    \fi
+  \end{tikzpicture}}
+
+\begin{frame}{Mallory in the middle: 1. she swaps the key}
+  \vfill
+  \begin{center}\mitm{1}\end{center}
+  \vfill
+  \begin{center}\small Mallory sits on the network between them (a Wi-Fi hotspot, a router). She keeps Bob's key\\
+    and sends her own public key to Alice instead.\end{center}
+  \say{Mallory to atakująca, która nie tylko słucha (jak Eve), ale też zmienia wiadomości. Może to być fałszywy hotspot Wi-Fi albo przejęty router. Klucze na rysunku to prawdziwe klucze z zadania 2.}
+\end{frame}
+
+\samedot
+\begin{frame}{Mallory in the middle: 2. Alice encrypts for Mallory}
+  \vfill
+  \begin{center}\mitm{2}\end{center}
+  \vfill
+  \begin{center}\small Alice thinks she has Bob's key, so she encrypts with Mallory's key.\\ Mallory decrypts it with her own private key.\end{center}
+  \say{Szyfr działa poprawnie. Problem nie jest w szyfrze, tylko w tym, czyim kluczem Alice szyfruje.}
+\end{frame}
+
+\samedot
+\begin{frame}{Mallory in the middle: 3. Bob notices nothing}
+  \vfill
+  \begin{center}\mitm{3}\end{center}
+  \vfill
+  \curious{pki/\#1.3}
+  \keymsg{Encryption does not help when the key belongs to the wrong person: man-in-the-middle.}
+  \say{Mallory szyfruje wiadomość prawdziwym kluczem Boba i przekazuje. Bob odszyfrowuje i wszystko wygląda dobrze. Mallory może też zmienić treść. To atak man-in-the-middle (MITM). Ten sam atak na Diffie-Hellmana widzieliśmy na wykładzie 4. W symulatorze z linku można przejść tę historię krok po kroku.}
+\end{frame}
+
+\begin{frame}{Task 1: what helps Alice?}
+  \begin{center}\small Mallory controls the network. Which ideas stop her from swapping Bob's key? Why?\end{center}
+  \vspace{0.1cm}
+  \begin{columns}[t,onlytextwidth]
+    \column{0.49\textwidth}
+      \stepbox{\badge{1}\ Bob sends his key twice}{Alice compares the two copies.}
+      \stepbox{\badge{2}\ Bob encrypts his key}{He sends it encrypted, so nobody can read it on the way.}
+    \column{0.49\textwidth}
+      \stepbox{\badge{3}\ Alice phones Bob}{Bob reads out the first 8 hex digits of the SHA-256 of his key; Alice compares.}
+      \stepbox{\badge{4}\ Carol signs the key}{Carol, whose public key Alice already has, signs ``bob.example has key 2f a8 \ldots''.}
+  \end{columns}
+  \vfill
+  \onpaper{about 5 minutes}
+  \say{Około 5 minut, w parach, na kartce. Dla każdego pomysłu: czy Mallory może go obejść? Podpowiedź: co z tego przechodzi przez sieć, którą Mallory kontroluje?}
+\end{frame}
+
+\samedot
+\begin{frame}{Task 1: what we saw}
+  \vfill
+  \begin{center}
+    \renewcommand{\arraystretch}{1.45}
+    \begin{tabular}{@{}c@{\quad}l@{\qquad}p{8.2cm}@{}}
+      \toprule
+      & \textbf{idea} & \textbf{why} \\
+      \midrule
+      \nok & \badge{1}\ the key twice & Mallory swaps both copies. \\
+      \nok & \badge{2}\ an encrypted key & Encrypted with which key? Mallory swaps that one too. \\
+      \ok & \badge{3}\ a phone call & Mallory does not control Bob's voice. Works, but by hand, for one key. \\
+      \ok & \badge{4}\ Carol signs & Mallory cannot make Carol's signature. Works for every key Carol signs. \\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+  \vfill
+  \keymsg{Alice needs something Mallory does not control: a key she already trusts.}
+  \say{Pomysły 3 i 4 korzystają z czegoś spoza sieci Mallory. Pomysł 3 to porównanie odcisku palca: tak robi SSH i komunikatory (numer bezpieczeństwa w Signal). Pomysł 4 skaluje się: jeden zaufany klucz Carol wystarcza do sprawdzenia wielu kluczy. Na nim stoi PKI.}
+\end{frame}
+
+\begin{frame}{A public key does not say whose it is}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \foreach \y/\h in {0.6/{2f a8 b9 a6 b0 d5 87 8b 92 4c b4 2b 11 88 f4 e5 f1 2c f7 aa 0d 6f aa 0f 2d 71 53 04 70 2e 3c 40},
+          -0.6/{45 69 18 eb 30 48 33 d3 88 5f f5 c8 f8 09 1b 98 ca 67 d8 82 d8 1d ee b5 c2 59 0c fb 53 9d 5b cb}} {
+        \node[pubval, font=\scriptsize\ttfamily, minimum width=11.5cm] at (0,\y) {\faKey\quad \h};
+      }
+      \node[font=\Large\bfseries, text=AccentOrange] at (6.9,0.6) {?};
+      \node[font=\Large\bfseries, text=AccentOrange] at (6.9,-0.6) {?};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small Two Ed25519 public keys, 32 bytes each. One is Bob's, one is Mallory's.\\ Nothing in the bytes says which.\end{center}
+  \vfill
+  \keymsg{A public key is just a number. We need a way to tie it to a name.}
+  \say{Prawdziwe klucze z zadania 2. Pierwszy jest Boba, drugi Mallory, ale z samych bajtów nie da się tego odczytać. Ed25519 to podpis na krzywej Curve25519 z wykładu 5; w zadaniach używamy go, bo klucze są krótkie.}
+\end{frame}
+
+\begin{frame}{The idea: a signed name card}
+  % CHECKED: Task2/solution/name_card.py: the card and the Ed25519 signature of Trusty CA
+  \begin{columns}[c,onlytextwidth]
+    \column{0.42\textwidth}
+      \small
+      A party that everybody trusts checks that the key is really Bob's, then \textbf{signs} the pair
+      ``name, key''.\\[8pt]
+      \bigdef{\textbf{Certificate authority (CA)}: an organisation that checks who owns a key and signs it.}
+      Here: \cax{Trusty CA}. Alice already has its public key.
+    \column{0.56\textwidth}
+      \centering
+      \begin{tikzpicture}[>=Stealth]
+        \node[card, minimum width=7.1cm, minimum height=3.3cm] (c) at (0,0) {};
+        \node[font=\small\bfseries, text=nInk, anchor=north west] at (-3.4,1.5) {\faIdCard\ name card};
+        \node[font=\small\ttfamily, text=nInk, anchor=west] at (-3.3,0.75) {name = bob.example};
+        \node[pubval, font=\tiny\ttfamily, anchor=west, inner sep=2pt] at (-3.3,0.15) {key = 2fa8b9a6b0d5878b \ldots 04702e3c40};
+        \draw[nLine] (-3.4,-0.35) -- (3.4,-0.35);
+        \node[caval, font=\tiny\ttfamily, anchor=west, inner sep=2pt, text width=4.7cm, align=left] at (-3.3,-1.0)
+          {signature of Trusty CA:\\ 5d034483ee304edd \ldots c4043f0a};
+        \sealnode{s}{2.65,-1.0}{0.95cm}
+        \canode{ca}{0,3.3}{Trusty CA}
+        \draw[data] (calbl.south) to node[right, font=\scriptsize, text=nInk] {signs} (0,1.7);
+      \end{tikzpicture}
+  \end{columns}
+  \curious{pki/\#1.5}
+  \say{Pomysł 4 z zadania 1, tylko zamiast Carol jest firma, której wszyscy ufają: urząd certyfikacji (CA). Trusty CA sprawdza, że klucz należy do Boba, i podpisuje bajty name=bob.example;key=... Wartości prawdziwe, z zadania 2. Skąd Alice ma klucz Trusty CA: na wykładzie 10. W symulatorze z linku Trusty CA podpisuje wizytówkę Boba.}
+\end{frame}
+
+\samedot
+\begin{frame}{Why Mallory cannot change the card}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \foreach \x/\t/\key/\sig/\res/\why in {
+          0/{Bob's card}/{key = 2fa8\ldots3c40}/{Trusty CA}/{\ok\ True}/{as signed},
+          4.8/{Mallory swaps the key}/{key = \textbf{4569}\ldots\textbf{5bcb}}/{Trusty CA}/{\nok\ False}/{the data changed},
+          9.6/{Mallory signs herself}/{key = \textbf{4569}\ldots\textbf{5bcb}}/{\textbf{Mallory}}/{\nok\ False}/{wrong private key}} {
+        \node[font=\small\bfseries, text=nInk] at (\x,1.55) {\t};
+        \node[card, minimum width=4.3cm, minimum height=2.1cm] (c) at (\x,0.2) {};
+        \node[font=\scriptsize\ttfamily, text=nInk] at (\x,0.85) {name = bob.example};
+        \node[pubval, font=\tiny\ttfamily, inner sep=2pt] at (\x,0.3) {\key};
+        \node[caval, font=\tiny, inner sep=2pt] at (\x,-0.4) {\faStamp\ signed by \sig};
+        \node[hwmain, font=\scriptsize, minimum width=4.0cm] (v) at (\x,-1.6) {verify with Trusty CA's key};
+        \draw[data] (c.south) -- (v.north);
+        \node[font=\large\bfseries] at (\x,-2.35) {\res};
+        \node[font=\scriptsize, text=gray] at (\x,-2.8) {\why};
+      }
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \keymsg{Alice always verifies with the CA's public key. Only the CA can make a card that passes.}
+  \say{Dwie sztuczki Mallory. Zmiana klucza w karcie zmienia podpisane bajty, więc weryfikacja zawodzi. Podpis własnym kluczem też nie przechodzi, bo Alice sprawdza kluczem publicznym Trusty CA, a nie kluczem z karty. To sprawdzimy w zadaniu 2.}
+\end{frame}
+
+\begin{frame}{Task 2: a signed name card}
+  \begin{columns}[c,onlytextwidth]
+    \column{0.58\textwidth}
+      \taskgoal{as Trusty CA, sign Bob's card; as Alice, check it; then try both tricks of Mallory.}
+      \taskready{\texttt{signing.py}: \texttt{sign}, \texttt{verify}, \texttt{key\_hex}; the keys of Trusty CA, Bob and Mallory in PEM files.}
+    \column{0.4\textwidth}
+      \centering
+      \begin{tikzpicture}[>=Stealth]
+        \canode{ca}{-1.6,0}{Trusty CA}
+        \node[card, minimum width=3.6cm, minimum height=1.1cm] (c) at (1.5,0) {};
+        \node[font=\scriptsize\ttfamily, text=nInk] at (1.5,0.2) {name=bob.example;key=\ldots};
+        \node[caval, font=\tiny, inner sep=1.5pt] at (1.5,-0.22) {\faStamp\ ?};
+        \draw[data] (ca.east) -- (c.west);
+        \personnode{al}{0,-1.75}{sIndigo}{Alice}
+        \mallorynode{ma}{2.4,-1.75}
+      \end{tikzpicture}
+  \end{columns}
+  \vfill
+  \opentask{Task2}{about 12 minutes}
+  \say{Około 12 minut. Polecenia w README na GitHubie. Biblioteka cryptography musi być zainstalowana (pip install cryptography). Moduł signing.py ukrywa szczegóły biblioteki: tylko sign, verify i key\_hex, jak na slajdzie Recall: a digital signature.}
+\end{frame}
+
+\samedot
+\begin{frame}{Task 2: what we saw}
+  % CHECKED: Task2/solution/name_card.py prints True, False, False
+  \begin{center}\small The output of \texttt{name\_card.py}:\end{center}
+  \vspace{0.1cm}
+  \begin{center}
+    \begin{tikzpicture}
+      \node[draw=nLine, thick, fill=nFill, rounded corners=3pt, inner sep=7pt, font=\scriptsize\ttfamily, text=nInk, align=left] {%
+        card:\ \ \ \ \ \ \ \ \ \ b'name=bob.example;key=2fa8b9a6b0d5878b924c...702e3c40'\\
+        signature:\ \ \ \ \ 5d034483ee304edd20c5d8652d973ff0...a4509d6b3c4043f0a\\[4pt]
+        Bob's card, CA signature:\ \ \ \ \ \ \ \ \ \textbf{True}\\
+        Mallory's key, CA signature:\ \ \ \ \ \ \textbf{False}\\
+        Mallory's key, Mallory signature:\ \textbf{False}};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small
+    \ok\ Bob's card passes. \quad \nok\ A changed card fails. \quad \nok\ Mallory's own signature fails.
+  \end{center}
+  \curious{pki/\#1.7}
+  \keymsg{A signature from a trusted party ties a name to a key.}
+  \say{Kod rozwiązania jest w folderze solution, nie pokazujemy go. Podpis Ed25519 jest deterministyczny, więc wszyscy dostali te same bajty podpisu. Mallory mogłaby jeszcze poprosić Trusty CA o kartę ze swoją nazwą, ale wtedy karta mówi mallory, a nie bob.example. W symulatorze z linku można jeszcze raz spróbować obu sztuczek Mallory.}
+\end{frame}
+
+\begin{frame}{A certificate}
+  \bigdef{\textbf{Certificate}: a name, a public key and a few more fields, signed by a certificate authority.}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \canode{ca}{0,0}{Trusty CA}
+      \node[card, minimum width=4.0cm, minimum height=2.3cm] (c) at (4.6,0) {};
+      \node[font=\small\bfseries, text=nInk] at (4.6,0.75) {\faCertificate\ certificate};
+      \node[font=\scriptsize, text=nInk] at (4.6,0.25) {bob.example};
+      \node[pubval, font=\tiny, inner sep=2pt] at (4.6,-0.25) {\faKey\ Bob's public key};
+      \sealnode{s}{5.9,-0.75}{0.7cm}
+      \draw[data] (ca) -- node[above, font=\scriptsize, text=nInk] {issues} (c);
+      \personnode{al}{9.6,0}{sIndigo}{Alice}
+      \draw[data] (c) -- node[above, font=\scriptsize, text=nInk] {checks} (al);
+      \pkey{cak}{9.6,-1.75}{Trusty CA's public key}
+      \node[font=\scriptsize, text=gray, anchor=west] at (11.3,-1.75) {she has it already};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small How Alice gets the CA's key, and who the CAs are: \textbf{Lecture 10}.\end{center}
+  \keymsg{Trust one key (the CA's) to trust many keys (everything it signed).}
+  \say{Certyfikat to dokładnie nasza podpisana wizytówka, tylko w ustalonym formacie i z dodatkowymi polami: od kiedy do kiedy, kto podpisał, do czego wolno użyć klucza. Zaufanie przechodzi z jednego klucza CA na wszystkie podpisane przez niego certyfikaty.}
+\end{frame}
+
+\begin{frame}{PKI: public key infrastructure}
+  \bigdef{\textbf{PKI}: the keys, certificates, certificate authorities and rules that let us trust public keys.}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \foreach \ic/\t/\s/\l [count=\k from 0] in {
+          \faCertificate/{certificates}/{the format: X.509}/{today},
+          \faLandmark/{certificate authorities}/{chains of trust,\\how certificates are issued}/{Lecture 10},
+          \faCheckDouble/{checking and revoking}/{validation, revocation,\\certificates in TLS}/{Lecture 11},
+          \faTools/{in practice}/{where PKI is used,\\mistakes and incidents}/{Lecture 12}} {
+        \node[hw, minimum width=3.3cm, minimum height=2.5cm] (b) at ({3.6*\k},0) {};
+        \node[text=nInk, font=\fontsize{24}{26}\selectfont] at ({3.6*\k},0.55) {\ic};
+        \node[font=\small\bfseries, text=nInk] at ({3.6*\k},-0.25) {\t};
+        \node[font=\scriptsize, text=gray, align=center] at ({3.6*\k},-0.8) {\s};
+        \node[font=\scriptsize\bfseries, text=DeepBlue] at ({3.6*\k},-1.55) {\l};
+      }
+      \draw[annot] (-1.75,-1.35) rectangle (1.75,1.35);
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \keymsg{Public-key cryptography plus signed certificates: that is PKI.}
+  \say{Kryptografia klucza publicznego daje szyfrowanie i podpisy; podpis daje certyfikat; reszta PKI to organizacja wokół tego. Dziś tylko pierwszy kafelek: sam certyfikat. Pozostałe na kolejnych wykładach tego tygodnia.}
+\end{frame}
+
+\begin{frame}[fragile]{Good to know: SSH asks you instead}
+  % CHECKED: OpenSSH wording; the fingerprint is Bob's Ed25519 key of Task 2 as an ssh-ed25519 key
+  %   (base64 of SHA-256 of the key blob, without "=")
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \node[draw=nLine, thick, fill=nFill, rounded corners=3pt, inner sep=8pt, font=\scriptsize\ttfamily, text=nInk, align=left] {%
+        \textcolor{nLine}{\$} ssh bob@server.bob.example\\
+        The authenticity of host 'server.bob.example' can't be established.\\
+        ED25519 key fingerprint is \textbf{SHA256:/ohzZAhseIlkNeJSdASxarvP76UW2PgjDqw4cp6b5xg}.\\
+        Are you sure you want to continue connecting (yes/no/[fingerprint])?};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{columns}[t,onlytextwidth]
+    \column{0.49\textwidth}\stepbox{No CA}{SSH shows the hash of the server's key and asks you. Idea 3 from Task 1.}
+    \column{0.49\textwidth}\stepbox{Trust on first use}{After ``yes'' the key is saved; a different key next time gives a loud warning.}
+  \end{columns}
+  \say{Można pominąć. SSH zwykle nie używa certyfikatów: pokazuje odcisk klucza i zostawia decyzję użytkownikowi. Mało kto naprawdę porównuje odcisk, więc pierwsze połączenie jest słabym punktem. Odcisk na slajdzie to prawdziwy odcisk klucza Boba z zadania 2.}
+\end{frame}
+
+% ======================================================================
+\section[The X.509 certificate]{The X.509 certificate}
+% ======================================================================
+
+\begin{frame}{X.509: one format for everyone}
+  % source: ITU-T X.509 (1988, part of X.500); version 3 with extensions (1996); RFC 5280 (May 2008)
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \draw[nLine, very thick, -{Stealth}] (-0.5,0) -- (13.2,0);
+      \foreach \yr/\x/\t/\s in {1988/0.5/{X.509 version 1}/{ITU-T, for the X.500 directory},
+          1996/4.6/{version 3: extensions}/{the format we use today},
+          2008/8.7/{RFC 5280}/{the profile for the internet}} {
+        \fill[AccentOrange] (\x,0) circle (4pt);
+        \node[font=\small\bfseries, text=nInk, anchor=north] at (\x,-0.25) {\yr};
+        \node[hw, minimum width=3.6cm, minimum height=1.25cm, font=\small, anchor=south] at (\x+1.2,0.45) {\textbf{\t}\\ \scriptsize\s};
+      }
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small Websites, e-mail, code signing, ID cards, Wi-Fi logins: the same format everywhere.\end{center}
+  \bigdef{\textbf{X.509}: the standard format of a certificate.}
+  \vfill
+  \say{X.509 to norma ITU-T z 1988 roku, część katalogu X.500. Wersja 3 dodała rozszerzenia; to jedyna wersja używana dziś. RFC 5280 opisuje, jak używać X.509 w internecie, i na nim opieramy się na tych wykładach.}
+\end{frame}
+
+\begin{frame}{Three parts}
+  \begin{columns}[c,onlytextwidth]
+    \column{0.42\textwidth}
+      \small
+      \badge{1}\ \textbf{tbsCertificate}: all the fields. ``tbs'' means \emph{to be signed}.\\[10pt]
+      \badge{2}\ \textbf{signatureAlgorithm}: how the CA signed.\\[10pt]
+      \badge{3}\ \textbf{signatureValue}: the CA's signature over the bytes of part 1.
+    \column{0.56\textwidth}
+      \centering
+      \begin{tikzpicture}
+        \node[card, minimum width=6.4cm, minimum height=5.0cm] (c) at (0,0) {};
+        \node[hw, minimum width=6.0cm, minimum height=3.1cm, anchor=north] (t) at (0,2.3) {};
+        \node[font=\small\bfseries, text=nInk, anchor=north west] at (-2.9,2.2) {\badge{1}\ tbsCertificate};
+        \foreach \f [count=\k from 0] in {version, serial number, issuer, validity, subject, public key, extensions} {
+          \node[font=\scriptsize, text=nInk, anchor=west] at ({-2.6+2.9*int(\k/4)},{1.45-0.42*mod(\k,4)}) {\textbullet\ \f};
+        }
+        \node[hw, minimum width=6.0cm, minimum height=0.55cm, font=\small, anchor=north] at (0,-0.95) {\badge{2}\ signatureAlgorithm};
+        \node[caval, minimum width=6.0cm, minimum height=0.55cm, font=\small, anchor=north] at (0,-1.65) {\badge{3}\ signatureValue \;\faStamp};
+      \end{tikzpicture}
+  \end{columns}
+  \say{Każdy certyfikat X.509 ma dokładnie te trzy części. Część pierwsza to treść, dwie pozostałe to podpis i informacja, jakim algorytmem go zrobiono.}
+\end{frame}
+
+\samedot
+\begin{frame}{What the CA signs}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \node[hw, minimum width=3.0cm, minimum height=1.2cm, font=\small\bfseries] (tbs) at (0,0) {tbsCertificate\\ \scriptsize\mdseries the bytes};
+      \skey{sk}{0,-1.4}{Trusty CA's private key}
+      \node[hwmain, minimum width=1.8cm, minimum height=1.6cm] (sg) at (3.5,-0.6) {\Large\faCogs\\ \small\bfseries sign};
+      \node[caval, font=\small] (sv) at (6.8,-0.6) {\faStamp\ signatureValue};
+      \draw[data] (tbs.east) -- (sg.west |- tbs.east);
+      \draw[data] (sk.east) -- (sg.west |- sk.east);
+      \draw[data] (sg) -- (sv);
+      \node[font=\small\bfseries, text=nInk] at (3.5,-1.75) {Trusty CA, once};
+      \node[hwmain, minimum width=1.8cm, minimum height=2.2cm] (vf) at (10.0,-0.6) {\Large\faCogs\\ \small\bfseries verify};
+      \pkey{pk}{10.0,-2.5}{Trusty CA's public key}
+      \draw[data] (sv) -- (vf);
+      \draw[data] (pk) -- (vf);
+      \draw[data] (tbs.north) -- ++(0,0.55) -| (vf.north);
+      \node[font=\small\bfseries, text=nInk] at (10.0,1.55) {anybody, any time};
+      \node[font=\small] at (12.2,-0.6) {\ok\ / \nok};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \keymsg{Change one bit of the tbsCertificate and verify says False.}
+  \say{To ta sama para sign i verify co w zadaniu 2, tylko podpisywane są bajty tbsCertificate. Trusty CA podpisuje raz, przy wystawianiu. Sprawdzać może każdy, kto ma klucz publiczny Trusty CA.}
+\end{frame}
+
+\begin{frame}{The fields of tbsCertificate}
+  \vfill
+  \begin{center}
+    \renewcommand{\arraystretch}{1.35}
+    \small
+    \begin{tabular}{@{}l@{\qquad}l@{\qquad}l@{}}
+      \toprule
+      \textbf{field} & \textbf{what it says} & \textbf{in Bob's certificate} \\
+      \midrule
+      version & which version of X.509 & v3 \\
+      serialNumber & the number of this certificate at its CA & \texttt{4F 3A 9C 2E 71 D0 5B 88} \\
+      signature & the signature algorithm (again) & Ed25519 \\
+      issuer & who signed it & \cax{Trusty CA} \\
+      validity & from when, until when & 2026-11-01 to 2027-01-30 \\
+      subject & whose key it is & bob.example \\
+      subjectPublicKeyInfo & the key and its algorithm & \pub{Ed25519, 32 bytes} \\
+      extensions & everything else (version 3) & none yet \\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+  \vfill
+  \keymsg{issuer + subject + public key + validity: who says that this key belongs to whom, and for how long.}
+  \say{Osiem pól tbsCertificate z RFC 5280. Pola issuerUniqueID i subjectUniqueID z wersji 2 pomijamy, nikt ich nie używa. Pole signature powtarza algorytm z części 2, żeby był też pod podpisem. Teraz po kolei; przykład to certyfikat Boba, który zbudujemy w zadaniu 3.}
+\end{frame}
+
+\begin{frame}{Version and serial number}
+  \begin{columns}[c,onlytextwidth]
+    \column{0.45\textwidth}
+      \stepbox{version}{Version 3 is stored as the number \textbf{2} (counting from 0). Every certificate today is v3.}
+      \vspace{0.15cm}
+      \stepbox{serialNumber}{Unique among all certificates of one CA. Up to 20 bytes.
+        Public CAs must put at least 64 random bits in it.}
+      \vspace{0.15cm}
+      \small\textcolor{gray}{www.coventry.ac.uk: \texttt{0E 24 81 FE 79 14 19 CA 0E AA AD F6 65 94 2B 2C} (16 bytes)}
+    \column{0.53\textwidth}
+      \centering
+      \scalebox{0.78}{\bobcert{\draw[annot] (0.2,-0.75) rectangle (9.2,-1.6);}}
+  \end{columns}
+  \say{Wersja 3 jest zapisana jako liczba 2; to częste źródło pomyłek przy czytaniu bajtów. Numer seryjny identyfikuje certyfikat u wystawcy; para wystawca i numer seryjny jest unikalna na świecie. Losowość w numerze wymagają reguły CA/Browser Forum (wykład 10); przeszkadza ona w atakach na kolizje skrótu (wykład 12).}
+\end{frame}
+
+\samedot
+\begin{frame}{Issuer and subject}
+  \begin{columns}[c,onlytextwidth]
+    \column{0.45\textwidth}
+      \stepbox{issuer}{The CA that signed this certificate: \cax{Trusty CA}.}
+      \vspace{0.15cm}
+      \stepbox{subject}{The owner of the public key in this certificate: \textbf{bob.example}.}
+      \vspace{0.3cm}
+      \small Both are \textbf{names}, written in a special way: next slide.
+    \column{0.53\textwidth}
+      \centering
+      \scalebox{0.78}{\bobcert{\draw[annot] (0.2,-2.03) rectangle (9.2,-2.45); \draw[annot] (0.2,-2.89) rectangle (9.2,-3.31);}}
+  \end{columns}
+  \say{issuer mówi, kto ręczy, subject, za kogo. Gdy issuer i subject są tym samym, mamy certyfikat samopodpisany; wrócimy do tego w osobnej sekcji.}
+\end{frame}
+
+\samedot
+\begin{frame}{Distinguished names}
+  % CHECKED: openssl asn1parse -in Lecture09-X509-Certificates/checks/bob.pem: countryName, organizationName, commonName
+  \bigdef{\textbf{Distinguished name (DN)}: a list of attributes, each a type and a value: \;\texttt{C=GB, O=Bob Ltd, CN=bob.example}}
+  \vfill
+  \begin{columns}[c,onlytextwidth]
+    \column{0.5\textwidth}
+      \centering
+      \renewcommand{\arraystretch}{1.3}
+      \small
+      \begin{tabular}{@{}l@{\quad}l@{\quad}l@{}}
+        \toprule
+        \textbf{short} & \textbf{type} & \textbf{OID} \\
+        \midrule
+        C & country & \texttt{2.5.4.6} \\
+        O & organisation & \texttt{2.5.4.10} \\
+        CN & common name & \texttt{2.5.4.3} \\
+        \textcolor{gray}{OU} & \textcolor{gray}{organisational unit} & \textcolor{gray}{\texttt{2.5.4.11}} \\
+        \textcolor{gray}{L, ST} & \textcolor{gray}{city, county or state} & \textcolor{gray}{\texttt{2.5.4.7}, \texttt{2.5.4.8}} \\
+        \bottomrule
+      \end{tabular}
+    \column{0.48\textwidth}
+      \small
+      \defbox{\textbf{OID} (object identifier): a number in dots that names a thing in ASN.1. The bytes hold the OID, not the word ``CN''.}
+      \vspace{0.1cm}
+      \textbf{Real DNs:}\\[3pt]
+      \scriptsize
+      \texttt{CN=www.coventry.ac.uk}\\[2pt]
+      \texttt{C=GB, ST=London, L=London,}\\
+      \texttt{O=BRITISH BROADCASTING CORPORATION,}\\
+      \texttt{CN=www.bbc.com}
+  \end{columns}
+  \vfill
+  \say{DN pochodzi z katalogu X.500, stąd typy z numerami. ASN.1 to język opisu struktur danych, w którym zapisano X.509; szczegóły w sekcji Encoding. Certyfikat uczelni ma tylko CN, certyfikat BBC ma też nazwę firmy: różnicę wyjaśnia wykład 10 (DV i OV).}
+\end{frame}
+
+\samedot
+\begin{frame}{Validity: notBefore and notAfter}
+  % CHECKED: openssl x509 -in Lecture09-X509-Certificates/checks/bob.pem -noout -dates: Nov 1 00:00:00 2026 GMT, Jan 30 00:00:00 2027 GMT
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \draw[nLine, very thick, -{Stealth}] (-0.5,0) -- (13.5,0);
+      \draw[nInk, line width=6pt] (2,0) -- (11,0);
+      \foreach \x/\d/\t in {2/{2026-11-01 00:00:00 UTC}/notBefore, 11/{2027-01-30 00:00:00 UTC}/notAfter} {
+        \draw[nInk, very thick] (\x,-0.35) -- (\x,0.35);
+        \node[font=\small\bfseries, text=nInk, anchor=south] at (\x,0.4) {\t};
+        \node[font=\scriptsize\ttfamily, text=nInk, anchor=north] at (\x,-0.4) {\d};
+      }
+      \node[font=\small\bfseries, text=white, fill=nInk, inner sep=2pt] at (6.5,0) {90 days};
+      \node[font=\small, anchor=north] at (0.4,-1.0) {\nok\ too early};
+      \node[font=\small, anchor=north] at (12.6,-1.0) {\nok\ expired};
+      \node[font=\small, anchor=north] at (6.5,-1.0) {\ok\ valid};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small Both times are in UTC. Every program that uses the certificate checks the time.\\
+    www.coventry.ac.uk: also 90 days. How long a certificate may live: \textbf{Lecture 10}.\end{center}
+  \vfill
+  \curious{pki/\#2.1.validity}
+  \keymsg{A certificate has an end date: after it, nobody should trust it.}
+  \say{Termin ważności ogranicza szkody, gdy klucz wycieknie. Komputer ze złą datą widzi dobre certyfikaty jako jeszcze nieważne albo wygasłe. Limity długości ważności i ich skracanie: wykład 10. Wygasłe certyfikaty, które położyły duże serwisy: wykład 12. W symulatorze z linku widać te dwie daty w bajtach certyfikatu Boba.}
+\end{frame}
+
+\samedot
+\begin{frame}{Subject public key info}
+  % CHECKED: openssl x509 -text of bob.pem (ED25519, 32 bytes), coventry (P-256, 65 bytes), bbc (RSA 2048, e = 65537,
+  %   openssl x509 -noout -modulus: EC1C0804 ... 25B1F3, 512 hex digits)
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \foreach \y/\who/\alg/\key/\n in {
+          1.3/{Bob (Task 3)}/Ed25519/{2f a8 b9 a6 b0 d5 87 8b \ldots\ 70 2e 3c 40}/{32 bytes},
+          0/{www.coventry.ac.uk}/{EC P-256}/{04 df d0 3c 6d 52 f4 69 \ldots\ 89 d3 fa}/{65 bytes: 04, x, y},
+          -1.3/{www.bbc.co.uk}/{RSA 2048}/{n = ec 1c 08 04 \ldots\ 25 b1 f3, e = 65537}/{$n$: 256 bytes}} {
+        \node[font=\small\bfseries, text=nInk, anchor=east] at (2.2,\y) {\who};
+        \node[hw, minimum width=2.1cm, font=\small] at (3.5,\y) {\alg};
+        \node[pubval, font=\scriptsize\ttfamily, anchor=west, minimum width=6.6cm] at (4.7,\y) {\faKey\ \key};
+        \node[font=\scriptsize, text=gray, anchor=west] at (11.6,\y) {\n};
+      }
+      \node[font=\scriptsize\bfseries, text=gray] at (3.5,2.2) {algorithm};
+      \node[font=\scriptsize\bfseries, text=gray] at (8.0,2.2) {the public key};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \curious{pki/\#2.1.spki}
+  \keymsg{The certificate says which algorithm the key is for, so the key cannot be misread.}
+  \say{Klucz zawsze razem z nazwą algorytmu. Ed25519 i P-256 znamy z wykładu 5 (P-256 to punkt: bajt 04 i dwie współrzędne), RSA z wykładu 3. Kluczy prywatnych w certyfikacie nigdy nie ma. W symulatorze z linku widać klucz Boba w bajtach jego certyfikatu.}
+\end{frame}
+
+\begin{frame}{Bob's certificate, all fields}
+  \begin{columns}[c,onlytextwidth]
+    \column{0.62\textwidth}
+      \centering
+      \scalebox{0.95}{\bobcert{}}
+    \column{0.36\textwidth}
+      \small
+      \badge{1}\ The grey part is the \textbf{tbsCertificate}.\\[8pt]
+      \badge{2}\ \cax{Trusty CA} signed exactly those bytes.\\[8pt]
+      \badge{3}\ No extensions yet: they come in the next section.\\[8pt]
+      \textcolor{gray}{All values are real: \texttt{openssl x509 -text} of the file from Task 3.}
+  \end{columns}
+  \curious{pki/\#2.1.tbs}
+  \say{Cały certyfikat Boba w jednym miejscu. Dokładnie ten certyfikat zbuduje każdy w zadaniu 3; klucze są ustalone, a podpis Ed25519 nie ma losowości, więc wynik jest bajt w bajt taki sam. W symulatorze z linku można kliknąć każde pole tego certyfikatu i zobaczyć jego bajty.}
+\end{frame}
+
+\begin{frame}{Task 3: Bob's certificate}
+  \begin{columns}[c,onlytextwidth]
+    \column{0.52\textwidth}
+      \taskgoal{as Trusty CA, build and sign the X.509 certificate of bob.example.}
+      \taskready{\texttt{cert\_tools.py} (\texttt{show}, \texttt{save\_cert}, loading keys); the private key of Trusty CA and Bob's public key; the issuer name.}
+    \column{0.46\textwidth}
+      \centering
+      \scalebox{0.6}{\bobcert{\node[fill=white, font=\Huge\bfseries, text=AccentOrange, inner sep=2pt] at (8.55,-5.3) {?};}}
+  \end{columns}
+  \vfill
+  \opentask{Task3}{about 12 minutes}
+  \say{Około 12 minut. Biblioteka cryptography ma CertificateBuilder: jedno wywołanie na pole, na końcu sign. Kto skończy, niech porówna wynik openssl x509 -in bob.pem -noout -text z tym slajdem.}
+\end{frame}
+
+\samedot
+\begin{frame}{Task 3: what we saw}
+  % CHECKED: Task3/solution/make_cert.py; openssl x509 -fingerprint -sha256 gives the same
+  \begin{center}\small The output of \texttt{show(cert)}:\end{center}
+  \begin{center}
+    \begin{tikzpicture}
+      \node[draw=nLine, thick, fill=nFill, rounded corners=3pt, inner sep=7pt, font=\scriptsize\ttfamily, text=nInk, align=left] {%
+        version\ \ \ \ \ \ \ v3\\
+        serial\ \ \ \ \ \ \ \ 0x4f3a9c2e71d05b88\\
+        issuer\ \ \ \ \ \ \ \ CN=Trusty CA,O=Trusty CA Ltd,C=GB\\
+        subject\ \ \ \ \ \ \ CN=bob.example,O=Bob Ltd,C=GB\\
+        not before\ \ \ \ 2026-11-01 00:00:00+00:00\\
+        not after\ \ \ \ \ 2027-01-30 00:00:00+00:00\\
+        public key\ \ \ \ Ed25519\\
+        SHA-256 fingerprint\\
+        \ \ \ \ \textbf{E8:C5:56:C2:D8:3E:72:C3:FB:F0:53:83:64:04:97:A0:A6:72:48:1B:86:79:A6:F4:CB:82:B0:8E:11:71:F8:1C}};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small The same fingerprint for everybody: the same keys, the same fields, and Ed25519 adds no randomness.\\
+    \textcolor{gray}{The names are printed in reverse order (CN first): the RFC 4514 way of writing a DN.}\end{center}
+  \keymsg{A certificate is just these fields plus one signature: a few lines of code.}
+  \say{Kod jest w folderze solution. Jeśli odcisk się różni, to zwykle przez literówkę w nazwie albo inną kolejność atrybutów: każdy bajt wpływa na odcisk, co zobaczymy w zadaniu 5. Odcisk palca wyjaśnimy w sekcji Encoding.}
+\end{frame}
+
+% ======================================================================
+\section[Extensions]{Extensions}
+% ======================================================================
+
+\begin{frame}{Extensions: added in version 3}
+  % CHECKED: openssl asn1parse -in Lecture09-X509-Certificates/checks/cov_leaf.pem, offset 303:
+  %   30 0C 06 03 55 1D 13 01 01 FF 04 02 30 00 = basicConstraints, critical, CA:FALSE
+  \small Version 3 added a list of \textbf{extensions}. Each one has three parts:
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \foreach \x/\w/\t/\v/\s in {0/3.6/extnID/{2.5.29.19}/{an OID: which extension},
+          4.0/3.0/critical/{TRUE}/{must you understand it?},
+          7.4/3.6/extnValue/{CA:FALSE}/{the content}} {
+        \node[hw, minimum width=\w cm, minimum height=1.3cm, anchor=west] (b) at (\x,0) {};
+        \node[font=\small\bfseries, text=nInk] at ([yshift=0.3cm]b.center) {\t};
+        \node[font=\small\ttfamily, text=nInk] at ([yshift=-0.2cm]b.center) {\v};
+        \node[font=\scriptsize, text=gray, anchor=north] at (b.south) {\s};
+      }
+      \node[font=\scriptsize\ttfamily, text=nInk, anchor=west] at (0,-1.55)
+        {in bytes: \; 30 0C \; \textbf{06 03 55 1D 13} \; \textbf{01 01 FF} \; \textbf{04 02 30 00}};
+      \node[font=\scriptsize, text=gray, anchor=west] at (0,-2.0) {from the certificate of www.coventry.ac.uk: basicConstraints, critical, not a CA};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small In the next slides: the extensions that almost every website certificate has.\end{center}
+  \keymsg{Extensions say what the key may be used for. Without them, a certificate says too little.}
+  \say{Rozszerzenie to trójka: identyfikator OID, flaga critical i wartość. Bajty pochodzą z prawdziwego certyfikatu uczelni; 55 1D 13 to zapis OID 2.5.29.19 (Basic Constraints), FF to prawda. Jak czytać takie bajty: sekcja Encoding.}
+\end{frame}
+
+\samedot
+\begin{frame}{The critical flag}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \node[hwmain, minimum width=4.6cm, minimum height=1.0cm, font=\small] (p) at (0,0) {\faCogs\ a program meets an extension\\ it does not know};
+      \node[hw, minimum width=4.2cm, minimum height=1.0cm, font=\small] (c) at (-3.6,-2.2) {\textbf{critical = TRUE}};
+      \node[hw, minimum width=4.2cm, minimum height=1.0cm, font=\small] (n) at (3.6,-2.2) {\textbf{critical = FALSE}};
+      \draw[data] (p.south) -- ++(0,-0.4) -| (c.north);
+      \draw[data] (p.south) -- ++(0,-0.4) -| (n.north);
+      \node[font=\small, align=center] at (-3.6,-3.4) {\nok\ \textbf{reject} the certificate};
+      \node[font=\small, align=center] at (3.6,-3.4) {\ok\ \textbf{ignore} the extension, go on};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small A known extension is always checked, critical or not.\end{center}
+  \keymsg{Critical: ``if you do not understand this, do not trust me.''}
+  \say{Flaga critical działa tylko dla rozszerzeń, których program nie zna. Dzięki niej CA może dodać ograniczenie, którego starszy program nie zignoruje po cichu. Typowo krytyczne są Basic Constraints i Key Usage.}
+\end{frame}
+
+\begin{frame}{Subject Alternative Name (SAN)}
+  % CHECKED: openssl x509 -ext subjectAltName of cov_leaf.pem (1 name) and bbc_leaf.pem (22 names)
+  % source: Chrome 58 (April 2017) stopped matching the commonName; RFC 6125 / RFC 9525
+  \begin{columns}[c,onlytextwidth]
+    \column{0.48\textwidth}
+      \small
+      \bigdef{\textbf{SAN}: the list of names the certificate is for: DNS names, IP addresses, e-mail addresses.}
+      \vspace{0.15cm}
+      Browsers check the name you typed against the \textbf{SAN only}. The CN in the subject is ignored
+      (Chrome since version 58, 2017).
+    \column{0.5\textwidth}
+      \centering
+      \begin{tikzpicture}
+        \node[card, minimum width=6.2cm, minimum height=1.25cm, anchor=north] (a) at (0,0) {};
+        \node[font=\scriptsize\bfseries, text=nInk, anchor=north west] at (-3.0,-0.08) {www.coventry.ac.uk};
+        \node[font=\scriptsize\ttfamily, text=nInk, anchor=north west] at (-2.9,-0.55) {DNS:www.coventry.ac.uk};
+        \node[card, minimum width=6.2cm, minimum height=2.7cm, anchor=north] (b) at (0,-1.5) {};
+        \node[font=\scriptsize\bfseries, text=nInk, anchor=north west] at (-3.0,-1.58) {www.bbc.co.uk \textmd{(subject CN = www.bbc.com)}};
+        \node[font=\tiny\ttfamily, text=nInk, anchor=north west, align=left] at (-2.9,-2.0)
+          {DNS:www.bbc.com, DNS:account.bbc.com,\\ DNS:session.bbc.com, DNS:account.bbc.co.uk,\\
+           DNS:bbc.co.uk, DNS:bbcrussian.com,\\ DNS:cdnedge.bbc.co.uk, DNS:news.bbc.co.uk,\\
+           \ldots\ \textbf{22 names} in all, with DNS:www.bbc.co.uk};
+      \end{tikzpicture}
+  \end{columns}
+  \vfill
+  \curious{pki/\#2.3.san}
+  \keymsg{The name in the address bar must be in the SAN.}
+  \say{Dawniej przeglądarki porównywały nazwę z CN w podmiocie; dziś tylko z SAN. Certyfikat BBC ma w CN www.bbc.com, a działa dla www.bbc.co.uk, bo ta nazwa jest w SAN. Jeden certyfikat może obsłużyć wiele nazw. W symulatorze z linku widać SAN prawdziwego certyfikatu www.coventry.ac.uk.}
+\end{frame}
+
+\samedot
+\begin{frame}{Wildcards}
+  % source: RFC 6125, section 6.4.3: the * stands for exactly one label, the left-most
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \node[card, minimum width=4.2cm, minimum height=1.2cm] (c) at (0,0) {};
+      \node[font=\small\ttfamily\bfseries, text=nInk] at (0,0.15) {DNS:*.dave.example};
+      \node[font=\scriptsize, text=gray] at (0,-0.3) {the SAN of a certificate};
+      \foreach \y/\h/\r/\w in {1.1/shop.dave.example/\ok/{\texttt{*} = \texttt{shop}},
+          0/dave.example/\nok/{nothing for \texttt{*}},
+          -1.1/a.b.dave.example/\nok/{\texttt{*} is only one label}} {
+        \node[msg, font=\small\ttfamily, anchor=west] (h) at (4.0,\y) {\h};
+        \node[font=\large, anchor=west] at (8.0,\y) {\r};
+        \node[font=\small, text=nInk, anchor=west] at (8.6,\y) {\w};
+        \draw[nLine, thick] (c.east) -- (h.west);
+      }
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \curious{pki/\#4.6}
+  \keymsg{\texttt{*} matches exactly one label, the left-most one.}
+  \say{Gwiazdka zastępuje jedną etykietę, czyli fragment między kropkami, i tylko z lewej strony. Dlatego firmy wpisują często dwie nazwy: dave.example i *.dave.example. Sprawdzimy to w zadaniu 4. W symulatorze z linku przeglądarka odrzuca certyfikat z gwiazdką dla nazwy, której gwiazdka nie obejmuje.}
+\end{frame}
+
+\begin{frame}{Basic Constraints}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \canode{ca}{0,0}{Trusty CA}
+      \node[card, minimum width=3.6cm, minimum height=1.0cm, font=\small] (cc) at (0,-2.1) {\texttt{CA:TRUE}};
+      \node[font=\scriptsize, text=gray, anchor=north] at (cc.south) {may sign certificates};
+      \personnode{bob}{5.6,0}{sTeal}{Bob}
+      \node[card, minimum width=3.6cm, minimum height=1.0cm, font=\small] (bc) at (5.6,-2.1) {\texttt{CA:FALSE}};
+      \node[font=\scriptsize, text=gray, anchor=north] at (bc.south) {may not};
+      \node[card, minimum width=3.8cm, minimum height=1.0cm, font=\scriptsize] (fake) at (10.4,-2.1) {\faCertificate\ bank.example};
+      \draw[data] (bc.east) to node[above, font=\scriptsize] {signs} (fake.west);
+      \node[font=\small, text=nInk, anchor=north, align=center] at (10.4,-2.75) {\nok\ rejected:\\ Bob is not a CA};
+      \draw[data] (calbl.south) -- (cc.north);
+      \draw[data] (boblbl.south) -- (bc.north);
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \bigdef{\textbf{Basic Constraints}: is the subject a CA? (\texttt{CA:TRUE} or \texttt{CA:FALSE}, and for a CA a limit \texttt{pathlen}).}
+  \curious{pki/\#2.3.bc}
+  \say{Bez tego rozszerzenia Bob mógłby swoim kluczem podpisywać certyfikaty dla dowolnych nazw. Programy, które nie sprawdzały Basic Constraints, miały w przeszłości poważne dziury. pathlen ogranicza długość łańcucha pod CA: wykład 10. W symulatorze z linku widać Basic Constraints certyfikatu uczelni: CA:FALSE.}
+\end{frame}
+
+\samedot
+\begin{frame}{Key Usage and Extended Key Usage}
+  % source: RFC 5280, 4.2.1.3 and 4.2.1.12; CHECKED: Coventry: KU critical Digital Signature, EKU serverAuth
+  \begin{columns}[t,onlytextwidth]
+    \column{0.48\textwidth}
+      \centerline{\textbf{Key Usage}: what the key may do}
+      \vspace{0.15cm}
+      \renewcommand{\arraystretch}{1.2}
+      \scriptsize
+      \begin{tabular}{@{}l@{\quad}l@{}}
+        \toprule
+        \textbf{bit} & \textbf{the key may} \\
+        \midrule
+        digitalSignature & make signatures \\
+        keyEncipherment & encrypt keys (RSA) \\
+        keyAgreement & agree on keys (DH, ECDH) \\
+        keyCertSign & sign certificates (CAs) \\
+        cRLSign & sign revocation lists (CAs) \\
+        \bottomrule
+      \end{tabular}
+    \column{0.5\textwidth}
+      \centerline{\textbf{Extended Key Usage}: for which purpose}
+      \vspace{0.15cm}
+      \renewcommand{\arraystretch}{1.2}
+      \scriptsize
+      \begin{tabular}{@{}l@{\quad}l@{}}
+        \toprule
+        \textbf{purpose} & \textbf{OID} \\
+        \midrule
+        serverAuth: a TLS server & \texttt{1.3.6.1.5.5.7.3.1} \\
+        clientAuth: a TLS client & \texttt{1.3.6.1.5.5.7.3.2} \\
+        codeSigning: programs & \texttt{1.3.6.1.5.5.7.3.3} \\
+        emailProtection: e-mail & \texttt{1.3.6.1.5.5.7.3.4} \\
+        \bottomrule
+      \end{tabular}
+  \end{columns}
+  \vfill
+  \begin{center}\small www.coventry.ac.uk: Key Usage \texttt{digitalSignature} (critical), EKU \texttt{serverAuth}.\end{center}
+  \curious{pki/\#2.3.eku}
+  \keymsg{A website key may sign handshakes, but not certificates and not programs.}
+  \say{Key Usage to bity: niskopoziomowe operacje. EKU to cele: do czego certyfikat służy w praktyce. Certyfikat strony z EKU serverAuth nie nadaje się do podpisywania programów. Gdzie używa się clientAuth i codeSigning: wykłady 11 i 12. W symulatorze z linku widać EKU certyfikatu uczelni.}
+\end{frame}
+
+\begin{frame}{Key identifiers: SKI and AKI}
+  % CHECKED: openssl x509 -ext of cov_leaf.pem (AKI 90:77:92:35:...) and cov_we1.pem (SKI 90:77:92:35:...)
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \foreach \x/\nm/\iss/\ski/\aki [count=\n] in {0/www.coventry.ac.uk/WE1/{80:EE:3D:B9:3A:0D:3F:9F\ldots}/{90:77:92:35:67:C4:FF:A8\ldots},
+          7.4/WE1/{GTS Root R4}/{90:77:92:35:67:C4:FF:A8\ldots}/{\ldots}} {
+        \node[card, minimum width=6.2cm, minimum height=2.8cm] (c\x) at (\x,0) {};
+        \node[font=\small\bfseries, text=nInk, anchor=north] at (\x,1.25) {\faCertificate\ \nm};
+        \node[font=\scriptsize, text=nInk, anchor=west] at (\x-2.9,0.5) {issuer: \cax{\iss}};
+        \node[font=\scriptsize, text=nInk, anchor=west] at (\x-2.9,0) {SKI:};
+        \node[font=\scriptsize\ttfamily, text=nInk, anchor=west] (s\n) at (\x-1.9,0) {\ski};
+        \node[font=\scriptsize, text=nInk, anchor=west] at (\x-2.9,-0.55) {AKI:};
+        \node[font=\scriptsize\ttfamily, text=nInk, anchor=west] (a\n) at (\x-1.9,-0.55) {\aki};
+      }
+      \draw[annot] (a1.south west) rectangle (a1.north east);
+      \draw[annot] (s2.south west) rectangle (s2.north east);
+      \draw[-{Stealth}, very thick, AccentOrange] (a1.south) to[bend right=20] node[below, font=\scriptsize\bfseries] {the same} (s2.south);
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{columns}[t,onlytextwidth]
+    \column{0.49\textwidth}\stepbox{Subject Key Identifier}{A short ID of the key in this certificate (a hash of the key).}
+    \column{0.49\textwidth}\stepbox{Authority Key Identifier}{The ID of the issuer's key: which key signed this one.}
+  \end{columns}
+  \curious{pki/\#2.3.aki}
+  \say{WE1 to certyfikat pośredni Google Trust Services, który podpisał certyfikat uczelni. AKI certyfikatu uczelni jest równy SKI certyfikatu WE1: tak program szybko znajduje klucz wystawcy. Łańcuchy certyfikatów to temat wykładu 10. W symulatorze z linku można porównać AKI uczelni z SKI certyfikatu WE1.}
+\end{frame}
+
+\samedot
+\begin{frame}{Where to find more: CRL Distribution Points and AIA}
+  % CHECKED: openssl x509 -text of cov_leaf.pem: CRL DP and AIA (CA Issuers only, no OCSP)
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \foreach \y/\ic/\t/\u/\s in {0.8/\faListUl/{CRL Distribution Points}/{http://c.pki.goog/we1/7IsZmIhZCHs.crl}/{a list of certificates the CA has revoked},
+          -0.8/\faFileDownload/{Authority Information Access}/{CA Issuers: http://i.pki.goog/we1.crt}/{where to download the issuer's certificate}} {
+        \node[text=nInk, font=\fontsize{24}{26}\selectfont] at (0,\y) {\ic};
+        \node[font=\small\bfseries, text=nInk, anchor=south west] at (0.8,\y) {\t};
+        \node[font=\scriptsize\ttfamily, text=nInk, anchor=north west] at (0.8,\y) {\u};
+        \node[font=\scriptsize, text=gray, anchor=west] at (8.3,\y) {\s};
+      }
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small Real addresses from the certificate of www.coventry.ac.uk.\\
+    Why a certificate is revoked and how programs check it: \textbf{Lecture 11}.\end{center}
+  \vfill
+  \say{Dwa rozszerzenia z adresami. CRL to lista odwołanych certyfikatów, AIA mówi, skąd pobrać certyfikat wystawcy (i czasem adres OCSP; tu go nie ma). Ten certyfikat ma jeszcze politykę 2.23.140.1.2.1 i znaczniki Certificate Transparency: wykład 10.}
+\end{frame}
+
+\begin{frame}{Task 4: which certificate fits?}
+  \begin{columns}[c,onlytextwidth]
+    \column{0.55\textwidth}
+      \taskgoal{read the extensions of four certificates and say what each one may be used for.}
+      \taskready{\texttt{cert\_tools.py} (\texttt{load\_cert}, \texttt{find\_extension}, \texttt{ext\_name}, \texttt{oid\_name}) and \texttt{cert\_A.pem} to \texttt{cert\_D.pem}.}
+    \column{0.43\textwidth}
+      \centering
+      \begin{tikzpicture}
+        \foreach \l [count=\k from 0] in {A,B,C,D} {
+          \node[card, minimum width=1.25cm, minimum height=1.6cm] (c) at ({1.45*\k},0) {};
+          \node[text=nInk, font=\Large] at ({1.45*\k},0.25) {\faCertificate};
+          \node[font=\small\bfseries, text=nInk] at ({1.45*\k},-0.4) {\l};
+        }
+        \foreach \q [count=\k from 0] in {{a CA?}, {signs programs?}, {fits shop.dave.example?}} {
+          \node[font=\scriptsize, text=nInk, anchor=west] at (-0.6,{-1.35-0.4*\k}) {\textcolor{AccentOrange}{\faQuestionCircle}\ \q};
+        }
+      \end{tikzpicture}
+  \end{columns}
+  \vfill
+  \opentask{Task4}{about 10 minutes}
+  \say{Około 10 minut. Cztery certyfikaty od Trusty CA. Program czyta SAN, Basic Constraints, Key Usage, EKU i flagi critical, a odpowiedzi na pytania z README student daje sam.}
+\end{frame}
+
+\samedot
+\begin{frame}{Task 4: what we saw}
+  % CHECKED: Task4/solution/which_cert.py
+  \vfill
+  \begin{center}
+    \renewcommand{\arraystretch}{1.45}
+    \scriptsize
+    \begin{tabular}{@{}l@{\quad}l@{\quad}c@{\quad}l@{\quad}l@{}}
+      \toprule
+      & \textbf{SAN} & \textbf{CA} & \textbf{EKU} & \textbf{critical} \\
+      \midrule
+      A & alice-shop.example, www.alice-shop.example & no & serverAuth & keyUsage \\
+      B & none (Trusty CA Issuing 1) & \textbf{yes} & none & basicConstraints, keyUsage \\
+      C & none (Carol Software Ltd) & no & \textbf{codeSigning} & basicConstraints, keyUsage, extendedKeyUsage \\
+      D & \texttt{*.dave.example} & no & serverAuth, clientAuth & basicConstraints, keyUsage \\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+  \vfill
+  \begin{center}\small
+    A CA: \textbf{B}. \quad Signs programs: \textbf{C}. \quad www.alice-shop.example: \textbf{A}.\\[3pt]
+    shop.dave.example: \textbf{D}. \quad dave.example: \textbf{none of them}.
+  \end{center}
+  \keymsg{Extensions, not the subject name, decide what a certificate may do.}
+  \say{Pułapka: dave.example nie pasuje do *.dave.example. Certyfikat C nie ma SAN, bo nie służy stronie WWW; podmiot to nazwa firmy. Kod w folderze solution.}
+\end{frame}
+
+% ======================================================================
+\section[Encoding]{Encoding: DER, PEM and the fingerprint}
+% ======================================================================
+
+\begin{frame}{DER: type, length, value}
+  % CHECKED: openssl x509 -in Lecture09-X509-Certificates/checks/bob.pem -outform DER | xxd: 30 82 01 21 30 81 D4 A0 03 02 01 02 02 08 4F 3A ...
+  \small X.509 is written in \textbf{ASN.1}, a language for data structures. \textbf{DER} turns it into bytes:
+  every item is \textbf{type, length, value}.
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \def\bw{0.62}
+      \foreach \b/\c [count=\k from 0] in {30/tlvT,82/tlvL,01/tlvL,21/tlvL,30/tlvT,81/tlvL,D4/tlvL,A0/tlvT,03/tlvL,02/tlvT,01/tlvL,02/tlvV,02/tlvT,08/tlvL,4F/tlvV,3A/tlvV,9C/tlvV,2E/tlvV,71/tlvV,D0/tlvV,5B/tlvV,88/tlvV} {
+        \node[\c, minimum width=\bw cm] at ({\k*\bw},0) {\b};
+      }
+      \foreach \a/\b/\y/\t in {0/3/-0.6/{SEQUENCE, 289 bytes:\\the whole certificate},
+          4/6/-1.5/{SEQUENCE, 212 bytes:\\tbsCertificate},
+          7/11/-0.6/{[0] version:\\INTEGER 2 = v3},
+          12/21/-0.6/{INTEGER, 8 bytes:\\serialNumber}} {
+        \draw[nLine, thick, decorate, decoration={brace, amplitude=4pt, mirror}] ({\a*\bw-0.28},-0.4) -- ({\b*\bw+0.28},-0.4);
+        \draw[nLine] ({(\a+\b)*\bw/2},-0.55) -- ({(\a+\b)*\bw/2},\y);
+        \node[font=\scriptsize, text=nInk, align=center, anchor=north, fill=white, inner sep=1pt] at ({(\a+\b)*\bw/2},\y) {\t};
+      }
+      \node[tlvT] at (0,1.0) {type};
+      \node[tlvL, anchor=west] at (0.6,1.0) {length};
+      \node[tlvV, anchor=west] at (2.0,1.0) {value};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small \texttt{82}: ``the length is in the next 2 bytes'': \texttt{01 21} = 289. \quad
+    A short length is one byte: \texttt{08} = 8.\end{center}
+  \keymsg{DER: one exact way to write each certificate as bytes, so the CA and you sign and check the same bytes.}
+  \say{Pierwsze 22 bajty certyfikatu Boba. 30 to SEQUENCE, 02 to INTEGER, A0 to pole oznaczone [0], czyli wersja. Bajt długości z najwyższym bitem 1 (82, 81) mówi, ile następnych bajtów to długość. DER (Distinguished Encoding Rules) daje dokładnie jeden zapis dla danej struktury; to ważne, bo podpis dotyczy bajtów.}
+\end{frame}
+
+\samedot
+\begin{frame}{Bob's certificate in DER: 293 bytes}
+  % CHECKED: openssl asn1parse -in Lecture09-X509-Certificates/checks/bob.pem (offsets, lengths, values)
+  \begin{columns}[c,onlytextwidth]
+    \column{0.56\textwidth}
+      \begin{tikzpicture}
+        \node[draw=nLine, thick, fill=nFill, rounded corners=3pt, inner sep=7pt, font=\scriptsize\ttfamily, text=nInk, align=left] {%
+          \textcolor{gray}{\ \ 0} SEQUENCE\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{gray}{289}\\
+          \textcolor{gray}{\ \ 4} \ \ SEQUENCE \textbf{tbsCertificate}\ \ \ \ \ \ \ \textcolor{gray}{212}\\
+          \textcolor{gray}{\ \ 7} \ \ \ \ [0] INTEGER 2\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{gray}{version}\\
+          \textcolor{gray}{\ 12} \ \ \ \ INTEGER 4F3A9C2E71D05B88\ \ \ \ \ \ \ \ \textcolor{gray}{serial}\\
+          \textcolor{gray}{\ 22} \ \ \ \ SEQUENCE \{ OID Ed25519 \}\ \ \ \ \ \ \textcolor{gray}{signature}\\
+          \textcolor{gray}{\ 29} \ \ \ \ SEQUENCE \{ C, O, CN \}\ \ \ \ \ \ \ \ \ \textcolor{gray}{issuer}\\
+          \textcolor{gray}{\ 88} \ \ \ \ SEQUENCE \{ UTCTIME \texttimes 2 \}\ \ \ \ \textcolor{gray}{validity}\\
+          \textcolor{gray}{120} \ \ \ \ SEQUENCE \{ C, O, CN \}\ \ \ \ \ \ \ \ \ \textcolor{gray}{subject}\\
+          \textcolor{gray}{175} \ \ \ \ SEQUENCE \{ OID, BIT STRING \}\ \textcolor{gray}{public key}\\
+          \textcolor{gray}{219} \ \ SEQUENCE \{ OID Ed25519 \}\ \ \ \ \ \ \ \ \textcolor{gray}{signatureAlgorithm}\\
+          \textcolor{gray}{226} \ \ BIT STRING, 64 bytes\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{gray}{signatureValue}};
+      \end{tikzpicture}
+    \column{0.42\textwidth}
+      \small
+      The output of\\ \texttt{openssl asn1parse -in bob.pem},\\ shortened. The grey numbers on the left are the byte offsets.\\[10pt]
+      \stepbox{A tree}{A SEQUENCE holds other items: the certificate holds the three parts, the tbsCertificate holds the fields.}
+      \stepbox{Inside a name}{\texttt{OID 2.5.4.3} (CN), then the text \texttt{bob.example} as UTF-8.}
+  \end{columns}
+  \say{Cały certyfikat Boba to 293 bajty: 4 bajty nagłówka i 289 bajtów treści. Tak wygląda drzewo ASN.1. Nie trzeba go umieć czytać na pamięć; warto wiedzieć, że openssl asn1parse pokazuje dowolny certyfikat w ten sposób.}
+\end{frame}
+
+\begin{frame}[fragile]{PEM: Base64 between two lines}
+  % CHECKED: Lecture09-X509-Certificates/checks/bob.pem (7 lines of Base64, 392 characters)
+  \begin{columns}[c,onlytextwidth]
+    \column{0.6\textwidth}
+      \begin{tikzpicture}
+        \node[draw=nLine, thick, fill=white, rounded corners=3pt, inner sep=7pt, font=\scriptsize\ttfamily, text=nInk, align=left] (p) {%
+          \textbf{\five BEGIN CERTIFICATE\five}\\
+          MIIBITCB1KADAgECAghPOpwucdBbiDAFBgMrZXAwOTELMAkGA1UEBhMCR0IxFjAU\\
+          BgNVBAoMDVRydXN0eSBDQSBMdGQxEjAQBgNVBAMMCVRydXN0eSBDQTAeFw0yNjEx\\
+          MDEwMDAwMDBaFw0yNzAxMzAwMDAwMDBaMDUxCzAJBgNVBAYTAkdCMRAwDgYDVQQK\\
+          DAdCb2IgTHRkMRQwEgYDVQQDDAtib2IuZXhhbXBsZTAqMAUGAytlcAMhAC+ouaaw\\
+          1YeLkky0KxGI9OXxLPeqDW+qDy1xUwRwLjxAMAUGAytlcANBAFVfUa49iIFct8xH\\
+          47Q7lsL8MiiReJpIxeCWyw6MJmaiZP6Tb3jgRZplJlkn7XFYEDiJHko0Ol5lNKCr\\
+          YOkUYA0=\\
+          \textbf{\five END CERTIFICATE\five}};
+        \node[font=\scriptsize, text=gray, anchor=north] at (p.south) {bob.pem: a text file};
+      \end{tikzpicture}
+    \column{0.38\textwidth}
+      \small
+      \bigdef{\textbf{Base64}: 3 bytes become 4 characters from \texttt{A}..\texttt{Z}, \texttt{a}..\texttt{z}, \texttt{0}..\texttt{9}, \texttt{+}, \texttt{/}.}
+      \stepbox{PEM}{DER bytes in Base64, 64 characters per line, between the BEGIN and END lines.}
+      \stepbox{Why}{Text survives e-mail, copy and paste, and config files.}
+  \end{columns}
+  \vfill
+  \begin{center}\small 293 bytes $\rightarrow$ 392 characters (\texttt{=} pads the end).\end{center}
+  \say{PEM to format, który zobaczymy najczęściej: w plikach konfiguracyjnych serwerów i w wynikach openssl. Nazwa pochodzi od Privacy-Enhanced Mail z lat 90; dziś opisuje go RFC 7468. Bajty są te same co w DER, tylko zapisane tekstem.}
+\end{frame}
+
+\samedot
+\begin{frame}{Why almost every certificate starts with MII}
+  % CHECKED: python3 base64 of 30 82 01 = MIIB, of 30 82 03 = MIID (www.coventry.ac.uk: MIIDgDCC...)
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \def\bw{0.36}
+      % the bytes and their bits
+      \foreach \v/\bits [count=\k from 0] in {30/00110000, 82/10000010, 01/00000001} {
+        \node[font=\small\ttfamily\bfseries, text=nInk] at ({(8*\k+3.5)*\bw},1.3) {\v};
+      }
+      \foreach \b [count=\i from 0] in {0,0,1,1,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1} {
+        \node[cell, minimum width=\bw cm, minimum height=0.5cm, inner sep=0pt] at ({\i*\bw},0.6) {\b};
+      }
+      \foreach \k in {1,2} \draw[nInk, very thick] ({(8*\k-0.5)*\bw},0.25) -- ({(8*\k-0.5)*\bw},1.5);
+      % groups of 6
+      \foreach \k/\n/\ch in {0/12/M, 1/8/I, 2/8/I, 3/1/B} {
+        \draw[AccentOrange, thick, rounded corners=2pt] ({(6*\k-0.45)*\bw},0.3) rectangle ({(6*\k+5.45)*\bw},0.9);
+        \node[font=\scriptsize, text=nInk] at ({(6*\k+2.5)*\bw},-0.05) {\n};
+        \node[font=\Large\ttfamily\bfseries, text=AccentOrange] at ({(6*\k+2.5)*\bw},-0.6) {\ch};
+      }
+      \node[font=\scriptsize, text=gray, anchor=east] at (-0.4,0.6) {bits};
+      \node[font=\scriptsize, text=gray, anchor=east] at (-0.4,-0.05) {6-bit value};
+      \node[font=\scriptsize, text=gray, anchor=east] at (-0.4,-0.6) {Base64};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small Every certificate from 256 to 65\,535 bytes starts with \texttt{30 82}, so its PEM starts with \texttt{MII}.\\
+    Bob's (293 bytes): \texttt{MIIB}\ldots \quad www.coventry.ac.uk (900 bytes): \texttt{MIID}\ldots\end{center}
+  \keymsg{See \texttt{MII} in a text file? It is almost certainly DER in Base64: a certificate or a key.}
+  \say{Ciekawostka, która pomaga w praktyce: tekst zaczynający się od MII to prawie zawsze certyfikat lub klucz w Base64. Base64 dzieli bity na grupy po 6; wartość 12 to M, 8 to I, 1 to B.}
+\end{frame}
+
+\begin{frame}{A fingerprint: SHA-256 of the DER bytes}
+  % CHECKED: openssl x509 -in Lecture09-X509-Certificates/checks/bob.pem -noout -fingerprint -sha256
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \node[hw, minimum width=3.2cm, minimum height=1.2cm, font=\small] (d) at (0,0) {\textbf{DER bytes}\\ \scriptsize 293 bytes};
+      \node[hwmain, minimum width=2.2cm, minimum height=1.0cm, font=\small\bfseries] (h) at (3.8,0) {\faCogs\ SHA-256};
+      \node[cell, font=\scriptsize\ttfamily, align=left, anchor=west, inner sep=4pt] (f) at (5.8,0)
+        {E8:C5:56:C2:D8:3E:72:C3:FB:F0:53:83:64:04:97:A0:\\A6:72:48:1B:86:79:A6:F4:CB:82:B0:8E:11:71:F8:1C};
+      \draw[data] (d) -- (h);
+      \draw[data] (h) -- (f);
+      \node[font=\scriptsize, text=gray, anchor=north] at (f.south) {32 bytes: the fingerprint of Bob's certificate};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}
+    \terminal{openssl x509 -in bob.pem -noout -fingerprint -sha256}
+  \end{center}
+  \vfill
+  \begin{columns}[t,onlytextwidth]
+    \column{0.49\textwidth}\stepbox{Not inside the certificate}{Anybody can compute it from the bytes.}
+    \column{0.49\textwidth}\stepbox{A short name for a certificate}{Compare two certificates by eye, or pin one (Lecture 11).}
+  \end{columns}
+  \curious{pki/\#2.1}
+  \say{Odcisk palca to po prostu skrót SHA-256 całego certyfikatu w DER. Nie ma go w certyfikacie; każdy liczy go sam. Przeglądarki pokazują go w oknie certyfikatu. Dawniej używano SHA-1; dziś SHA-256. Symulator z linku liczy odcisk certyfikatu Boba w przeglądarce.}
+\end{frame}
+
+\begin{frame}{Task 5: PEM by hand}
+  \begin{columns}[c,onlytextwidth]
+    \column{0.55\textwidth}
+      \taskgoal{turn \texttt{bob.pem} into DER bytes yourself, compute the fingerprint, then change one bit.}
+      \taskready{\texttt{bob.pem}; \texttt{cert\_tools.py} (\texttt{load\_cert}); Python's \texttt{base64} and \texttt{hashlib}.}
+      {\centering\small\textcolor{AccentOrange}{\faQuestionCircle}\ \textbf{Predict first:} one bit changes. How many of the 32 fingerprint bytes change?\par}
+    \column{0.43\textwidth}
+      \centering
+      \begin{tikzpicture}[>=Stealth]
+        \node[draw=nLine, thick, fill=white, rounded corners=2pt, font=\tiny\ttfamily, align=left, inner sep=4pt] (p) at (0,1.2) {\five BEGIN CERTIFICATE\five\\MIIBITCB1KADAgECAghPOpwu\ldots\\\five END CERTIFICATE\five};
+        \node[cell, font=\scriptsize\ttfamily] (d) at (0,-0.1) {30 82 01 21 30 81 D4 A0 \ldots};
+        \node[cell, font=\scriptsize\ttfamily] (f) at (0,-1.2) {E8:C5:56:C2:\ldots};
+        \draw[data] (p) -- node[right, font=\scriptsize] {Base64} (d);
+        \draw[data] (d) -- node[right, font=\scriptsize] {SHA-256} (f);
+      \end{tikzpicture}
+  \end{columns}
+  \vfill
+  \opentask{Task5}{about 10 minutes}
+  \say{Około 10 minut. Najpierw zapytać salę: jeden bit zmieniony, ile bajtów odcisku się zmieni? Zapisać przewidywania. W C base64 trzeba by napisać samemu; w Pythonie jest gotowe base64.b64decode.}
+\end{frame}
+
+\samedot
+\begin{frame}{Task 5: what we saw}
+  % CHECKED: Task5/solution/pem_by_hand.py; byte 100 is a minute digit of notBefore ('0' becomes '1')
+  \begin{center}
+    \begin{tikzpicture}
+      \node[draw=nLine, thick, fill=nFill, rounded corners=3pt, inner sep=7pt, font=\tiny\ttfamily, text=nInk, align=left] {%
+        Base64 characters: 392\\
+        DER bytes: 293\ \ first 8: 30 82 01 21 30 81 D4 A0\\
+        same as the library: True\\
+        fingerprint by hand: E8:C5:56:C2:D8:3E:72:C3:FB:F0:53:83:64:04:97:A0:A6:72:48:1B:86:79:A6:F4:CB:82:B0:8E:11:71:F8:1C\\
+        fingerprint library: E8:C5:56:C2:D8:3E:72:C3:FB:F0:53:83:64:04:97:A0:A6:72:48:1B:86:79:A6:F4:CB:82:B0:8E:11:71:F8:1C\\
+        one bit changed:\ \ \ \ \textbf{A2:C3:4F:BA:8C:D0:59:AB:D3:3F:CB:3B:9F:E4:F1:64:32:63:79:53:4D:77:1D:7F:62:4B:8C:52:74:F2:EC:FC}\\
+        bytes changed: \textbf{32 of 32}};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small Byte 100 is a digit of the start time: \texttt{00:00} became \texttt{00:10}. One bit, and the fingerprint is new.\\
+    The signature would fail too: the CA signed the old bytes.\end{center}
+  \keymsg{PEM is only DER in Base64. The fingerprint changes completely when one bit changes.}
+  \say{Porównać z przewidywaniami. Czasem jeden lub dwa bajty odcisku przypadkiem się powtórzą, ale średnio zmienia się prawie wszystko. Zmieniony bit to cyfra minut w notBefore, więc takiej zmiany w pliku nie widać na oko, a odcisk i podpis ją wykrywają.}
+\end{frame}
+
+\begin{frame}[fragile]{Good to know: file names and conversions}
+  \vfill
+  \begin{center}
+    \renewcommand{\arraystretch}{1.35}
+    \small
+    \begin{tabular}{@{}l@{\qquad}l@{}}
+      \toprule
+      \textbf{file name} & \textbf{usually holds} \\
+      \midrule
+      \texttt{.pem} & PEM text: one or more certificates, or a key \\
+      \texttt{.crt}, \texttt{.cer} & a certificate, in PEM or in DER (look inside!) \\
+      \texttt{.der} & DER bytes \\
+      \texttt{.key} & a private key, usually PEM \\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+  \vfill
+  \begin{center}
+    \terminal{openssl x509 -in bob.pem -outform DER -out bob.der}\\[6pt]
+    \terminal{openssl x509 -in bob.der -inform DER -noout -text}
+  \end{center}
+  \vfill
+  \say{Można pominąć. Rozszerzenie pliku nie mówi na pewno, co jest w środku; jeśli plik zaczyna się od pięciu łączników i słowa BEGIN, to PEM, w przeciwnym razie zwykle DER. Pliki .pfx i .p12 to co innego: certyfikat razem z kluczem prywatnym, chronione hasłem.}
+\end{frame}
+
+% ======================================================================
+\section[Self-signed certificates]{Self-signed certificates}
+% ======================================================================
+
+\begin{frame}{A self-signed certificate}
+  \begin{columns}[c,onlytextwidth]
+    \column{0.45\textwidth}
+      \bigdef{\textbf{Self-signed certificate}: issuer = subject, signed with the private key that belongs to its own public key.}
+      \vspace{0.2cm}
+      \small No CA is involved: anybody can make one in a second.
+    \column{0.53\textwidth}
+      \centering
+      \begin{tikzpicture}[>=Stealth]
+        \node[card, minimum width=6.4cm, minimum height=3.6cm] (c) at (0,0) {};
+        \node[font=\small\bfseries, text=nInk, anchor=north west] at (-3.0,1.65) {\faCertificate\ Certificate};
+        \node[font=\scriptsize, text=nInk, anchor=west] at (-2.9,0.9) {issuer:\ \ \texttt{CN=www.alice.example}};
+        \node[font=\scriptsize, text=nInk, anchor=west] at (-2.9,0.45) {subject: \texttt{CN=www.alice.example}};
+        \draw[annot] (-3.0,0.2) rectangle (1.6,1.15);
+        \node[font=\scriptsize\bfseries, text=AccentOrange, anchor=west] at (1.65,0.68) {equal};
+        \node[pubval, font=\scriptsize, anchor=west] (k) at (-2.9,-0.3) {\faKey\ Alice's public key};
+        \node[privval, font=\scriptsize, anchor=west] (s) at (-2.9,-1.15) {\faKey\ signed with Alice's private key};
+        \draw[-{Stealth}, very thick, AccentOrange] (k.east) to[bend left=40] node[right, font=\scriptsize] {checks} (s.east);
+      \end{tikzpicture}
+  \end{columns}
+  \say{Certyfikat sam za siebie ręczy: wystawca i podmiot są tym samym, a podpis sprawdza się kluczem publicznym z tego samego certyfikatu. Tu nie ma brązowej pieczęci CA, bo żadne CA nie bierze udziału.}
+\end{frame}
+
+\samedot
+\begin{frame}{What its signature proves}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \foreach \x/\who/\col/\ic/\res in {0/{Alice}/sIndigo/\faUser/{\ok\ signature OK}, 7/{Mallory}/sPink/\faUserSecret/{\ok\ signature OK}} {
+        \node[person=\col] (p) at (\x-2.2,0) {\ic};
+        \node[font=\small\bfseries, text=\col, below=0.08cm of p] {\who};
+        \node[card, minimum width=3.4cm, minimum height=1.6cm, anchor=west] (c) at (\x-1.3,0) {};
+        \node[font=\scriptsize\ttfamily, text=nInk] at ([yshift=0.3cm]c.center) {CN=www.alice.example};
+        \node[font=\scriptsize, text=nInk] at ([yshift=-0.25cm]c.center) {self-signed};
+        \node[font=\small, anchor=north] at ([yshift=-0.1cm]c.south) {\res};
+      }
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small Both certificates pass the check of their own signature.\\
+    The signature only proves: \textbf{whoever made it has the private key of the key inside}.\end{center}
+  \curious{pki/\#3.9}
+  \keymsg{A self-signed certificate does not prove a name. Trust must come from outside: a CA, or a fingerprint you checked.}
+  \say{Mallory może zrobić certyfikat samopodpisany z dowolną nazwą, także www.alice.example albo www.coventry.ac.uk. Podpis będzie poprawny. Dlatego certyfikatowi samopodpisanemu ufamy tylko wtedy, gdy dostaliśmy go zaufaną drogą albo sprawdziliśmy odcisk, jak w pomyśle 3 z zadania 1. W symulatorze z linku przeglądarka odrzuca samopodpisany certyfikat, którego nie zna.}
+\end{frame}
+
+\samedot
+\begin{frame}{Where self-signed certificates are used}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \foreach \ic/\name/\sub [count=\k from 0] in {
+          \faLaptopCode/{test servers}/{a developer's own\\machine},
+          \faNetworkWired/{devices}/{the admin page of a\\router or a printer},
+          \faBuilding/{inside a company}/{tools that only\\the staff use},
+          \faLandmark/{root CAs}/{the top of every chain:\\Lecture 10}} {
+        \node[hw, minimum width=3.2cm, minimum height=2.3cm] (b) at ({3.5*\k},0) {};
+        \node[text=nInk, font=\fontsize{24}{26}\selectfont] at ({3.5*\k},0.4) {\ic};
+        \node[font=\small\bfseries, text=nInk] at ({3.5*\k},-0.55) {\name};
+        \node[font=\scriptsize, text=gray, align=center, below=0.12cm of b] {\sub};
+      }
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small A browser that meets an unknown self-signed certificate shows a warning,\\
+    in Chrome \texttt{NET::ERR\_CERT\_AUTHORITY\_INVALID}.\end{center}
+  \say{Certyfikaty główne (root) urzędów certyfikacji też są samopodpisane; ufamy im, bo są wbudowane w system lub przeglądarkę. To temat wykładu 10. Komunikaty błędów przeglądarek: wykład 11.}
+\end{frame}
+
+\samedot
+\begin{frame}[fragile]{Making one with openssl}
+  % CHECKED: openssl 3.0.13, run on 15 November 2026: subject = issuer = CN = test.alice.example,
+  %   Basic Constraints critical CA:TRUE, SKI = AKI = 4F:ED:F1:14:...
+  \vfill
+  \begin{center}
+    \cmdbox{openssl req -x509 -newkey ed25519 -noenc -keyout key.pem -out cert.pem \textbackslash\\
+      \ \ \ \ -days 30 -subj "/CN=test.alice.example"}\\[6pt]
+    \cmdbox{openssl x509 -in cert.pem -noout -subject -issuer \textbackslash\\
+      \ \ \ \ -ext basicConstraints,subjectKeyIdentifier,authorityKeyIdentifier}
+  \end{center}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \node[draw=nLine, thick, fill=nFill, rounded corners=3pt, inner sep=7pt, font=\scriptsize\ttfamily, text=nInk, align=left] {%
+        subject=CN = test.alice.example\\
+        issuer=CN = test.alice.example\\
+        X509v3 Subject Key Identifier:\ \ \ 4F:ED:F1:14:23:5B:3A:20:\ldots\\
+        X509v3 Authority Key Identifier: 4F:ED:F1:14:23:5B:3A:20:\ldots\\
+        X509v3 Basic Constraints: critical\ \ CA:TRUE};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small One command: a new key pair and a certificate for 30 days. SKI = AKI: it points at itself.\end{center}
+  \say{Można pominąć, zadanie 6 robi to samo w Pythonie. -noenc znaczy: nie szyfruj klucza prywatnego hasłem (starsza nazwa -nodes). openssl domyślnie dodaje CA:TRUE, bo taki certyfikat może posłużyć jako własne małe CA.}
+\end{frame}
+
+\begin{frame}{Task 6: a self-signed certificate}
+  \begin{columns}[c,onlytextwidth]
+    \column{0.55\textwidth}
+      \taskgoal{make Alice's self-signed certificate, check its signature with its own key, then try two tricks of Mallory.}
+      \taskready{\texttt{cert\_tools.py} (\texttt{make\_cert}: the builder from Task 3), \texttt{signing.py} (\texttt{verify}); the keys of Alice and Mallory.}
+    \column{0.43\textwidth}
+      \centering
+      \begin{tikzpicture}
+        \node[card, minimum width=4.4cm, minimum height=1.8cm] (c) at (0,0) {};
+        \node[font=\scriptsize\ttfamily, text=nInk] at (0,0.45) {issuer = subject};
+        \node[font=\scriptsize\ttfamily, text=nInk] at (0,0.05) {CN=www.alice.example};
+        \node[pubval, font=\tiny, inner sep=2pt] at (0,-0.45) {\faKey\ key: Alice's or Mallory's?};
+        \personnode{al}{-1.2,-1.75}{sIndigo}{Alice}
+        \mallorynode{ma}{1.2,-1.75}
+      \end{tikzpicture}
+  \end{columns}
+  \vfill
+  \opentask{Task6}{about 10 minutes}
+  \say{Około 10 minut. Pierwsza sztuczka Mallory: wpisać swój klucz w cudzy certyfikat. Druga: zrobić własny certyfikat z tą samą nazwą. Zapytać salę, co wyjdzie w każdym przypadku.}
+\end{frame}
+
+\samedot
+\begin{frame}{Task 6: what we saw}
+  % CHECKED: Task6/solution/self_signed.py
+  \begin{center}
+    \begin{tikzpicture}
+      \node[draw=nLine, thick, fill=nFill, rounded corners=3pt, inner sep=7pt, font=\scriptsize\ttfamily, text=nInk, align=left] {%
+        subject: CN=www.alice.example\\
+        issuer:\ \ CN=www.alice.example\\
+        issuer == subject: True\\
+        Alice's certificate, signature OK: \textbf{True}\\
+        Mallory's key in Alice's certificate (at byte 132 ), signature OK: \textbf{False}\\
+        Mallory's own certificate for www.alice.example, signature OK: \textbf{True}};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{columns}[t,onlytextwidth]
+    \column{0.32\textwidth}\stepbox{\ok\ Alice's}{The key inside checks the signature.}
+    \column{0.32\textwidth}\stepbox{\nok\ Key swapped}{The signed bytes changed, so the signature fails.}
+    \column{0.32\textwidth}\stepbox{\ok\ Mallory's own}{Same name, her key, and the check passes!}
+  \end{columns}
+  \keymsg{A self-signed certificate can be checked, but not trusted on its own.}
+  \say{Trzeci wynik jest najważniejszy: poprawny podpis certyfikatu samopodpisanego nic nie mówi o tym, kto jest właścicielem nazwy. Dokładnie dlatego potrzebne są urzędy certyfikacji i magazyny zaufania z wykładu 10.}
+\end{frame}
+
+% ======================================================================
+\section[A real certificate]{A real website certificate}
+% ======================================================================
+
+\begin{frame}{In the browser}
+  % CHECKED: the values of the certificate of www.coventry.ac.uk saved on 15 November 2026 (Lecture09-X509-Certificates/checks/cov_leaf.pem)
+  \begin{columns}[c,onlytextwidth]
+    \column{0.62\textwidth}
+      \centering
+      \begin{tikzpicture}
+        % the browser window
+        \draw[nLine, thick, fill=white, rounded corners=4pt] (0,0) rectangle (8.4,-5.4);
+        \fill[nFill, rounded corners=4pt] (0,0) rectangle (8.4,-0.9);
+        \foreach \x in {0.3,0.6,0.9} \fill[nLine] (\x,-0.25) circle (3pt);
+        \draw[nLine, fill=white, rounded corners=8pt] (0.3,-0.45) rectangle (8.1,-0.8);
+        \node[font=\scriptsize, text=nInk, anchor=west] (pad) at (0.45,-0.625) {\faLock};
+        \node[font=\scriptsize, text=nInk, anchor=west] at (0.8,-0.625) {www.coventry.ac.uk};
+        \draw[annot] (0.38,-0.48) rectangle (0.78,-0.77);
+        % the certificate viewer
+        \draw[nLine, thick, fill=nFill, rounded corners=3pt] (1.0,-1.2) rectangle (8.0,-5.2);
+        \node[font=\scriptsize\bfseries, text=nInk, anchor=west] at (1.15,-1.45) {Certificate Viewer: www.coventry.ac.uk};
+        \draw[nLine] (1.0,-1.7) -- (8.0,-1.7);
+        \foreach \y/\k/\v in {-2.0/{Issued To}/{},
+            -2.35/{\ \ Common Name (CN)}/{www.coventry.ac.uk},
+            -2.75/{Issued By}/{},
+            -3.1/{\ \ Common Name (CN)}/{WE1},
+            -3.45/{\ \ Organisation (O)}/{Google Trust Services},
+            -3.85/{Validity Period}/{},
+            -4.2/{\ \ Issued On}/{13 October 2026},
+            -4.55/{\ \ Expires On}/{11 January 2027},
+            -4.9/{SHA-256 Fingerprint}/{8D A9 3B 6D F6 90 85 F8 \ldots}} {
+          \node[font=\tiny\bfseries, text=nInk, anchor=west] at (1.2,\y) {\k};
+          \node[font=\tiny, text=nInk, anchor=west] at (4.2,\y) {\v};
+        }
+      \end{tikzpicture}
+    \column{0.36\textwidth}
+      \small
+      \badge{1}\ Click the icon left of the address.\\[6pt]
+      \badge{2}\ ``Connection is secure''.\\[6pt]
+      \badge{3}\ ``Certificate is valid'': the viewer opens.\\[6pt]
+      \badge{4}\ The ``Details'' tab shows all fields and extensions.\\[10pt]
+      \textcolor{gray}{\scriptsize A simplified drawing: the words differ between browsers and versions.}
+  \end{columns}
+  \say{Rysunek uproszczony, wartości prawdziwe (certyfikat zapisany 15 listopada 2026). Można to pokazać na żywo w przeglądarce; w dniu zajęć certyfikat będzie już inny, bo uczelnia dostaje nowy co kilka tygodni. Warto zapytać: kto wystawił certyfikat naszej uczelni?}
+\end{frame}
+
+\begin{frame}[fragile]{Fetching it with openssl}
+  \vfill
+  \begin{center}
+    \cmdbox{openssl s\_client -connect www.coventry.ac.uk:443 \textbackslash\\
+      \ \ \ \ -servername www.coventry.ac.uk < /dev/null > out.txt}\\[6pt]
+    \terminal{openssl x509 -in out.txt -noout -text}
+  \end{center}
+  \vfill
+  \begin{columns}[t,onlytextwidth]
+    \column{0.32\textwidth}\stepbox{s\_client}{Connects like a browser and prints what the server sent, with its certificate in PEM.}
+    \column{0.32\textwidth}\stepbox{-servername}{Tells the server which site we want: one server can host many.}
+    \column{0.32\textwidth}\stepbox{x509 -text}{Reads the first certificate in the file and prints every field.}
+  \end{columns}
+  \vfill
+  \begin{center}\small That is how \texttt{coventry.pem} and \texttt{bbc.pem} of Task 7 were saved, on 15 November 2026.\end{center}
+  \say{Polecenia do skopiowania; bez internetu na zajęciach nie zadziałają, dlatego w zadaniu 7 są zapisane pliki. Serwer wysyła też certyfikat pośredni WE1; łańcuchy omówimy na wykładzie 10. -servername to rozszerzenie TLS o nazwie SNI.}
+\end{frame}
+
+\begin{frame}{www.coventry.ac.uk: the fields}
+  % CHECKED: openssl x509 -in Lecture09-X509-Certificates/checks/cov_leaf.pem -noout -text
+  \vfill
+  \begin{center}
+    \renewcommand{\arraystretch}{1.35}
+    \small
+    \begin{tabular}{@{}l@{\qquad}l@{}}
+      \toprule
+      \textbf{field} & \textbf{value} \\
+      \midrule
+      version & 3 \\
+      serialNumber & \texttt{0E 24 81 FE 79 14 19 CA 0E AA AD F6 65 94 2B 2C} \\
+      issuer & \cax{C=US, O=Google Trust Services, CN=WE1} \\
+      validity & 13 Oct 2026 02:29:16 to 11 Jan 2027 03:29:14 UTC: \textbf{90 days} \\
+      subject & \texttt{CN=www.coventry.ac.uk} \;(no organisation name) \\
+      public key & \pub{EC P-256} (Lecture 5) \\
+      signature & ecdsa-with-SHA256, made by WE1 \\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+  \vfill
+  \keymsg{Everything we built for Bob, on a real certificate: same fields, different values.}
+  \say{Te same pola co w certyfikacie Boba. Podmiot ma tylko CN: to certyfikat typu DV, w którym CA sprawdza jedynie kontrolę nad domeną (wykład 10). Klucz to punkt na krzywej P-256, podpis ECDSA.}
+\end{frame}
+
+\samedot
+\begin{frame}{www.coventry.ac.uk: the extensions}
+  % CHECKED: openssl x509 -in Lecture09-X509-Certificates/checks/cov_leaf.pem -noout -text (order as in the certificate)
+  \vfill
+  \begin{center}
+    \renewcommand{\arraystretch}{1.25}
+    \footnotesize
+    \begin{tabular}{@{}l@{\quad}c@{\quad}l@{\quad}l@{}}
+      \toprule
+      \textbf{extension} & \textbf{critical} & \textbf{value} & \textbf{more in} \\
+      \midrule
+      Key Usage & yes & digitalSignature & today \\
+      Extended Key Usage & & serverAuth & today \\
+      Basic Constraints & yes & CA:FALSE & today \\
+      Subject Key Identifier & & \texttt{80:EE:3D:B9:\ldots} & today \\
+      Authority Key Identifier & & \texttt{90:77:92:35:\ldots} (= WE1) & Lecture 10 \\
+      Authority Information Access & & CA Issuers \texttt{http://i.pki.goog/we1.crt} & Lecture 10 \\
+      Subject Alternative Name & & \texttt{DNS:www.coventry.ac.uk} & today \\
+      Certificate Policies & & \texttt{2.23.140.1.2.1}: domain validated & Lecture 10 \\
+      CRL Distribution Points & & \texttt{http://c.pki.goog/we1/7IsZmIhZCHs.crl} & Lecture 11 \\
+      CT Precertificate SCTs & & two signed timestamps from CT logs & Lecture 10 \\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+  \vfill
+  \say{Wszystkie rozszerzenia prawdziwego certyfikatu. Większość już rozumiemy. Polityka 2.23.140.1.2.1 oznacza DV, a SCT to dowody wpisania certyfikatu do publicznych dzienników Certificate Transparency: oba tematy na wykładzie 10.}
+\end{frame}
+
+\begin{frame}{www.bbc.co.uk: a company name in the subject}
+  % CHECKED: openssl x509 -in Lecture09-X509-Certificates/checks/bbc_leaf.pem -noout -text
+  \begin{columns}[c,onlytextwidth]
+    \column{0.55\textwidth}
+      \renewcommand{\arraystretch}{1.3}
+      \footnotesize
+      \begin{tabular}{@{}l@{\quad}l@{}}
+        \toprule
+        subject & \scriptsize\texttt{C=GB, ST=London, L=London,} \\
+        & \scriptsize\texttt{O=BRITISH BROADCASTING CORPORATION,} \\
+        & \scriptsize\texttt{CN=www.bbc.com} \\
+        issuer & \cax{C=BE, O=GlobalSign nv-sa,} \\
+        & \cax{CN=GlobalSign GCC R46 OV TLS CA 2025} \\
+        validity & 21 Aug 2026 to 24 Jan 2027: 155 days \\
+        public key & \pub{RSA 2048} \\
+        SAN & 22 names \\
+        policy & \texttt{2.23.140.1.2.2}: organisation validated \\
+        \bottomrule
+      \end{tabular}
+    \column{0.43\textwidth}
+      \small
+      \stepbox{The subject has a company}{The CA also checked the organisation, not only the domain (Lecture 10).}
+      \stepbox{CN is not the name you typed}{CN = www.bbc.com, but the certificate works for www.bbc.co.uk because the SAN has it.}
+  \end{columns}
+  \say{Porównanie z uczelnią: inny wystawca, klucz RSA zamiast EC, dłuższa ważność, nazwa firmy w podmiocie i 22 nazwy w SAN. Ten jeden certyfikat obsługuje wiele serwisów BBC.}
+\end{frame}
+
+\begin{frame}{Task 7: two real certificates}
+  \begin{columns}[c,onlytextwidth]
+    \column{0.55\textwidth}
+      \taskgoal{read the certificates of www.coventry.ac.uk and www.bbc.co.uk and decide which names each one covers.}
+      \taskready{\texttt{coventry.pem}, \texttt{bbc.pem} (saved on 15 November 2026); \texttt{cert\_tools.py}.}
+      {\centering\small\textcolor{AccentOrange}{\faQuestionCircle}\ \textbf{Predict first:} does the university's certificate cover \texttt{coventry.ac.uk}?\par}
+    \column{0.43\textwidth}
+      \centering
+      \begin{tikzpicture}
+        \foreach \x/\n in {0/coventry.pem, 2.6/bbc.pem} {
+          \node[card, minimum width=2.3cm, minimum height=1.8cm] (c) at (\x,0) {};
+          \node[text=nInk, font=\Large] at (\x,0.3) {\faCertificate};
+          \node[font=\scriptsize\ttfamily, text=nInk] at (\x,-0.45) {\n};
+        }
+        \node[font=\scriptsize\ttfamily, text=nInk, align=left, anchor=north] at (1.3,-1.2) {covers(cert, "news.bbc.co.uk")?};
+      \end{tikzpicture}
+  \end{columns}
+  \vfill
+  \opentask{Task7}{about 12 minutes}
+  \say{Około 12 minut, bez internetu. Najpierw zapytać salę o przewidywanie: czy certyfikat uczelni działa dla coventry.ac.uk bez www? Zapisać głosy.}
+\end{frame}
+
+\samedot
+\begin{frame}{Task 7: what we saw}
+  % CHECKED: Task7/solution/read_real.py
+  \begin{columns}[c,onlytextwidth]
+    \column{0.5\textwidth}
+      \renewcommand{\arraystretch}{1.3}
+      \footnotesize
+      \begin{tabular}{@{}l@{\quad}c@{\quad}c@{}}
+        \toprule
+        & \textbf{coventry.pem} & \textbf{bbc.pem} \\
+        \midrule
+        days valid & 90 & 155 \\
+        key & EC P-256 & RSA 2048 \\
+        SAN names & 1 & 22 \\
+        \midrule
+        www.coventry.ac.uk & \ok & \nok \\
+        coventry.ac.uk & \textbf{\nok} & \nok \\
+        www.bbc.co.uk & \nok & \ok \\
+        news.bbc.co.uk & \nok & \ok \\
+        sport.bbc.co.uk & \nok & \textbf{\nok} \\
+        \bottomrule
+      \end{tabular}
+    \column{0.48\textwidth}
+      \small
+      \stepbox{coventry.ac.uk}{Not in the SAN. If that address serves this certificate, the browser warns.}
+      \stepbox{sport.bbc.co.uk}{Not in the SAN either. Such a site needs another certificate.}
+  \end{columns}
+  \vfill
+  \keymsg{The SAN decides: a name that is not in it is not covered, however similar it looks.}
+  \say{Kod w folderze solution. W README są wszystkie wyniki. To, czy adres coventry.ac.uk w ogóle podaje ten certyfikat, czy przekierowuje inaczej, sprawdzić na żywo przed zajęciami; tu mówimy tylko o zawartości certyfikatu.}
+\end{frame}
+
+\begin{frame}{Summary}
+  \vfill
+  \begin{tikzpicture}
+    \foreach \t [count=\k] in {
+        {A public key does not say whose it is: \textbf{Mallory in the middle} swaps it and reads everything.},
+        {A \textbf{CA} signs a name together with a key: a \textbf{certificate}. Keys, certificates, CAs and rules make \textbf{PKI}.},
+        {\textbf{X.509}: tbsCertificate (version, serial, issuer, validity, subject, key, \textbf{extensions}), algorithm, signature.},
+        {\textbf{DER} bytes, \textbf{PEM} = DER in Base64, \textbf{fingerprint} = SHA-256 of the DER bytes.},
+        {A \textbf{self-signed} certificate proves nothing about the name. Real sites: names in the \textbf{SAN}.}} {
+      \node[hw, text width=12.6cm, align=left, minimum height=0.95cm, anchor=west, font=\small] at (0.8,{-1.1*\k}) {\t};
+      \node[circle, fill=AccentOrange, text=white, font=\bfseries, minimum size=0.7cm] at (0.4,{-1.1*\k}) {\k};
+    }
+  \end{tikzpicture}
+  \vfill
+  \say{Po jednym zdaniu na każdy cel wykładu. Następny wykład: kim są urzędy certyfikacji, skąd przeglądarka ma ich klucze, łańcuchy certyfikatów i jak certyfikat powstaje, od CSR do Let's Encrypt.}
+\end{frame}
+\end{document}
