@@ -50,4 +50,4 @@ python3 factor.py
 
 About 7 minutes. Python 3, no extra libraries.
 
-Want to see it move? In [Eve tries to break it](https://ksawerym.github.io/Cryptography-simulators/rsa/#4), Eve factors n in your browser, then computes phi, d and the message, and you can make n bigger and watch the time grow.
+Want to see it move? In [How long for a bigger n?](https://ksawerym.github.io/Cryptography-simulators/rsa/#4.2), your browser makes a random n = p × q of the size you pick and factors it by trial division: make n bigger and watch the time grow.

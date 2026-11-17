@@ -18,11 +18,11 @@
 
   % the TODOs: n, phi, d
   \foreach \k/\y/\t/\st/\tag in {1/0.3/n = p $\cdot$ q/rPub/\public, 2/-0.55/phi = (p - 1)(q - 1)/rSec/\secret, 3/-1.6/d = the inverse of e mod phi/rSec/\secret} {
-    \node[circle, fill=AccentOrange, text=white, font=\scriptsize\bfseries, inner sep=1.5pt] at (7.2,\y) {\k};
-    \node[draw=\st, thick, fill=white, rounded corners=3pt, anchor=west, font=\small, text=nInk, inner sep=4pt] (t\k) at (7.55,\y) {\t\ = \textcolor{AccentOrange}{\textbf{?}}};
+    \node[rounded corners=2pt, fill=AccentOrange, text=white, font=\scriptsize\bfseries, inner sep=2pt, anchor=east] at (8.55,\y) {TODO \k};
+    \node[draw=\st, thick, fill=white, rounded corners=3pt, anchor=west, font=\small, text=nInk, inner sep=4pt] (t\k) at (8.65,\y) {\t\ = \textcolor{AccentOrange}{\textbf{?}}};
     \node[font=\scriptsize, anchor=west] at ([xshift=2pt]t\k.east) {\tag};
   }
-  \draw[data] (5.6,-0.15) -- (6.9,-0.15);
+  \draw[data] (6.9,-0.15) -- (7.6,-0.15);
 
   % the two keys
   \node[pubv, minimum width=3.6cm] (pub) at (1.5,-3.0) {\faLockOpen\ public key \{e, n\}};
@@ -31,10 +31,10 @@
   % encrypt and decrypt 2026
   \node[msgv, font=\ttfamily\normalsize] (m) at (-1.1,-4.35) {2026};
   \node[font=\scriptsize, text=nInk, anchor=north] at (m.south) {message};
-  \node[circle, fill=AccentOrange, text=white, font=\scriptsize\bfseries, inner sep=1.5pt] at (-0.1,-3.7) {4};
+  \node[rounded corners=2pt, fill=AccentOrange, text=white, font=\scriptsize\bfseries, inner sep=2pt] at (-0.1,-3.7) {TODO 4};
   \node[mech] (enc) at (1.5,-4.35) {C = message$^{e}$ mod n};
   \node[ctv, minimum width=1.8cm] (c) at (5.05,-4.35) {C = \textcolor{AccentOrange}{\textbf{?}}};
-  \node[circle, fill=AccentOrange, text=white, font=\scriptsize\bfseries, inner sep=1.5pt] at (7.3,-3.7) {5};
+  \node[rounded corners=2pt, fill=AccentOrange, text=white, font=\scriptsize\bfseries, inner sep=2pt] at (7.3,-3.7) {TODO 5};
   \node[mech] (dec) at (8.6,-4.35) {P = C$^{d}$ mod n};
   \node[msgv, minimum width=1.8cm] (p2) at (11.9,-4.35) {P = \textcolor{AccentOrange}{\textbf{?}}};
   \node[font=\scriptsize, text=nInk, anchor=north] at (p2.south) {must be 2026};

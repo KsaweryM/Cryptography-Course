@@ -1,6 +1,6 @@
 % Task 5: X25519. Values from Task5/ecdh.py (the private keys of RFC 7748, section 6.1).
-% CHECKED (python3, Task5/solution/ecdh.py): both secrets are equal; the public keys, the secret and the key
-%   are the results of the task, so the figure shows them as unknown
+% CHECKED (python3, Task5/solution/ecdh.py): both secrets are equal, the two direction keys differ; the public keys,
+%   the secret and the keys are the results of the task, so the figure shows them as unknown
 \documentclass[12pt,tikz,border=6pt]{standalone}
 \input{common}
 \begin{document}
@@ -38,5 +38,15 @@
   \node[font=\scriptsize\ttfamily, text=gray, anchor=north] at (kdf.south) {info = b"lecture 5 chat key"};
   \node[unk, font=\small\bfseries, draw=rPriv, text=rPrivText, fill=rPrivBg, anchor=west] (key) at (8.2,-4.0) {ChaCha20 key, 32 bytes = ?};
   \draw[data] (kdf.east) -- (key.west);
+  % one secret, two keys: the same hkdf with two labels
+  \cogbox{kdf2}{6,-6.0}{hkdf}{2.6cm}
+  \draw[data] (sa.south) |- (kdf2.west);
+  \node[font=\scriptsize\ttfamily, text=gray, anchor=north, align=center] at (kdf2.south)
+    {info = b"Alice to Bob"\\ info = b"Bob to Alice"};
+  \node[unk, font=\small\bfseries, draw=rPriv, text=rPrivText, fill=rPrivBg, anchor=west] (k1) at (8.2,-5.45) {key Alice to Bob = ?};
+  \node[unk, font=\small\bfseries, draw=rPriv, text=rPrivText, fill=rPrivBg, anchor=west] (k2) at (8.2,-6.55) {key Bob to Alice = ?};
+  \draw[data] (kdf2.east) -- (k1.west);
+  \draw[data] (kdf2.east) -- (k2.west);
+  \node[font=\scriptsize\bfseries, text=rChg, anchor=west] at (k1.east |- kdf2) {different?};
 \end{tikzpicture}
 \end{document}

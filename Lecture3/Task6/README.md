@@ -4,7 +4,7 @@
 
 A bank encrypts the customers' 4-digit PINs with **textbook RSA**, C = PIN<sup>e</sup> mod n, and a strong 2048-bit key. Eve intercepted one encrypted PIN. She does not have the bank's private key, and nobody can factor a 2048-bit n. But she has the bank's **public key**, like everybody else.
 
-![A customer's PIN, four question marks, 4 digits from 0000 to 9999, is encrypted with textbook RSA, C = PIN to the power e mod n, with the bank's public key (e = 65537, n starting 18728411951178, 2048 bits). The ciphertext C, starting 73320723855296, goes to the bank, which keeps the private key d secret. Eve listens. Eve has the public key and the encrypted PIN C, but not the private key d. All possible PINs: 0000, 0001, 0002, 0003, up to 9999, only 10 000 of them.](figure.svg)
+![A customer's PIN, four question marks, a 4-digit PIN, is encrypted with textbook RSA, C = PIN to the power e mod n, with the bank's public key (e = 65537, n starting 18728411951178, 2048 bits). The ciphertext C, starting 73320723855296, goes to the bank, which keeps the private key d secret. Eve listens. Eve has the public key and the encrypted PIN C, but not the private key d.](figure.svg)
 
 ## Goal
 
@@ -19,7 +19,13 @@ Find the PIN without the private key.
 Write your code in place of the `TODO` comment in `pin.py`:
 
 1. Find the PIN without the private key and store it in `pin`. Until then the file prints `not found yet`.
-   - Hint: the public key is public, so you can encrypt any number yourself with `pow(number, e, n)`.
+
+<details>
+<summary>Hint</summary>
+
+The public key is public, so you can encrypt any number yourself with `pow(number, e, n)`.
+
+</details>
 
 ## Expected output
 

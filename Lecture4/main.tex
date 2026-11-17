@@ -177,6 +177,12 @@
     \node[draw=nLine, thick, fill=nFill, rounded corners=3pt, inner sep=5pt, font=\ttfamily\small, text=nInk]
       {\textcolor{nLine}{\$}\ #1};
   \end{tikzpicture}}
+% the Python prompt: \pyprompt{pow(5, 2, 23)}{2} prints >>> pow(5, 2, 23) and the result line below it
+\newcommand{\pyprompt}[2]{%
+  \begin{tikzpicture}[baseline={([yshift=-0.5ex]t.center)}]
+    \node[draw=nLine, thick, fill=nFill, rounded corners=3pt, inner sep=5pt, font=\ttfamily\small, text=nInk, align=left] (t)
+      {\textcolor{nLine}{>{}>{}>}\ #1\\#2};
+  \end{tikzpicture}}
 
 % ======================================================================
 % Course macros
@@ -504,7 +510,7 @@
   \end{center}
   \vfill
   \begin{center}
-    \normalsize In Python:\quad \terminal{pow(5, 2, 23)}
+    \normalsize In Python:\quad \pyprompt{pow(5, 2, 23)}{2}
   \end{center}
   \vfill
   \begin{center}\small Fast even when every number has \textbf{600 digits}.\end{center}
@@ -534,7 +540,7 @@
     They play the role of the \tikz[baseline=-0.6ex]{\fill[paintY] (0,0) circle (0.13);} \textbf{yellow paint}.
   \end{center}
   \vfill
-  \say{Liczba pierwsza dzieli się tylko przez 1 i siebie. W prawdziwej wymianie p ma 2048 bitów; teraz małe liczby, żeby liczyć na kartce.}
+  \say{Liczba pierwsza dzieli się tylko przez 1 i siebie. Dlaczego pierwsza: wtedy każda liczba od 1 do p - 1 ma odwrotność modulo p, a potęgi g mogą obejść je wszystkie; przy p złożonym niektóre liczby nie mają odwrotności i cykle rozpadają się na krótsze kawałki. W prawdziwej wymianie p ma 2048 bitów; teraz małe liczby, żeby liczyć na kartce.}
 \end{frame}
 
 % CHECKED (python3): [pow(5, e, 23) for e in range(1, 23)]
@@ -563,7 +569,9 @@
     \end{tikzpicture}
   \end{center}
   \vspace{-0.25cm}
-  \begin{center}\footnotesize Every number from 1 to 22 appears \textbf{exactly once}.\end{center}
+  % CHECKED (python3): pow(5, 23, 23) = 5
+  \begin{center}\footnotesize Every number from 1 to 22 appears \textbf{exactly once}. Then $5^{23} \bmod 23 = 5$ again:
+    the powers go round in a \textbf{cycle} of 22.\end{center}
   \keymsg{A good g has a long cycle: here it reaches every number from 1 to 22.}
   \say{Taką liczbę g nazywamy generatorem. Liczy się długość cyklu: ile różnych wartości dają potęgi g, zanim zaczną się powtarzać. Tyle możliwości musiałaby sprawdzić Eve. Widać też, że wyniki skaczą bez żadnego porządku; to wróci w sekcji 3.}
 \end{frame}
@@ -571,9 +579,9 @@
 \samedot
 \begin{frame}{A bad g}
   \vfill
-  \small Powers of 22 mod 23:
+  \normalsize Powers of 22 mod 23:
   \begin{center}
-    \begin{tikzpicture}
+    \begin{tikzpicture}[scale=1.35, transform shape]
       % CHECKED (python3): [pow(22, e, 23) for e in range(1, 17)] = 22, 1, 22, 1, ...
       \foreach \e in {1,...,16} \node[font=\tiny, text=gray] at ({0.6*\e},0.45) {\e};
       \valrow{22,1,22,1,22,1,22,1,22,1,22,1,22,1,22,1}{pub}
@@ -583,16 +591,14 @@
         \node[font=\ttfamily\scriptsize, text=nInk] at (v\k) {\v};
       \draw[-{Stealth}, very thick, AccentOrange] (v2.south) to[out=-40, in=-140] node[below, font=\scriptsize, text=AccentOrange] {back to the start}
         ([xshift=-2pt]v3.south);
-      \draw[decorate, decoration={brace, mirror, amplitude=5pt}, nInk] ([yshift=-0.9cm]v1.south west) -- ([yshift=-0.9cm]v2.south east)
-        node[midway, below=6pt, font=\scriptsize, text=nInk, align=center] {2 values,\\then they repeat};
     \end{tikzpicture}
   \end{center}
   \vfill
-  \begin{center}Only \textbf{2 different values}: $A$ is 22 or 1, whatever Alice's secret $a$ is.\\[2pt]
+  \begin{center}\large Only \textbf{2 different values}: $A$ is 22 or 1, whatever Alice's secret $a$ is.\\[4pt]
     Eve guesses the shared secret on the first or the second try.\end{center}
   \vfill
   \curious{diffie-hellman/\#2}
-  \keymsg{g must have a long cycle. Real standards pick p and g so that the cycle has about $p/2$ values.}
+  \keymsg{$g$ must have a long cycle. Real standards pick $p$ and $g$ so that the cycle has about $p/2$ values.}
   % CHECKED (python3): RFC 3526 group 14, P = the 2048-bit prime: pow(2, (P - 1)//2, P) == 1, so g = 2 has the cycle (P - 1)/2
   \say{22 to p - 1, czyli -1 modulo 23: jego potęgi to na zmianę 22 i 1. Taki cykl to katastrofa. Pół cyklu to nie problem: w RFC 3526 (grupa 14, której używamy dalej) g = 2 daje (p - 1)/2 różnych wartości, około 2 do potęgi 2047; to tylko o jeden bit mniej niż pełny cykl, a standard wybiera tak celowo. Wybór g należy do twórców standardu, nie do użytkownika. W symulatorze z linku potęgi g chodzą po zegarze; wpisz g = 22.}
 \end{frame}
@@ -709,7 +715,7 @@
   \vfill
   \curious{diffie-hellman/\#1}
   \keymsg{Both compute $g^{(ab)} \bmod p$, and nobody ever sent it.}
-  \say{Zwykłe prawo potęg, działa też modulo p. To jest zamiana kolejności mieszania farb. W symulatorze z linku ta sama wymiana jako czarna skrzynka: można zmienić a, b, p i g i patrzeć, jak oba sekrety zmieniają się razem.}
+  \say{Zwykłe prawo potęg, działa też modulo p, bo (x mod p)\textasciicircum a mod p = x\textasciicircum a mod p, jak w RSA: można redukować modulo p w dowolnym momencie. To jest zamiana kolejności mieszania farb. W symulatorze z linku ta sama wymiana jako czarna skrzynka: można zmienić a, b, p i g i patrzeć, jak oba sekrety zmieniają się razem.}
 \end{frame}
 
 % the table for task 1: #1 = 0 empty, 1 filled
@@ -773,7 +779,7 @@
     \begin{tabular}{@{}lll@{}}
       \tikz[baseline=(n.base)]\node[pub] (n) {$p$}; & \textbf{2048 bits} (617 digits) & a fixed public prime from the standard \textbf{RFC 3526} \\
       \tikz[baseline=(n.base)]\node[pub] (n) {$g$}; & 2 & from the same standard \\
-      \tikz[baseline=(n.base)]\node[sec] (n) {$a, b$}; & at least \textbf{256 bits} & random, \textbf{new for every exchange} \\
+      \tikz[baseline=(n.base)]\node[sec] (n) {$a, b$}; & at least \textbf{256 bits} & random and \textbf{secret} \\
     \end{tabular}
   \end{center}
   \vspace{0.1cm}
@@ -838,15 +844,19 @@
       \end{center}
     \column{0.56\textwidth}
       \large Eve has everything that was sent.
-      \vspace{0.5cm}
+      \vspace{0.4cm}
 
       To compute the secret $g^{ab}$, she needs \textcolor{sAmberText}{\textbf{$a$ or $b$}}.
-      \vspace{0.5cm}
+      \vspace{0.4cm}
+
+      % CHECKED (python3): 8 * 19 % 23 = 14, pow(5, 21, 23) = 14, pow(5, 90, 23) = 2
+      \small Eve can multiply: $A \times B = g^{a+b}$, not $g^{ab}$:\\ $8 \times 19 \bmod 23 = 14$, not 2.
+      \vspace{0.4cm}
 
       \normalsize Can she get $a$ back from $A = 8$?
   \end{columns}
   \vfill
-  \say{Eve ma wszystko poza tajnymi liczbami. Czy da się je odzyskać z A?}
+  \say{Eve ma wszystko poza tajnymi liczbami. Pomnożenie A i B dodaje wykładniki, a potrzebny jest ich iloczyn: 5\textasciicircum 21 mod 23 = 14, a nie 2. W języku farb: zmieszanie obu mieszanek daje kolor z dwoma porcjami żółtego, a nie ten wspólny. Czy da się odzyskać a z A?}
 \end{frame}
 
 \samedot
@@ -888,7 +898,7 @@
 
 \begin{frame}{Task 3: find a}
   \vfill
-  \taskgoal{find $a$ from $A$ by trying $a = 1, 2, 3, \dots$, then estimate a 256-bit $a$.}
+  \taskgoal{find $a$ from $A$ by trying $a = 1, 2, 3, \dots$, then estimate how long a 256-bit $a$ would take.}
   \taskready{four problems ($p$ of 16, 20, 24 and 28 bits) and the timer, in \texttt{dlog.py}.}
   \begin{center}
     \small\textcolor{AccentOrange}{\faLightbulb}\ \textbf{Predict first:} each $p$ is 4 bits longer. How many times longer will it take?
@@ -956,9 +966,9 @@
   {\small
   \begin{itemize}\setlength{\itemsep}{3pt}
     \item Our speed: about \textbf{10 million tries per second}. Every $a$ of 256 bits: $2^{256}$ tries, $3.5 \times 10^{62}$ years.
-    \item Smarter methods that work for any $p$: about $2^{128}$ steps, still about $10^{24}$ years.
-    \item The cleverest methods for the discrete logarithm are \textbf{the same family as for factoring}.
-      So $p$ needs a size similar to RSA's $n$: 2048 bits.
+    \item Smarter general methods (about the square root of the number of possible $a$): about $2^{128}$ steps, still about $10^{24}$ years.
+    \item The cleverest methods depend on the \textbf{size of $p$}, not of $a$, and are \textbf{the same family as for factoring}.
+      So $a$ of 256 bits is enough, but $p$ needs 2048 bits, like RSA's $n$.
   \end{itemize}}
   \plainbox{Diffie-Hellman is safe as long as the \textbf{discrete logarithm is hard}.}
   \say{Wszechświat ma około 1,4 · 10\textasciicircum 10 lat. Metody ogólne (np. Pollard rho, baby-step giant-step) potrzebują około pierwiastka z liczby możliwych a, czyli 2\textasciicircum 128 kroków; krok jest droższy niż jedno mnożenie, więc 10\textasciicircum 24 lat to rząd wielkości. Najsprytniejsze metody (sito ciała liczbowego) zależą od rozmiaru p, nie a, i są tej samej rodziny co metody rozkładu liczb na czynniki: dlatego p ma 2048 bitów, jak n w RSA.}
@@ -978,7 +988,7 @@
       \end{tikzpicture}
       \end{center}
     \column{0.66\textwidth}
-      Some servers still accepted old 512-bit \textbf{``export''} groups in TLS:
+      Some servers still accepted old 512-bit \textbf{``export''} groups in TLS (the browser padlock, lecture 1):
       weakened on purpose in the 1990s, to obey US export rules.
       \vspace{0.3cm}
 
@@ -986,10 +996,10 @@
         \faClock\ then about one minute for each discrete logarithm in that group}
       \vspace{0.2cm}
 
-      \textbf{\textcolor{aWrite}{8.4\%}} of the top one million HTTPS sites were vulnerable.
+      \textbf{\textcolor{aWrite}{8.4\%}} of the top one million web sites were vulnerable.
   \end{columns}
   \vfill
-  \say{Grupy eksportowe to pozostałość po amerykańskich ograniczeniach z lat 90. TLS to protokół zabezpieczający HTTPS. Atak opisali Adrian i inni na konferencji CCS w 2015 roku.}
+  \say{Grupy eksportowe to pozostałość po amerykańskich ograniczeniach z lat 90. Napastnik pośrodku połączenia (jak Mallory w sekcji 5) podmienia wiadomości na początku połączenia tak, że serwer wybiera grupę eksportową, a przeglądarka tego nie zauważa (downgrade). TLS to protokół zabezpieczający HTTPS. Atak opisali Adrian i inni na konferencji CCS w 2015 roku.}
 \end{frame}
 
 \samedot
@@ -1017,7 +1027,7 @@
       The Logjam authors estimated: a rich state could do the work \textbf{once} and read them all.
   \end{columns}
   \vfill
-  \keymsg{Use at least 2048 bits, or the elliptic version from the next lecture.}
+  \keymsg{At 2048 bits even the one-time work is out of reach, so one shared $p$ is fine. Use at least 2048 bits, or the elliptic version from the next lecture.}
   \say{Autorzy Logjam oszacowali, że złamanie 10 popularnych grup 1024-bitowych otworzyłoby dużą część szyfrowanych połączeń w internecie. Dlatego dziś p ma co najmniej 2048 bitów.}
 \end{frame}
 
@@ -1097,10 +1107,11 @@
   \vfill
   \begin{center}
     \Large \texttt{key = SHA-256(secret)}\\[6pt]
-    \small The hash function squeezes the secret into a key of the right size.
+    \small The secret is a number below $p$: its bits are \textbf{not evenly random}.\\
+    The hash mixes all 2048 bits into 256 bits that look random.
   \end{center}
   \vfill
-  \say{Liczba po lewej pochodzi z powtarzalnego przebiegu: a i b z random.Random(2026).getrandbits(256), grupa z RFC 3526; ten sekret ma 616 cyfr (sekret może mieć do 617 cyfr). Funkcja skrótu zamienia dane dowolnej długości w krótki odcisk. Dokładniejszy sposób, KDF, będzie w następnym wykładzie. W zadaniu 4 robi to gotowa funkcja.}
+  \say{Liczba po lewej pochodzi z powtarzalnego przebiegu: a i b z random.Random(2026).getrandbits(256), grupa z RFC 3526; ten sekret ma 616 cyfr (sekret może mieć do 617 cyfr). Funkcja skrótu zamienia dane dowolnej długości w krótki odcisk. Sekret to liczba mniejsza od p, więc np. najwyższe bity nie są równomiernie losowe; klucz szyfru powinien mieć każdy bit losowy. Właściwe narzędzie do tego nazywa się KDF (funkcja wyprowadzania klucza) i będzie w następnym wykładzie. W zadaniu 4 robi to gotowa funkcja.}
 \end{frame}
 
 \begin{frame}{A new exchange for every session}
@@ -1126,27 +1137,6 @@
   \say{Ephemeral znaczy ulotny. Liczenie nowej wymiany kosztuje mniej niż milisekundę, więc można to robić przy każdym połączeniu.}
 \end{frame}
 
-% CHECKED: openssl speed ffdh2048 ffdh3072 on the author's laptop (i5-8265U)
-\samedot
-\begin{frame}{How fast is Diffie-Hellman?}
-  \vfill
-  \begin{center}
-    \begin{tikzpicture}
-      \begin{axis}[width=12cm, height=4.2cm, xbar, bar width=0.55cm, xmin=0, xmax=6000,
-          symbolic y coords={3072-bit group,2048-bit group}, ytick=data, axis lines=left,
-          axis line style={nLine}, tick label style={font=\small}, xlabel={\scriptsize operations per second (OpenSSL)},
-          enlarge y limits=0.5, nodes near coords, point meta=explicit symbolic,
-          nodes near coords style={font=\small, text=nInk, anchor=west}, nodes near coords align={horizontal}, xticklabel style={/pgf/number format/fixed}, scaled x ticks=false]
-        \addplot[fill=DeepBlue!70, draw=DeepBlue] coordinates {(3600,2048-bit group)[about 3600 /s \ (0.28 ms)] (1400,3072-bit group)[about 1400 /s \ (0.70 ms)]};
-      \end{axis}
-    \end{tikzpicture}
-  \end{center}
-  \vfill
-  \begin{center}Once per connection, this costs \textbf{almost nothing}.\end{center}
-  \vfill
-  \say{Pomiar openssl speed ffdh2048 i ffdh3072 na tym laptopie z i5-8265U.}
-\end{frame}
-
 \samedot
 \begin{frame}{Forward secrecy}
   \bigdef{\textbf{Forward secrecy:} a key stolen today does not open conversations recorded yesterday.}
@@ -1169,9 +1159,31 @@
     \end{tikzpicture}
   \end{center}
   \vfill
-  \begin{center}\small Last lecture asked: \textit{what if a private key leaks?} With ephemeral keys, the old sessions stay closed.\end{center}
+  \begin{center}\small Eve's recording has only $A$ and $B$. Without $a$ or $b$ she needs a discrete logarithm,\\
+    and $a$, $b$ no longer exist anywhere. Last lecture asked: \textit{what if a private key leaks?}\end{center}
   \keymsg{Ephemeral keys protect the past.}
-  \say{To odpowiedź na problem z wykładu 3: wyciek klucza otwierał całą historię. Przy ulotnych kluczach tej historii nie ma czym otworzyć.}
+  \say{To odpowiedź na problem z wykładu 3: wyciek klucza otwierał całą historię. Przy ulotnych kluczach tej historii nie ma czym otworzyć. Serwer ma też klucz długoterminowy (do pieczęci, sekcja 5). Jeśli go ukradną, Mallory może w przyszłości podszywać się pod serwer, ale nagranych rozmów nim nie otworzy: on tylko pieczętuje, nie szyfruje.}
+\end{frame}
+
+% CHECKED: openssl speed ffdh2048 ffdh3072 on the author's laptop (i5-8265U)
+\samedot
+\begin{frame}{How fast is Diffie-Hellman?}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \begin{axis}[width=12cm, height=4.2cm, xbar, bar width=0.55cm, xmin=0, xmax=6000,
+          symbolic y coords={3072-bit group,2048-bit group}, ytick=data, axis lines=left,
+          axis line style={nLine}, tick label style={font=\small}, xlabel={\scriptsize operations per second (OpenSSL)},
+          enlarge y limits=0.5, nodes near coords, point meta=explicit symbolic,
+          nodes near coords style={font=\small, text=nInk, anchor=west}, nodes near coords align={horizontal}, xticklabel style={/pgf/number format/fixed}, scaled x ticks=false]
+        \addplot[fill=DeepBlue!70, draw=DeepBlue] coordinates {(3600,2048-bit group)[about 3600 /s \ (0.28 ms)] (1400,3072-bit group)[about 1400 /s \ (0.70 ms)]};
+      \end{axis}
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}Can we afford a new exchange for every connection? Yes: it costs \textbf{almost nothing}.\end{center}
+  \vfill
+  \say{Pomiar openssl speed ffdh2048 i ffdh3072 na tym laptopie z i5-8265U.}
 \end{frame}
 
 \begin{frame}{Where Diffie-Hellman is used}
@@ -1248,28 +1260,30 @@
 % the attack, one picture in three steps
 \newcommand{\mitmscene}[1]{%
   \begin{tikzpicture}[>=Stealth]
-    \useasboundingbox (-1,-2.3) rectangle (13,1.3);
+    \useasboundingbox (-1,-2.95) rectangle (13,1.3);
     \alice{0}{0}
     \mallory{6}{0}
     \bob{12}{0}
     \draw[netarrow] (0.7,0.25) -- node[above, font=\small] {$A$} (5.3,0.25);
-    \draw[netarrow] (6.7,0.25) -- node[above, font=\small, text=sPinkText] {$M = g^{m}$} (11.3,0.25);
+    \draw[netarrow] (6.7,0.25) -- node[above, font=\small, text=sPinkText] {$g^{m}$} (11.3,0.25);
     \node[sec, font=\scriptsize] at (6,1.05) {$m$: Mallory's secret};
     \ifnum#1>1
       \draw[netarrow] (11.3,-0.25) -- node[below, font=\small] {$B$} (6.7,-0.25);
-      \draw[netarrow] (5.3,-0.25) -- node[below, font=\small, text=sPinkText] {$M = g^{m}$} (0.7,-0.25);
+      \draw[netarrow] (5.3,-0.25) -- node[below, font=\small, text=sPinkText] {$g^{m}$} (0.7,-0.25);
     \fi
     \ifnum#1>2
       \node[sec, font=\small] at (3,-1.6) {\faKey\ secret 1 $= g^{am}$};
       \node[sec, font=\small] at (9,-1.6) {\faKey\ secret 2 $= g^{bm}$};
+      \node[font=\footnotesize, text=nInk, align=left, anchor=north] at (3,-2.0) {\textcolor{sIndigo}{\textbf{Alice:}} $(g^{m})^{a} = g^{am}$\\ \textcolor{sPinkText}{\textbf{Mallory:}} $A^{m} = g^{am}$};
+      \node[font=\footnotesize, text=nInk, align=left, anchor=north] at (9,-2.0) {\textcolor{sTealText}{\textbf{Bob:}} $(g^{m})^{b} = g^{bm}$\\ \textcolor{sPinkText}{\textbf{Mallory:}} $B^{m} = g^{bm}$};
       \draw[decorate, decoration={brace, mirror, amplitude=5pt}, nInk] (0,-1.0) -- (6,-1.0);
       \draw[decorate, decoration={brace, mirror, amplitude=5pt}, nInk] (6,-1.0) -- (12,-1.0);
     \fi
   \end{tikzpicture}}
 \newcommand{\mitmsteps}[1]{%
   \footnotesize
-  \stepitem{1}{#1}{Alice sends $A$. Mallory keeps it and sends her own public value $M = g^{m}$ to Bob.}
-  \stepitem{2}{#1}{Bob sends $B$. Mallory keeps it and sends $M$ to Alice.}
+  \stepitem{1}{#1}{Alice sends $A$. Mallory keeps it and sends her own public value $g^{m}$ to Bob.}
+  \stepitem{2}{#1}{Bob sends $B$. Mallory keeps it and sends $g^{m}$ to Alice.}
   \stepitem{3}{#1}{Alice shares a secret with Mallory. Bob shares another one with Mallory.}}
 
 \begin{frame}{The attack, step 1}
@@ -1278,7 +1292,7 @@
   \vfill
   \begin{center}\begin{minipage}{0.8\textwidth}\mitmsteps{1}\end{minipage}\end{center}
   \vfill
-  \say{Mallory ma własny sekret m i własną wartość publiczną M = g\textasciicircum m, tak jak Alice ma a i A. Zna m, więc policzy A\textasciicircum m: ma wspólny sekret z Alice.}
+  \say{Mallory ma własny sekret m i własną wartość publiczną g\textasciicircum m, tak jak Alice ma a i A. Zna m, więc policzy A\textasciicircum m: ma wspólny sekret z Alice.}
 \end{frame}
 
 \samedot
@@ -1298,7 +1312,7 @@
   \vfill
   \begin{center}\begin{minipage}{0.8\textwidth}\mitmsteps{3}\end{minipage}\end{center}
   \vfill
-  \say{Alice myśli, że jej sekret dzieli z Bobem. Bob myśli to samo. Oboje się mylą.}
+  \say{Alice myśli, że g\textasciicircum m to B Boba, więc liczy (g\textasciicircum m)\textasciicircum a, tak jak na slajdzie ,,Why are they equal?''. Mallory dostaje tę samą liczbę jako A\textasciicircum m, bo zna m. Alice myśli, że jej sekret dzieli z Bobem. Bob myśli to samo. Oboje się mylą.}
 \end{frame}
 
 \samedot
@@ -1353,7 +1367,7 @@
   \end{center}
   \vfill
   \keymsg{Two exchanges, two keys, and Mallory holds both.}
-  \say{Sprawdzone. change\_A: self.key\_alice = key\_from\_secret(pow(A, self.m, P)) i zwraca self.M zamiast A. change\_B tak samo, z kluczem dla Boba. change\_message: decrypt kluczem Alice, print, encrypt kluczem Boba. Bob dostał poprawną wiadomość i niczego nie zauważył.}
+  \say{Sprawdzone. change\_A: self.key\_alice = key\_from\_secret(pow(A, self.m, P)) i zwraca self.g\_m (wartość publiczną Mallory, g\textasciicircum m) zamiast A. change\_B tak samo, z kluczem dla Boba. change\_message: decrypt kluczem Alice, print, encrypt kluczem Boba. Bob dostał poprawną wiadomość i niczego nie zauważył.}
 \end{frame}
 
 % a seal: \seal{x}{y}{colour}{text}
@@ -1365,11 +1379,11 @@
   \begin{center}
     \begin{tikzpicture}
       \node[pub, font=\Large, minimum width=2.2cm, minimum height=1.3cm] at (0,0) {$B$};
-      \seal{0.95}{-0.55}{sTeal}{Bob}
+      \seal{1.75}{0}{sTeal}{Bob}
       \node[text=aExec, font=\Large] at (0,-1.4) {\faCheck};
       \node[capt] at (0,-1.95) {sealed by Bob};
-      \node[pub, font=\Large, minimum width=2.2cm, minimum height=1.3cm, text=sPinkText] at (5,0) {$M$};
-      \node[circle, draw=nLight, very thick, dashed, minimum size=1.0cm] at (5.95,-0.55) {};
+      \node[pub, font=\Large, minimum width=2.2cm, minimum height=1.3cm, text=sPinkText] at (5,0) {$g^{m}$};
+      \node[circle, draw=nLight, very thick, dashed, minimum size=1.0cm] at (6.75,0) {};
       \node[text=aWrite, font=\Large] at (5,-1.4) {\faTimes};
       \node[capt] at (5,-1.95) {Mallory has no seal of Bob};
     \end{tikzpicture}
@@ -1378,7 +1392,7 @@
   \begin{center}
     Bob adds to his $B$ a \textbf{seal} that only his long-term private key (not $b$) can make.\\
     Alice checks the seal with Bob's public key.\\[6pt]
-    Mallory can replace $B$, but she \textbf{cannot seal} her $M$ as Bob.\\[4pt]
+    Mallory can replace $B$, but she \textbf{cannot seal} her $g^{m}$ as Bob.\\[4pt]
     \small\textcolor{gray}{Such a seal is a digital signature: a topic of its own, not covered here.}
   \end{center}
   \vfill
@@ -1453,6 +1467,7 @@
         \item Bob publishes his half of the exchange, $y = g^{x}$, \textbf{once and for all}.
         \item For every message, Alice does her half \textbf{on the spot}
           and uses the shared value to hide the message.
+        \item Why: Bob may be offline (e-mail). Alice cannot wait for his $B$, so Bob publishes it in advance.
       \end{itemize}
     \column{0.46\textwidth}
       \begin{center}
@@ -1464,9 +1479,9 @@
         \fill[aWrite] (1.7,1.75) circle (0.08);
         \node[font=\tiny\bfseries, text=nInk] at (1.7,2.15) {notice board};
         \bob{4.4}{1.3}
-        \alice{-1.2}{-1.1}
-        \node[msgb, font=\small] (m) at (0.6,-1.1) {\faEnvelope\ message};
-        \draw[data] (m.east) -- (2.3,-1.1);
+        \alice{-0.2}{-1.6}
+        \node[msgb, font=\small] (m) at (1.9,-1.6) {\faEnvelope\ message};
+        \draw[data] (m.east) to[out=0, in=-90] (Bobname.south);
       \end{tikzpicture}
       \end{center}
   \end{columns}
@@ -1517,7 +1532,7 @@
   \end{center}
   \vfill
   \curious{diffie-hellman/\#4}
-  \say{19\textasciicircum 3 = 6859, a 6859 mod 23 = 5, więc C2 = 7 · 5 mod 23 = 35 mod 23 = 12. Wiadomość M to liczba mniejsza od p. W symulatorze z linku ten sam przykład: szyfrowanie, odszyfrowanie i ta sama wiadomość dwa razy.}
+  \say{19\textasciicircum 3 = 6859, a 6859 mod 23 = 5, więc C2 = 7 · 5 mod 23 = 35 mod 23 = 12. Wiadomość M to liczba mniejsza od p. W symulatorze z linku ten sam przykład: szyfrowanie i odszyfrowanie. Karta ,,ta sama wiadomość dwa razy'' jest tam zwinięta pod przyciskiem; nie otwierać jej przed zadaniem 5.}
 \end{frame}
 
 \samedot
@@ -1533,7 +1548,7 @@
   \end{center}
   \vfill
   \begin{center}
-    \normalsize In Python (3.8 or newer):\quad \terminal{pow(5, -1, 23)}
+    \normalsize In Python (3.8 or newer):\quad \pyprompt{pow(5, -1, 23)}{14}
   \end{center}
   \vfill
   % CHECKED (python3): pow(5, -1, 23) = 14
@@ -1562,6 +1577,7 @@
 \end{frame}
 
 % CHECKED (python3): pow(10, 15, 23) = 5 and pow(19, 3, 23) = 5
+\samedot
 \begin{frame}{Why does it work?}
   \begin{center}
     \begin{tikzpicture}
@@ -1586,9 +1602,10 @@
       \draw[data] (5.0,-0.6) -- (r.west |- 0,-0.6);
     \end{tikzpicture}
   \end{center}
-  \begin{center}\small In our example: $10^{15} \bmod 23 = 5$ and $19^{3} \bmod 23 = 5$. Without $C_1$, Bob could not find it.\end{center}
+  \begin{center}\small In our example: $10^{15} \bmod 23 = 5$ and $19^{3} \bmod 23 = 5$. Without $C_1$, Bob could not find it.\\[2pt]
+    $y^{k}$ looks random to Eve (she would need $k$ or $x$), so $M \times y^{k}$ looks random, like XOR with a keystream.\end{center}
   \keymsg{Alice multiplies $M$ by the shared secret. Bob divides by it.}
-  \say{Dzielenie modulo p to mnożenie przez odwrotność. Dwie części szyfrogramu: C1 to połowa wymiany od Alice (Bob potrzebuje jej, żeby policzyć sekret), C2 to wiadomość zakryta tym sekretem. To odpowiedź na pytanie z zakresu: dlaczego szyfrogram ma dwa składniki.}
+  \say{Dzielenie modulo p to mnożenie przez odwrotność. Dwie części szyfrogramu: C1 to połowa wymiany od Alice (Bob potrzebuje jej, żeby policzyć sekret), C2 to wiadomość zakryta tym sekretem.}
 \end{frame}
 
 \begin{frame}{Task 5: ElGamal in Python}
@@ -1685,6 +1702,7 @@
   \say{Sprawdzone. mask = C2\_first * pow(M\_first, -1, P) \% P, potem M\_second = C2\_second * pow(mask, -1, P) \% P. Klucz prywatny Boba nie był potrzebny ani przez chwilę. W symulatorze z linku ten sam atak na małych liczbach i na liczbach z zadania.}
 \end{frame}
 
+\samedot
 \begin{frame}{The rule: a new k for every message}
   \vfill
   \begin{center}
@@ -1695,7 +1713,8 @@
   \end{center}
   \vfill
   \begin{center}
-    \large $k$ must be \textbf{random}, \textbf{secret} and \textbf{new for every message}.\\[6pt]
+    \large $k$ must be \textbf{random}, \textbf{secret} and \textbf{new for every message}.\\[4pt]
+    \small Secret: if $k$ leaks, anyone computes $y^{k}$ and divides it out.\\[4pt]
     \small The same lesson as the keystream and the nonce in the stream cipher lectures.
   \end{center}
   \vfill

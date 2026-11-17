@@ -8,7 +8,7 @@ class Mallory:
 
     def __init__(self):
         self.m = secrets.randbits(256)       # Mallory's own secret
-        self.M = pow(G, self.m, P)           # and her public value
+        self.g_m = pow(G, self.m, P)         # and her public value g^m (g_m: "g to the m")
 
     def change_A(self, A):
         # Alice sends A to Bob.
@@ -19,7 +19,7 @@ class Mallory:
 
     def change_B(self, B):
         # Bob sends B to Alice.
-        # TODO 2: the same for Bob: self.key_bob, and send M to Alice instead of B
+        # TODO 2: the same for Bob: self.key_bob, and send g_m to Alice instead of B
         return B
 
     def change_message(self, data):

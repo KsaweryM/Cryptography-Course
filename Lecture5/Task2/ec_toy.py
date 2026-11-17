@@ -27,4 +27,5 @@ def add(P, Q):
 # TODO 3: print G, 2G, 3G, ... by adding G again and again, until you reach O.
 #         start with k = 1 and R = G; while R is not O: print(f"{k}G = {R}"), R = add(R, G), k = k + 1
 #         after the loop: print(f"{k}G = O")
-print("not done yet: TODO 3")   # delete this line when you write the loop
+add(G, G)                       # one call of add(), so that the unchanged file also says what add() still needs
+print("not done yet: TODO 3")   # delete these two lines when you write the loop

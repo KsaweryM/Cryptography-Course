@@ -26,7 +26,6 @@ C = int(
 
 start = time.perf_counter()
 # TODO: find the PIN without the private key.
-#       Hint: you can encrypt any number yourself with the public key.
 pin = None
 
 if pin is None:

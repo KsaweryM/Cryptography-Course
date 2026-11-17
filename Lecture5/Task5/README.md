@@ -2,13 +2,13 @@
 
 ## The situation
 
-Alice and Bob want to chat with ChaCha20, so they need a shared 32-byte key, but they have never met and Eve reads everything on the network. They use X25519: ECDH on Curve25519, as in TLS 1.3 and Signal. Each has a 32-byte private key and sends only the public key. Each then combines their own private key with the other's public key, and both should get the same secret. HKDF turns that secret into the ChaCha20 key. The private keys here are the test values from RFC 7748, section 6.1, so you can compare your result with the standard.
+Alice and Bob want to chat with ChaCha20, so they need a shared 32-byte key, but they have never met and Eve reads everything on the network. They use X25519: ECDH on Curve25519, as in TLS 1.3 and Signal. Each has a 32-byte private key and sends only the public key. Each then combines their own private key with the other's public key, and both should get the same secret. HKDF turns that secret into the ChaCha20 key, and then into two keys, one for each direction, so that Alice and Bob never encrypt with the same key. The private keys here are the test values from RFC 7748, section 6.1, so you can compare your result with the standard.
 
-![Alice and Bob, each with a 32-byte private key in amber: Alice's starts 77076d0a7318a57d and ends b177fba51db92c2a, Bob's starts 5dab087e624a8a4b and ends 1c2f8b27ff88e0eb. public_key turns each into a public key, "public A = ?" and "public B = ?", in violet; A goes to Bob and B to Alice, and Eve listens and sees A and B. x25519(private, B) on Alice's side and x25519(private, A) on Bob's side each give "secret = ?", with "= ?" between them. Alice's secret goes into hkdf with info b"lecture 5 chat key" and out comes "ChaCha20 key, 32 bytes = ?".](figure.svg)
+![Alice and Bob, each with a 32-byte private key in amber: Alice's starts 77076d0a7318a57d and ends b177fba51db92c2a, Bob's starts 5dab087e624a8a4b and ends 1c2f8b27ff88e0eb. public_key turns each into a public key, "public A = ?" and "public B = ?", in violet; A goes to Bob and B to Alice, and Eve listens and sees A and B. x25519(private, B) on Alice's side and x25519(private, A) on Bob's side each give "secret = ?", with "= ?" between them. Alice's secret goes into hkdf with info b"lecture 5 chat key" and out comes "ChaCha20 key, 32 bytes = ?". The same secret goes into hkdf twice more, with info b"Alice to Bob" and b"Bob to Alice", and out come "key Alice to Bob = ?" and "key Bob to Alice = ?", with "different?" between them.](figure.svg)
 
 ## Goal
 
-Agree on a shared secret as Alice and as Bob, check that both are the same, and derive a ChaCha20 key from it.
+Agree on a shared secret as Alice and as Bob, check that both are the same, derive a ChaCha20 key from it, then derive two different keys, one per direction, from the same secret.
 
 ## Ready for you
 
@@ -26,10 +26,11 @@ Write your code in place of the `None` after each `TODO` in `ecdh.py`:
 1. The public keys: `alice_public = public_key(alice_private)` and `bob_public = public_key(bob_private)`.
 2. The shared secret on both sides: Alice uses `x25519(alice_private, bob_public)`, Bob uses `x25519(bob_private, alice_public)`.
 3. Derive the ChaCha20 key from Alice's secret: `key = hkdf(alice_secret, b"lecture 5 chat key")`. `b"..."` is a `bytes` literal.
+4. One secret, two keys: `key_alice_to_bob = hkdf(alice_secret, b"Alice to Bob")` and `key_bob_to_alice = hkdf(alice_secret, b"Bob to Alice")`. Alice encrypts with the first key, Bob with the second, so the two never use the same key and nonce. The only difference is the label `info`.
 
 ## Expected output
 
-The two public keys, the two secrets (the same 64 hex digits twice), `equal: True`, and the 32-byte key. Compare the secret with RFC 7748, section 6.1.
+The two public keys, the two secrets (the same 64 hex digits twice), `equal: True`, the 32-byte key, then the two keys of step 4 and `different: True`. Compare the secret with RFC 7748, section 6.1.
 
 <details>
 <summary>Check your answer</summary>
@@ -41,9 +42,12 @@ secret (Alice):      4a5d9d5ba4ce2de1728e3bf480350f25e07e21c947d19e3376f09b3c1e1
 secret (Bob):        4a5d9d5ba4ce2de1728e3bf480350f25e07e21c947d19e3376f09b3c1e161742
 equal: True
 ChaCha20 key:        8232af18b2d158a867dead920cb27b5f70409d17ef4712ba664eb4d2ff392f78
+key Alice to Bob:    ebc98d3d10432aec017fa08fc2100ee93ef249f8ca6635e3bd6569aa6fb36a67
+key Bob to Alice:    a187bf5005903e5b1b59498cf8cc53c6ec7f90618b31773f84ca91bd9804edcf
+different: True
 ```
 
-The public keys and the secret are exactly the values in RFC 7748, section 6.1. Your labels may differ; the hex values must not.
+The public keys and the secret are exactly the values in RFC 7748, section 6.1. The three keys come from the same secret and differ only in the label: change one letter of a label and the key changes completely. Your labels may differ; the hex values must not.
 
 </details>
 
@@ -53,6 +57,6 @@ The public keys and the secret are exactly the values in RFC 7748, section 6.1. 
 python3 ecdh.py
 ```
 
-About 6 minutes. Python 3, no extra libraries.
+About 7 minutes. Python 3, no extra libraries.
 
 Want to see it move? The [elliptic-curves simulator, step 1](https://ksawerym.github.io/Cryptography-simulators/elliptic-curves/#1) runs the same exchange on the small curve mod 17 and, lower on the page, on P-256: change the secrets and watch both sides get the same point.

@@ -1,7 +1,7 @@
 # Two secret primes, about 20 digits each
 p = 37908704904578413183
 q = 58606630333925820283
-e = 65537
+e = 65537   # step 6 of the README: try 3 here, then put 65537 back
 
 message = 2026   # the number we want to send; it must be smaller than n
 
@@ -9,7 +9,7 @@ message = 2026   # the number we want to send; it must be smaller than n
 n = None
 # TODO 2: phi = (p - 1) times (q - 1)
 phi = None
-# TODO 3: d = the inverse of e mod phi: pow(e, -1, phi)
+# TODO 3: d = the inverse of e mod phi
 d = None
 # TODO 4: C = message to the power e mod n (encrypt with the public key e, n)
 C = None

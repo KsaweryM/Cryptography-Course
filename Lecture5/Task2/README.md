@@ -17,7 +17,7 @@ Finish the point addition, then list G, 2G, 3G, ... until you reach O. How many 
 
 ## Steps
 
-Write your code in place of the `TODO` comments in `ec_toy.py`. Each `print("not done yet: ...")` line is there only so that the unchanged file says what is missing: delete it when you do its TODO.
+Write your code in place of the `TODO` comments in `ec_toy.py`. Each `print("not done yet: ...")` line is there only so that the unchanged file says what is missing: delete it when you do its TODO (with TODO 3 also the line `add(G, G)` above it: it only calls `add()` once so that the unchanged file reports TODO 1 and 2 too).
 
 1. The slope `s`. For doubling (`P == Q`): `s = (3 * x1 * x1 + a) / (2 * y1) mod p`; otherwise `s = (y2 - y1) / (x2 - x1) mod p`.
    - Python has no `/` modulo p: "`/ v mod p`" means "`* pow(v, -1, p)`", the modular inverse (Python 3.8 or newer). Then `% p`.

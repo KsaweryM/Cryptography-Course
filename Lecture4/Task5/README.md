@@ -12,7 +12,7 @@ Write `encrypt` and `decrypt` of ElGamal, then check that the message comes back
 
 ## Ready for you
 
-- `elgamal.py`: `P` (2048 bits) and `G = 2`, Bob's private key `x` and public key `y`.
+- `elgamal.py`: `P` (2048 bits) and `G = 2`, Bob's private key `x` and public key `y`. Here x and k are full-size (up to 2048 bits); 256 bits would also be enough.
 - `elgamal.py`: `text_to_number(text)` and `number_to_text(number)` turn text into a number and back.
 - `elgamal.py`: the code at the end, which encrypts the message, decrypts it, encrypts it once more and compares the two C1.
 

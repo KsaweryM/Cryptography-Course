@@ -11,7 +11,7 @@
   \mallory{ma}{7,0}
   \node[text=nInk, font=\Large] at (7,1.05) {\faLaptop};
   \node[font=\small\bfseries, text=rMalText] at (8.0,1.1) {you};
-  \node[malv, font=\small, anchor=west] (mk) at (7.9,-0.2) {$m$: Mallory's secret\\ $M = g^{m} \bmod p$};
+  \node[malv, font=\small, anchor=west] (mk) at (7.9,-0.2) {$m$: Mallory's secret\\ $g^{m} \bmod p$: \texttt{self.g\_m}};
 
   % the three messages that pass through Mallory
   \foreach \y/\n in {-2.5/1, -3.9/2, -5.3/3} \node[anchor=east] at (-0.9,\y) {\badge{\n}};
