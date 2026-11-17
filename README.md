@@ -37,18 +37,8 @@ Lectures 9 to 12 about 170 minutes each, tasks included.
 
 ## Simulators
 
-The slides link to interactive pages that show each algorithm step by step:
-https://ksawerym.github.io/Cryptography-simulators/ (RC4, ChaCha20, RSA, Diffie-Hellman,
-elliptic curves, and the mathematics behind them). Some demos in the lectures are run there.
-
-Lecture 8 links to the **digital signatures simulator**:
-https://ksawerym.github.io/Cryptography-simulators/signatures/ (sign and verify, textbook RSA
-signatures, forgeries without a hash, and ECDSA with a repeated k).
-
-Lectures 9 to 12 link to the **PKI simulator**:
-https://ksawerym.github.io/Cryptography-simulators/pki/. It tells the Mallory story, opens
-real certificates field by field down to the DER bytes, builds and checks chains of trust,
-shows revocation, the TLS 1.3 handshake with mutual TLS, and pinning.
+The slides link to interactive pages that show the hard parts step by step:
+https://ksawerym.github.io/Cryptography-simulators/
 
 ---
 
