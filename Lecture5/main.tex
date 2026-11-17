@@ -432,10 +432,10 @@
     \end{tikzpicture}
   \end{center}
   \vfill
-  \begin{center}\small On a good curve, the best known attack is plain guessing.
-    So \textbf{256 bits} give \textbf{128 bits} of security.\end{center}
+  \begin{center}\small Modulo $p$, Eve has clever shortcuts, so $p$ needs 2048 bits. On a good curve she has none:\\
+    only a general search of $\sqrt{\text{number of points}}$ steps, so \textbf{256 bits} give $2^{128}$: \textbf{128 bits} of security.\end{center}
   \keymsg{The same ideas on a curve: keys about 12 times shorter.}
-  \say{ElGamal to szyfr z wykładu 4. Dla logarytmu na krzywej nie znamy ataków podobnych do tych na liczby modulo p, poza ogólnym zgadywaniem. Dlatego klucz 256 bitów daje 128 bitów bezpieczeństwa.}
+  \say{ElGamal to szyfr z wykładu 4. Dlaczego krzywe pozwalają na krótsze klucze: dla liczb modulo p istnieją sprytne metody (z tej samej rodziny co na faktoryzację z wykładu 3), które działają dużo szybciej niż sprawdzanie po kolei; dlatego p musi mieć 2048 bitów. Na punktach dobrej krzywej te metody nie działają. Zostają metody ogólne, działające w każdej grupie (np. rho Pollarda); potrzebują około pierwiastka z liczby punktów kroków, czyli dla 256 bitów około 2 do 128. Samo sprawdzanie po kolei byłoby jeszcze wolniejsze (2 do 256).}
 \end{frame}
 
 \begin{frame}{Elliptic-curve cryptography, 1985}
@@ -602,6 +602,27 @@
 % CHECKED: python3, the real curve y^2 = x^3 + 2x + 2:
 %   P = (-0.7, 0.507), Q = (0.2, 1.552), slope 1.161, third point (1.848, 3.465), P + Q = (1.848, -3.465)
 %   doubling P = (-0.4, 1.066), tangent slope 1.163, second point (2.154, 4.037), 2P = (2.154, -4.037)
+\begin{frame}{Why do we add points?}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \foreach \x/\ttl/\op/\row in {0/{Diffie-Hellman, lecture 4}/{multiply modulo $p$}/{$g,\; g \times g,\; g \times g \times g,\; \ldots$},
+                                    7.6/{on a curve}/{add two points: ?}/{$P,\; P + P,\; P + P + P,\; \ldots$}} {
+        \node[hwmain, minimum width=6.4cm, minimum height=0.7cm] at (\x,1.3) {\ttl};
+        \draw[nInk, thick, rounded corners=3pt, fill=white] (\x-3.2,-1.3) rectangle (\x+3.2,0.95);
+        \node[font=\large, text=nInk] at (\x,0.2) {\row};
+        \node[font=\small, text=AccentOrange] at (\x,-0.75) {one operation, repeated: \op};
+      }
+      \draw[-{Stealth}, line width=2pt, AccentOrange] (3.35,0.2) -- (4.25,0.2);
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small Diffie-Hellman repeats one operation many times.
+    On a curve we need an operation that takes two points and gives a third point of the curve.\end{center}
+  \keymsg{On a curve, that operation is adding points.}
+  \say{Pomost od sekcji 1: wymieniamy liczby na punkty, ale Diffie-Hellman potrzebuje działania, które można powtarzać, tak jak mnożenie modulo p. Na krzywej będzie to dodawanie punktów. Nie jest to zwykłe dodawanie współrzędnych: (x1 + x2, y1 + y2) zwykle nie leży na krzywej. Następne slajdy pokazują, jak dodawać tak, żeby wynik był znowu punktem krzywej.}
+\end{frame}
+
 \begin{frame}{Adding two points: the idea}
   \begin{columns}[c,onlytextwidth]
     \column{0.5\textwidth}
@@ -734,6 +755,25 @@
 % inside \dblG: the arrow on the step of this slide; text shown only from step #1 on (the place stays empty before)
 \newcommand{\mk}[1]{\ifnum\dstep=#1 \textcolor{AccentOrange}{\faCaretRight}\fi}
 \newcommand{\from}[2]{\ifnum\dstep<#1 \phantom{#2}\else #2\fi}
+
+\begin{frame}{The starting point G}
+  \begin{columns}[c,onlytextwidth]
+    \column{0.55\textwidth}
+      \defbox{\textbf{G}: one fixed point of the curve, chosen by the designers of the curve and published.
+        Everybody starts from it. It plays the role of $g$ in Diffie-Hellman.}
+      \vspace{0.4cm}
+      \begin{center}
+        \Large On our curve: \; $G = (5, 1)$\\[0.3cm]
+        \small Next: $2G = G + G$, \; $3G = G + 2G$, \; \dots
+      \end{center}
+    \column{0.42\textwidth}
+      \centering
+      \modgrid[0.245]{\gmark[AccentOrange]{5,1}{$G$}{below right}}
+  \end{columns}
+  \vfill
+  \keymsg{G is public, like $p$ and $g$ in Diffie-Hellman.}
+  \say{Często mówi się punkt bazowy (base point) albo generator. Krzywa i G to publiczne ustawienia, tak jak p i g w Diffiem-Hellmanie. Na prawdziwych krzywych G jest zapisane w standardzie (np. P-256 albo Curve25519).}
+\end{frame}
 
 \begin{frame}{Doubling G, step 1}
   \dblG{1}
@@ -915,7 +955,7 @@
       \draw[-{Stealth}, line width=2.4pt, aExec] ([yshift=0.25cm]k.east) -- node[above, font=\small, text=nInk]
         {\textcolor{aExec}{\faBolt}\ forward: fast, double and add} ([yshift=0.25cm]t.west);
       \draw[-{Stealth}, line width=2.4pt, aWrite, dashed] ([yshift=-0.25cm]t.west) -- node[below, font=\small, text=nInk]
-        {\textcolor{aWrite}{\faQuestion}\ back: only by guessing, on a good curve} ([yshift=-0.25cm]k.east);
+        {\textcolor{aWrite}{\faQuestion}\ back: no shortcut, only slow search} ([yshift=-0.25cm]k.east);
     \end{tikzpicture}
   \end{center}
   \vfill
@@ -960,7 +1000,7 @@
   \end{center}
   \vfill
   \keymsg{Every 4 more bits make the search more than 10 times longer.}
-  \say{Pomiar z mojego laptopa; u studentów czasy będą inne, ale proporcje podobne. Porównać z przewidywaniami z tablicy. Czas rośnie razem z k, czyli z liczbą dodawań: k jest kolejno około 22 i 11 razy większe; średnio 4 bity więcej to 16 razy więcej dodawań. Dla 256 bitów to około $2^{255}$ dodawań. Najlepszy znany atak na dobrą krzywą (metoda rho Pollarda) potrzebuje około $2^{128}$ kroków.}
+  \say{Pomiar z mojego laptopa; u studentów czasy będą inne, ale proporcje podobne. Porównać z przewidywaniami z tablicy. Czas rośnie razem z k, czyli z liczbą dodawań: k jest kolejno około 22 i 11 razy większe; średnio 4 bity więcej to 16 razy więcej dodawań. Dla 256 bitów nasze dodawanie po kolei potrzebowałoby około 2 do 255 dodawań. Najlepszy znany atak na dobrą krzywą (metoda rho Pollarda) potrzebuje około 2 do 128 kroków, pierwiastek z liczby punktów; to wciąż nieosiągalne.}
 \end{frame}
 
 \begin{frame}{The order of G}

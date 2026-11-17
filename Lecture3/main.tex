@@ -687,7 +687,8 @@
     \end{tikzpicture}
   \end{center}
   \vfill
-  \say{Klucz publiczny pozwala liczyć w przód, klucz prywatny to furtka, która pozwala cofnąć.}
+  \keymsg{In public-key cryptography the public key goes forward and the private key is the trapdoor that goes back.}
+  \say{Klucz publiczny pozwala liczyć w przód, klucz prywatny to furtka, która pozwala cofnąć. Na rysunku nie ma furtki: farb nie da się rozdzielić nikomu. W RSA furtka istnieje; jaka to tajemnica, zobaczymy przy tworzeniu kluczy.}
 \end{frame}
 
 \samedot
@@ -1087,7 +1088,7 @@
   \end{center}
   \vfill
   \curious{rsa/\#2}
-  \keymsg{Whoever knows p and q can compute d.}
+  \keymsg{p and q are the trapdoor: whoever knows them can compute d.}
   \say{Klucz publiczny i prywatny mają to samo n. Różnią się tylko wykładnikiem. W symulatorze z linku te pięć kroków dla własnych liczb pierwszych, z gotowym przykładem 17, 11, e = 7.}
 \end{frame}
 
@@ -1103,7 +1104,8 @@
       \node[font=\scriptsize, text=nInk] at (3,-0.6) {encrypt with the public key};
       \node[font=\scriptsize, text=nInk] at (9,-0.6) {decrypt with the private key};
     \end{tikzpicture}\\[0.8cm]
-    P must be a number smaller than n.
+    P is the message as a number smaller than n:\\[2pt]
+    \small text $\to$ bytes $\to$ one big number, as \texttt{rsa\_ready.py} did in Task 2.
   \end{center}
   \vfill
   \keymsg{Encryption and decryption are both one power modulo n.}
@@ -1157,10 +1159,33 @@
       \end{center}
   \end{columns}
   \vfill
-  \curious{rsa/\#3}
   \keymsg{The private key undoes what the public key did.}
   % CHECKED: python3: 11^1, 11^2, 11^4, 11^8, 11^16 mod 187 = 11, 121, 55, 33, 154; pow(11, 23, 187) = 88
-  \say{Sprawdzone pow(11, 23, 187) = 88. Dlaczego wraca właśnie 88, pokazuje symulator z linku: te same liczby (88, klucz 7 i 23) i powód z twierdzenia Eulera. Na slajdach dowodu nie robimy.}
+  \say{Sprawdzone pow(11, 23, 187) = 88. Dlaczego wraca, pokazuje następny slajd.}
+\end{frame}
+
+% CHECKED: python3: pow(2, 160, 187) = 1, pow(2, 7, 187) = 128, pow(128, 23, 187) = 2, 7 * 23 = 161
+\samedot
+\begin{frame}{Why does the message come back?}
+  \vfill
+  \stepbox{1. Powers go round in a circle}{For every P that shares no factor with n:\quad
+    $P^{\,\text{phi}} \bmod n = 1$ \qquad e.g.\ $2^{160} \bmod 187 = 1$ \hfill\textcolor{gray}{(Euler)}}
+  \stepbox{2. d was chosen for this}{$e \times d = 7 \times 23 = 161 = 160 + 1$:\quad one full circle, plus one step.}
+  \stepbox{3. So decrypting undoes encrypting}{$(P^{7})^{23} = P^{161} = P^{160} \times P = 1 \times P = P \pmod{187}$}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \node[msg, font=\Large] (p) at (0,0) {2};
+      \node[ctx, font=\Large] (c) at (4,0) {128};
+      \node[msg, font=\Large] (p2) at (8,0) {2};
+      \draw[data] (p) -- node[above=4pt, pubkey] {\faLockOpen\ $2^{7} \bmod 187$} (c);
+      \draw[data] (c) -- node[above=4pt, privkey] {\faKey\ $128^{23} \bmod 187$} (p2);
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \curious{rsa/\#3}
+  \keymsg{d makes $e \times d$ one more than a full circle (mod phi), so the message comes back.}
+  \say{To jest cała intuicja, bez dowodu. Phi to długość okręgu: po phi krokach potęgi wracają do 1 (twierdzenie Eulera). Dlatego d to odwrotność e modulo phi: e razy d to 1 plus pełne okręgi (ogólnie 1 + k razy phi, tu k = 1). Twierdzenie Eulera mówi tylko o P, które nie mają wspólnego dzielnika z n. Nasze 88 = 8 razy 11 akurat ma wspólny dzielnik 11, a mimo to wróciło; czy działa zawsze, sprawdzi zadanie 5. Nie zdradzać odpowiedzi. W symulatorze z linku te same liczby krok po kroku.}
 \end{frame}
 
 % the operations for one power, bit by bit: S = square, M = multiply; the exponent 23 = 10111 of the last slide

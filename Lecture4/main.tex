@@ -588,34 +588,37 @@
   \end{center}
   \vspace{-0.25cm}
   \begin{center}\footnotesize Every number from 1 to 22 appears \textbf{exactly once}.\end{center}
-  \keymsg{A good g produces every number from 1 to p - 1.}
-  \say{Taką liczbę g nazywamy generatorem. Widać też, że wyniki skaczą bez żadnego porządku; to wróci w sekcji 3.}
+  \keymsg{A good g has a long cycle: here it reaches every number from 1 to 22.}
+  \say{Taką liczbę g nazywamy generatorem. Liczy się długość cyklu: ile różnych wartości dają potęgi g, zanim zaczną się powtarzać. Tyle możliwości musiałaby sprawdzić Eve. Widać też, że wyniki skaczą bez żadnego porządku; to wróci w sekcji 3.}
 \end{frame}
 
 \samedot
 \begin{frame}{A bad g}
   \vfill
-  \small Powers of 2 mod 23:
+  \small Powers of 22 mod 23:
   \begin{center}
     \begin{tikzpicture}
-      % CHECKED (python3): [pow(2, e, 23) for e in range(1, 17)]
+      % CHECKED (python3): [pow(22, e, 23) for e in range(1, 17)] = 22, 1, 22, 1, ...
       \foreach \e in {1,...,16} \node[font=\tiny, text=gray] at ({0.6*\e},0.45) {\e};
-      \valrow{2,4,8,16,9,18,13,3,6,12,1,2,4,8,16,9}{pub}
-      \foreach \k in {12,...,16} \node[cellfree, minimum width=0.56cm, minimum height=0.5cm, fill=AccentOrange!12,
+      \valrow{22,1,22,1,22,1,22,1,22,1,22,1,22,1,22,1}{pub}
+      \foreach \k in {3,...,16} \node[cellfree, minimum width=0.56cm, minimum height=0.5cm, fill=AccentOrange!12,
         draw=AccentOrange, font=\ttfamily\scriptsize, solid] at (v\k) {};
-      \foreach \k/\v in {12/2,13/4,14/8,15/16,16/9} \node[font=\ttfamily\scriptsize, text=nInk] at (v\k) {\v};
-      \node[font=\scriptsize, text=gray] at (10.25,0) {\dots};
-      \draw[-{Stealth}, very thick, AccentOrange] (v11.south) to[out=-40, in=-140] node[below, font=\scriptsize, text=AccentOrange] {back to the start}
-        ([xshift=-2pt]v12.south);
-      \draw[decorate, decoration={brace, mirror, amplitude=5pt}, nInk] ([yshift=-0.9cm]v1.south west) -- ([yshift=-0.9cm]v11.south east)
-        node[midway, below=6pt, font=\scriptsize, text=nInk] {11 different values, then they repeat};
+      \foreach \k/\v in {3/22,4/1,5/22,6/1,7/22,8/1,9/22,10/1,11/22,12/1,13/22,14/1,15/22,16/1}
+        \node[font=\ttfamily\scriptsize, text=nInk] at (v\k) {\v};
+      \draw[-{Stealth}, very thick, AccentOrange] (v2.south) to[out=-40, in=-140] node[below, font=\scriptsize, text=AccentOrange] {back to the start}
+        ([xshift=-2pt]v3.south);
+      \draw[decorate, decoration={brace, mirror, amplitude=5pt}, nInk] ([yshift=-0.9cm]v1.south west) -- ([yshift=-0.9cm]v2.south east)
+        node[midway, below=6pt, font=\scriptsize, text=nInk, align=center] {2 values,\\then they repeat};
     \end{tikzpicture}
   \end{center}
   \vfill
-  \begin{center}Only \textbf{11 different values}: half as many for Eve to try.\end{center}
+  \begin{center}Only \textbf{2 different values}: $A$ is 22 or 1, whatever Alice's secret $a$ is.\\[2pt]
+    Eve guesses the shared secret on the first or the second try.\end{center}
   \vfill
   \curious{diffie-hellman/\#2}
-  \say{Wybór g należy do twórców standardu, nie do użytkownika. Gotowe grupy z oficjalnych standardów mają sprawdzone p i g. W symulatorze z linku potęgi g chodzą po zegarze: dla g = 5 trafiają w każdą liczbę, po wpisaniu g = 2 tylko w połowę.}
+  \keymsg{g must have a long cycle. Real standards pick p and g so that the cycle has about $p/2$ values.}
+  % CHECKED (python3): RFC 3526 group 14, P = the 2048-bit prime: pow(2, (P - 1)//2, P) == 1, so g = 2 has the cycle (P - 1)/2
+  \say{22 to p - 1, czyli -1 modulo 23: jego potęgi to na zmianę 22 i 1. Taki cykl to katastrofa. Pół cyklu to nie problem: w RFC 3526 (grupa 14, której używamy dalej) g = 2 daje (p - 1)/2 różnych wartości, około 2 do potęgi 2047; to tylko o jeden bit mniej niż pełny cykl, a standard wybiera tak celowo. Wybór g należy do twórców standardu, nie do użytkownika. W symulatorze z linku potęgi g chodzą po zegarze; wpisz g = 22.}
 \end{frame}
 
 % ---------- the exchange, one picture in five steps ----------
@@ -1519,7 +1522,8 @@
   \end{center}
   \vfill
   \begin{center}
-    The ciphertext is the pair\quad \tikz[baseline=(n.base)]\node[ctx, font=\Large] (n) {$(C_1, C_2) = (10, 14)$};
+    The ciphertext is the pair\quad \tikz[baseline=(n.base)]\node[ctx, font=\Large] (n) {$(C_1, C_2) = (10, 14)$};\\[0.3cm]
+    \footnotesize\textcolor{gray}{$M$ is the message as a number smaller than $p$: text $\to$ bytes $\to$ one big number, as in RSA.}
   \end{center}
   \vfill
   \curious{diffie-hellman/\#4}
