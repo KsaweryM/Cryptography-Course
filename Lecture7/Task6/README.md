@@ -1,73 +1,60 @@
-# Task 6: find the SCTs
+# Task 6: the leaked table with salt
 
 ## The situation
 
-With Certificate Transparency, every public certificate is sent to public logs before it is issued, and each log answers with a Signed Certificate Timestamp (SCT): a signed promise to publish the certificate. The CA puts the SCTs inside the certificate, and browsers refuse public certificates without them. This folder holds two real certificates, saved on 15 November 2026 (`www.coventry.ac.uk` and `www.python.org`), and one made with `make_cert` that was never logged.
+A better web shop stored, for each user, a random **salt** (16 bytes, different for every user, not secret) and `SHA-256(salt + password)`. Its table has leaked too: `leaked_users.txt` has lines `user:salt:digest`. The users and their passwords are the same as in Task 5, and Mallory has the same `wordlist.txt`.
 
-![Three certificates, coventry.pem (90 days), python-org.pem (397 days) and my-shop.pem (made with make_cert, 90 days), each with SCTs: ?. Above them three CT logs. Steps: 1 how many SCTs, 2 which log and when, 3 minutes after valid_from, 4 days valid.](figure.svg)
+![The leaked table with three columns: user, salt (public), SHA-256(salt + password). alice a54dca182530bb1d... 27b9f609667f414e..., carol 3460be31201e69fe... d1d5d3c780e63250..., dave 7c2999fdafe59325... 04c4b03e1951548b..., ... the same 12 users as in Task 5. wordlist.txt goes into SHA-256(salt of user u + guess). Cracked: ? of 12, SHA-256 computations: ?. For every user: every guess again, with that user's salt. Compare with Task 5: 3 529 computations.](figure.svg)
 
 ## Goal
 
-Read the SCTs of two real certificates and of one that was never logged.
+Crack the salted table and compare the number of SHA-256 computations with Task 5 (3 529).
 
 ## Ready for you
 
-- `coventry.pem`, `python-org.pem`, `my-shop.pem`.
-- `cert_ready.py` (a black box): `load_cert`, `subject_of`, `issuer_of`, `valid_from`, `valid_until`; `scts_of(cert)` gives the list of SCTs inside a certificate (empty if there are none); for one SCT `s`, `s.log_id` is the ID of the log (bytes) and `sct_time(s)` the time when the log signed it.
-- `ct_logs.py`: `LOGS[...]` turns a log ID, written in hex capitals (`s.log_id.hex().upper()`), into the name of the log. Copied from Google's list of logs on 15 November 2026.
-- The difference of two dates is a duration: `(a - b).total_seconds()`.
+- `crack_salted.py`: `load_users(path)` returns three parallel lists `names[i]`, `salts[i]` (bytes) and `digests[i]` (hex text); `load_words(path)`.
+- `salts[u] + typed.encode()` joins the salt and the password bytes into one buffer, the salt first.
+
+Before you run it, predict: more or fewer users cracked than in Task 5? More or fewer computations?
 
 ## Steps
 
-The loop over the three files is ready. Write your code in place of the `TODO` comments in `find_scts.py`:
+Write your code in `crack_salted.py`, in place of the `TODO` comments:
 
-1. Get the list of SCTs of the certificate with `scts_of` and print how many there are.
-2. For each SCT print the name of its log and its time.
-3. For each SCT print how many minutes lie between `valid_from(cert)` and the time of the SCT.
-4. Print how many days the certificate is valid.
+1. `check_login(u, typed)`: return whether `hashlib.sha256(salts[u] + typed.encode()).hexdigest()` equals `digests[u]`.
+2. The attack, user by user: for every user `u`, go through the words; for each, compute `sha256(salts[u] + word)` (add 1 to `hashes`) and compare with `digests[u]`. On a match print `f"{names[u]}: {word}"`, add 1 to `cracked` and `break` (go to the next user).
+3. Print the summary line given in the comment.
 
 ## Expected output
-
-Predict first: how many SCTs has `my-shop.pem`?
 
 <details>
 <summary>Check your answer</summary>
 
 ```
-coventry.pem : CN=www.coventry.ac.uk issued by CN=WE1,O=Google Trust Services,C=US
-  valid from: 2026-10-13 02:29:16+00:00
-  SCTs: 2
-    DigiCert Sphinx2027h1 at 2026-10-13 03:29:17.226000+00:00
-    Let's Encrypt Willow2027h1 at 2026-10-13 03:29:17.654000+00:00
-    SCT 1 came 60.0 minutes after valid_from
-    SCT 2 came 60.0 minutes after valid_from
-  valid for 90 days
-
-python-org.pem : CN=www.python.org issued by CN=GlobalSign Atlas R3 DV TLS CA 2025 Q4,O=GlobalSign nv-sa,C=BE
-  valid from: 2026-01-13 13:03:46+00:00
-  SCTs: 3
-    Sectigo Elephant2027h1 at 2026-01-13 13:03:48.338000+00:00
-    Cloudflare Nimbus2027 at 2026-01-13 13:03:48.312000+00:00
-    Let's Encrypt Sycamore2027h1 at 2026-01-13 13:03:49.186000+00:00
-    SCT 1 came 0.0 minutes after valid_from
-    SCT 2 came 0.0 minutes after valid_from
-    SCT 3 came 0.1 minutes after valid_from
-  valid for 397 days
-
-my-shop.pem : CN=my-shop.example issued by CN=my-shop.example
-  valid from: 2026-11-15 16:13:15+00:00
-  SCTs: 0
-  valid for 90 days
+12 users, 3529 guesses in the list
+carol: salt 3460be31201e69fedaa0eee8b9997f5c  digest d1d5d3c780e63250...
+dave:  salt 7c2999fdafe593253cd654af4dfad714  digest 04c4b03e1951548b...
+alice types monkey123: True
+alice: monkey123
+bob: Liverpool1
+carol: iloveyou
+dave: iloveyou
+frank: qwerty
+grace: dragon2024
+ivan: 123456
+judy: Summer2025
+oscar: football!
+cracked 9 of 12 users with 11795 SHA-256 computations
 ```
 
-The 90-day certificate has 2 SCTs, the 397-day one has 3: browsers ask for 2 SCTs when a certificate lives up to 180 days and 3 when it lives longer. The SCTs come seconds after issuance. In the Coventry certificate `valid_from` is one hour before the SCTs: its CA dates certificates back a little, which helps clients whose clock is slow. Our own certificate has no SCT: no browser would accept it as a public certificate.
+The same 9 users fall: salt does not make a weak password strong. But carol's and dave's digests no longer match, and the work grew to 11 795 computations (if nobody fell, 12 × 3 529 = 42 348). With a million users it would be a million times the work of Task 5.
 
 </details>
 
 ## Run
 
 ```
-python3 find_scts.py
+python3 crack_salted.py
 ```
 
-About 7 minutes. Python 3 and the library `cryptography` (`pip install cryptography`, version 41 or newer). No internet needed.
+About 8 minutes. Python 3.8 or newer, no extra libraries.

@@ -1,0 +1,21 @@
+% Task 4: three CRLs. Values from ../checks/make_files.py (Task4/files).
+% CHECKED: openssl crl -text: crl.pem Last Update Nov 15 2026, Next Update Dec 31 2027, entries 0FFE (superseded),
+%   1002 (Key Compromise, Nov 10 09:30 2026); old_crl.pem Oct 1 to Oct 8 2026, entry 0FFE; fake_crl.pem signed by another key
+\documentclass[12pt,tikz,border=6pt]{standalone}
+\input{common}
+\begin{document}
+\pagecolor{white}
+\begin{tikzpicture}[>=Stealth]
+  \node[smallcard=sViolet] (ca) at (1.6,2.6) {\cert\ \texttt{issuing\_ca.pem}: Trusty Issuing CA 1};
+  \node[smallcard=sTeal, anchor=west] (b) at (-5.6,1.4) {\cert\ \texttt{bob.pem}: bob.example, serial \texttt{0x1001}};
+  \node[smallcard=sTeal, anchor=west] (c) at (2.6,1.4) {\cert\ \texttt{carol.pem}: carol.example, serial \texttt{0x1002}};
+  \draw[data] (ca) -- (b.north); \draw[data] (ca) -- (c.north);
+  \foreach \x/\n/\l/\e/\s in {-5.6/crl.pem/{15 Nov 2026 to 31 Dec 2027}/{\texttt{0FFE} superseded\\ \texttt{1002} keyCompromise}/{Trusty Issuing CA 1},
+      0.2/old\_crl.pem/{1 Oct 2026 to 8 Oct 2026}/{\texttt{0FFE} superseded}/{Trusty Issuing CA 1},
+      6.0/fake\_crl.pem/{15 Nov 2026 to 31 Dec 2027}/{\texttt{0FFE} superseded}/{a key, but whose?}} {
+    \node[revdoc, text width=5.2cm, anchor=north] (d) at (\x+2.3,0.3) {\faList\ \textbf{\texttt{\n}}\\[2pt]
+      \footnotesize Last to Next Update:\\ \l\\[2pt] revoked serials:\\ \e\\[2pt] \faPen\ signed with: \s};
+  }
+  \node[todo, anchor=north] at (2.0,-4.0) {for each list: \textbf{1} is the signature the CA's? \quad \textbf{2} is it still fresh?\\ then \textbf{3} look up Bob's and Carol's serial numbers.\\ Which lists may you use, and what do they say?};
+\end{tikzpicture}
+\end{document}

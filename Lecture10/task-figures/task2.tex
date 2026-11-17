@@ -1,0 +1,19 @@
+% Task 2: a copy of the Ubuntu 24.04 trust store (120 roots) and WE1. CHECKED: Task2/solution/look_into_store.py.
+\documentclass[12pt,tikz,border=6pt]{standalone}
+\input{common}
+\begin{document}
+\pagecolor{white}
+\begin{tikzpicture}[>=Stealth]
+
+  \node[container, minimum width=9.2cm, minimum height=4.2cm] (box) at (0,0) {};
+  \node[font=\small\bfseries, text=nInk, anchor=south] at (box.north) {\faIcon{box-open}\ trust\_store.pem: how many roots? which keys?};
+  \foreach \r in {0,1,2} \foreach \c in {0,...,7} {
+    \node[fill=sViolet, text=white, rounded corners=2pt, minimum width=0.8cm, minimum height=0.75cm, font=\small] at ({-3.85+1.1*\c},{1.2-1.15*\r}) {\faCertificate};
+  }
+  \node[font=\small, text=nInk] at (0,-1.75) {\ldots\ self-signed roots \ldots};
+  \cert{we}{9.0,1.6}{sBrown}{4.4cm}{we1.pem}{\textbf{Subject:} WE1\\\textbf{Issuer:} GTS Root R4}
+  \draw[sig, AccentOrange, line width=1.4pt] (we.west) -- (4.3,0.05);
+  \node[font=\small\bfseries, text=AccentOrange] at (8.9,-0.2) {who issued me?};
+  \node[circle, draw=AccentOrange, line width=1.6pt, minimum size=1.0cm] at (3.85,0.05) {};
+\end{tikzpicture}
+\end{document}

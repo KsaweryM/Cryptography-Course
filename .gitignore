@@ -28,3 +28,6 @@ Lecture*/*.md
 
 # Local files
 local/
+
+# Course profile of the lecture-factory skill (local)
+.lecture-factory/

@@ -1,0 +1,1860 @@
+\documentclass[aspectratio=169,10pt]{beamer}
+% notes.tex defines \NOTESONLY and reads this file: then only the speaker notes are printed
+\ifdefined\NOTESONLY
+  \setbeameroption{show only notes}
+\fi
+
+\usepackage{lmodern}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[polish,english]{babel}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{colortbl}
+\usepackage{xcolor}
+\usepackage{fontawesome5}
+\usepackage{listings}
+\usepackage{etoolbox}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, calc, positioning, fit, decorations.pathreplacing, decorations.pathmorphing}
+\usepackage{pgfplots}
+% layers for the code windows drawn in TikZ: the window, then the line that runs now, then the text
+\pgfdeclarelayer{codebg}\pgfdeclarelayer{codehl}\pgfsetlayers{codebg,codehl,main}
+\pgfplotsset{compat=1.18}
+
+\usetheme{Madrid}
+\useinnertheme{rounded}
+\useoutertheme{miniframes}
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{itemize items}[circle]
+\setbeamertemplate{enumerate items}[default]
+\setbeamertemplate{blocks}[rounded][shadow=true]
+% one dot per idea, not per frame: \samedot before a frame gives it the dot of the frame before
+% (it undoes the step of the dot counter that the next frame makes)
+\newcommand{\samedot}{\addtocounter{subsectionslide}{-1}}
+% the default dot step of the circle dots (0.1 cm dots)
+\setbeamersize{mini frame size=.14cm,mini frame offset=-.01cm}
+
+% ======================================================================
+% Colour rules for presentations (Beamer + TikZ), from Agents/colors
+% ======================================================================
+
+% ---------- template ----------
+\definecolor{DeepBlue}{HTML}{283593}      % title bar, headings, links, control-flow arrows
+\definecolor{AccentOrange}{HTML}{EB5A14}  % annotations: step numbers, "look here", code highlight, conclusions
+\definecolor{LightGray}{HTML}{F5F6FA}     % background of information blocks
+\setbeamercolor{palette primary}{bg=DeepBlue,fg=white}
+\setbeamercolor{palette secondary}{bg=DeepBlue!80!black,fg=white}
+\setbeamercolor{palette tertiary}{bg=DeepBlue!90!black,fg=white}
+\setbeamercolor{title}{bg=DeepBlue,fg=white}
+\setbeamercolor{frametitle}{bg=DeepBlue,fg=white}
+\setbeamercolor{structure}{fg=DeepBlue}
+\setbeamercolor{item}{fg=AccentOrange}
+\setbeamercolor{alerted text}{fg=AccentOrange}
+\setbeamercolor{block title}{bg=DeepBlue,fg=white}
+\setbeamercolor{block body}{bg=LightGray,fg=black}
+\setbeamercolor{block title example}{bg=AccentOrange,fg=white}
+\setbeamercolor{block body example}{bg=AccentOrange!10,fg=black}
+\setbeamercolor{enumerate item}{fg=DeepBlue}
+\setbeamerfont{enumerate item}{series=\bfseries}
+
+% ---------- actors and categories: fills only (S1 to S6) ----------
+\definecolor{sIndigo}{HTML}{5C6BC0}   % S1
+\definecolor{sPink}{HTML}{EC407A}     % S2
+\definecolor{sViolet}{HTML}{7E57C2}   % S3
+\definecolor{sAmber}{HTML}{FFB300}    % S4: black text on it
+\definecolor{sTeal}{HTML}{26A69A}     % S5
+\definecolor{sBrown}{HTML}{8D6E63}    % S6
+% text variants that stay readable on white
+\definecolor{sPinkText}{HTML}{C2185B}
+\definecolor{sAmberText}{HTML}{A06A00}
+\definecolor{sTealText}{HTML}{00796B}
+
+% ---------- actions: frames only; results: signs only ----------
+\definecolor{aExec}{HTML}{43A047}     % runs now
+\definecolor{aRead}{HTML}{1E88E5}     % is read
+\definecolor{aWrite}{HTML}{E53935}    % is written
+
+% ---------- neutral (Blue Grey) ----------
+\definecolor{nInk}{HTML}{37474F}      % text in figures, waveforms, wires, data-flow arrows
+\definecolor{nLine}{HTML}{90A4AE}     % borders, axes
+\definecolor{nLight}{HTML}{CFD8DC}    % inactive lines, grids, empty places (dashed)
+\definecolor{nFill}{HTML}{ECEFF1}     % fill of boxes and used cells
+\definecolor{nIdle}{HTML}{E0E0E0}     % time lost (idle, busy waiting, bubbles)
+
+% ---------- TikZ styles ----------
+\tikzset{
+  aexec/.style={draw=aExec, line width=1.6pt},
+  aexecm/.style={aexec, label={[text=aExec, inner sep=1pt, font=\tiny]left:$\blacktriangleright$}},
+  aread/.style={draw=aRead, line width=1.6pt, dash pattern=on 3pt off 2pt},
+  awrite/.style={draw=aWrite, line width=2.4pt},
+  hw/.style={draw=nLine, thick, fill=nFill, text=nInk, rounded corners=3pt, align=center, inner sep=4pt},
+  hwmain/.style={draw=nInk, thick, fill=nInk, text=white, rounded corners=3pt, align=center, inner sep=4pt},
+  cell/.style={draw=nLine, thick, fill=white, text=nInk, font=\ttfamily\scriptsize},
+  cellused/.style={cell, fill=nFill},
+  cellfree/.style={cell, dashed, draw=nLight},
+  container/.style={draw=nLine, thick, dashed, rounded corners=5pt},
+  actor/.style={fill=#1, draw=#1, text=white, rounded corners=3pt, align=center, font=\scriptsize\bfseries, inner sep=4pt},
+  actorlight/.style={fill=#1!15, draw=#1, thick, text=nInk, rounded corners=3pt, align=center, inner sep=4pt},
+  suspended/.style={fill=#1!30, draw=#1, dashed, line width=0.9pt, text=nInk, rounded corners=3pt, align=center, inner sep=4pt},
+  ready/.style={fill=white, draw=#1, line width=0.8pt, text=nInk, rounded corners=3pt, align=center, inner sep=4pt},
+  idle/.style={fill=nIdle, draw=none, text=nInk, rounded corners=3pt, align=center, inner sep=4pt},
+  flow/.style={-{Stealth}, very thick, DeepBlue},
+  data/.style={-{Stealth}, very thick, nInk},
+  holds/.style={-{Stealth}, very thick, nInk},
+  waits/.style={-{Stealth}, very thick, nLine, dashed},
+  annot/.style={draw=AccentOrange, line width=1.4pt, rounded corners=3pt},
+}
+\tikzset{actoramber/.style={actor=sAmber, text=black}}
+
+% ---------- signs and small helpers ----------
+\newcommand{\ok}{\textcolor{aExec}{\faCheck}}
+\newcommand{\nok}{\textcolor{aWrite}{\faTimes}}
+\newcommand{\badge}[1]{\tikz[baseline=(b.base)]\node[circle,fill=AccentOrange,text=white,
+  inner sep=1.2pt,font=\bfseries\tiny] (b) {#1};}
+\newcommand{\bigbadge}[1]{\tikz[baseline=(b.base)]\node[circle,fill=AccentOrange,text=white,
+  inner sep=2pt,font=\bfseries\small] (b) {#1};}
+% ---------- text boxes ----------
+\newcommand{\defbox}[1]{%
+  \begin{beamercolorbox}[rounded=true,sep=0.1cm,wd=\linewidth]{block body example}
+    \footnotesize #1
+  \end{beamercolorbox}\vspace{0.06cm}}
+% a large definition in the middle of the slide
+\newcommand{\bigdef}[1]{%
+  \begin{beamercolorbox}[rounded=true,sep=0.25cm,wd=\linewidth]{block body example}
+    \centering\normalsize #1
+  \end{beamercolorbox}\vspace{0.06cm}}
+\newcommand{\stepbox}[2]{%
+  \begin{beamercolorbox}[rounded=true,sep=0.09cm,wd=\linewidth]{block body}
+    \footnotesize\textbf{#1}\\ #2
+  \end{beamercolorbox}\vspace{0.06cm}}
+\newcommand{\keymsg}[1]{%
+  \begin{beamercolorbox}[rounded=true,sep=0.1cm,wd=\textwidth]{block body example}
+    \centering\footnotesize #1
+  \end{beamercolorbox}}
+% a grey box without a title
+\newcommand{\plainbox}[1]{%
+  \begin{beamercolorbox}[rounded=true,sep=0.12cm,wd=\linewidth]{block body}
+    \centering\footnotesize #1
+  \end{beamercolorbox}\vspace{0.06cm}}
+\setbeamercolor{block body problem}{bg=AccentOrange!10,fg=black}
+\newcommand{\probbox}[2]{%
+  \begin{beamercolorbox}[rounded=true,sep=0.09cm,wd=\linewidth]{block body problem}
+    \footnotesize\textbf{\textcolor{AccentOrange}{\faExclamationTriangle}\ #1}\\ #2
+  \end{beamercolorbox}\vspace{0.06cm}}
+
+% ---------- code: dark window, grey dots, syntax colours ----------
+\definecolor{VSDarkBg}{RGB}{25,25,25}
+\definecolor{VSText}{RGB}{245,245,245}
+\definecolor{VSBlue}{RGB}{80,180,255}
+\definecolor{VSPurple}{RGB}{210,110,210}
+\definecolor{VSString}{RGB}{255,140,80}
+\definecolor{VSComment}{RGB}{80,220,80}
+\setbeamercolor{vscodelisting}{bg=VSDarkBg}
+\lstdefinestyle{code}{basicstyle=\color{VSText}\ttfamily\scriptsize, keywordstyle=\color{VSBlue}\bfseries,
+  stringstyle=\color{VSString}, commentstyle=\color{VSComment}\itshape, emphstyle=\color{VSPurple},
+  numbers=none, columns=fixed, basewidth=0.52em, keepspaces=true, showstringspaces=false, xleftmargin=6pt}
+\lstdefinestyle{py}{style=code, language=Python, emph={print,chr,zip,range,len,bytes,ord,hex}}
+\BeforeBeginEnvironment{lstlisting}{%
+  \begin{beamercolorbox}[rounded=true,sep=2mm,wd=\linewidth]{vscodelisting}%
+  \begin{tikzpicture}
+    \fill[nLine] (0,0) circle (3pt); \fill[nLine] (0.35,0) circle (3pt); \fill[nLine] (0.70,0) circle (3pt);
+  \end{tikzpicture}%
+  \vspace{-0.2cm}}
+\AfterEndEnvironment{lstlisting}{\end{beamercolorbox}}
+\newcommand{\hlcode}[1]{{\setlength{\fboxsep}{1pt}\colorbox{AccentOrange}{\textcolor{white}{\bfseries #1}}}}
+\newcommand{\eol}{\tikz[remember picture, overlay]\coordinate (eol) at (0,0.08);}
+\newcommand{\codenote}[3][0pt]{%
+  \begin{tikzpicture}[remember picture, overlay, >=Stealth]
+    \node[draw=AccentOrange, very thick, fill=AccentOrange!6, rounded corners=4pt, text width=0.33\paperwidth,
+      align=left, inner sep=6pt, font=\footnotesize, anchor=west] (cal)
+      at ([yshift=#1]eol -| {$(current page.west)!0.6!(current page.east)$}) {\textbf{\textcolor{AccentOrange}{#2}}\\[3pt]#3};
+    \draw[->, very thick, AccentOrange] (eol -| cal.west) -- ([xshift=4pt]eol);
+  \end{tikzpicture}}
+% program output: a light terminal line
+\newcommand{\terminal}[1]{%
+  \begin{tikzpicture}
+    \node[draw=nLine, thick, fill=nFill, rounded corners=3pt, inner sep=5pt, font=\ttfamily\small, text=nInk]
+      {\textcolor{nLine}{\$}\ #1};
+  \end{tikzpicture}}
+
+% ======================================================================
+% Course macros
+% ======================================================================
+% the starter files on GitHub: the word "GitHub" is the link.
+%   \ghlink{Task4} opens the folder of Task 4, \ghlink{} opens the folder of this lecture
+\newcommand{\ghbase}{https://github.com/KsaweryM/Cryptography-Course/tree/main/Lecture11}
+\newcommand{\ghlink}[1]{\href{\ghbase/#1}{\textcolor{DeepBlue}{\textbf{GitHub}}}}
+% the task slides: the steps are in the README on GitHub, the slide only opens the task
+%   \taskgoal{one line}   \taskready{the ready modules}   \opentask{Task2}{about 6 minutes}
+%   a task on paper: the question on the slide, then \onpaper{about 6 minutes}
+\newcommand{\taskgoal}[1]{{\centering\large\textcolor{AccentOrange}{\faBullseye}\ \textbf{Goal:} #1\par}\vspace{0.2cm}}
+\newcommand{\taskready}[1]{{\centering\normalsize\textcolor{nInk}{\faBox}\ \textbf{Ready:} #1\par}\vspace{0.2cm}}
+\newcommand{\opentask}[2]{%
+  \begin{beamercolorbox}[rounded=true,sep=0.35cm,wd=\linewidth]{block body example}
+    \centering
+    {\LARGE\faGithub\ \textbf{Open the task:}\ \href{\ghbase/#1}{\textcolor{DeepBlue}{\textbf{\texttt{#1}}}}}\\[8pt]
+    \footnotesize\href{\ghbase/#1}{\textcolor{DeepBlue}{\texttt{github.com/KsaweryM/Cryptography-Course/tree/main/Lecture11/#1}}}\\[6pt]
+    \small on \ghlink{#1}: the steps, the starter files and how to run them\ifx&#2&\else\qquad\faClock[regular]\ #2\fi
+  \end{beamercolorbox}}
+\newcommand{\onpaper}[1]{%
+  \begin{beamercolorbox}[rounded=true,sep=0.3cm,wd=\linewidth]{block body example}
+    \centering
+    {\LARGE\faPencil*\ \textbf{On paper}}\ifx&#1&\else\qquad\small\faClock[regular]\ #1\fi
+  \end{beamercolorbox}}
+
+% a page of the simulator website, printed in full so that students can type it:
+%   \simlink{elliptic-curves/\#2} prints and links ksawerym.github.io/Cryptography-simulators/elliptic-curves/#2
+\newcommand{\simbase}{ksawerym.github.io/Cryptography-simulators}
+\newcommand{\simlink}[1]{\href{https://\simbase/#1}{\textcolor{DeepBlue}{\texttt{\simbase/#1}}}}
+% "For the curious" line under a frame: \curious{elliptic-curves/\#2}
+\newcommand{\curious}[1]{{\footnotesize\textcolor{gray}{\faSearch\ For the curious:}\ \simlink{#1}}}
+
+% speaker notes (Polish): printed only in the notes PDF (make notes)
+\setbeamertemplate{note page}[default]
+\setbeamerfont{note page}{size=\normalsize}
+\newcommand{\say}[1]{\note{\selectlanguage{polish}#1}}
+
+% ======================================================================
+% Colour mapping for this lecture (colour rules, section 6)
+%   S1 sIndigo : Alice, the client (browser, app, device)
+%   S2 sPink   : Mallory, the attacker
+%   S3 sViolet : the CA and its certificates: root, intermediate, trust store
+%   S4 sAmber  : private keys
+%   S5 sTeal   : Bob, the server, and his leaf certificate
+%   S6 sBrown  : revocation information: CRL, OCSP answer, staple
+%   TLS messages, validators and mechanisms are neutral; a check running now has an aExec frame;
+%   results are signs (\ok, \nok); the message a slide talks about has an orange annotation frame
+% ======================================================================
+\tikzset{
+  person/.style={circle, fill=#1, draw=#1, text=white, minimum size=1.15cm, font=\Large, inner sep=0pt},
+  % a certificate card: \node[card=sTeal, text width=5cm] {...};
+  card/.style={draw=#1, thick, fill=#1!10, text=nInk, rounded corners=3pt, align=left, inner sep=5pt,
+    font=\scriptsize},
+  smallcard/.style={draw=#1, thick, fill=#1!12, text=nInk, rounded corners=2pt, align=center, inner sep=3pt,
+    font=\scriptsize},
+  privval/.style={draw=sAmber, thick, fill=sAmber!25, text=nInk, rounded corners=3pt, align=center, inner sep=4pt},
+  revdoc/.style={draw=sBrown, thick, fill=sBrown!12, text=nInk, rounded corners=3pt, align=left, inner sep=5pt,
+    font=\scriptsize},
+  msg/.style={draw=nLine, thick, fill=nFill, text=nInk, rounded corners=2pt, font=\scriptsize, inner sep=2.5pt,
+    minimum height=0.42cm},
+  msghl/.style={msg, draw=AccentOrange, line width=1.4pt, fill=AccentOrange!10},
+  msgdim/.style={msg, draw=nLight, fill=white, text=nLine},
+  arr/.style={-{Stealth}, thick, nInk},
+}
+\newcommand{\hl}[1]{\textcolor{AccentOrange}{\textbf{#1}}}
+\newcommand{\priv}[1]{\textcolor{sAmberText}{\textbf{#1}}}
+% a person: \personnode{name}{x,y}{colour}{caption}
+\newcommand{\personnode}[4]{%
+  \node[person=#3] (#1) at (#2) {\faUser};
+  \node[font=\small\bfseries, text=#3, below=0.08cm of #1] (#1lbl) {#4};}
+\newcommand{\cert}{\faCertificate}
+% a check step: number in an orange circle
+\newcommand{\num}[1]{\tikz[baseline=(n.base)]\node[circle,fill=AccentOrange,text=white,inner sep=1.5pt,
+  minimum size=0.45cm,font=\bfseries\footnotesize] (n) {#1};}
+% a dark terminal window for real command output: \begin{term} ... \end{term}
+\lstdefinestyle{term}{style=code, language={}, basicstyle=\color{VSText}\ttfamily\scriptsize}
+\lstdefinestyle{xml}{style=code, language=XML, basicstyle=\color{VSText}\ttfamily\scriptsize,
+}
+% a step of a series: arrow when it is the step of this slide
+\newcommand{\now}{\makebox[0.45cm][l]{\textcolor{AccentOrange}{\faCaretRight}}}
+\newcommand{\notnow}{\makebox[0.45cm][l]{}}
+
+% ---------- the TLS 1.3 handshake, drawn once: \handshake{which message is highlighted}{mtls: 0 or 1}
+% messages: hello, ee, cert, cv, fin, cfin; for mTLS also creq, ccert, ccv
+\newcommand{\hsmsg}[5]{% id, y, direction (r = to the server, l = to the client), text, highlighted ids
+  \def\st{msg}%
+  \foreach \h in {#5} {\ifnum\pdfstrcmp{\h}{#1}=0 \global\def\st{msghl}\fi}%
+  \if#3r
+    \draw[arr] (-2.6,#2) -- (2.6,#2);
+    \node[\st, anchor=east] at (-2.7,#2) {#4};
+  \else
+    \draw[arr] (2.6,#2) -- (-2.6,#2);
+    \node[\st, anchor=west] at (2.7,#2) {#4};
+  \fi}
+\newcommand{\handshake}[2]{%
+  \begin{tikzpicture}[>=Stealth]
+    \gdef\st{msg}%
+    \node[person=sIndigo, minimum size=0.9cm, font=\normalsize] (al) at (-5.9,0.75) {\faUser};
+    \node[font=\scriptsize\bfseries, text=sIndigo, right=0.05cm of al] {Alice};
+    \node[person=sTeal, minimum size=0.9cm, font=\normalsize] (bo) at (5.9,0.75) {\faServer};
+    \node[font=\scriptsize\bfseries, text=sTealText, left=0.05cm of bo] {Bob's server};
+    \hsmsg{hello}{0}{r}{ClientHello + key share}{#1}
+    \hsmsg{hello}{-0.5}{l}{ServerHello + key share}{#1}
+    \draw[nLine, dashed, thick] (-6.4,-0.82) -- (6.4,-0.82);
+    \node[font=\tiny, text=gray, fill=white, inner sep=1pt] at (0,-0.82) {from here on, encrypted};
+    \hsmsg{ee}{-1.15}{l}{EncryptedExtensions}{#1}
+    \ifnum#2=1
+      \hsmsg{creq}{-1.6}{l}{CertificateRequest}{#1}
+      \def\yo{-0.45}
+    \else
+      \def\yo{0}
+    \fi
+    \hsmsg{cert}{-1.6+\yo}{l}{Certificate}{#1}
+    \hsmsg{cv}{-2.05+\yo}{l}{CertificateVerify}{#1}
+    \hsmsg{fin}{-2.5+\yo}{l}{Finished}{#1}
+    \ifnum#2=1
+      \hsmsg{ccert}{-2.95+\yo}{r}{Certificate}{#1}
+      \hsmsg{ccv}{-3.4+\yo}{r}{CertificateVerify}{#1}
+      \def\yf{-0.9}
+    \else
+      \def\yf{0}
+    \fi
+    \hsmsg{cfin}{-2.95+\yo+\yf}{r}{Finished}{#1}
+    \draw[{Stealth}-{Stealth}, very thick, nInk] (-2.6,-3.45+\yo+\yf) -- (2.6,-3.45+\yo+\yf);
+    \node[font=\scriptsize, text=nInk, anchor=south] at (0,-3.45+\yo+\yf) {application data};
+  \end{tikzpicture}}
+
+\title{Cryptography}
+\subtitle{Validation, Revocation and Certificates in TLS}
+\author{Ksawery Możdżyński}
+\date{}
+
+\begin{document}
+
+% ======================================================================
+% Opening
+% ======================================================================
+
+\begin{frame}
+  \titlepage
+  \say{Trzeci dzień tygodnia PKI. Certyfikat już znamy (wykład 9) i wiemy, kto go wystawia (wykład 10). Dziś: jak klient sprawdza certyfikat, co zrobić, gdy certyfikat trzeba unieważnić przed końcem, i gdzie certyfikaty pojawiają się w TLS.}
+\end{frame}
+
+\begin{frame}{Agenda For Today}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \foreach \ic/\t [count=\k from 0] in {
+          {\faClipboardCheck}/{Check a certificate chain step by step, the way a browser does.},
+          {\faBan}/{Find out what happens when a certificate must die before it expires.},
+          {\faHandshake}/{See where certificates travel in TLS 1.3, and how clients and apps use them.}} {
+        \node[circle, fill=DeepBlue, text=white, minimum size=1.3cm, font=\LARGE] at (0,{-1.9*\k}) {\ic};
+        \node[anchor=west, text width=12cm, font=\large, align=left, execute at begin node={\hyphenpenalty=10000 }] at (1.0,{-1.9*\k}) {\t};
+      }
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \say{Najpierw sprawdzanie, potem unieważnianie, potem TLS, certyfikaty klienta i pinning w aplikacjach. Osiem zadań, jedno na kartce. Nazwy sekcji są na pasku u góry.}
+\end{frame}
+
+% ======================================================================
+\section[Should we trust it?]{Should we trust it?}
+% ======================================================================
+
+% CHECKED: checks/real/coventry_leaf.pem (openssl s_client, 15 Nov 2026): subject CN = www.coventry.ac.uk,
+%   issuer C = US, O = Google Trust Services, CN = WE1; Oct 13 02:29:16 2026 GMT to Jan 11 03:29:14 2027 GMT;
+%   ECDSA P-256; SAN DNS:www.coventry.ac.uk; serial 0E2481FE791419CA0EAAADF665942B2C; ecdsa-with-SHA256
+\begin{frame}{Recall: a certificate}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \node[card=sTeal, text width=7.6cm, font=\small] (c) at (0,0) {%
+        {\large\textcolor{sTealText}{\cert}}\ \textbf{Certificate}\\[4pt]
+        \begin{tabular}{@{}ll@{}}
+          Subject & \texttt{CN = www.coventry.ac.uk}\\
+          Issuer & \texttt{Google Trust Services, CN = WE1}\\
+          Validity & 13 Oct 2026 to 11 Jan 2027 (90 days)\\
+          Public key & ECDSA P-256\\
+          SAN & \texttt{DNS: www.coventry.ac.uk}\\
+          Serial & \texttt{0E2481FE791419CA0EAAADF665942B2C}
+        \end{tabular}};
+      \node[smallcard=sViolet, anchor=north, text width=7.4cm, font=\scriptsize] at ([yshift=-0.12cm]c.south)
+        {\faPen\ Signature of \textbf{WE1}\quad \texttt{ecdsa-with-SHA256}};
+      \node[font=\small, text=nInk, align=left, anchor=west] at (4.5,0.3)
+        {what it says:\\ ``this public key belongs to\\ \textbf{www.coventry.ac.uk}'',\\ and WE1 vouches for it};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  {\centering\footnotesize Recall: \texttt{sign(private key, data)} $\to$ signature\\[2pt]
+    \texttt{verify(public key, data, signature)} $\to$ True / False\par}
+  \vfill
+  \keymsg{A certificate binds a name to a public key, signed by the issuer.}
+  \say{Przypomnienie z wykładu 9, na prawdziwym certyfikacie strony uczelni zapisanym 15 listopada 2026. Certyfikat to podpisane zdanie: ten klucz publiczny należy do tej nazwy. Podpis jak w tygodniu o podpisach: sign kluczem prywatnym, verify kluczem publicznym, wynik prawda albo fałsz. Numer seryjny przyda się dziś przy odwołaniu.}
+\end{frame}
+
+\samedot
+\begin{frame}{Recall: a chain of trust}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth, scale=0.86, every node/.append style={transform shape}]
+      \node[card=sTeal, text width=3.0cm, align=center] (l) at (0,0) {\textbf{leaf}\\ \texttt{www.coventry.ac.uk}\\ signed by WE1};
+      \node[card=sViolet, text width=3.0cm, align=center] (i) at (4.0,0) {\textbf{intermediate}\\ \texttt{WE1}\\ signed by GTS Root R4};
+      \node[card=sViolet, text width=3.0cm, align=center] (r) at (8.0,0) {\textbf{root}\\ \texttt{GTS Root R4}\\ signed by itself};
+      \draw[flow] (i) -- node[above, font=\scriptsize] {signs} (l);
+      \draw[flow] (r) -- node[above, font=\scriptsize] {signs} (i);
+      \node[font=\scriptsize, text=gray, below=0.1cm of l] {the server's own};
+      \node[font=\scriptsize, text=gray, below=0.1cm of i] {the CA's working key};
+      \node[font=\scriptsize, text=gray, below=0.1cm of r] {the CA's key, kept offline};
+      % the trust store
+      \node[container, minimum width=2.4cm, minimum height=2.6cm] (ts) at (11.6,0) {};
+      \node[font=\scriptsize\bfseries, text=nInk, anchor=south] at (ts.north) {\faArchive\ trust store};
+      \foreach \y/\t in {0.8/{\ldots}, 0.25/{GTS Root R4}, -0.3/{ISRG Root X1}, -0.85/{\ldots}}
+        \node[smallcard=sViolet, minimum width=2cm] at (11.6,\y) {\t};
+      \draw[annot] (10.55,0.03) rectangle (12.65,0.47);
+      \node[font=\scriptsize, text=gray, anchor=north] at (ts.south) {on Alice's computer};
+      \draw[AccentOrange, thick, dashed] (r.east) -- (10.55,0.25);
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \keymsg{We trust the root because it is in our trust store; the rest must lead to it.}
+  \say{Przypomnienie z wykładu 10. Liść to certyfikat serwera, pośredni to certyfikat roboczego klucza CA, root jest w magazynie zaufania na komputerze Alice. Ubuntu na tym laptopie ma 120 rootów w ca-certificates.}
+\end{frame}
+
+\begin{frame}{Alice's question}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \personnode{al}{0,0}{sIndigo}{Alice}
+      \node[person=sTeal] (sv) at (11,0) {\faServer};
+      \node[font=\small\bfseries, text=sTealText, below=0.08cm of sv] {the server};
+      \node[draw=nLine, fill=white, rounded corners=2pt, font=\scriptsize\ttfamily, anchor=south] at (0,0.75)
+        {\faLock\ https://www.coventry.ac.uk};
+      \draw[data] (10.2,0) -- (0.8,0);
+      \foreach \x/\t/\c in {3.2/www.coventry.ac.uk/sTeal, 5.5/WE1/sViolet, 7.8/GTS Root R4/sViolet}
+        \node[smallcard=\c, minimum width=2cm] at (\x,0.45) {\cert\ \t};
+      \node[font=\small, text=nInk] at (5.5,-0.3) {3 certificates};
+      \node[text=AccentOrange, font=\fontsize{40}{40}\selectfont\bfseries] at (1.5,1.9) {?};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small Are they for this site? \quad Are they still valid? \quad Signed by someone she trusts?\end{center}
+  \vfill
+  \keymsg{Anyone can send a certificate. Alice must check it before she sends her password.}
+  \say{Certyfikat jest publiczny, więc może go przysłać każdy, także Mallory. Zanim Alice wpisze hasło, przeglądarka musi zdecydować: ufać czy nie. Pytanie do sali: co trzeba sprawdzić? Zapisać odpowiedzi na tablicy, wrócimy do nich w sekcji The checks.}
+\end{frame}
+
+\begin{frame}{Validation: a black box}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \node[hwmain, minimum width=3.4cm, minimum height=1.6cm, font=\large\bfseries] (v) at (0,0) {\faCogs\\ validation};
+      \foreach \y/\ic/\t in {1.2/\cert/{certificates from the server}, 0.4/\faGlobe/{the name Alice typed},
+          -0.4/\faClock/{the time now}, -1.2/\faArchive/{the trust store}} {
+        \node[anchor=east, font=\small, text=nInk] (in) at (-3.6,\y) {\t\ \ \ic};
+        \draw[data] (-3.5,\y) -- (v.west |- 0,{0.4*\y});
+      }
+      \draw[data] (v.east) -- (3.0,0);
+      \node[anchor=west, font=\small, align=left] at (3.1,0)
+        {\ok\ \textbf{OK}\\[3pt] or \\[3pt] \nok\ \textbf{an error}, with the reason};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \bigdef{\textbf{Certificate validation} (path validation): checking that a chain of certificates leads from the server's
+    certificate to a trusted root, and that every certificate on it may be used, here and now.
+    \\[2pt]\footnotesize The rules: RFC 5280, section 6.}
+  \vfill
+  \curious{pki/\#4.1}
+  \say{Najpierw walidacja jako czarna skrzynka: cztery wejścia, jedno wyjście. Czas i trust store to też wejścia: ten sam certyfikat może przejść dziś, a nie przejść za miesiąc albo na innym komputerze. RFC 5280 to profil X.509 dla internetu, sekcja 6 opisuje algorytm walidacji. W symulatorze z linku można wybrać łańcuch i nazwę i zobaczyć werdykt walidacji.}
+\end{frame}
+
+\samedot
+\begin{frame}{What the browser says}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \foreach \x/\code/\mean in {0/{NET::ERR\_CERT\_\\DATE\_INVALID}/{expired, or not valid yet},
+          4.6/{NET::ERR\_CERT\_\\COMMON\_NAME\_INVALID}/{the name does not match},
+          9.2/{NET::ERR\_CERT\_\\AUTHORITY\_INVALID}/{no path to a trusted root\\(also: self-signed)}} {
+        \draw[nLine, thick, fill=white, rounded corners=3pt] (\x-2,-1.3) rectangle (\x+2,1.3);
+        \fill[nFill, rounded corners=3pt] (\x-2,1.0) rectangle (\x+2,1.3);
+        \foreach \d in {0,0.18,0.36} \fill[nLine] (\x-1.8+\d,1.15) circle (1.6pt);
+        \node[text=AccentOrange, font=\LARGE] at (\x,0.55) {\faExclamationTriangle};
+        \node[font=\scriptsize\bfseries, text=nInk] at (\x,0.0) {Your connection is not private};
+        \node[font=\scriptsize\ttfamily, text=nInk, align=center] at (\x,-0.7) {\code};
+        \node[font=\small, text=nInk, align=center, anchor=north] at (\x,-1.45) {\mean};
+      }
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \keymsg{Three classic errors: the date, the name, and the issuer.}
+  \say{Kody błędów Chrome; inne przeglądarki mają podobne. Nazwa COMMON\_NAME jest historyczna: dziś Chrome sprawdza SAN, nie CN. Za chwilę zobaczymy te same błędy w Pythonie.}
+\end{frame}
+
+\samedot
+\begin{frame}[fragile]{Validation in Python}
+  \vfill
+\begin{lstlisting}[style=py]
+import ssl, socket
+
+context = ssl.create_default_context(cafile="root.pem")          # the trust store
+sock = socket.create_connection(("127.0.0.1", port))
+tls = context.wrap_socket(sock, server_hostname="bob.example")  # the name Alice typed
+# a rejected certificate: wrap_socket raises ssl.SSLCertVerificationError
+\end{lstlisting}
+  \vfill
+  \begin{center}\small Python's \texttt{ssl} module uses \textbf{OpenSSL}: the same validator as \texttt{curl}, nginx and many others.\end{center}
+  \vfill
+  \keymsg{One call does all of validation: the time is taken from the clock.}
+  \say{Bez cafile Python bierze systemowy trust store. server\_hostname robi dwie rzeczy: wysyła nazwę w ClientHello i porównuje ją z certyfikatem. Jeśli coś się nie zgadza, wrap\_socket rzuca wyjątek z powodem w polu verify\_message. OpenSSL to najpopularniejsza biblioteka TLS.}
+\end{frame}
+
+\begin{frame}{Task 1: six servers, one name}
+  \vfill
+  \taskgoal{connect to six local servers that all claim to be \texttt{bob.example}, and see which ones Python trusts.}
+  \taskready{\texttt{servers.py} starts the six servers on 127.0.0.1; \texttt{certs/root.pem} is the trust store.}
+  \vfill
+  \opentask{Task1}{about 8 minutes}
+  \vfill
+  \say{Około 8 minut. Polecenia są w README. Trzy TODO: kontekst z cafile, wrap\_socket z nazwą bob.example, złapanie wyjątku i wypisanie e.verify\_message. Serwery działają na tym samym komputerze, więc wszystko jest offline.}
+\end{frame}
+
+\samedot
+\begin{frame}{Task 1: what we saw}
+  % CHECKED: Task1/solution/connect.py, Python 3.12.3, OpenSSL 3.0.13
+  \vfill
+  \begin{center}\small
+    \begin{tabular}{@{}lcl@{}}
+      \toprule
+      server & & what Python said (\texttt{e.verify\_message})\\
+      \midrule
+      \texttt{good} & \ok & \texttt{OK, TLSv1.3}\\
+      \texttt{expired} & \nok & \texttt{certificate has expired}\\
+      \texttt{wrong\_name} & \nok & \texttt{Hostname mismatch, certificate is not valid for 'bob.example'.}\\
+      \rowcolor{AccentOrange!12}\texttt{unknown\_ca} & \nok & \texttt{unable to get local issuer certificate}\\
+      \texttt{self\_signed} & \nok & \texttt{self-signed certificate}\\
+      \rowcolor{AccentOrange!12}\texttt{no\_intermediate} & \nok & \texttt{unable to get local issuer certificate}\\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+  \vfill
+  \keymsg{One good server, five errors; two different mistakes give the same message.}
+  \say{Wynik sprawdzony programem z folderu solution. Nieznany wystawca i brak certyfikatu pośredniego dają ten sam komunikat: walidator nie umiał zbudować ścieżki do roota. Dlaczego, zobaczymy w następnej sekcji.}
+\end{frame}
+
+% ======================================================================
+\section[Building the path]{Building the path}
+% ======================================================================
+
+% CHECKED: openssl s_client -connect www.coventry.ac.uk:443 -showcerts, 15 Nov 2026: 3 certificates,
+%   2 s:GTS Root R4 i:GlobalSign Root CA (cross-sign, Nov 15 2023 to Jan 28 00:00:42 2028)
+\begin{frame}{The server sends a pile, not a path}
+  \begin{center}\small What \texttt{www.coventry.ac.uk} sent on 15 November 2026:\end{center}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \foreach \y/\n/\t/\i/\c in {0/0/www.coventry.ac.uk/WE1/sTeal, -0.85/1/WE1/GTS Root R4/sViolet,
+          -1.7/2/GTS Root R4/GlobalSign Root CA/sViolet} {
+        \node[font=\small\bfseries, text=gray] at (-0.6,\y) {\n};
+        \node[smallcard=\c, minimum width=3.6cm, anchor=west, font=\small] at (0,\y) {\cert\ \t};
+        \node[font=\small, text=nInk, anchor=west] at (4.0,\y) {issued by \textbf{\i}};
+      }
+      \draw[annot] (-0.85,-2.05) rectangle (8.6,-1.35);
+      \node[font=\scriptsize, text=AccentOrange, anchor=north] at (3.9,-2.1)
+        {the same root key, signed by another root: \textbf{cross-signing}};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small The pile may be: \quad \textbf{in the wrong order} \quad $\cdot$ \quad \textbf{missing a certificate}
+    \quad $\cdot$ \quad \textbf{carrying extra ones}\end{center}
+  \vfill
+  \say{Serwer wysyła listę, a nie gotową ścieżkę. TLS 1.3 każe zacząć od liścia, ale resztę klient i tak musi ułożyć sam, a części może nie potrzebować. Trzeci certyfikat Coventry to ten sam klucz GTS Root R4, ale podpisany przez starszy root GlobalSign: to jest cross-signing.}
+\end{frame}
+
+% CHECKED: openssl x509 -ext subjectKeyIdentifier,authorityKeyIdentifier: leaf AKI 90:77:92:35:67:C4...,
+%   WE1 SKI 90:77:92:35:67:C4..., WE1 AKI 80:4C:D6:EB:74:FF..., GTS Root R4 SKI 80:4C:D6:EB:74:FF... (both copies)
+\newcommand{\pathsteps}[1]{%
+  \small
+  \ifnum#1=1\now\else\notnow\fi 1. Start at the leaf. Find a certificate whose \textbf{Subject} is the leaf's \textbf{Issuer}.\\[2pt]
+  \ifnum#1=2\now\else\notnow\fi 2. Do the same for that certificate.\\[2pt]
+  \ifnum#1=3\now\else\notnow\fi 3. Stop at a certificate that is in the \textbf{trust store}.\par}
+\begin{frame}{Path building, step 1}
+  \pathsteps{1}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \node[card=sTeal, text width=4.6cm] (l) at (0,0) {\textbf{leaf} \texttt{www.coventry.ac.uk}\\[3pt]
+        Issuer: \texttt{\ldots CN = WE1}\\ AKI: \texttt{90:77:92:35:67:C4\ldots}};
+      \node[card=sViolet, text width=4.6cm] (i) at (7.4,0) {\textbf{WE1}\\[3pt]
+        Subject: \texttt{\ldots CN = WE1}\\ SKI: \texttt{90:77:92:35:67:C4\ldots}};
+      \draw[aExec, line width=1.6pt, -{Stealth}] (2.5,0.0) to node[above, font=\scriptsize] {matches \ok} (5.0,0.0);
+      \draw[aExec, line width=1.6pt, -{Stealth}] (2.5,-0.4) -- (5.0,-0.4);
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\footnotesize
+    \textbf{Subject Key Identifier (SKI)}: a short ID of the certificate's own key.\\
+    \textbf{Authority Key Identifier (AKI)}: the ID of the key that signed it.
+  \end{center}
+  \say{Dopasowanie po nazwie nie wystarcza, bo ta sama nazwa może mieć kilka kluczy, na przykład po wymianie klucza CA. Dlatego porównujemy też identyfikatory kluczy: AKI w dziecku i SKI w rodzicu. Ostatecznie decyduje podpis, ale identyfikatory pozwalają szybko znaleźć kandydata. Identyfikatory są prawdziwe, skrócone do 6 bajtów z 20.}
+\end{frame}
+
+\samedot
+\begin{frame}{Path building, step 2}
+  \pathsteps{2}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \node[card=sViolet, text width=4.6cm] (i) at (0,0) {\textbf{WE1}\\[3pt]
+        Issuer: \texttt{\ldots CN = GTS Root R4}\\ AKI: \texttt{80:4C:D6:EB:74:FF\ldots}};
+      \node[card=sViolet, text width=4.4cm] (r1) at (7.4,0.8) {\textbf{GTS Root R4}, sent by the server\\
+        SKI \texttt{80:4C:D6:EB\ldots}, issued by GlobalSign};
+      \node[card=sViolet, text width=4.4cm] (r2) at (7.4,-0.8) {\textbf{GTS Root R4}, in Alice's trust store\\
+        SKI \texttt{80:4C:D6:EB\ldots}, issued by itself};
+      \draw[aExec, line width=1.6pt, -{Stealth}] (i.east) -- (r1.west);
+      \draw[aExec, line width=1.6pt, -{Stealth}] (i.east) -- (r2.west);
+      \node[font=\small\bfseries, text=AccentOrange] at (7.4,1.75) {two candidates!};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \say{Teraz są dwa certyfikaty o tej samej nazwie i tym samym kluczu. Jeden przysłał serwer, drugi jest w magazynie. Walidator musi wybrać.}
+\end{frame}
+
+\samedot
+\begin{frame}[fragile]{Path building, step 3: a trust anchor}
+  \pathsteps{3}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \node[smallcard=sTeal] (l) at (0,0) {\cert\ www.coventry.ac.uk};
+      \node[smallcard=sViolet] (i) at (3.4,0) {\cert\ WE1};
+      \node[smallcard=sViolet, aexec] (r) at (7.0,0) {\faArchive\ GTS Root R4, from the trust store};
+      \draw[data] (l) -- (i); \draw[data] (i) -- (r);
+      \node[font=\small, anchor=west] at (9.4,0) {\ok\ \textbf{path found}};
+      \node[smallcard=nLine, text=nLine] (x) at (7.0,-0.75) {GTS Root R4 sent by the server};
+      \draw[nLine, thick] (x.west) -- (x.east);
+      \node[font=\scriptsize, text=gray, anchor=west] at (9.4,-0.75) {not needed};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+\begin{lstlisting}[style=term]
+$ openssl verify -CAfile GTS_Root_R4.pem -untrusted sent.pem -show_chain leaf.pem
+leaf.pem: OK
+depth=0: CN = www.coventry.ac.uk (untrusted)
+depth=1: C = US, O = Google Trust Services, CN = WE1 (untrusted)
+depth=2: C = US, O = Google Trust Services LLC, CN = GTS Root R4
+\end{lstlisting}
+  \vfill
+  \keymsg{\textbf{Trust anchor}: the certificate from the trust store where the path ends.}
+  \say{OpenSSL zatrzymał się na roocie z magazynu, a kopii od serwera nie użył. Untrusted przy głębokości 0 i 1 znaczy: przyszło z sieci, nie z magazynu. Sprawdzone na zapisanym łańcuchu, pliki w checks/real.}
+\end{frame}
+
+% CHECKED: coventry_gts_r4_cross.pem: Nov 15 2023 to Jan 28 00:00:42 2028, issuer GlobalSign Root CA;
+%   /etc/ssl/certs/GTS_Root_R4.pem: Jun 22 2016 to Jun 22 2036, self-signed, same SKI 80:4C:D6:EB
+\begin{frame}{Two paths to trust: cross-signing}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \node[smallcard=sTeal] (l) at (0,0) {\cert\ leaf};
+      \node[smallcard=sViolet] (i) at (2.2,0) {\cert\ WE1};
+      \node[privval, font=\scriptsize] (k) at (4.6,0) {\faKey\ the GTS Root R4 key};
+      \draw[data] (l) -- (i); \draw[data] (i) -- (k);
+      \node[card=sViolet, text width=3.4cm, align=center] (g) at (11.0,1.4) {\textbf{GlobalSign Root CA}\\ in old trust stores};
+      \node[card=sViolet, text width=3.4cm, align=center] (s) at (11.0,-1.4) {\textbf{GTS Root R4}, self-signed\\ in new trust stores};
+      \draw[data] (k.east) -- (g.west);
+      \draw[data] (k.east) -- (s.west);
+      \node[font=\scriptsize, text=nInk, align=center] at (7.0,1.35) {cross-signed,\\ until 28 Jan 2028};
+      \node[font=\scriptsize, text=nInk, align=center] at (7.0,-1.35) {self-signed,\\ 2016 to 2036};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \keymsg{Cross-signing lets a new root work on old devices that trust only an older root.}
+  \say{Nowy root wchodzi do magazynów przez lata, a stare telefony nigdy się nie aktualizują. Dlatego nowy root dostaje też podpis od starego, zaufanego roota. Klient wybiera tę ścieżkę, którą umie zakończyć w swoim magazynie. Ten laptop z Ubuntu nie ma już GlobalSign Root CA w magazynie, więc używa ścieżki dolnej.}
+\end{frame}
+
+% source: Let's Encrypt, "DST Root CA X3 Expiration (September 2021)"
+\samedot
+\begin{frame}{Good to know: 30 September 2021}
+  \begin{center}\small Let's Encrypt's root \textbf{ISRG Root X1} was cross-signed by \textbf{DST Root CA X3}.
+    On 30 September 2021, DST Root CA X3 expired.\end{center}
+  \vfill
+  \begin{center}\small
+    \begin{tabular}{@{}llc@{}}
+      \toprule
+      who & what happened & \\
+      \midrule
+      new devices & built the path to ISRG Root X1 in their store & \ok\\
+      very old devices & knew only DST Root CA X3 & \nok\\
+      OpenSSL 1.0.2 & took the path through the expired root, even with ISRG Root X1 installed & \nok\\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+  \vfill
+  \keymsg{Path building is not trivial: two paths, and one of them expires.}
+  \say{Można pominąć. Prawdziwy przypadek z 2021 roku: stara wersja OpenSSL wybierała ścieżkę przez wygasły root i nie próbowała drugiej, więc odrzucała poprawne certyfikaty. Dobra budowa ścieżki próbuje wszystkich możliwości.}
+\end{frame}
+
+% CHECKED: coventry_leaf.pem: Authority Information Access: CA Issuers - URI:http://i.pki.goog/we1.crt
+\begin{frame}{A missing intermediate}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \node[person=sTeal] (sv) at (0,0) {\faServer};
+      \node[smallcard=sTeal] (l) at (2.4,0) {\cert\ leaf};
+      \node[draw=AccentOrange, dashed, thick, rounded corners=2pt, minimum width=1.6cm, minimum height=0.55cm,
+        font=\small\bfseries, text=AccentOrange] (m) at (4.4,0) {WE1 ?};
+      \draw[data] (sv) -- (l);
+      \node[card=sTeal, text width=5.6cm, anchor=west] at (6.0,0) {the leaf says where its issuer lives:\\
+        \textbf{Authority Information Access (AIA)}\\ \texttt{CA Issuers: http://i.pki.goog/we1.crt}};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small
+    \begin{tabular}{@{}llc@{}}
+      most browsers & download WE1 from the AIA address, or keep a list of intermediates & \ok\\
+      OpenSSL, Python, \texttt{curl} & do not download it: \texttt{unable to get local issuer certificate} & \nok
+    \end{tabular}
+  \end{center}
+  \vfill
+  \curious{pki/\#3.4}
+  \keymsg{``Works in my browser, fails in my script'': the server must send the intermediates.}
+  \say{To był przypadek no\_intermediate z zadania 1. Przeglądarki maskują ten błąd, więc administrator go nie widzi, a skrypty i aplikacje przestają działać. Naprawa jest po stronie serwera: wysyłać pełny łańcuch, bez roota. W symulatorze z linku serwer uczelni nie wysyła WE1 i widać, co daje adres z AIA.}
+\end{frame}
+
+\newcommand{\pcard}[6]{% x,y; letter; subject; issuer; ids; ca
+  \node[card=nLine, fill=white, text width=4.0cm, font=\scriptsize] (#2) at (#1) {\textbf{\large #2}\ \ Subject: \textbf{#3}\\ Issuer: #4\\ \texttt{#5}\ \ #6};}
+\begin{frame}{Task 2: build the path}
+  \begin{center}
+    \begin{tikzpicture}[font=\scriptsize]
+      \pcard{0,0}{A}{www.bob.example}{Trusty Issuing CA 2}{AKI 7C1D}{CA:FALSE}
+      \pcard{4.6,0}{B}{Trusty Issuing CA 2}{Trusty Root CA}{SKI 7C1D AKI 1A2B}{CA:TRUE}
+      \pcard{9.2,0}{C}{Trusty Issuing CA 2}{Trusty Root CA}{SKI 3E9F AKI 1A2B}{CA:TRUE}
+      \pcard{0,-1.6}{D}{Trusty Root CA}{Old Root 2008}{SKI 1A2B AKI 5500}{CA:TRUE}
+      \pcard{4.6,-1.6}{E}{Carol Issuing CA}{Trusty Root CA}{SKI C0DE AKI 1A2B}{CA:TRUE}
+      \node[container, minimum width=4.2cm, minimum height=1.2cm] (ts) at (9.2,-1.75) {};
+      \node[font=\scriptsize\bfseries, anchor=south] at (ts.north) {\faArchive\ Alice's trust store};
+      \node[smallcard=sViolet] at (9.2,-1.5) {Trusty Root CA \ SKI 1A2B};
+      \node[smallcard=sViolet] at (9.2,-2.0) {Old Root 2008 \ SKI 5500};
+    \end{tikzpicture}
+  \end{center}
+  \vspace{-0.1cm}
+  {\centering\small Which cards make a path from \textbf{A} to the trust store? Is there more than one?
+    Which cards are not used, and why?\par}
+  \vspace{0.15cm}
+  \onpaper{about 5 minutes}
+  \say{Około 5 minut, na kartce. Identyfikatory skrócone do 2 bajtów, prawdziwe mają 20. Karty są celowo szare, żeby kolor nie zdradzał rozwiązania. Podpowiedź dla tych, którzy utkną: porównajcie AKI z SKI, nie tylko nazwy.}
+\end{frame}
+
+\samedot
+\begin{frame}{Task 2: what we saw}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth, font=\small]
+      \node[smallcard=sTeal] (a) at (0,0) {A};
+      \node[smallcard=sViolet] (b) at (2,0) {B};
+      \node[smallcard=sViolet] (t) at (5,0.6) {\faArchive\ Trusty Root CA};
+      \node[smallcard=sViolet] (d) at (5,-0.6) {D};
+      \node[smallcard=sViolet] (o) at (8.2,-0.6) {\faArchive\ Old Root 2008};
+      \draw[data] (a) -- (b); \draw[data] (b) -- (t); \draw[data] (b) -- (d); \draw[data] (d) -- (o);
+      \node[anchor=west] at (7.0,0.6) {path 1 \ok};
+      \node[anchor=west] at (9.9,-0.6) {path 2 \ok\ (D is a cross-sign)};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small
+    \begin{tabular}{@{}ll@{}}
+      \textbf{C}: & the same name as B, but SKI 3E9F is not the leaf's AKI 7C1D: another key. Not used.\\
+      \textbf{E}: & Carol's CA; nobody here was issued by it. Not used.
+    \end{tabular}
+  \end{center}
+  \vfill
+  \curious{pki/\#3.2}
+  \keymsg{Match the key IDs, not only the names; a pile can hold two paths.}
+  \say{Gdyby walidator wziął C, podpis liścia by się nie zgodził, bo C ma inny klucz. Dwie ścieżki to dokładnie sytuacja Coventry: zwykły root i cross-sign. W symulatorze z linku jest prawdziwa kupka certyfikatów Coventry, razem z cross-signem GTS Root R4.}
+\end{frame}
+
+% ======================================================================
+\section[The checks]{The checks, one by one}
+% ======================================================================
+
+\begin{frame}{Six checks on every path}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \foreach \ic/\t [count=\k] in {\faPen/{\textbf{Signatures}: every certificate was signed by the next one.},
+          \faCalendar/{\textbf{Dates}: every certificate is valid now.},
+          \faGlobe/{\textbf{The name}: the leaf is for the name Alice typed.},
+          \faSitemap/{\textbf{Basic Constraints}: every issuer may issue certificates.},
+          \faKey/{\textbf{Key usage}: the leaf's key may be used for a TLS server.},
+          \faAnchor/{\textbf{A trust anchor}: the path ends in the trust store.}} {
+        \node[circle, fill=AccentOrange, text=white, font=\bfseries\small, minimum size=0.55cm] at (0,{-0.62*\k}) {\k};
+        \node[text=nInk, font=\large] at (0.9,{-0.62*\k}) {\ic};
+        \node[anchor=west, font=\small] at (1.4,{-0.62*\k}) {\t};
+      }
+      \node[circle, fill=nLight, text=white, font=\bfseries\small, minimum size=0.55cm] at (0,-4.6) {7};
+      \node[text=nLine, font=\large] at (0.9,-4.6) {\faBan};
+      \node[anchor=west, font=\small, text=gray] at (1.4,-4.6) {\textbf{Not revoked}: in the section \emph{Revocation and CRLs}.};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \say{Każde sprawdzenie łapie inny atak albo błąd. Pokażę je po kolei, z prawdziwymi wartościami Coventry, a potem napiszecie je sami w zadaniu 3. Porównać z listą z tablicy ze slajdu Alice's question.}
+\end{frame}
+
+% CHECKED: leaf: Signature Algorithm ecdsa-with-SHA256; WE1: ecdsa-with-SHA384 (openssl x509 -text)
+\begin{frame}{Check 1: signatures}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \node[smallcard=sViolet, minimum width=3.4cm, font=\small] (r) at (0,1.5) {\cert\ GTS Root R4};
+      \node[smallcard=sViolet, minimum width=3.4cm, font=\small] (i) at (0,0) {\cert\ WE1};
+      \node[smallcard=sTeal, minimum width=3.4cm, font=\small, aexec] (l) at (0,-1.5) {\cert\ www.coventry.ac.uk};
+      \draw[data] (r) -- node[right, font=\scriptsize, align=left] {verify with the root's public key\\ \texttt{ecdsa-with-SHA384}\ \ \ok} (i);
+      \draw[data] (i) -- node[right, font=\scriptsize, align=left] {verify with WE1's public key\\ \texttt{ecdsa-with-SHA256}\ \ \ok} (l);
+      \node[font=\scriptsize, text=gray, anchor=west] at (2.0,1.5) {in the trust store: nothing to verify};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  {\centering\footnotesize \texttt{verify(issuer's public key, signed part of the certificate, signature)} $\to$ True / False\par}
+  \vfill
+  \curious{pki/\#4.8}
+  \keymsg{A wrong signature means someone else made the certificate: stop.}
+  \say{Podpis obejmuje całą część to be signed: nazwy, daty, klucz, rozszerzenia. Zmiana jednego bajtu psuje podpis. Właśnie dlatego Mallory nie może przerobić cudzego certyfikatu. W symulatorze z linku fałszywy certyfikat pośredni nie przechodzi sprawdzenia podpisu.}
+\end{frame}
+
+% CHECKED: leaf Oct 13 2026 to Jan 11 2027 (90 days: 2027-01-11 minus 2026-10-13 = 90 days); WE1 until Feb 20 2029
+\begin{frame}{Check 2: dates}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[x=0.11cm]
+      \draw[nLine, very thick] (-5,0) -- (100,0);
+      \fill[sTeal!35] (0,-0.18) rectangle (90,0.18);
+      \draw[sTeal, thick] (0,-0.18) rectangle (90,0.18);
+      \node[font=\small, anchor=north, align=center] at (0,-0.3) {13 Oct 2026\\ \texttt{notBefore}};
+      \node[font=\small, anchor=north, align=center] at (90,-0.3) {11 Jan 2027\\ \texttt{notAfter}};
+      \draw[AccentOrange, line width=2pt] (33,-0.45) -- (33,0.45);
+      \node[font=\small\bfseries, text=AccentOrange, anchor=south] at (33,0.45) {now: 15 Nov 2026};
+      \node[font=\small, anchor=west] at (92,0.5) {leaf: 90 days};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  {\centering\large $\texttt{notBefore} \le \text{now} \le \texttt{notAfter}$\par}
+  {\centering\small for \textbf{every} certificate on the path (WE1: until 20 Feb 2029)\par}
+  \vfill
+  \probbox{The client's clock is an input}{A phone set to 2030 rejects every site.}
+  \curious{pki/\#4.4}
+  \say{Sprawdzamy wszystkie certyfikaty, nie tylko liść: wygasły pośredni też psuje ścieżkę, zobaczycie to w zadaniu 3. Jeśli zegar w telefonie jest zły, wszystkie strony mają błąd daty; Chrome ma na to osobny komunikat. W symulatorze z linku wygasły certyfikat pośredni psuje całą ścieżkę.}
+\end{frame}
+
+% source: RFC 9525 (2023), section 6.3: the wildcard is only the complete leftmost label; Chrome 58 (2017) dropped CN
+\begin{frame}{Check 3: the name}
+  \begin{center}\small Alice typed \texttt{www.coventry.ac.uk}; the leaf's SAN is \texttt{DNS: www.coventry.ac.uk}\ \ \ok\end{center}
+  \vfill
+  \begin{center}\small
+    \begin{tabular}{@{}llcl@{}}
+      \toprule
+      name in the certificate & host name & & \\
+      \midrule
+      \texttt{bob.example} & \texttt{BOB.example} & \ok & case does not matter\\
+      \texttt{*.bob.example} & \texttt{www.bob.example} & \ok & a \textbf{wildcard} covers one label\\
+      \texttt{*.bob.example} & \texttt{bob.example} & \nok & not the bare name\\
+      \texttt{*.bob.example} & \texttt{a.b.bob.example} & \nok & not two labels\\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+  \vfill
+  \begin{center}\small Only the SAN counts; the Common Name is ignored (Chrome since 2017). Rules: RFC 9525.\end{center}
+  \curious{pki/\#4.6}
+  \say{Gwiazdka zastępuje dokładnie jedną etykietę, czyli jeden kawałek między kropkami, i tylko z lewej. Dlatego certyfikaty często mają w SAN dwie nazwy: bob.example i *.bob.example. Common Name był używany dawniej; od Chrome 58 w 2017 liczy się tylko SAN. W symulatorze z linku gwiazdka nie obejmuje nazwy, o którą pyta Alice.}
+\end{frame}
+
+% CHECKED: WE1 Basic Constraints: critical CA:TRUE, pathlen:0; leaf: critical CA:FALSE
+% source: Moxie Marlinspike, "Internet Explorer SSL Vulnerability", August 2002
+\begin{frame}{Check 4: may it sign certificates?}
+  \begin{center}\small
+    \begin{tabular}{@{}lll@{}}
+      WE1: & \texttt{Basic Constraints: CA:TRUE, pathlen:0} & may sign leaves only\\
+      leaf: & \texttt{Basic Constraints: CA:FALSE} & may not sign anything
+    \end{tabular}
+  \end{center}
+  \vfill
+  {\centering\small Mallory has a real leaf for \texttt{mallory.example}. She signs her own ``bob.example'' with its key:\par}
+  \vspace{0.2cm}
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \node[smallcard=sViolet, font=\small] (i) at (0,0) {\cert\ Trusty Issuing CA 1};
+      \node[smallcard=sPink, font=\small] (m) at (4.4,0) {\cert\ mallory.example, \texttt{CA:FALSE}};
+      \node[smallcard=sPink, font=\small] (b) at (9.0,0) {\cert\ ``bob.example''};
+      \draw[data] (i) -- (m); \draw[data] (m) -- (b);
+      \node[font=\scriptsize, anchor=north] at (9.0,-0.35) {signatures \ok\ dates \ok\ name \ok};
+      \node[font=\small\bfseries, text=aWrite, anchor=north] at (4.4,-0.35) {\nok\ not a CA: rejected};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  {\centering\footnotesize\textcolor{gray}{2002: Internet Explorer did not check this (Moxie Marlinspike).}\par}
+  \curious{pki/\#4.7}
+  \say{Przypomnienie z wykładu 10: Basic Constraints mówi, czy certyfikat jest urzędem. pathlen:0 w WE1 znaczy: pod nim mogą być tylko liście. Bez tego sprawdzenia każdy właściciel zwykłego certyfikatu mógłby wystawiać certyfikaty dla dowolnych stron. W 2002 roku Internet Explorer tego nie sprawdzał. Name Constraints, też z wykładu 10, sprawdza się w tym samym miejscu. W symulatorze z linku liść z CA:FALSE podpisał inny certyfikat i ścieżka zostaje odrzucona.}
+\end{frame}
+
+% CHECKED: leaf Key Usage critical Digital Signature, EKU TLS Web Server Authentication;
+%   WE1 Digital Signature, Certificate Sign, CRL Sign; EKU TLS Web Server Authentication, TLS Web Client Authentication
+\begin{frame}{Check 5: what is the key for?}
+  \vfill
+  \begin{center}\footnotesize
+    \begin{tabular}{@{}lll@{}}
+      \toprule
+      & \textbf{Key Usage} (what the key may do) & \textbf{Extended Key Usage} (for which job)\\
+      \midrule
+      leaf & Digital Signature & TLS Web Server Authentication\\
+      WE1 & Digital Signature, Certificate Sign, CRL Sign & TLS Web Server and Client Auth.\\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+  \vfill
+  \begin{center}\small
+    \nok\ a certificate for a client (\texttt{clientAuth} only) on a server: rejected\\[3pt]
+    \nok\ a key for signing e-mail on a web server: rejected
+  \end{center}
+  \vfill
+  \curious{pki/\#4.9}
+  \keymsg{A certificate is valid for one job, not for every job.}
+  \say{Key Usage mówi, jakie operacje wolno robić kluczem, a Extended Key Usage, do jakiej roli służy certyfikat: serwer TLS, klient TLS, podpis kodu. Przeglądarka wymaga serverAuth w liściu. W zadaniu 3 jeden przypadek to certyfikat klienta na serwerze. W symulatorze z linku certyfikat klienta z clientAuth udaje serwer i zostaje odrzucony.}
+\end{frame}
+
+\begin{frame}{Check 6: a trust anchor}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \node[card=sViolet, text width=3.6cm, align=center] (g) at (0,0) {\textbf{GTS Root R4}\\ signed by itself\\ key \texttt{80:4C:D6:EB\ldots}};
+      \node[card=sPink, text width=3.6cm, align=center] (m) at (5.4,0) {\textbf{``GTS Root R4''}\\ signed by itself\\ Mallory's key};
+      \node[container, minimum width=3.4cm, minimum height=1.6cm] (ts) at (10.4,0) {};
+      \node[font=\small\bfseries, anchor=south] at (ts.north) {\faArchive\ trust store};
+      \node[smallcard=sViolet] at (10.4,0) {GTS Root R4, \texttt{80:4C:\ldots}};
+      \draw[data] (g.south) to[bend right=20] node[below, font=\scriptsize] {in the store \ok} (ts.south);
+      \node[font=\small, text=aWrite, below=0.15cm of m] {\nok\ not in the store};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  {\centering\small Trust comes from \textbf{one} place: the root is in the trust store (by its key, not by its name).\par}
+  \vfill
+  \curious{pki/\#3.8}
+  \keymsg{The path must end in the trust store; a self-signed certificate elsewhere is just a claim.}
+  \say{Root podpisuje sam siebie, więc jego podpis nic nie dowodzi: każdy może zrobić taki certyfikat. Zaufanie bierze się z tego, że program root (Mozilla, Microsoft, Apple, Google) umieścił ten klucz w magazynie. To był przypadek self\_signed z zadania 1. W symulatorze z linku łańcuch kończy się na roocie spoza magazynu.}
+\end{frame}
+
+% CHECKED: openssl verify error numbers: 10, 62, 20, 18, 79 (Task1/certs and Task3/chains, OpenSSL 3.0.13)
+\begin{frame}{Typical errors}
+  \vfill
+  \begin{center}\scriptsize
+    \setlength{\tabcolsep}{4pt}
+    \begin{tabular}{@{}llll@{}}
+      \toprule
+      error & OpenSSL says (number) & usual cause & fix\\
+      \midrule
+      expired & \texttt{certificate has expired} (10) & renewal did not happen & automate renewal\\
+      wrong name & \texttt{hostname mismatch} (62) & wrong certificate & add the name to SAN\\
+      \rowcolor{AccentOrange!12} unknown issuer & \texttt{unable to get local issuer certificate} (20) & private CA, or Mallory & trust the CA, or stop\\
+      no intermediate & \texttt{unable to get local issuer certificate} (20) & only the leaf is sent & send the chain\\
+      self-signed & \texttt{self-signed certificate} (18) & test server, or Mallory & a real certificate\\
+      not a CA & \texttt{invalid CA certificate} (79) & a leaf used as a CA & stop: an attack\\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+  \vfill
+  \keymsg{Most errors are mistakes of the administrator, but the client cannot tell, so it always rejects.}
+  \say{Większość błędów w praktyce to błędy administratora, nie ataki. Klient nie umie ich rozróżnić, dlatego zawsze odrzuca. Wiersz unknown issuer zależy od tego, kim jest wystawca: prywatne CA firmy można dodać do magazynu, Mallory nie. Czym kończy się wyłączanie sprawdzania, opowie wykład 12.}
+\end{frame}
+
+\begin{frame}{Task 3: check six chains yourself}
+  \vfill
+  \taskgoal{write the checks 1 to 5 yourself and find the one rule that each of six chains breaks.}
+  \taskready{\texttt{certs\_ready.py} reads the fields: \texttt{signed\_by}, \texttt{valid\_from}, \texttt{valid\_until},
+    \texttt{dns\_names}, \texttt{is\_ca}, \texttt{key\_purposes}.}
+  \vfill
+  \opentask{Task3}{about 15 minutes}
+  \vfill
+  \say{Około 15 minut. signed\_by to gotowa czarna skrzynka: sprawdza podpis i nazwę wystawcy. Najciekawsze TODO to gwiazdka w name\_matches. Sprawdzenia w kolejności ze slajdu Six checks on every path.}
+\end{frame}
+
+\samedot
+\begin{frame}{Task 3: what we saw}
+  % CHECKED: Task3/solution/check_chain.py; openssl verify -purpose sslserver -verify_hostname bob.example:
+  %   case2 error 10 at depth 1, case3 62, case4 79 at depth 1, case5 7 at depth 1, case6 26
+  \vfill
+  \begin{center}\scriptsize
+    \begin{tabular}{@{}lcll@{}}
+      \toprule
+      case & & output & what it was\\
+      \midrule
+      1 & \ok & \texttt{OK} & a good chain\\
+      2 & \nok & \texttt{check 2: certificate 1 is not valid now (until 2026-06-30)} & an expired intermediate\\
+      3 & \nok & \texttt{check 3: bob.example is not in ['*.bob.example']} & a wildcard, not the bare name\\
+      4 & \nok & \texttt{check 4: certificate 1 (mallory.example) is not a CA} & Mallory's leaf as a CA\\
+      5 & \nok & \texttt{check 1: certificate 1 is not signed by a trusted root} & a fake ``Trusty Issuing CA 1''\\
+      6 & \nok & \texttt{check 5: the leaf is for ['clientAuth'], not for a server} & a client certificate\\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+  \vfill
+  {\centering\small \texttt{openssl verify} agrees: errors 10, 62, 79, 7 (signature failure) and 26 (unsuitable purpose).\par}
+  \vfill
+  \keymsg{Each check catches a chain that passes all the others.}
+  \say{Wynik sprawdzony; OpenSSL daje te same diagnozy. W case4 wszystkie podpisy są prawdziwe, daty i nazwa też: łapie go tylko Basic Constraints. W case5 Mallory podrobiła nazwę pośredniego, ale nie podpis roota.}
+\end{frame}
+
+% ======================================================================
+\section[Revocation and CRLs]{Revocation and CRLs}
+% ======================================================================
+
+\begin{frame}{Bob's key leaks}
+  \begin{center}\small 10 Nov 2026: Bob's laptop with the private key of \texttt{bob.example} is stolen.\end{center}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[x=0.42cm]
+      \fill[sTeal!30] (0,-0.2) rectangle (24,0.2);
+      \draw[sTeal, thick] (0,-0.2) rectangle (24,0.2);
+      \fill[sPink!40] (0.3,-0.2) rectangle (24,0.2);
+      \node[font=\small, anchor=east] at (-0.2,0) {\cert\ bob.example};
+      \node[font=\scriptsize, anchor=north] at (0,-0.25) {1 Nov 2026};
+      \node[font=\scriptsize, anchor=north east] at (24,-0.25) {1 Nov 2028 (\texttt{notAfter})};
+      \node[text=AccentOrange, font=\large] at (0.3,0.6) {\faExclamationTriangle};
+      \node[font=\scriptsize, text=AccentOrange, anchor=west] at (0.9,0.6) {the key leaks};
+      \node[font=\small\bfseries, text=sPinkText] at (15,0.6) {Mallory can pretend to be Bob until here $\to$};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small Bob makes a new key and a new certificate. But the old one still passes all six checks.\end{center}
+  \vfill
+  {\centering\large\textbf{How do we tell every client ``do not trust it any more''?}\par}
+  \vfill
+  \say{Certyfikat jest podpisanym dokumentem, którego nie da się odebrać. Wszystkie sześć sprawdzeń dalej przechodzi. Potrzebne jest siódme sprawdzenie: czy CA nie wycofał certyfikatu.}
+\end{frame}
+
+% source: RFC 5280, section 5.3.1 (reason codes); Heartbleed CVE-2014-0160, made public 7 April 2014
+\begin{frame}{Why certificates are revoked}
+  \vfill
+  \begin{center}\small
+    \begin{tabular}{@{}cll@{}}
+      \Large\faKey & the private key leaked & \texttt{keyCompromise}\\[4pt]
+      \Large\faExclamationCircle & the CA made a mistake (wrong name, wrong checks) & often no reason given\\[4pt]
+      \Large\faExchange* & the certificate was replaced & \texttt{superseded}\\[4pt]
+      \Large\faPowerOff & the domain or service is no longer used & \texttt{cessationOfOperation}\\[4pt]
+      \Large\faBuilding & the CA itself was broken into & \texttt{cACompromise}
+    \end{tabular}
+  \end{center}
+  \vfill
+  \stepbox{April 2014: Heartbleed}{A bug in OpenSSL let anyone read server memory, private keys included.
+    Many sites had to make new keys and revoke their old certificates.}
+  \say{Kody przyczyn (reason codes) są w RFC 5280. Heartbleed z kwietnia 2014 to najbardziej znany przypadek masowego odwołania: błąd w OpenSSL pozwalał czytać pamięć serwera, więc trzeba było zakładać, że klucze wyciekły.}
+\end{frame}
+
+\samedot
+\begin{frame}{Revocation}
+  \vfill
+  \bigdef{\textbf{Revocation}: the CA declares that a certificate must not be trusted any more, before its \texttt{notAfter}.}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \node[revdoc, minimum width=5.4cm, minimum height=1.6cm, align=center, font=\small] at (0,0)
+        {\Large\faList\\[2pt] \textbf{a list}: the CA publishes\\ all revoked serial numbers\\ $\to$ \textbf{CRL} (this section)};
+      \node[revdoc, minimum width=5.4cm, minimum height=1.6cm, align=center, font=\small] at (6.6,0)
+        {\Large\faQuestionCircle\\[2pt] \textbf{a question}: the client asks\\ about one serial number\\ $\to$ \textbf{OCSP} (next section)};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \say{CA nie może zmienić certyfikatu, który już jest u klientów. Może tylko ogłosić: tego nie ufajcie. Pytanie, jak ta wiadomość dotrze do klienta. Są dwa podstawowe sposoby.}
+\end{frame}
+
+% CHECKED: checks/real/we1_shard.crl (curl http://c.pki.goog/we1/7IsZmIhZCHs.crl, 15 Nov 2026): 347 bytes,
+%   v2, ecdsa-with-SHA256, Last Update Nov 15 13:20:18 2026, Next Update Nov 25 12:20:17 2026, CRL Number 520,
+%   1 entry: ACC40C19689A00140E48249D35E48D46 revoked Nov 3 02:28:23 2026, no reason code
+\begin{frame}{A CRL: a signed list}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \node[revdoc, text width=9.6cm, font=\footnotesize] (c) at (0,0) {%
+        {\large\textcolor{sBrown}{\faList}}\ \textbf{Certificate Revocation List} (version 2)\\[4pt]
+        \begin{tabular}{@{}ll@{}}
+          Issuer & \texttt{CN = WE1} (Google Trust Services)\\
+          Last Update & 15 Nov 2026 13:20:18\\
+          Next Update & 25 Nov 2026 12:20:17\\
+          \midrule
+          \texttt{ACC40C19689A00140E48249D35E48D46} & revoked 3 Nov 2026 02:28
+        \end{tabular}};
+      \node[smallcard=sViolet, anchor=north, text width=9.4cm] at ([yshift=-0.12cm]c.south)
+        {\faPen\ Signature of \textbf{WE1}\quad \texttt{ecdsa-with-SHA256}};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  {\centering\small The real list of WE1, downloaded on 15 Nov 2026 from the leaf's \textbf{CRL Distribution Points}:\\
+    \texttt{http://c.pki.goog/we1/7IsZmIhZCHs.crl}, \textbf{347 bytes}.\par}
+  \vfill
+  \say{Lista ma tego samego wystawcę co certyfikaty i jest przez niego podpisana, więc nikt nie może jej podrobić. Last Update i Next Update to okno ważności listy: następna wyjdzie najpóźniej 25 listopada. Kod przyczyny nie jest obowiązkowy; ten wpis go nie ma. CRL Distribution Points to pole certyfikatu z adresem listy.}
+\end{frame}
+
+\begin{frame}{Using a CRL: four steps}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \foreach \ic/\t [count=\k] in {\faDownload/{Download the list from the address in the certificate (CRL Distribution Points).},
+          \faPen/{Check the list's \textbf{signature} with the issuer's public key.},
+          \faCalendar/{Check that the list is \textbf{fresh}: now $<$ Next Update.},
+          \faSearch/{Look for the certificate's \textbf{serial number}. Found: revoked.}} {
+        \node[circle, fill=AccentOrange, text=white, font=\bfseries\small, minimum size=0.55cm] at (0,{-0.8*\k}) {\k};
+        \node[text=nInk, font=\large] at (0.9,{-0.8*\k}) {\ic};
+        \node[anchor=west, font=\small] at (1.4,{-0.8*\k}) {\t};
+      }
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \keymsg{A list is trusted only if it is signed by the issuer and still fresh.}
+  \say{Kroki 2 i 3 są tak samo ważne jak 4. Bez podpisu Mallory podsunie pustą listę; bez świeżości podsunie starą, sprzed odwołania. Obie sztuczki są w zadaniu 4.}
+\end{frame}
+
+\samedot
+\begin{frame}{The trouble with lists}
+  \vfill
+  \begin{center}\small
+    \begin{tabular}{@{}cll@{}}
+      \Large\faWeightHanging & \textbf{size} & one list for all certificates of a CA, downloaded to check \textbf{one} serial number\\[5pt]
+      \Large\faHourglassHalf & \textbf{delay} & a revocation reaches the client only with the next list (WE1: up to 10 days)\\[5pt]
+      \Large\faCut & \textbf{today} & CAs split the list into many small \textbf{shards}; WE1's shard: 1 entry, 347 bytes
+    \end{tabular}
+  \end{center}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \node[smallcard=sTeal] (c) at (0,0) {\cert\ leaf};
+      \foreach \x in {3,3.9,4.8,5.7,6.6} \node[revdoc, minimum width=0.7cm, minimum height=0.5cm, font=\tiny] at (\x,0) {};
+      \node[revdoc, aexec, minimum width=0.7cm, minimum height=0.5cm, font=\tiny] (s) at (4.8,0) {};
+      \draw[data] (c) to[bend left=30] node[above, font=\scriptsize] {CRL Distribution Points} (s.north);
+      \node[font=\scriptsize, text=gray, anchor=west] at (7.1,0) {one of many small lists};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \say{Dawniej listy dużych CA miały megabajty. Dziś CA tną listę na kawałki i w każdym certyfikacie wpisują adres jego kawałka; stąd dziwna nazwa pliku. Opóźnienie zostaje: odwołanie dociera z następną listą.}
+\end{frame}
+
+\begin{frame}{Task 4: check a CRL}
+  \vfill
+  \taskgoal{decide if Bob's and Carol's certificates are revoked, and refuse a list that is old or fake.}
+  \taskready{\texttt{crl\_ready.py} loads the files and reads \texttt{next\_update}, \texttt{revoked\_on}, \texttt{reason\_of}.}
+  \vfill
+  \opentask{Task4}{about 10 minutes}
+  \vfill
+  \say{Około 10 minut. Trzy listy: dobra, stara i fałszywa. Trzy TODO: podpis listy, świeżość, szukanie numeru seryjnego. Biblioteka ma gotowe crl.is\_signature\_valid i crl.get\_revoked\_certificate\_by\_serial\_number.}
+\end{frame}
+
+\samedot
+\begin{frame}{Task 4: what we saw}
+  % CHECKED: Task4/solution/check_crl.py output
+  \vfill
+  \begin{center}\scriptsize
+    \begin{tabular}{@{}ll@{}}
+      \toprule
+      list & output\\
+      \midrule
+      \texttt{crl.pem} & \texttt{list OK (next update 2027-12-31)}\\
+      & \texttt{bob.example \ \ serial 0x1001 not revoked} \ok\\
+      & \texttt{carol.example serial 0x1002 REVOKED on 2026-11-10 09:30:00, reason: keyCompromise} \nok\\
+      \rowcolor{AccentOrange!12}\texttt{old\_crl.pem} & \texttt{REJECT the list: too old (next update was 2026-10-08)}\\
+      \rowcolor{AccentOrange!12}\texttt{fake\_crl.pem} & \texttt{REJECT the list: bad signature}\\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+  {\centering\small The old list does not list Carol yet; the fake one is Mallory's, without Carol.\par}
+  \vfill
+  \keymsg{Without steps 2 and 3, the old and the fake list would both say ``Carol is fine''.}
+  \say{Wynik sprawdzony. Prawdziwe listy żyją kilka dni (WE1: 10), nasza dobra lista ma datę na koniec 2027, żeby zadanie działało przez cały kurs.}
+\end{frame}
+
+% ======================================================================
+\section[OCSP and after]{OCSP and what came after}
+% ======================================================================
+
+% CHECKED: checks/real/github_leaf.ocsp (openssl ocsp -url http://ocsp.sectigo.com, 15 Nov 2026): successful,
+%   serial 3E1D6026B4B0AEA279DCA2EFBBCED82B, good, This Update Nov 15 13:37:32 2026, Next Update Nov 22 13:37:31 2026,
+%   ecdsa-with-SHA256, 278 bytes
+\begin{frame}{OCSP: ask about one certificate}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \personnode{al}{0,0}{sIndigo}{Alice}
+      \node[person=sViolet] (r) at (11,0) {\faServer};
+      \node[font=\small\bfseries, text=sViolet, below=0.08cm of r, align=center] {OCSP responder\\ \footnotesize ocsp.sectigo.com};
+      \draw[data] (0.8,0.3) to node[above, font=\scriptsize] {serial \texttt{3E1D6026B4B0AEA279DCA2EFBBCED82B} of Sectigo DV E36?} (10.2,0.3);
+      \draw[data] (10.2,-0.2) to node[below, font=\scriptsize] {signed answer, 278 bytes} (0.8,-0.2);
+      \node[revdoc, font=\small, anchor=north] at (5.5,-0.9) {%
+        \begin{tabular}{@{}ll@{}}
+          Cert Status & \textbf{good}\\
+          This Update & 15 Nov 2026 13:37:32\\
+          Next Update & 22 Nov 2026 13:37:31 \ (7 days)\\
+          Signature & \texttt{ecdsa-with-SHA256}
+        \end{tabular}};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  {\centering\small \textbf{OCSP} (Online Certificate Status Protocol, RFC 6960). The real answer for \texttt{github.com}.
+    Statuses: good, revoked, unknown.\par}
+  \say{Zamiast całej listy pytamy o jeden certyfikat. Odpowiedź też jest podpisana i ma okno ważności, jak lista. Te wartości to prawdziwe zapytanie z 15 listopada; adres respondera jest w polu AIA certyfikatu github.com. Responder to serwer CA, który odpowiada na takie pytania.}
+\end{frame}
+
+\samedot
+\begin{frame}{OCSP's problems}
+  \vfill
+  \begin{center}\small
+    \begin{tabular}{@{}cll@{}}
+      \Large\faEye & \textbf{privacy} & the CA learns that Alice is visiting \texttt{github.com}, and when\\[6pt]
+      \Large\faClock & \textbf{speed} & one more connection before the page opens\\[6pt]
+      \Large\faServer & \textbf{load} & millions of questions; and when the responder is down, what then?
+    \end{tabular}
+  \end{center}
+  \vfill
+  \keymsg{Asking the CA every time is slow, leaks where you go, and can fail.}
+  \say{Prywatność jest problemem zasadniczym: zapytanie zawiera numer seryjny, więc CA wie, którą stronę Alice odwiedza. A co, jeśli responder nie odpowiada?}
+\end{frame}
+
+% source: Adam Langley, ImperialViolet, "Revocation checking and Chrome's CRL", 5 Feb 2012 (https://www.imperialviolet.org/2012/02/05/crlsets.html): "soft-fail revocation checks are like a seat-belt that snaps when you crash"
+\begin{frame}{No answer? Soft-fail}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \personnode{al}{0,0}{sIndigo}{Alice}
+      \node[person=sPink] (m) at (5,0) {\faUserSecret};
+      \node[font=\small\bfseries, text=sPinkText, below=0.08cm of m] {Mallory};
+      \node[privval, font=\scriptsize, anchor=south] at (5,0.65) {\faKey\ Bob's stolen key};
+      \node[person=sViolet] (r) at (10,0) {\faServer};
+      \node[font=\small\bfseries, text=sViolet, below=0.08cm of r] {OCSP responder};
+      \draw[data] (0.8,0) to node[above, font=\scriptsize] {is bob.example revoked?} (4.2,0);
+      \draw[data, dashed, nLine] (5.8,0) -- (9.2,0);
+      \node[text=AccentOrange, font=\LARGE\bfseries] at (6.3,0) {$\times$};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small
+    \begin{tabular}{@{}lll@{}}
+      \textbf{soft-fail}: & no answer $\to$ accept & what most browsers did: Mallory wins \nok\\
+      \textbf{hard-fail}: & no answer $\to$ reject & safe, but a broken responder breaks the web
+    \end{tabular}
+  \end{center}
+  \vfill
+  \plainbox{``Soft-fail revocation checks are like a seat-belt that snaps when you crash.'' \quad (Adam Langley, Google, 2012)}
+  \say{To jest sedno. Mallory, która ma skradziony klucz, i tak stoi między Alice a internetem, więc może też zablokować pytanie OCSP. Przeglądarka, która przy braku odpowiedzi akceptuje, nie dostaje żadnej ochrony dokładnie wtedy, gdy jest potrzebna.}
+\end{frame}
+
+\begin{frame}{Task 5: OCSP and soft-fail}
+  \vfill
+  \taskgoal{ask an OCSP responder about Bob's and Carol's certificates, then decide with soft-fail and hard-fail.}
+  \taskready{\texttt{ocsp\_ready.py}: the CA's responder, inside the program; Mallory can block it.}
+  \vfill
+  \opentask{Task5}{about 12 minutes}
+  \vfill
+  \say{Około 12 minut. Responder działa w tym samym programie, bez sieci, ale przyjmuje i zwraca prawdziwe bajty OCSP. Trzy TODO: zbudować żądanie, odczytać i sprawdzić odpowiedź, napisać decyzję dla obu polityk.}
+\end{frame}
+
+\samedot
+\begin{frame}{Task 5: what we saw}
+  % CHECKED: Task5/solution/ocsp_check.py output; request 69 bytes, response 263 bytes
+  \vfill
+  \begin{center}\small
+    \begin{tabular}{@{}lllll@{}}
+      \toprule
+      certificate & Mallory? & answer & soft-fail & hard-fail\\
+      \midrule
+      \texttt{bob.example} & & good & accept & accept\\
+      \texttt{carol.example} & & revoked & reject & reject\\
+      \rowcolor{AccentOrange!12}\texttt{carol.example} & blocks OCSP & \texttt{None} & accept \nok & reject\\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+  \vfill
+  \keymsg{With soft-fail, one blocked question turns a revoked certificate into a good one.}
+  \say{Wynik sprawdzony. Żądanie miało 69 bajtów, odpowiedź 263. Ostatni wiersz pokazuje problem soft-fail. Jak to naprawić, nie psując internetu?}
+\end{frame}
+
+% source: RFC 6066, section 8 (status_request); RFC 9846, section 4.5.1.1 (RFC 8446: 4.4.2.1) (OCSP status in the CertificateEntry)
+\begin{frame}{OCSP stapling}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \node[person=sViolet] (r) at (0,1.4) {\faServer};
+      \node[font=\scriptsize\bfseries, text=sViolet, left=0.1cm of r] {OCSP responder};
+      \node[person=sTeal] (b) at (9,1.4) {\faServer};
+      \node[font=\scriptsize\bfseries, text=sTealText, right=0.1cm of b] {Bob's server};
+      \personnode{al}{0,-1.2}{sIndigo}{Alice}
+      \draw[data] (r) -- node[above, font=\scriptsize] {a fresh signed answer, every few hours} (b);
+      \draw[data] (b.south) |- (al.east);
+      \node[smallcard=sTeal, font=\small] at (4.5,-1.0) {\cert\ certificate \;+\; \textcolor{sBrown}{\faPaperclip\ the answer}};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small privacy \ok\ the CA does not see Alice \qquad speed \ok\ no extra connection\end{center}
+  {\centering\footnotesize TLS extension \texttt{status\_request} (RFC 6066); in TLS 1.3 the answer travels inside the Certificate message.\par}
+  \vfill
+  \say{Stapling: serwer pyta za wszystkich klientów i wysyła odpowiedź razem z certyfikatem, jak zszytą zszywaczem. Odpowiedź jest podpisana przez CA, więc serwer nie może jej podrobić. Ale co, jeśli Mallory po prostu nie dołączy odpowiedzi?}
+\end{frame}
+
+% source: RFC 7633 (TLS Feature extension, OID 1.3.6.1.5.5.7.1.24); Let's Encrypt "Ending OCSP Support in 2025": Must-Staple orders fail from 30 Jan 2025 (new accounts), all from 7 May 2025
+\samedot
+\begin{frame}{Must-Staple}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \node[card=sTeal, text width=5.4cm, font=\small] (c) at (0,0) {\cert\ \textbf{bob.example}\\ \ldots\\ TLS Feature: \texttt{status\_request}};
+      \draw[annot] (-2.8,-0.62) rectangle (2.8,-0.18);
+      \node[font=\small, text=AccentOrange, anchor=west] at (3.1,-0.4) {``I always come with a staple'' \ (RFC 7633)};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  {\centering\small Mallory with Bob's stolen key and certificate, without a staple $\to$ the client rejects \ok\par}
+  \vfill
+  \probbox{Rarely used}{One missing staple takes the site down. Let's Encrypt stopped offering Must-Staple in 2025.}
+  \say{Must-Staple zamienia soft-fail w hard-fail, ale tylko dla tego certyfikatu. W praktyce prawie nikt go nie używał, bo serwery nie zawsze miały świeżą odpowiedź. Let's Encrypt przestał wydawać takie certyfikaty w 2025 roku.}
+\end{frame}
+
+% source: Mozilla Hacks, 19 Aug 2025: CRLite on for all desktop users since Firefox 137 (April 2025); Chrome CRLSets since 2012 (ImperialViolet, 5 Feb 2012)
+\begin{frame}{What browsers do today}
+  \vfill
+  \begin{center}\small
+    \begin{tabular}{@{}clp{10.6cm}@{}}
+      \LARGE\faChrome & Chrome & no OCSP questions; a small list of important revocations is pushed to it (\textbf{CRLSets}, since 2012)\\[8pt]
+      \LARGE\faFirefox & Firefox & \textbf{CRLite}: all revocations, compressed, pushed to the browser (on by default since 2025)\\[8pt]
+      \LARGE\faSafari & Safari & Apple pushes its own revocation data to its devices
+    \end{tabular}
+  \end{center}
+  \vfill
+  \keymsg{The trend: the browser gets the revocations in advance and asks nobody during the connection.}
+  \say{Przeglądarki przestały pytać w czasie połączenia. CRLSets w Chrome zawierają tylko wybrane, ważne odwołania. Firefox z CRLite ma wszystkie. Szczegóły zmieniają się co roku, więc mówię tylko o kierunku.}
+\end{frame}
+
+% source: Larisch, Choffnes, Levin, Maggs, Mislove, Wilson, "CRLite", IEEE S&P 2017
+\samedot
+\begin{frame}{CRLite: a filter cascade}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \node[hw, minimum width=3cm, font=\small] (all) at (0,0) {all certificates\\ in the CT logs};
+      \node[revdoc, minimum width=2.6cm, align=center, font=\small] (f1) at (4.0,0) {filter 1\\ ``maybe revoked?''};
+      \node[revdoc, minimum width=2.2cm, align=center, font=\small] (f2) at (8.0,0) {filter 2\\ ``maybe good?''};
+      \node[revdoc, minimum width=1.6cm, align=center, font=\small] (f3) at (11.4,0) {filter 3\\ \ldots};
+      \draw[data] (all) -- (f1); \draw[data] (f1) -- node[above, font=\tiny] {its mistakes} (f2);
+      \draw[data] (f2) -- node[above, font=\tiny] {its mistakes} (f3);
+      \node[font=\scriptsize, text=gray, below=0.15cm of f3] {until no mistakes are left};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \bigdef{\textbf{Bloom filter}: a compact bit array that answers ``surely not in the set'' or ``maybe in the set''.}
+  \vfill
+  {\centering\small The answer is computed in the browser: offline, private, no soft-fail.\par}
+  \say{Można pominąć. Pomysł z pracy Larischa i innych (IEEE S\&P 2017). Działa, bo dzięki logom Certificate Transparency z wykładu 10 znamy wszystkie certyfikaty, więc filtr można sprawdzić na całym zbiorze i usunąć jego pomyłki kolejnymi warstwami.}
+\end{frame}
+
+% source: Let's Encrypt, "6-Day and IP Address Certificates Are Generally Available", 15 Jan 2026 (first 6-day certificate 20 Feb 2025, allowlisted)
+\begin{frame}{Short-lived certificates}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[x=1.1cm]
+      \fill[sBrown!30] (0,0.4) rectangle (7,0.8); \draw[sBrown, thick] (0,0.4) rectangle (7,0.8);
+      \node[font=\small, anchor=east] at (-0.1,0.6) {an OCSP answer or a CRL};
+      \node[font=\small, anchor=west] at (7.1,0.6) {about 7 days};
+      \fill[sTeal!30] (0,-0.4) rectangle (6,0); \draw[sTeal, thick] (0,-0.4) rectangle (6,0);
+      \node[font=\small, anchor=east] at (-0.1,-0.2) {a short-lived certificate};
+      \node[font=\small, anchor=west] at (6.1,-0.2) {6 days};
+      \foreach \d in {0,...,7} \node[font=\tiny, text=gray] at (\d,-0.65) {\d};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  {\centering\small If the certificate dies before the news of its revocation would arrive, revocation hardly matters.\par}
+  \vfill
+  {\centering\small Let's Encrypt offers 6-day certificates to everyone (since 2026). All public certificates get shorter (Lecture 10).\par}
+  \say{Zamiast odwoływać, pozwalamy wygasnąć. Jeśli certyfikat żyje 6 dni, a odpowiedź OCSP 7 dni, odwołanie i tak nie zadziała szybciej niż wygaśnięcie. Harmonogram skracania ważności był w wykładzie 10.}
+\end{frame}
+
+% CHECKED: coventry_leaf.pem: AIA has only CA Issuers (no OCSP); CRL Distribution Points http://c.pki.goog/we1/7IsZmIhZCHs.crl
+% source: CA/B Forum ballot SC-063 v4 (adopted July 2023): CRLs required from 15 March 2024, OCSP optional;
+% Let's Encrypt "OCSP Service Has Reached End of Life", 6 Aug 2025 (OCSP URLs removed from certificates 7 May 2025)
+\samedot
+\begin{frame}[fragile]{OCSP is going away}
+  \vfill
+  \begin{center}\small
+    \begin{tabular}{@{}ll@{}}
+      \textbf{2024} & CA/Browser Forum (ballot SC-063): CAs must publish CRLs; OCSP becomes optional\\
+      \textbf{2025} & Let's Encrypt turns its OCSP service off
+    \end{tabular}
+  \end{center}
+  \vfill
+  {\small The leaf of \texttt{www.coventry.ac.uk}, 15 Nov 2026:\par}
+\begin{lstlisting}[style=term]
+$ openssl x509 -in leaf.pem -noout -ext authorityInfoAccess,crlDistributionPoints
+Authority Information Access:
+    CA Issuers - URI:http://i.pki.goog/we1.crt          <- no OCSP address
+X509v3 CRL Distribution Points:
+    Full Name:
+      URI:http://c.pki.goog/we1/7IsZmIhZCHs.crl
+\end{lstlisting}
+  \vfill
+  \say{CA/Browser Forum to grupa urzędów certyfikacji i producentów przeglądarek, która ustala reguły dla publicznych certyfikatów. OCSP zostaje w wielu firmowych systemach, ale w publicznym internecie znika. Leaf Coventry ma już tylko adres CRL.}
+\end{frame}
+
+\begin{frame}{Revocation side by side}
+  \vfill
+  \begin{center}\small
+    \begin{tabular}{@{}lcccl@{}}
+      \toprule
+      & private? & fresh? & Mallory cannot block it? & cost\\
+      \midrule
+      CRL & \ok & days & \nok\ (soft-fail) & big downloads\\
+      OCSP & \nok & days & \nok\ (soft-fail) & one question per site\\
+      OCSP stapling & \ok & days & \nok\ (no staple) & work for the server\\
+      Must-Staple & \ok & days & \ok & sites go down\\
+      CRLite & \ok & hours & \ok & browser updates\\
+      short-lived & \ok & no need & \ok & frequent renewal\\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+  \vfill
+  \curious{pki/\#5}
+  \keymsg{No method is perfect; the direction is lists pushed to browsers, and short certificates.}
+  \say{Podsumowanie dwóch sekcji o odwołaniu. Żadna metoda nie jest idealna. W symulatorze z linku jest taka sama tabela dla CRL, OCSP, soft-fail i staplingu, na przykładzie wykradzionego klucza Carol.}
+\end{frame}
+
+% ======================================================================
+\section[TLS 1.3]{Certificates in TLS 1.3}
+% ======================================================================
+
+% CHECKED: checks/real/s_client_coventry.txt: New, TLSv1.3, Cipher is TLS_AES_256_GCM_SHA384;
+%   Server Temp Key: X25519, 253 bits; Peer signature type: ECDSA
+% source: RFC 9846 (July 2026, obsoletes RFC 8446 of August 2018), section 2, figure 1
+\begin{frame}{The TLS 1.3 handshake in one picture}
+  \begin{center}\handshake{none}{0}\end{center}
+  \vfill
+  {\centering\footnotesize \texttt{www.coventry.ac.uk}: TLSv1.3, X25519, \texttt{TLS\_AES\_256\_GCM\_SHA384}, ECDSA signature.
+    \textcolor{gray}{(simplified: no resumption)}\par}
+  \curious{pki/\#6.1}
+  \say{Uproszczony obraz z RFC 9846 (lipiec 2026, zastąpiło RFC 8446 z 2018; protokół ten sam), bez wznowienia sesji i 0-RTT. Po dwóch pierwszych komunikatach, ClientHello i ServerHello z udziałami klucza (key share), wszystko jest szyfrowane kluczem z wymiany X25519 z wykładu 5. Teraz krok po kroku. W symulatorze z linku można przejść ten handshake komunikat po komunikacie.}
+\end{frame}
+
+\newcommand{\hssteps}[1]{%
+  \footnotesize
+  \ifnum#1=1\now\else\notnow\fi 1. Hellos and keys\\[2pt]
+  \ifnum#1=2\now\else\notnow\fi 2. Certificate\\[2pt]
+  \ifnum#1=3\now\else\notnow\fi 3. CertificateVerify\\[2pt]
+  \ifnum#1=4\now\else\notnow\fi 4. Finished\par}
+\samedot
+\begin{frame}{Step 1: hellos and keys}
+  \begin{columns}[c,onlytextwidth]
+    \column{0.2\textwidth}\hssteps{1}
+    \column{0.8\textwidth}\centering\scalebox{0.85}{\handshake{hello}{0}}
+  \end{columns}
+  \vfill
+  {\centering\small Both send an X25519 public value and compute the same secret.
+    ClientHello also carries the name: \texttt{server\_name = bob.example}.\par}
+  \keymsg{After the hellos there is a shared key, but Alice does not know WHO she shares it with.}
+  \say{Diffie-Hellman bez uwierzytelnienia to zaproszenie dla Mallory w środku, jak w wykładzie 4. Serwer wybiera certyfikat po nazwie z ClientHello. Kolejne komunikaty mówią, kto jest po drugiej stronie.}
+\end{frame}
+
+\samedot
+\begin{frame}{Step 2: Certificate}
+  \begin{columns}[c,onlytextwidth]
+    \column{0.2\textwidth}\hssteps{2}
+    \column{0.8\textwidth}\centering\scalebox{0.85}{\handshake{cert}{0}}
+  \end{columns}
+  \vfill
+  {\centering\small The chain, \textbf{leaf first}; each entry may carry extensions: an OCSP \textcolor{sBrown}{\faPaperclip\ staple}, CT proofs.\\
+    In TLS 1.3 this message is \textbf{encrypted}: an observer no longer sees which certificate was sent.\par}
+  \say{Tu podróżują certyfikaty z dzisiejszego wykładu. EncryptedExtensions to pozostałe ustawienia serwera, już zaszyfrowane. W TLS 1.2 komunikat Certificate był jawny. Staple z poprzedniej sekcji jest rozszerzeniem przy liściu.}
+\end{frame}
+
+\samedot
+\begin{frame}{Step 3: CertificateVerify}
+  \begin{columns}[c,onlytextwidth]
+    \column{0.2\textwidth}\hssteps{3}
+    \column{0.8\textwidth}\centering\scalebox{0.85}{\handshake{cv}{0}}
+  \end{columns}
+  \vfill
+  {\centering\small A signature, with the leaf's \priv{private key}, over the \textbf{transcript hash}: the hash of all messages so far.\\
+    A certificate is public: Mallory can copy it. Only the key owner can make this signature, and only for this handshake.\par}
+  \say{Najważniejszy slajd sekcji. Certyfikat mówi, jaki klucz należy do bob.example; CertificateVerify dowodzi, że serwer ma ten klucz teraz, w tym połączeniu. Hash transkryptu obejmuje losowe wartości z hello, więc podpis z innego połączenia nie pasuje.}
+\end{frame}
+
+\samedot
+\begin{frame}{Step 4: Finished}
+  \begin{columns}[c,onlytextwidth]
+    \column{0.2\textwidth}\hssteps{4}
+    \column{0.8\textwidth}\centering\scalebox{0.85}{\handshake{fin,cfin}{0}}
+  \end{columns}
+  \vfill
+  {\centering\small A MAC over all messages, with a key from the shared secret. Both sides send one.\par}
+  \keymsg{Certificate says who owns the key, CertificateVerify proves it, Finished checks that nothing was changed.}
+  \say{MAC to znacznik z wykładu 8: sprawdza, że nikt nie zmienił żadnego komunikatu po drodze. Dopiero po Finished lecą dane aplikacji.}
+\end{frame}
+
+% source: RFC 9846 (July 2026, obsoletes RFC 8446), section 4.5.2 (RFC 8446: 4.4.3); CHECKED: Task6/solution: 64 + 33 + 1 + 32 = 130 bytes
+\begin{frame}{What exactly is signed}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[x=0.075cm]
+      \foreach \a/\b/\t/\s/\st in {0/44/{64 $\times$ \texttt{0x20} (spaces)}/64 bytes/cell,
+          44/108/{\texttt{"TLS 1.3, server CertificateVerify"}}/33 bytes/cell,
+          108/116/{\texttt{00}}/1/cell,
+          116/160/{transcript hash}/32 bytes (SHA-256)/cellused} {
+        \node[\st, font=\scriptsize, minimum height=0.9cm, minimum width={(\b-\a)*0.075cm}, anchor=west, inner sep=1pt] at (\a,0) {\t};
+        \node[font=\scriptsize, text=gray, anchor=north] at ({(\a+\b)/2},-0.5) {\s};
+      }
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  {\centering\large = \textbf{130 bytes}, signed with the leaf's private key \quad\normalsize (RFC 9846, section 4.5.2)\par}
+  \vfill
+  {\centering\small The client signs the same with \texttt{"TLS 1.3, client CertificateVerify"}: a signature cannot change sides.\par}
+  \vfill
+  \curious{pki/\#6.3}
+  \say{Spacje na początku chronią przed starymi atakami, w których ten sam podpis dało się użyć w innym protokole. Tekst z napisem server albo client sprawia, że podpisu serwera nie można podać jako podpisu klienta. Bajt 00 na szerokość nie jest w skali. W zadaniu 6 zbudujecie te 130 bajtów. W symulatorze z linku widać te 130 bajtów i podpis, który przeglądarka sprawdza na żywo.}
+\end{frame}
+
+% CHECKED: checks/real/s_client_coventry.txt (15 Nov 2026)
+\samedot
+\begin{frame}[fragile]{Seen for real}
+\begin{lstlisting}[style=term]
+$ openssl s_client -connect www.coventry.ac.uk:443 -servername www.coventry.ac.uk -status
+OCSP response: no response sent                  <- no staple (and the leaf has no OCSP address)
+Peer signing digest: SHA256
+Peer signature type: ECDSA                       <- CertificateVerify
+Server Temp Key: X25519, 253 bits                <- the key shares
+SSL handshake has read 2788 bytes and written 409 bytes
+Verification: OK                                 <- the six checks
+New, TLSv1.3, Cipher is TLS_AES_256_GCM_SHA384
+\end{lstlisting}
+  \vfill
+  \keymsg{One command shows every part of this section.}
+  \say{Można pominąć. Prawdziwe linie z 15 listopada 2026, pełny wynik w checks/real. Klient przeczytał 2788 bajtów, z czego większość to trzy certyfikaty.}
+\end{frame}
+
+\begin{frame}{Task 6: CertificateVerify by hand}
+  \vfill
+  \taskgoal{build the 130 bytes a TLS 1.3 server signs, and check three CertificateVerify signatures.}
+  \taskready{\texttt{handshake\_ready.py}: Bob's certificate, today's transcript hash and three signatures.}
+  \vfill
+  \opentask{Task6}{about 10 minutes}
+  \vfill
+  \say{Około 10 minut. Trzy podpisy: od Boba, od Mallory z kopią certyfikatu Boba, i stary podpis Boba z wczorajszego połączenia. Weryfikacja jak w wykładzie 8: public\_key().verify.}
+\end{frame}
+
+\samedot
+\begin{frame}{Task 6: what we saw}
+  % CHECKED: Task6/solution/certificate_verify.py output
+  \vfill
+  \begin{center}\small
+    \begin{tabular}{@{}llcl@{}}
+      \toprule
+      who & output & & why\\
+      \midrule
+      Bob, today & \texttt{signature OK} & \ok & \\
+      Mallory with Bob's certificate & \texttt{signature BAD} & \nok & she has the certificate, not the key\\
+      Mallory replays Bob's old signature & \texttt{signature BAD} & \nok & it was made over another transcript\\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+  \vfill
+  \keymsg{Only the key owner, in this very handshake, can make a CertificateVerify that passes.}
+  \say{Wynik sprawdzony; treść podpisu ma 130 bajtów. Drugi wiersz: kopia certyfikatu nie wystarcza. Trzeci: nagrany podpis nie wystarcza, bo hash transkryptu jest inny w każdym połączeniu.}
+\end{frame}
+
+% ======================================================================
+\section[Mutual TLS]{Mutual TLS}
+% ======================================================================
+
+\begin{frame}{When the client must prove who it is}
+  \begin{center}\small Usually only the server has a certificate; the user logs in with a password inside TLS.\end{center}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \foreach \x/\ic/\t in {0/\faThermometerHalf/a sensor, 4/\faCogs/a service calling a service, 8/\faUniversity/a bank calling a bank's API} {
+        \node[hw, minimum width=3.2cm, minimum height=2.2cm] at (\x,0) {};
+        \node[text=nInk] at (\x,0.3) {\fontsize{30}{32}\selectfont\ic};
+        \node[font=\small\bfseries, text=nInk] at (\x,-0.7) {\t};
+      }
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \keymsg{No person to type a password, and a password can be copied and replayed.}
+  \say{Klient też może mieć klucz i certyfikat. Wtedy TLS sprawdza obie strony.}
+\end{frame}
+
+% source: RFC 9846, section 4.4.2 (CertificateRequest) and 4.5 (client Certificate, CertificateVerify); in RFC 8446: 4.3.2 and 4.4
+\begin{frame}{The mTLS handshake}
+  \begin{center}\scalebox{0.78}{\handshake{creq,ccert,ccv}{1}}\end{center}
+  \vfill
+  \bigdef{\textbf{Mutual TLS (mTLS)}: both sides send a certificate and prove that they own its key.}
+  \say{Serwer prosi o certyfikat komunikatem CertificateRequest, w którym może też napisać, jakim CA ufa. Klient odpowiada tymi samymi dwoma komunikatami co serwer, z tekstem client CertificateVerify. Certyfikat klienta (client certificate) ma w EKU clientAuth.}
+\end{frame}
+
+\samedot
+\begin{frame}{Where mTLS is used}
+  \vfill
+  \begin{center}\footnotesize
+    \begin{tabular}{@{}cll@{}}
+      \Large\faUniversity & APIs between companies & banks, open banking (PSD2)\\[6pt]
+      \Large\faCubes & microservices & a \textbf{service mesh} (Istio, Linkerd) gives every service a certificate\\[6pt]
+      \Large\faMicrochip & devices & IoT platforms (for example AWS IoT Core) know each device by its certificate\\[6pt]
+      \Large\faDharmachakra & Kubernetes & its components talk to each other with client certificates
+    \end{tabular}
+  \end{center}
+  \vfill
+  {\centering\small\textcolor{gray}{Wi-Fi with 802.1X, VPNs and smart cards: Lecture 12.}\par}
+  \say{Service mesh to warstwa, która sama dodaje mTLS między usługami w klastrze, bez zmian w kodzie aplikacji. Inne zastosowania certyfikatów klienta będą w wykładzie 12.}
+\end{frame}
+
+\begin{frame}{The server's side}
+  \begin{columns}[c,onlytextwidth]
+    \column{0.6\textwidth}\small
+      \num{1}\ Trust only \textbf{your} client CA (Bob Staff CA), not the public roots: otherwise anyone with any certificate gets in.\\[8pt]
+      \num{2}\ Turn the certificate into a person or a service: Subject CN or SAN $\to$ an account.\\[8pt]
+      \num{3}\ Plan revocation and renewal: devices live for years.
+    \column{0.38\textwidth}\centering
+      \begin{tikzpicture}
+        \node[person=sTeal] (b) at (0,0) {\faServer};
+        \node[font=\scriptsize\bfseries, text=sTealText, below=0.05cm of b] {Bob's server};
+        \node[container, minimum width=3cm, minimum height=1.1cm] (ts) at (0,-1.9) {};
+        \node[font=\scriptsize, anchor=north] at (ts.south) {trust store for clients};
+        \node[smallcard=sViolet] at (0,-1.9) {Bob Staff CA \ok};
+        \node[smallcard=nLine, text=gray] (p) at (0,-3.3) {120 public roots};
+        \draw[aWrite, thick] (p.south west) -- (p.north east);
+      \end{tikzpicture}
+  \end{columns}
+  \vfill
+  \keymsg{For clients, the server keeps its own trust store: one private CA.}
+  \say{Najczęstszy błąd: serwer akceptuje każdy certyfikat podpisany przez dowolny publiczny root. Wtedy każdy, kto kupi certyfikat, może się zalogować. Prywatne CA było w wykładzie 10.}
+\end{frame}
+
+\begin{frame}{Task 7: log in with a certificate}
+  \vfill
+  \taskgoal{connect to Bob's server as Alice with her certificate, then without one, then as Mallory.}
+  \taskready{\texttt{mtls\_ready.py} starts the server; for clients it trusts only Bob Staff CA.}
+  \vfill
+  \opentask{Task7}{about 10 minutes}
+  \vfill
+  \say{Około 10 minut. Jedna nowa funkcja: context.load\_cert\_chain(certyfikat, klucz) po stronie klienta. Mallory ma certyfikat z nazwą Alice, ale zrobiła go sama.}
+\end{frame}
+
+\samedot
+\begin{frame}{Task 7: what we saw}
+  % CHECKED: Task7/solution/client.py output (three runs, the same)
+  \vfill
+  \begin{center}\small
+    \begin{tabular}{@{}llc@{}}
+      \toprule
+      client & output & \\
+      \midrule
+      Alice & \texttt{hello, Alice: you are logged in} & \ok\\
+      no certificate & \texttt{rejected: TLSV13\_ALERT\_CERTIFICATE\_REQUIRED} & \nok\\
+      Mallory & \texttt{rejected: TLSV1\_ALERT\_UNKNOWN\_CA} \ \ (her certificate also says ``Alice'') & \nok\\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+  \vfill
+  \curious{pki/\#6.5}
+  \keymsg{The name in a client certificate means nothing until the issuer is checked.}
+  \say{Wynik sprawdzony. W TLS 1.3 klient często dowiaduje się o odrzuceniu dopiero przy czytaniu, bo jego Finished leci na końcu. Dlatego w zadaniu recv jest w tym samym try co wrap\_socket. W symulatorze z linku można przejść stronę klienta w handshake mTLS komunikat po komunikacie.}
+\end{frame}
+
+% ======================================================================
+\section[Pinning]{Certificate pinning}
+% ======================================================================
+
+\begin{frame}{Too many CAs can vouch}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \node[person=sTeal] (app) at (0,0) {\faMobile*};
+      \node[font=\small\bfseries, text=sTealText, below=0.05cm of app] {Bob's app};
+      \node[person=sTeal] (api) at (6,0) {\faServer};
+      \node[font=\small\bfseries, text=sTealText, below=0.05cm of api] {api.bob.example};
+      \draw[data] (app) -- (api);
+      \foreach \x in {1.5,2.3,3.1,3.9,4.7} \node[smallcard=sViolet, minimum width=0.6cm] at (\x,1.4) {\cert};
+      \node[smallcard=sPink, minimum width=0.6cm] at (5.5,1.4) {\cert};
+      \node[font=\scriptsize, text=gray] at (3.5,2.0) {more than 100 trusted roots};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small
+    Any of them may issue a certificate for \texttt{api.bob.example}: a CA that makes a mistake,
+    a CA that is broken into (Lecture 12), a CA the user was told to install (a company proxy, malware).
+  \end{center}
+  \vfill
+  \keymsg{The app talks to ONE server that Bob controls. Why trust everybody?}
+  \say{Przeglądarka musi ufać wielu CA, bo łączy się z całym internetem. Aplikacja mobilna Boba łączy się tylko z serwerem Boba. Incydenty z CA, które wydały fałszywe certyfikaty, będą w wykładzie 12.}
+\end{frame}
+
+\begin{frame}{Pinning}
+  \vfill
+  \bigdef{\textbf{Pinning}: the app knows in advance which certificate or key the server must have,
+    and rejects any other one, even if its chain is valid.}
+  \vfill
+  \begin{center}\small
+    \begin{tabular}{@{}lllll@{}}
+      validation \ok & + & pin matches \ok & $\to$ & connect\\
+      validation \ok & + & pin differs \nok & $\to$ & reject (Mallory with a certificate from another CA)
+    \end{tabular}
+  \end{center}
+  \vfill
+  \say{Pinning dodaje sprawdzenie, nie zastępuje zwykłej walidacji. Pin to skrót SHA-256 certyfikatu albo klucza, wpisany w aplikację.}
+\end{frame}
+
+\begin{frame}{Pin the certificate or the key?}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \node[card=sTeal, text width=3.4cm, annot] (a) at (0,0) {\cert\ api.bob.example\\ validity, serial, \ldots\\ public key\\ signature};
+      \node[font=\small\bfseries, anchor=north] at (0,-1.0) {certificate pin};
+      \node[font=\scriptsize, anchor=north] at (0,-1.4) {SHA-256 of the whole certificate};
+      \node[card=sTeal, text width=3.4cm] (b) at (6,0) {\cert\ api.bob.example\\ validity, serial, \ldots\\ {\setlength{\fboxrule}{1.4pt}\fcolorbox{AccentOrange}{white}{public key}}\\ signature};
+      \node[font=\small\bfseries, anchor=north] at (6,-1.0) {key pin};
+      \node[font=\scriptsize, anchor=north] at (6,-1.4) {SHA-256 of the \textbf{SubjectPublicKeyInfo} (SPKI)};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small
+    \begin{tabular}{@{}lcc@{}}
+      \toprule
+      & certificate pin & key pin\\
+      \midrule
+      renewal, same key & \nok & \ok\\
+      renewal, new key & \nok & \nok\\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+  \curious{pki/\#7.2}
+  \keymsg{Pin the key (SPKI), not the certificate: a renewal changes the certificate every few months.}
+  \say{SPKI to pole certyfikatu z kluczem publicznym razem z nazwą algorytmu, w postaci DER. Certyfikat zmienia się przy każdym odnowieniu, co 90 dni i coraz częściej; klucz może zostać ten sam. W symulatorze z linku można odnowić certyfikat i zobaczyć, który pin przetrwa.}
+\end{frame}
+
+% CHECKED: openssl ... | base64 on checks/real: leaf EYgQ3iXa..., WE1 kIdp6NNE..., GTS Root R4 mEflZT5e...;
+%   SPKI DER 91 bytes (P-256), 120 bytes (P-384)
+\samedot
+\begin{frame}[fragile]{How a pin is computed}
+\begin{lstlisting}[style=term]
+$ openssl x509 -in leaf.pem -pubkey -noout | openssl pkey -pubin -outform der |
+  openssl dgst -sha256 -binary | base64
+EYgQ3iXaufQ2xeZk7/zwUHY6mFXSeviJ49pCLdv5ass=
+\end{lstlisting}
+  \vfill
+  \begin{center}\small
+    \begin{tabular}{@{}lll@{}}
+      \toprule
+      certificate & SPKI pin & SPKI size\\
+      \midrule
+      \texttt{www.coventry.ac.uk} & \texttt{EYgQ3iXaufQ2xeZk7/zwUHY6mFXSeviJ49pCLdv5ass=} & 91 bytes (P-256)\\
+      WE1 & \texttt{kIdp6NNEd8wsugYyyIYFsi1ylMCED3hZbSR8ZFsa/A4=} & 91 bytes\\
+      GTS Root R4 & \texttt{mEflZT5enoR1FuXLgYYGqnVEoZvmf9c2bVBpiOjYQ0c=} & 120 bytes (P-384)\\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+  \vfill
+  \say{Pin to 32 bajty SHA-256 zapisane w base64, czyli 44 znaki. Można przypiąć liść, pośredni albo root: im wyżej, tym mniej kłopotów przy wymianie klucza, ale tym więcej certyfikatów przechodzi.}
+\end{frame}
+
+% CHECKED: the two pins are those of Task8 (api_2026 key and the backup key)
+\begin{frame}[fragile]{Pinning in a mobile app}
+  \vspace*{0pt}{\small Android, \texttt{res/xml/network\_security\_config.xml} (\textbf{Network Security Config}, Android 7.0 and newer):\par}
+\begin{lstlisting}[style=xml]
+<domain-config>
+  <domain includeSubdomains="false">api.bob.example</domain>
+  <pin-set expiration="2027-12-31">
+    <pin digest="SHA-256">/Bbx1A2gOvArfgXexc8HhPf+aZ1GbF9+OPlh0/gtaFQ=</pin>
+    <pin digest="SHA-256">80E24poONJAEyvB/qmN1uvdylRrWLUT6ExA0k7hu+I4=</pin>
+  </pin-set>
+</domain-config>
+\end{lstlisting}
+  \vfill
+  {\small The first pin is the key in use, the second one a backup key.\par}
+  \vfill
+  {\small iOS: \texttt{NSPinnedDomains} in \texttt{Info.plist} (iOS 14 and newer). Libraries: for example OkHttp's \texttt{CertificatePinner}.\par}
+  \vfill
+  \keymsg{Two pins and an expiration date: configuration, not code.}
+  \say{expiration znaczy: po tej dacie aplikacja przestaje sprawdzać piny, żeby stara, nieaktualizowana aplikacja nie zablokowała się na zawsze. Drugi pin to klucz zapasowy. Piny są z zadania 8.}
+\end{frame}
+
+\begin{frame}{Task 8: pins and renewals}
+  \vfill
+  \taskgoal{compute certificate pins and key pins, and see which renewals Bob's app still accepts.}
+  \taskready{\texttt{pins\_ready.py} loads four certificates of \texttt{api.bob.example}.}
+  \vfill
+  \opentask{Task8}{about 10 minutes}
+  \vfill
+  \say{Około 10 minut. Najpierw przewidywanie: który z trzech nowych certyfikatów przejdzie przez pin certyfikatu, a który przez pin klucza? Zapisać na tablicy.}
+\end{frame}
+
+\samedot
+\begin{frame}{Task 8: what we saw}
+  % CHECKED: Task8/solution/pins.py output; the key pins equal the openssl command above
+  \vfill
+  \begin{center}\small
+    \begin{tabular}{@{}lccl@{}}
+      \toprule
+      certificate & certificate pin & key pin & \\
+      \midrule
+      \texttt{api\_2026.pem} & match & match & \\
+      \texttt{api\_2027\_same\_key.pem} & NO & match & renewal with the same key\\
+      \rowcolor{AccentOrange!12}\texttt{api\_2027\_new\_key.pem} & NO & NO & a new key: the app stops working \nok\\
+      \texttt{api\_2027\_backup\_key.pem} & NO & match & the backup key was pinned in 2026 \ok\\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+  \vfill
+  \keymsg{Pin keys, and always pin a backup key that you keep offline.}
+  \say{Wynik sprawdzony; piny zgadzają się z poleceniem openssl ze slajdu How a pin is computed. Porównać z przewidywaniami z tablicy.}
+\end{frame}
+
+\begin{frame}{The risk: a new key}
+  \begin{center}\small Bob's key leaks. He must change it \textbf{today}.\end{center}
+  \vfill
+  \begin{center}\small
+    \begin{tabular}{@{}lll@{}}
+      \toprule
+      without a backup pin & the app rejects the new key & no app works until users install an update \nok\\
+      with a \textbf{backup pin} & switch to the backup key & the app keeps working; ship a new backup pin \ok\\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+  \vfill
+  \begin{center}\tikz\node[privval, font=\small] {\faKey\ backup key, kept offline};\end{center}
+  \vfill
+  \keymsg{Pinning turns a key change into an app release: plan the rotation before you pin.}
+  \say{Wyciek klucza to dokładnie ta sytuacja, w której trzeba go wymienić natychmiast. Bez zapasu aplikacja przestaje działać dla wszystkich, aż do aktualizacji, a część użytkowników nigdy nie aktualizuje.}
+\end{frame}
+
+% source: RFC 7469 (April 2015); deprecated in Chrome 67 (2018), removed in Chrome 72 (January 2019) and Firefox 72 (January 2020)
+\begin{frame}{HPKP: pinning for the web, and its end}
+  \vfill
+  \begin{center}\small
+    \begin{tabular}{@{}lp{11.4cm}@{}}
+      \textbf{2015} & HTTP Public Key Pinning (RFC 7469): a site sends \texttt{Public-Key-Pins: pin-sha256="..."; max-age=...},
+        and the browser remembers the pins.\\[6pt]
+      \textbf{problems} & a wrong pin locks the site out for months (``HPKP suicide'');
+        Mallory who takes over a server can set \textbf{her} pins and ask for a ransom; very few sites used it.\\[6pt]
+      \textbf{2019 to 2020} & removed from Chrome and Firefox. Instead: Certificate Transparency (Lecture 10).
+    \end{tabular}
+  \end{center}
+  \vfill
+  \keymsg{Pinning for the whole web was too dangerous; it stayed only in apps.}
+  \say{HPKP to pinning dla zwykłych stron WWW, ustawiany nagłówkiem. Pomysł był dobry, ale jeden błąd administratora blokował stronę dla wszystkich odwiedzających na długie miesiące. Przeglądarki go usunęły; zamiast tego certyfikaty muszą być w logach CT, więc fałszywy certyfikat da się wykryć.}
+\end{frame}
+
+\samedot
+\begin{frame}{Should you pin?}
+  \vfill
+  \begin{columns}[t,onlytextwidth]
+    \column{0.48\textwidth}
+      \stepbox{\ok\ Pin when}{you control both the app and the server, and you can rotate keys with a backup pin.}
+    \column{0.48\textwidth}
+      \stepbox{\nok\ Do not pin}{web sites, servers of other companies, anything you cannot update quickly.}
+  \end{columns}
+  \vfill
+  {\centering\small Pin the key (SPKI) \;$\cdot$\; set an expiration \;$\cdot$\; keep a backup key offline \;$\cdot$\; test the rotation\par}
+  \vfill
+  \keymsg{Pinning adds safety against other CAs, at the price of your own outages.}
+  \say{Dziś wiele firm rezygnuje z pinningu albo przypina tylko klucze własnego prywatnego CA. Więcej o dobrych praktykach w wykładzie 12.}
+\end{frame}
+
+% ======================================================================
+% Closing
+% ======================================================================
+
+\begin{frame}{Summary}
+  \vfill
+  \begin{tikzpicture}
+    \foreach \t [count=\k] in {
+        {Validation takes the server's certificates, the name, the time and the trust store, and answers OK or why not.},
+        {A path is built by matching Issuer to Subject and AKI to SKI; then \textbf{six checks} run on it.},
+        {Revocation needs a signed, fresh answer: \textbf{CRL} or \textbf{OCSP}; with soft-fail, Mallory can block it.},
+        {Today: stapling, lists pushed to browsers (CRLite) and \textbf{short-lived} certificates.},
+        {TLS 1.3 sends the chain in \textbf{Certificate} and proves the key in \textbf{CertificateVerify}; mTLS does it for clients; apps may pin keys.}} {
+      \node[hw, text width=12.6cm, align=left, minimum height=0.95cm, anchor=west, font=\small] at (0.8,{-1.1*\k}) {\t};
+      \node[circle, fill=AccentOrange, text=white, font=\bfseries, minimum size=0.7cm] at (0.4,{-1.1*\k}) {\k};
+    }
+  \end{tikzpicture}
+  \vfill
+  \say{Po jednym zdaniu na cel. W wykładzie 12: gdzie jeszcze używa się PKI, dobre praktyki i prawdziwe incydenty.}
+\end{frame}
+
+\end{document}

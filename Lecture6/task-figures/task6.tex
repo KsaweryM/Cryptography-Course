@@ -1,20 +1,19 @@
-% Task 6: a self-signed certificate. CHECKED: Task6/solution/self_signed.py (True, False, True)
+% Task 6: a Git object id. CHECKED: git hash-object recipe.txt = e2fcdc71...4712665c (Git 2.43)
 \documentclass[12pt,tikz,border=6pt]{standalone}
 \input{common}
 \begin{document}
 \pagecolor{white}
-\begin{tikzpicture}[>=Stealth, card]
-  \foreach \x/\t/\key/\sig/\n in {0/{Alice's certificate}/{Alice's key}/{Alice's}/{\badge{1}\ \badge{2}\ \badge{3}},
-      6.2/{Mallory swaps the key}/{\textbf{Mallory's} key}/{Alice's}/{\badge{4}},
-      12.4/{Mallory's own}/{\textbf{Mallory's} key}/{\textbf{Mallory's}}/{\badge{5}}} {
-    \node[font=\bfseries, text=nInk] at (\x,2.0) {\t};
-    \node[cardbox, minimum width=5.9cm, minimum height=3.0cm] at (\x,0.2) {};
-    \node[font=\scriptsize\ttfamily, text=nInk] at (\x,1.2) {issuer = subject =};
-    \node[font=\scriptsize\ttfamily, text=nInk] at (\x,0.8) {CN=www.alice.example};
-    \node[pubval, font=\small] at (\x,0.15) {\faKey\ \key};
-    \node[privval, font=\small] at (\x,-0.65) {signed with \sig\ private key};
-    \node[font=\Large\bfseries, text=AccentOrange] at (\x,-1.75) {verify: ?};
-    \node at (\x,-2.45) {\n};
-  }
+\begin{tikzpicture}[>=Stealth]
+  \node[hw, font=\small\ttfamily] (hd) at (0,0) {blob 108\textbackslash 0};
+  \node[msgval, font=\small, anchor=west, text width=5.2cm, align=left] (c) at (hd.east) {recipe.txt, 108 bytes:\\ \scriptsize Pancakes for four, 2 eggs, 250 ml milk\ldots};
+  \node[hwmain] (h) at (9.2,0) {\faCogs\ SHA-1};
+  \draw[data] (c) -- (h);
+  \node[unk] (id) at (12.6,0) {object id = ?};
+  \draw[data] (h) -- (id);
+  \node[dgval, font=\scriptsize\ttfamily] (git) at (12.6,1.4) {git says: e2fcdc71\ldots 4712665c};
+  \node[font=\small\bfseries, text=AccentOrange] at (12.6,0.7) {the same?};
+  \mallorynode{mal}{0,-2.2}
+  \node[msgval, font=\small, anchor=west] (c2) at (1.0,-2.2) {"2 eggs" $\to$ "3 eggs"};
+  \node[unk, anchor=west] at (6.0,-2.2) {new object id = ?};
 \end{tikzpicture}
 \end{document}

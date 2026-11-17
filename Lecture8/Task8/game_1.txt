@@ -1,0 +1,4 @@
+GAME 1
+Title: Space Racer
+Version: 1.0
+Publisher: Alice Games

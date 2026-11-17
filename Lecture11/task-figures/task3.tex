@@ -1,0 +1,38 @@
+% Task 3: six chains, five checks. Values from ../checks/make_files.py (Task3/chains).
+% CHECKED: openssl verify agrees with Task3/solution (errors 10, 62, 79, 7, 26; case1 OK)
+\documentclass[12pt,tikz,border=6pt]{standalone}
+\input{common}
+\begin{document}
+\pagecolor{white}
+\begin{tikzpicture}[>=Stealth]
+  \def\none{none}
+  \foreach \k/\a/\ca/\b/\cb/\c/\cc in {
+      1/{bob.example}/sTeal/{Trusty Issuing CA 1}/sViolet/{}/none,
+      2/{bob.example}/sTeal/{Trusty Issuing CA 0, until 30 Jun 2026}/sViolet/{}/none,
+      3/{*.bob.example}/sTeal/{Trusty Issuing CA 1}/sViolet/{}/none,
+      4/{bob.example}/sTeal/{mallory.example}/sTeal/{Trusty Issuing CA 1}/sViolet,
+      5/{bob.example}/sTeal/{Trusty Issuing CA 1}/sViolet/{}/none,
+      6/{bob.example, clientAuth only}/sTeal/{Trusty Issuing CA 1}/sViolet/{}/none} {
+    \pgfmathsetmacro{\y}{-1.0*\k}
+    \node[font=\small\ttfamily, anchor=east] at (-0.2,\y) {case\k.pem};
+    \node[smallcard=\ca, anchor=west] (x\k) at (0,\y) {\cert\ \a};
+    \node[smallcard=\cb, anchor=west] (y\k) at ([xshift=0.6cm]x\k.east) {\cert\ \b};
+    \draw[data] (y\k) -- (x\k);
+    \ifx\cc\none\else
+      \node[smallcard=\cc, anchor=west] (z\k) at ([xshift=0.6cm]y\k.east) {\cert\ \c};
+      \draw[data] (z\k) -- (y\k);
+    \fi
+    \node[font=\Large\bfseries, text=AccentOrange] at (13.0,\y) {?};
+  }
+  \node[font=\small, text=gray, anchor=south] at (4,-0.45) {leaf first, as the server sent it; Alice typed \texttt{bob.example}};
+  \node[smallcard=sViolet] (r) at (13.0,0.4) {\faArchive\ trust store: Trusty Root CA};
+  \node[card=nLine, fill=white, anchor=north west, text width=6.2cm] at (14.2,-0.6) {%
+    \textbf{Your checks in \texttt{check()}}\\[3pt]
+    \textcolor{AccentOrange}{\bfseries 1} signatures, up to a trusted root\\
+    \textcolor{AccentOrange}{\bfseries 2} dates, every certificate\\
+    \textcolor{AccentOrange}{\bfseries 3} the name, with the wildcard rule\\
+    \textcolor{AccentOrange}{\bfseries 4} every issuer is a CA\\
+    \textcolor{AccentOrange}{\bfseries 5} the leaf is for a server (serverAuth)\\[3pt]
+    {\footnotesize Ready: \texttt{signed\_by}, \texttt{valid\_from}, \texttt{valid\_until},\\ \texttt{dns\_names}, \texttt{is\_ca}, \texttt{key\_purposes}}};
+\end{tikzpicture}
+\end{document}

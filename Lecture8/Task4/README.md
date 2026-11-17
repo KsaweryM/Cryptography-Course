@@ -1,57 +1,58 @@
-# Task 4: check a CRL
+# Task 4: forge it
 
 ## The situation
 
-Carol's private key leaked, so on 10 November 2026 her CA, **Trusty Issuing CA 1**, revoked her certificate. Bob's certificate is fine. Alice has three Certificate Revocation Lists that claim to come from this CA: the current one, an old one from October, and one that Mallory made with her own key. A list is worth something only if the CA signed it and it is still fresh.
+Alice's bank takes a payment order as one number, the amount in pounds, signed with textbook RSA: the bank accepts a signature `s` for the amount `m` when `s^e mod n == m`. Alice paid Mallory twice, 20 and 50 pounds, so Mallory has two orders that Alice signed. Mallory does not have Alice's private key `d`. She wants the bank to pay her 1000 pounds.
 
-![Trusty Issuing CA 1 issued bob.pem (bob.example, serial 0x1001) and carol.pem (carol.example, serial 0x1002). Three lists: crl.pem, valid 15 Nov 2026 to 31 Dec 2027, revokes 0FFE (superseded) and 1002 (keyCompromise), signed with Trusty Issuing CA 1; old_crl.pem, valid 1 Oct to 8 Oct 2026, revokes 0FFE, signed with Trusty Issuing CA 1; fake_crl.pem, valid 15 Nov 2026 to 31 Dec 2027, revokes 0FFE, signed with a key, but whose? For each list: 1 is the signature the CA's, 2 is it still fresh, then 3 look up Bob's and Carol's serial numbers.](figure.svg)
+![Alice signed 20 pounds (signature 80a9b014e367...069ba6863a16) and 50 pounds (signature c95f1a1e8b14...5617ecb95454). Mallory computes sig_1 x sig_2 mod n and offers it for 1000 pounds: bank = ? She also takes any number, 123 456 789, as a signature: amount = ?, bank = ?. The bank accepts s if s^e mod n = amount.](figure.svg)
 
 ## Goal
 
-Decide whether Bob's and Carol's certificates are revoked, using only lists that are signed by the CA and still fresh.
+Without the private key, make the bank accept an order for 1000 pounds, and make one more valid signature from a number of your choice.
 
 ## Ready for you
 
-- `crl_ready.py` (do not change it): `load_cert(filename)`, `load_crl(filename)`, `NOW`, `name_of(cert)`, `next_update(crl)` (Next Update), `revoked_on(entry)` (the date of one entry) and `reason_of(entry)` (for example `keyCompromise`).
-- `files/`: the CA certificate `issuing_ca.pem`, `bob.pem`, `carol.pem` and the three lists.
-- `check_crl.py`: loads everything and loops over the lists and the certificates.
-- Two methods of the `cryptography` library that you will call directly:
-  - `crl.is_signature_valid(public_key)` is `True` only if the list was signed with the matching private key.
-  - `crl.get_revoked_certificate_by_serial_number(serial)` returns the entry for that serial number, or `None`.
+- `bank_ready.py`: Alice's public key `n`, `e`; the two orders `amount_1`, `sig_1` and `amount_2`, `sig_2`; `short(x)` for printing.
+- `pow(x, e, n)` and the operators `*` and `%` on big integers.
 
 ## Steps
 
-Write your code in place of the `TODO` comments in `check_crl.py`:
+Write your code in place of the `None` after each `TODO` in `forge.py`:
 
-1. In `list_is_good`: if `crl.is_signature_valid(ca.public_key())` is not `True`, return `"bad signature"`.
-2. In `list_is_good`: if `next_update(crl)` is before `NOW`, return `"too old (next update was %s)" % next_update(crl).date()`.
-3. In the loop: `entry = crl.get_revoked_certificate_by_serial_number(cert.serial_number)`. If `entry is None`, print `not revoked`; otherwise print `REVOKED on`, `revoked_on(entry)` and `reason:` `reason_of(entry)`.
+1. Check both orders as the bank does: `pow(sig_1, e, n) == amount_1`, and the same for order 2.
+2. Multiply the two signatures modulo `n`, and check the result as a signature on `amount_1 * amount_2`.
+3. Take `any_sig = 123456789`, compute the amount it signs with the **public** key, and check it as the bank does.
 
-Hint: `is None` is how Python compares with `None`, like comparing a pointer with `NULL` in C.
+<details>
+<summary>Hint for step 2</summary>
+
+The slide "Problem 2: signatures multiply": (m1^d)(m2^d) = (m1 m2)^d mod n.
+
+</details>
 
 ## Expected output
-
-The good list says Bob is fine and Carol is revoked. The other two lists are rejected before you read them.
 
 <details>
 <summary>Check your answer</summary>
 
 ```
-crl.pem       list OK (next update 2027-12-31)
-    bob.example    serial 0x1001  not revoked
-    carol.example  serial 0x1002  REVOKED on 2026-11-10 09:30:00, reason: keyCompromise
-old_crl.pem   REJECT the list: too old (next update was 2026-10-08)
-fake_crl.pem  REJECT the list: bad signature
+order 1: 20 pounds, signature 80a9b014e367...069ba6863a16 (512 hex digits)
+order 2: 50 pounds, signature c95f1a1e8b14...5617ecb95454 (512 hex digits)
+the bank checks order 1: True  order 2: True
+forged signature: 13bf50ca7f3a...619b651031c3 (511 hex digits)
+the bank checks it on 1000 pounds: True
+any signature: 123456789  signs the amount 4383e8aad872...581a62c032b0 (512 hex digits)
+the bank checks it: True
 ```
 
-Without steps 1 and 2, the old list and the fake list would both say that Carol is fine: neither lists her serial number. Real lists live a few days (the list of Google's CA WE1: about 10 days); `crl.pem` lasts until the end of 2027 only so that this task works during the whole course.
+Two signatures and one multiplication give a valid signature on 1000 pounds. Any number is a valid signature of some amount, only Mallory cannot choose which.
 
 </details>
 
 ## Run
 
 ```
-python3 check_crl.py
+python3 forge.py
 ```
 
-About 10 minutes. Python 3 and the `cryptography` library (version 41 or newer); works offline.
+About 9 minutes. Python 3 and the library `cryptography` (only `bank_ready.py` uses it, to read the PEM file).

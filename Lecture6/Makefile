@@ -1,4 +1,4 @@
-# Builds Lecture 6 (Why PKI and the X.509 Certificate).
+# Builds Lecture 6 (Hash Functions).
 #
 #   make           build the slides
 #   make slides    the same
@@ -11,7 +11,7 @@
 LATEXMK   := latexmk
 LATEXOPTS := -pdf -interaction=nonstopmode -halt-on-error -file-line-error
 
-NAME   := Lecture_6_Why_PKI_and_the_X.509_Certificate
+NAME   := Lecture_6_Hash_Functions
 SLIDES := $(NAME).pdf
 BUILD  := build
 

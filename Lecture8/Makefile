@@ -1,4 +1,4 @@
-# Builds Lecture 8 (Validation, Revocation and Certificates in TLS).
+# Builds Lecture 8 (Digital Signatures).
 #
 #   make           build the slides
 #   make slides    the same
@@ -11,7 +11,7 @@
 LATEXMK   := latexmk
 LATEXOPTS := -pdf -interaction=nonstopmode -halt-on-error -file-line-error
 
-NAME   := Lecture_8_Validation_Revocation_and_Certificates_in_TLS
+NAME   := Lecture_8_Digital_Signatures
 SLIDES := $(NAME).pdf
 BUILD  := build
 

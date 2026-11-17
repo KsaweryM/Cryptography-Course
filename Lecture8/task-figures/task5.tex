@@ -1,27 +1,21 @@
-% Task 5: OCSP and soft-fail. Values from Task5/ocsp_ready.py and ../checks/make_files.py.
-% CHECKED: Task5/solution: request 69 bytes, response 263 bytes; Carol (0x1002) revoked; blocked: ConnectionError
-\documentclass[12pt,tikz,border=6pt]{standalone}
-\input{common}
+\documentclass[tikz,border=8pt]{standalone}
+\input{common.tex}
 \begin{document}
-\pagecolor{white}
 \begin{tikzpicture}[>=Stealth]
-  \node[person=sIndigo] (a) at (0,0) {\faUser};
-  \node[font=\small\bfseries, text=sIndigo, below=0.08cm of a] {Alice: \texttt{ocsp\_check.py}};
-  \node[person=sViolet] (r) at (12,0) {\faServer};
-  \node[font=\small\bfseries, text=sViolet, below=0.08cm of r, align=center] {OCSP responder of\\ Trusty Issuing CA 1};
-  \foreach \k/\who/\note in {0/{bob.example, serial 0x1001}/{}, 1/{carol.example, serial 0x1002}/{}, 2/{carol.example, serial 0x1002}/m} {
-    \pgfmathsetmacro{\y}{2.6-0.9*\k}
-    \node[smallcard=sTeal, anchor=east] at (-1.2,\y) {\cert\ \who};
-  }
-  \draw[data] (-1.1,2.6) -- node[above, font=\scriptsize] {\textbf{1} request (DER bytes)} (11.2,2.6);
-  \draw[data] (11.2,2.3) -- node[below, font=\scriptsize] {\textbf{2} signed answer: good, revoked or unknown?} (-1.1,2.3);
-  \draw[data] (-1.1,1.7) -- (11.2,1.7);
-  \draw[data] (11.2,1.4) -- (-1.1,1.4);
-  \draw[data] (-1.1,0.8) -- (5.4,0.8);
-  \draw[nLight, thick, dashed] (6.6,0.8) -- (11.2,0.8);
-  \node[person=sPink, minimum size=0.9cm, font=\normalsize] (m) at (6.0,0.8) {\faUserSecret};
-  \node[font=\scriptsize\bfseries, text=sPinkText, anchor=north] at (6.0,0.3) {Mallory drops it};
-  \node[todo, anchor=north] at (5.0,-2.2) {\textbf{3} decide: \texttt{decide(status, "soft-fail")} and \texttt{decide(status, "hard-fail")}\\
-    accept or reject, for each of the three cases?};
+\node[msg, font=\small] (f) at (0,0) {\faFile*[regular]\ update.bin\\100\,000 bytes};
+\node[hwmain] (h) at (3.0,0) {\faCogs\ SHA-256};
+\node[unk] (d) at (7.0,0) {hash as a number = ?};
+\node[apriv, font=\small] (k) at (10.6,1.2) {\faKey\ d, n};
+\node[unk] (s) at (10.6,0) {s = ?};
+\draw[data] (f) -- (h); \draw[data] (h) -- (d); \draw[data] (d) -- (s); \draw[data] (k) -- (s);
+\who{B}{0,-2.2}{sTeal}{\faUser}{Bob}
+\node[font=\small, text=nInk, anchor=west] at (1.4,-1.8) {checks the file:};
+\node[unk] at (9.4,-1.8) {?};
+\node[font=\small, text=nInk, anchor=west] at (1.4,-2.6) {checks the file with one bit of byte 50\,000 flipped:};
+\node[unk] at (9.4,-2.6) {?};
+\who{M}{0,-4.4}{sPink}{\faUserSecret}{Mallory}
+\node[mpub, font=\small, anchor=east] at (4.6,-4.0) {sig\_20 $\times$ sig\_50 mod n};
+\node[msg, font=\small, anchor=west] at (4.9,-4.0) {\textquotedblleft Pay Mallory 1000 pounds. Alice\textquotedblright{}};
+\node[unk] at (9.4,-4.8) {bank: ?};
 \end{tikzpicture}
 \end{document}

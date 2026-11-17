@@ -1,31 +1,22 @@
-% Task 1: six servers, one name. Values from ../checks/make_files.py (Task1/certs).
-% CHECKED: openssl x509 on Task1/certs: good = bob.example + Trusty Issuing CA 1, Nov 1 2026 to Nov 1 2028;
-%   expired = bob.example, Oct 1 2025 to Oct 1 2026; wrong_name = carol.example; unknown_ca = issuer Mallory Root CA;
-%   self_signed = issuer bob.example; no_intermediate = the good leaf alone
-\documentclass[12pt,tikz,border=6pt]{standalone}
-\input{common}
+\documentclass[tikz,border=8pt]{standalone}
+\input{common.tex}
 \begin{document}
-\pagecolor{white}
 \begin{tikzpicture}[>=Stealth]
-  \node[person=sIndigo] (a) at (0,0) {\faUser};
-  \node[font=\small\bfseries, text=sIndigo, below=0.08cm of a, align=center] (al) {Alice: \texttt{connect.py}\\ asks for \texttt{bob.example}};
-  \node[container, minimum width=3.2cm, minimum height=1.0cm] (ts) at (0,-3.0) {};
-  \node[font=\small\bfseries, anchor=north] at (ts.south) {\faArchive\ trust store: \texttt{root.pem}};
-  \node[smallcard=sViolet] at (0,-3.0) {Trusty Root CA};
-  \draw[data, dashed] (al.south) -- (ts.north);
-  \foreach \k/\n/\c/\t in {0/good/sTeal/{\cert\ bob.example \;+\; \cert\ Trusty Issuing CA 1},
-      1/expired/sTeal/{\cert\ bob.example, notAfter 1 Oct 2026 \;+\; intermediate},
-      2/wrong\_name/sTeal/{\cert\ carol.example \;+\; intermediate},
-      3/unknown\_ca/sPink/{\cert\ bob.example, issued by Mallory Root CA},
-      4/self\_signed/sPink/{\cert\ bob.example, issued by itself},
-      5/no\_intermediate/sTeal/{\cert\ bob.example, without the intermediate}} {
-    \pgfmathsetmacro{\y}{2.6-1.15*\k}
-    \node[hw, minimum width=3.5cm, font=\small\ttfamily, anchor=west] (s\k) at (5.0,\y) {\faServer\ \n};
-    \node[smallcard=\c, anchor=west, font=\small] at (9.0,\y) {\t};
-    \node[font=\Large\bfseries, text=AccentOrange] at (19.0,\y) {?};
-    \draw[data] (0.75,0) -- (s\k.west);
-  }
-  \node[font=\small, text=gray, anchor=south] at (6.4,3.2) {six servers on 127.0.0.1, all claim to be bob.example};
-  \node[font=\small, text=gray, anchor=south] at (19.0,3.2) {OK or why not?};
+\node[msg, font=\small, text width=4.2cm, align=left] (a) at (0,1.2) {\faFile*[regular]\ \texttt{alice\_update.sh}\\ \scriptsize what Alice published};
+\node[msg, font=\small, text width=4.2cm, align=left, draw=sPink, line width=1.2pt] (m) at (0,-0.4) {\faFile*[regular]\ \texttt{mallory\_update.sh}\\ \scriptsize the same + one line of Mallory};
+\node[digest, font=\scriptsize\ttfamily] (ph) at (0,-1.8) {page: b4d421a73b76fa85\ldots 7aad982d};
+\node[mackey, font=\scriptsize] (k) at (0,-2.7) {\faKey\ SHARED\_KEY (Alice and Bob)};
+\node[digest, font=\scriptsize\ttfamily] (t) at (0,-3.5) {ALICE\_TAG: 4e35cdfccc5185bb\ldots ff466b63};
+\who{B}{4.6,-1.0}{sTeal}{\faUser}{Bob}
+\foreach \y/\q in {1.0/{SHA-256 of Mallory's file = page?}, 0.2/{tag of Alice's file = ALICE\_TAG?}, -0.6/{tag of Mallory's file = ALICE\_TAG?}} {
+  \node[font=\small, text=nInk, anchor=west] at (6.0,\y) {\q};
+  \node[unk] at (12.0,\y) {?};
+}
+\node[msg, font=\small] (n) at (8.4,-2.0) {\textquotedblleft Alice owes Bob 500 pounds. Signed: Alice\textquotedblright{}};
+\node[digest, font=\small] (bt) at (8.4,-2.9) {bob\_tag, made by Bob};
+\who{C}{12.6,-2.4}{nInk}{\faUserTie}{Carol}
+\node[unk] at (12.6,-3.7) {valid?};
+\draw[data] (B.north east) -- (5.9,0.2);
+\draw[data] (B.east) -- (n.west);
 \end{tikzpicture}
 \end{document}

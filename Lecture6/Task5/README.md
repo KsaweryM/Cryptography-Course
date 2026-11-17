@@ -1,60 +1,57 @@
-# Task 5: PEM by hand
+# Task 5: which mirror is honest?
 
 ## The situation
 
-`bob.pem` is a text file: Base64 between a `BEGIN CERTIFICATE` line and an `END CERTIFICATE` line. Under the text are the DER bytes of the certificate, and the SHA-256 of those bytes is its fingerprint. Usually a library does all this for you; here you do it yourself and compare.
+Alice wrote a text editor. She publishes the file `editor-2.4.1-installer.bin` (200 000 bytes) on three download mirrors, servers of other people that copy her file so that it downloads fast everywhere. On her own website she publishes only one line: the SHA-256 digest of the file, in a file called `SHA256SUMS`. Bob downloaded the file from all three mirrors. Every mirror also offers its own `SHA256SUMS` next to the file. Mallory controls one or more of the mirrors.
 
-![The text of bob.pem: the BEGIN line, Base64 lines starting with MIIBITCB1KADAgECAghPOpwu..., the END line. Steps 1 and 2 (join the lines, Base64 decode) give the DER bytes 30 82 01 21 30 81 D4 A0 ..., 293 bytes. Step 3: the same as the library? Step 4: SHA-256 gives the fingerprint E8:C5:56:C2:... Step 5: flip one bit of byte 100: how many of the 32 bytes of the fingerprint change?](figure.svg)
+![On top, Alice in indigo and her website with a brown SHA256SUMS: 347ec73c...690e89d1. Below, three mirrors, mirror-a, mirror-b, mirror-c, each with a violet file editor-2.4.1-installer.bin of 200 000 bytes and its own brown SHA256SUMS. Mallory in pink stands next to the mirrors with a question mark. Bob in teal downloads from all three and asks "the same as on Alice's website?".](figure.svg)
 
 ## Goal
 
-Turn `bob.pem` into DER bytes yourself, compute its SHA-256 fingerprint, then change one bit and compute it again.
-
-Predict first: if one bit of the certificate changes, how many of the 32 bytes of the fingerprint change?
+Compute the SHA-256 of each downloaded file, reading it in pieces, and find out which copies are Alice's file: first against Alice's website, then against each mirror's own `SHA256SUMS`.
 
 ## Ready for you
 
-- `bob.pem`: the certificate of `bob.example`, issued by Trusty CA (the same as the result of Task 3).
-- `cert_tools.py`: `load_cert(path)` reads a certificate with the library.
-- In `pem_by_hand.py`: `lines`, the list of the lines of `bob.pem`, without `"\n"`.
-- Python's `base64.b64decode(text)` (text to bytes) and `hashlib.sha256(data).digest()` (32 bytes).
+- `check_mirrors.py`:
+  - `read_sums(path)`: the digest from a `SHA256SUMS` file (64 hex digits, two spaces, the file name).
+  - `published`: the digest from Alice's website, `website/SHA256SUMS`.
+- `website/SHA256SUMS`, and `mirror-a/`, `mirror-b/`, `mirror-c/`, each with the file and its own `SHA256SUMS`.
 
 ## Steps
 
-Write your code in place of the `TODO` comments in `pem_by_hand.py`:
+1. In `sha256_of_file(path)`: open the file with `open(path, "rb") as f`, and in a loop read `piece = f.read(4096)`; stop when `piece == b""` (the end of the file, like `fread` returning 0 in C), otherwise `h.update(piece)`. At the end `return h.hexdigest()`. `update` adds the next piece to the hash, so even a 5 GB file needs only 4096 bytes of memory.
+2. For each mirror, compare the digest of its file with `published` and print `OK` or `CHANGED`.
+3. Now compare each mirror's file with the `SHA256SUMS` **on that mirror**, `read_sums(m + "/SHA256SUMS")`, and print the result in the same way.
 
-1. Join the Base64 lines into one text: loop over `lines` and skip the lines that start with five hyphens (`line.startswith("-----")`). Print how many characters you got.
-2. Decode it: `der = base64.b64decode(b64)`. Print `len(der)` and the first 8 bytes as hex, one byte at a time with `"%02X " % der[i]` (the same as `printf("%02X ", der[i])` in C).
-3. Compare with the library: `cert = load_cert("bob.pem")`, then print `der == cert.public_bytes(serialization.Encoding.DER)`.
-4. The fingerprint: `fp = hashlib.sha256(der).digest()`. Print it as hex with `:` between the bytes, and also `cert.fingerprint(hashes.SHA256())` in the same way.
-5. Change one bit: `copy = bytearray(der)` (a list of bytes you may change), then `copy[100] = copy[100] ^ 1`. Print the fingerprint of `bytes(copy)` and count how many of its 32 bytes differ from `fp`.
+Before step 3, think: if a mirror's file and its own `SHA256SUMS` agree, does that prove the file is Alice's?
 
 ## Expected output
 
-The number of Base64 characters and of DER bytes, the first bytes, `True`, two equal fingerprints, and a new fingerprint after the change.
+Step 2 finds the honest mirror. Step 3 gives a different answer for one mirror: think about why.
 
 <details>
 <summary>Check your answer</summary>
 
 ```
-Base64 characters: 392
-DER bytes: 293  first 8: 30 82 01 21 30 81 D4 A0 
-same as the library: True
-fingerprint by hand: E8:C5:56:C2:D8:3E:72:C3:FB:F0:53:83:64:04:97:A0:A6:72:48:1B:86:79:A6:F4:CB:82:B0:8E:11:71:F8:1C
-fingerprint library: E8:C5:56:C2:D8:3E:72:C3:FB:F0:53:83:64:04:97:A0:A6:72:48:1B:86:79:A6:F4:CB:82:B0:8E:11:71:F8:1C
-one bit changed:     A2:C3:4F:BA:8C:D0:59:AB:D3:3F:CB:3B:9F:E4:F1:64:32:63:79:53:4D:77:1D:7F:62:4B:8C:52:74:F2:EC:FC
-bytes changed: 32 of 32
+Alice's website says: 347ec73c3723bd33801f50ea0b3fd0e010a989c4c05a5c1d2365a17e690e89d1
+mirror-a: OK
+mirror-b: CHANGED
+mirror-c: CHANGED
+mirror-a against its own SHA256SUMS: OK
+mirror-b against its own SHA256SUMS: CHANGED
+mirror-c against its own SHA256SUMS: OK
 ```
 
-`30 82 01 21`: a SEQUENCE whose length is in the next 2 bytes, `0x0121` = 289, so 4 + 289 = 293 bytes. Byte 100 is a digit of the start time: `00:00` became `00:10`. One bit, and every byte of the fingerprint changed (now and then one byte stays the same by chance).
+Only mirror-a has Alice's file. In mirror-b one bit of byte 123 456 is different (a broken copy, or a clumsy attacker), and the digest catches it. Mirror-c is Mallory's: she changed the file **and** wrote a new `SHA256SUMS` for it, so the mirror agrees with itself. A digest proves only that the file matches **that digest**; the digest must come from a place Mallory cannot change, here Alice's own website.
 
 </details>
 
 ## Run
 
 ```
-python3 pem_by_hand.py
-openssl x509 -in bob.pem -noout -fingerprint -sha256
+python3 check_mirrors.py
 ```
 
-About 10 minutes. Python 3 and the library `cryptography` (version 41 or newer). The second command is optional: OpenSSL computes the same fingerprint.
+About 8 minutes. Python 3.8 or newer, no extra libraries. On Linux and macOS you can compare with the command `sha256sum mirror-*/editor-2.4.1-installer.bin`.
+
+The files were made by `Lecture6/checks/make_task5.py`; running it again gives the same files.

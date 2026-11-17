@@ -1,38 +1,23 @@
-% Task 5: two requests with the same MD5. Values from Task5/ (python3 hashlib, 2026-11-15).
-% CHECKED: request_a.bin and request_b.bin are 308 bytes, differ in bytes 19, 45, 59, 83, 109, 123
-%   (87/07, 71/f1, f2/72, b4/34, a8/28, 2b/ab); MD5 of both 7e58325ffced260e7cf07eb336bf0907;
-%   SHA-256 99cfc680... and 748ac700...; the first 128 bytes are the MD5 collision of Wang et al. (2004)
+% Task 5: PEM by hand. CHECKED: Task5/solution/pem_by_hand.py
 \documentclass[12pt,tikz,border=6pt]{standalone}
 \input{common}
 \begin{document}
 \pagecolor{white}
-\begin{tikzpicture}[>=Stealth]
-  % ---------- the two requests ----------
-  \foreach \x/\nm/\col/\txt/\bytes in {
-      0/a/sIndigo/{shop.alice.example is a website.\\It may NOT sign certificates.}/{87,71,f2,b4,a8,2b},
-      9.4/b/sPink/{Mallory is a CA. She may sign\\certificates for any website.}/{07,f1,72,34,28,ab}} {
-    \node[draw=nLine, thick, fill=white, minimum width=7.6cm, minimum height=4.4cm, rounded corners=2pt] (p) at (\x,0) {};
-    \node[font=\small\bfseries, text=nInk, anchor=north west] at ([shift={(0.15,-0.1)}]p.north west)
-      {\faFile*[regular]\ \texttt{request\_\nm.bin}\quad\normalfont\scriptsize 308 bytes};
-    \node[font=\scriptsize, text=gray, anchor=north west] at ([shift={(0.15,-0.62)}]p.north west)
-      {bytes 0 to 127: strange bytes, the 6 that differ:};
-    \foreach \v [count=\j from 0] in \bytes {
-      \ifnum\j=0 \node[chg] at ({\x-3.05+0.9*\j},0.55) {\v};\else\node[chg] at ({\x-3.05+0.9*\j},0.55) {\v};\fi
-    }
-    \foreach \pos [count=\j from 0] in {19,45,59,83,109,123}
-      \node[font=\tiny, text=gray] at ({\x-3.05+0.9*\j},0.1) {byte \pos};
-    \node[font=\scriptsize, text=gray, anchor=west] at (\x-3.65,-0.45) {then the text, the same in both; a program shows:};
-    \node[actorlight=\col, font=\small, text width=6.8cm] at (\x,-1.4) {\txt};
-  }
-  % ---------- the hashes ----------
-  \node[hw, font=\small\ttfamily, minimum width=7.6cm] (h1) at (0,-3.2) {MD5 = ?\qquad SHA-256 = ?};
-  \node[hw, font=\small\ttfamily, minimum width=7.6cm] (h2) at (9.4,-3.2) {MD5 = ?\qquad SHA-256 = ?};
-  \draw[data] (0,-2.2) -- (h1.north);
-  \draw[data] (9.4,-2.2) -- (h2.north);
-  
-  % ---------- the signature ----------
-  \node[cabox] (ca) at (0,-4.9) {\faStamp\ Trusty CA signs A\\ \normalfont\scriptsize RSA over MD5 (and over SHA-256)};
-  \draw[data] (h1.south) -- (ca.north);
-  \draw[data, dashed, AccentOrange] (ca.east) -- node[above, font=\small\bfseries, text=AccentOrange] {does the same signature fit B?} (9.4,-4.9) -- (h2.south);
+\begin{tikzpicture}[>=Stealth, card]
+  \node[term, font=\ttfamily\scriptsize, anchor=north west] (p) at (0,0) {\five BEGIN CERTIFICATE\five\\
+    MIIBITCB1KADAgECAghPOpwucdBbiDAFBgMrZXAwOTELMAkGA1UEBhMCR0IxFjAU\\
+    BgNVBAoMDVRydXN0eSBDQSBMdGQxEjAQBgNVBAMMCVRydXN0eSBDQTAeFw0yNjEx\\
+    \ldots\\ YOkUYA0=\\ \five END CERTIFICATE\five};
+  \node[font=\small\bfseries, text=nInk, anchor=south west] at (p.north west) {bob.pem};
+  \node[byte, minimum width=1.0cm] at (0.5,-4.0) {30};
+  \foreach \b [count=\k from 1] in {82,01,21,30,81,D4,A0} \node[byte, minimum width=1.0cm] at ({0.5+1.05*\k},-4.0) {\b};
+  \node[font=\large, text=nInk] at (9.0,-4.0) {\ldots};
+  \node[note, anchor=west] at (9.5,-4.0) {293 bytes};
+  \draw[data] (3,-2.9) -- node[right, font=\small] {\badge{1}\ join the lines \quad \badge{2}\ Base64 decode} (3,-3.6);
+  \node[hwmain, minimum width=2.4cm, minimum height=0.9cm, font=\small\bfseries] (h) at (4,-5.6) {SHA-256};
+  \draw[data] (4,-4.35) -- (h);
+  \node[note, anchor=west] at (5.4,-5.0) {\badge{3}\ the same as the library?};
+  \node[cell, font=\ttfamily\small, anchor=north, minimum height=0.6cm] at (4,-6.4) {E8:C5:56:C2:\ldots \quad \badge{4}};
+  \node[todo, anchor=north west] at (8.6,-5.2) {\badge{5}\ flip one bit of byte 100:\\how many of the 32 bytes\\of the fingerprint change?};
 \end{tikzpicture}
 \end{document}

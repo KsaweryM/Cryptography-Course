@@ -1,0 +1,21 @@
+% Task 9: build SHA-256 from its parts. IV[0] = 6a09e667 (FIPS 180-4).
+\documentclass[12pt,tikz,border=6pt]{standalone}
+\input{common}
+\begin{document}
+\pagecolor{white}
+\begin{tikzpicture}[>=Stealth]
+  \node[msgval, minimum width=6.0cm] (m) at (2.6,2.2) {message, 79 bytes};
+  \node[hw, font=\scriptsize] (p) at (7.6,2.2) {0x80, zeros, length};
+  \node[msgval, minimum width=3.0cm] (b1) at (3.0,0.9) {block 1, 64 bytes};
+  \node[msgval, minimum width=3.0cm] (b2) at (7.0,0.9) {block 2, 64 bytes};
+  \node[hw, font=\scriptsize\ttfamily] (iv) at (0,-0.6) {IV: 6a09e667 \ldots};
+  \node[hwmain] (c1) at (3.0,-0.6) {\faCogs\ compress};
+  \node[hwmain] (c2) at (7.0,-0.6) {\faCogs\ compress};
+  \node[unk] (d) at (10.6,-0.6) {digest = ?};
+  \draw[data] (b1) -- (c1); \draw[data] (b2) -- (c2);
+  \draw[data] (iv) -- (c1); \draw[data] (c1) -- node[above, font=\scriptsize] {state} (c2); \draw[data] (c2) -- (d);
+  \node[dgval, font=\scriptsize] at (10.6,0.6) {hashlib.sha256(message)};
+  \node[font=\small\bfseries, text=AccentOrange] at (10.6,0.0) {the same?};
+  \node[unk, font=\small] at (3.0,-2.0) {how many blocks for 3, 55, 56, 64 bytes?};
+\end{tikzpicture}
+\end{document}

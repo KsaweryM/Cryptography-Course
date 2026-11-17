@@ -1,19 +1,25 @@
-% Task 2: a copy of the Ubuntu 24.04 trust store (120 roots) and WE1. CHECKED: Task2/solution/look_into_store.py.
+% Task 2: collisions of a short digest. The answer (which notes collide) is not shown.
 \documentclass[12pt,tikz,border=6pt]{standalone}
 \input{common}
 \begin{document}
 \pagecolor{white}
 \begin{tikzpicture}[>=Stealth]
-
-  \node[container, minimum width=9.2cm, minimum height=4.2cm] (box) at (0,0) {};
-  \node[font=\small\bfseries, text=nInk, anchor=south] at (box.north) {\faIcon{box-open}\ trust\_store.pem: how many roots? which keys?};
-  \foreach \r in {0,1,2} \foreach \c in {0,...,7} {
-    \node[fill=sViolet, text=white, rounded corners=2pt, minimum width=0.8cm, minimum height=0.75cm, font=\small] at ({-3.85+1.1*\c},{1.2-1.15*\r}) {\faCertificate};
+  \node[font=\normalsize\bfseries, text=nInk, anchor=west] at (-0.6,2.1) {Hash ``note 0'', ``note 1'', ``note 2'', \ldots\ and keep only the first bits of SHA-256. When does a short digest repeat?};
+  \foreach \m/\y in {note 0/1.0, note 1/0.2, note 2/-0.6} {
+    \node[msgval, font=\small\ttfamily, minimum width=2.0cm] (m) at (0.5,\y) {\m};
+    \node[mech, minimum width=2.6cm, font=\scriptsize\bfseries] (h) at (3.6,\y) {SHA-256, first bits};
+    \draw[data] (m) -- (h);
+    \node[digval, font=\small\ttfamily, minimum width=1.8cm] (d) at (6.7,\y) {? ? ?};
+    \draw[data] (h) -- (d);
   }
-  \node[font=\small, text=nInk] at (0,-1.75) {\ldots\ self-signed roots \ldots};
-  \cert{we}{9.0,1.6}{sBrown}{4.4cm}{we1.pem}{\textbf{Subject:} WE1\\\textbf{Issuer:} GTS Root R4}
-  \draw[sig, AccentOrange, line width=1.4pt] (we.west) -- (4.3,0.05);
-  \node[font=\small\bfseries, text=AccentOrange] at (8.9,-0.2) {who issued me?};
-  \node[circle, draw=AccentOrange, line width=1.6pt, minimum size=1.0cm] at (3.85,0.05) {};
+  \node[font=\large, text=nInk] at (0.5,-1.3) {\vdots};
+  \node[msgval, font=\small\ttfamily, minimum width=2.0cm] (mj) at (0.5,-2.1) {note $j$};
+  \node[mech, minimum width=2.6cm, font=\scriptsize\bfseries] (hj) at (3.6,-2.1) {SHA-256, first bits};
+  \draw[data] (mj) -- (hj);
+  \node[digval, font=\small\ttfamily, minimum width=1.8cm, draw=AccentOrange, line width=1.6pt] (dj) at (6.7,-2.1) {seen before!};
+  \draw[data] (hj) -- (dj);
+  \node[hw, text width=5.4cm, align=left, font=\small, anchor=west] (tb) at (8.4,-0.4) {\faTable\ \textbf{seen}: a table\\ short digest $\rightarrow$ note number\\[3pt] \scriptsize like a hash table in C};
+  \draw[data, dashed] (6.7,-0.95) -- (tb.west);
+  \node[font=\small, text=nInk, anchor=west, align=left] at (-0.6,-3.2) {Sizes: \textbf{24}, \textbf{32}, \textbf{40} bits. Prediction: about $1.18 \cdot 2^{n/2}$ notes. Your answer: $i$ = ?, $j$ = ?};
 \end{tikzpicture}
 \end{document}

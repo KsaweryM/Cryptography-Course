@@ -1,27 +1,12 @@
-% Task 7: mutual TLS. Values from ../checks/make_files.py (Task7/certs).
-% CHECKED: alice.pem CN=Alice issued by Bob Staff CA (clientAuth); mallory.pem CN=Alice, self-signed
-\documentclass[12pt,tikz,border=6pt]{standalone}
-\input{common}
+\documentclass[tikz,border=8pt]{standalone}
+\input{common.tex}
 \begin{document}
-\pagecolor{white}
 \begin{tikzpicture}[>=Stealth]
-  \node[person=sTeal] (s) at (14.5,0) {\faServer};
-  \node[font=\small\bfseries, text=sTealText, below=0.08cm of s, align=center] (sl) {Bob's server, bob.example\\ \footnotesize (\texttt{mtls\_ready.py})};
-  \node[container, minimum width=4.2cm, minimum height=1.0cm, anchor=north] (ts) at (14.5,-1.95) {};
-  \node[smallcard=sViolet] at (ts.center) {\faArchive\ trusts for clients: Bob Staff CA};
-  \foreach \k/\p/\c/\t in {0/sIndigo/sIndigo/{\cert\ CN = Alice, issued by Bob Staff CA},
-      1/sIndigo/nLine/{no certificate},
-      2/sPink/sPink/{\cert\ CN = Alice, issued by ``Alice'' (made by Mallory)}} {
-    \pgfmathsetmacro{\y}{1.6-1.6*\k}
-    \node[person=\p, minimum size=0.9cm, font=\normalsize] (c\k) at (0,\y) {\faUser};
-    \node[smallcard=\c, anchor=west] at (0.7,\y) {\t};
-    \draw[data] (9.6,\y) -- (s.west);
-    \node[font=\Large\bfseries, text=AccentOrange] at (11.0,\y+0.3) {?};
-  }
-  \node[font=\small\bfseries, text=sIndigo, anchor=east] at (-0.6,1.6) {Alice};
-  \node[font=\small\bfseries, text=gray, anchor=east] at (-0.6,0) {Alice};
-  \node[font=\small\bfseries, text=sPinkText, anchor=east] at (-0.6,-1.6) {Mallory};
-  \node[todo, anchor=north] at (6,-3.0) {\textbf{1} trust the server's root \quad \textbf{2} load your certificate and key \quad
-    \textbf{3} connect, read the answer};
+\node[msg, font=\small] (m) at (0,0) {\textquotedblleft Release 4.2 of the Notes app. Alice\textquotedblright{}};
+\foreach \x/\n in {-4.2/RSA-2048, 0/ECDSA P-256, 4.2/Ed25519} {
+  \node[apriv, font=\small, minimum width=3.4cm] (k) at (\x,-1.4) {\faKey\ \n};
+  \draw[data] (m.south) -- (k.north);
+  \node[hw, font=\scriptsize, text width=3.4cm, align=left] at (\x,-3.0) {public key: ? bytes\\signature: ? bytes\\signed twice, the same: ?\\sign: ? ms, verify: ? ms};
+}
 \end{tikzpicture}
 \end{document}

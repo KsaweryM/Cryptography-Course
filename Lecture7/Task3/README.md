@@ -1,61 +1,63 @@
-# Task 3: build your own PKI
+# Task 3: two contracts, one fingerprint
 
 ## The situation
 
-Alice runs the shop `alice-shop.example`. Instead of buying a certificate, she wants to see how a CA works from the inside, so she builds a tiny PKI of her own: a root CA "Trusty Root CA", an intermediate CA "Trusty CA 1", and a leaf certificate for her shop. Then a TLS client that trusts only her root connects to a server that uses the leaf.
+Mallory sells her bike to Alice. The notary Carol keeps only a **fingerprint** of every contract: the first 32 bits of its SHA-256. Mallory wants two contracts with the same fingerprint: a fair one (100 pounds), which Alice will accept and Carol will register, and an unfair one (1000 pounds), which Mallory will show later. She cannot change the words, but she can put one or two spaces in every gap between words: nobody notices, and every variant has a different fingerprint.
 
-![Three certificates to make: 1 Trusty Root CA (self-signed, CA:TRUE, path_len 1, 20 years), 2 Trusty CA 1 (signed by the root, CA:TRUE, path_len 0, 5 years), 3 alice-shop.example (signed by Trusty CA 1, CA:FALSE, 90 days). A TLS client that trusts only Trusty Root CA receives the leaf and the intermediate: OK, or why not?](figure.svg)
+![Left: the FAIR contract with the price 100 pounds, 2^16 variants. Right: the UNFAIR contract with 1000 pounds, up to 2^24 variants. Every gap between words: one space or two. Both go into "fingerprint: first 32 bits of SHA-256", which must give the same 32 bits = ?. Carol keeps only these 32 bits. Mallory asks: fair number = ?, unfair number = ?](figure.svg)
 
 ## Goal
 
-Make a root, an intermediate and a leaf for alice-shop.example, and let a TLS client accept them.
+Find a fair variant and an unfair variant with the same fingerprint, and see how few digests it takes.
 
 ## Ready for you
 
-`cert_ready.py` (a black box):
-
-- `new_key()` makes a new private key (elliptic curve P-256);
-- `make_cert(cn, key, issuer, issuer_key, ca=..., path_len=..., days=..., dns_names=[...])` builds and signs a certificate for the name `cn` and the public half of `key`. `issuer` is the certificate of the CA that signs and `issuer_key` its private key; `issuer=None, issuer_key=None` makes a self-signed certificate. `ca=True` makes a CA certificate, `path_len` says how many CA certificates may stand below it;
-- `save_cert(cert, path)`, `subject_of`, `issuer_of`, `signed_by` as before; `ca_flag(cert)` gives `(True or False, path length)`;
-- `tls_check(leaf_key, chain, root, hostname)`: a TLS server sends `chain` (the leaf first) and a TLS client that trusts only `root` checks it, as a browser would, for the name `hostname`. It returns `"OK"` or the reason why the client said no. It runs in memory, with no network. What the client checks inside: Lecture 8.
+- `contracts.py`: `FAIR` and `UNFAIR` (the lines of the two contracts), `variant(lines, number)` (the contract as bytes; bit k of `number` says if gap k gets two spaces), `fingerprint(data)` (the first 32 bits of SHA-256 as a whole number), `FAIR_BITS = 16`, `UNFAIR_BITS = 24`.
+- `two_contracts.py`: the start and the printing at the end.
+- `table = {}` is a Python dictionary, a hash table as in C: `table[key] = value` stores, `key in table` checks in one step, `table[key]` reads.
 
 ## Steps
 
-Write your code in place of the `TODO` comments in `build_pki.py`:
+Write your code in `two_contracts.py`, in place of the `TODO` comments:
 
-1. The root: `root_key = new_key()`, then `root = make_cert("Trusty Root CA", root_key, None, None, ca=True, path_len=1, days=20 * 365)`.
-2. The intermediate "Trusty CA 1": a new key, signed by the root (`issuer=root, issuer_key=root_key`), `ca=True`, `path_len=0`, 5 years.
-3. The leaf "alice-shop.example": a new key, signed by the intermediate, `ca=False`, 90 days, `dns_names=["alice-shop.example"]`.
-4. Save the three certificates as `leaf.pem`, `intermediate.pem`, `root.pem` and print the subject, the issuer and `ca_flag` of each.
-5. Check every signature link with `signed_by`, then call `tls_check(leaf_key, [leaf, inter], root, ...)` three times: for `"alice-shop.example"`, for `"bob-shop.example"`, and once with only `[leaf]` as the chain.
+1. Make the table of the fair variants: for every `number` in `range(2 ** FAIR_BITS)`, store `table[fingerprint(variant(FAIR, number))] = number`.
+2. Try the unfair variants one by one, `number` from 0 up: count each try in `unfair_tries`; if `fingerprint(variant(UNFAIR, number))` is a key in `table`, keep `fair_number = table[...]` and `unfair_number = number`, and stop with `break`.
+3. Print the fingerprint of both contracts in hex (`f"{fingerprint(a):08x}"`), then the full SHA-256 of both (`hashlib.sha256(a).hexdigest()`).
 
-`openssl x509 -in leaf.pem -noout -text` shows your leaf the way Lecture 6 did.
+<details>
+<summary>Hint: why the table</summary>
+
+Each unfair variant is compared with all 65 536 fair fingerprints at once, in one dictionary lookup. That is the birthday trick with two piles: about 2^16 + 2^16 digests instead of 2^32.
+
+</details>
 
 ## Expected output
+
+The two numbers, both contracts as text, their fingerprints and their full SHA-256.
 
 <details>
 <summary>Check your answer</summary>
 
 ```
-leaf.pem : CN=alice-shop.example <- CN=Trusty CA 1 (False, None)
-intermediate.pem : CN=Trusty CA 1 <- CN=Trusty Root CA (True, 0)
-root.pem : CN=Trusty Root CA <- CN=Trusty Root CA (True, 1)
-intermediate signed leaf: True
-root signed intermediate: True
-root signed root:         True
-TLS, alice-shop.example:  OK
-TLS, bob-shop.example:    Hostname mismatch, certificate is not valid for 'bob-shop.example'.
-TLS, no intermediate:     unable to get local issuer certificate
+fair variant 37733 and unfair variant 32953, after 32954 unfair tries
+Contract
+Mallory  sells her  bike to Alice.
+The  price  is 100  pounds.
+...
+fingerprint of fair:   af00d510
+fingerprint of unfair: af00d510
+SHA-256 of fair:   af00d510b68f47f98949f2c710648b9fa1ee8b60b97ddae51c2ee2e38430c9a3
+SHA-256 of unfair: af00d510ed6672af8158c778e4abf9c73acb6f8f221ea6599c4760ce0e26963c
 ```
 
-The client accepts the chain for the name in the certificate, refuses another name, and cannot find its way to the root without the intermediate: a server must always send its intermediate certificates.
+65 536 + 32 954 digests, about 98 500, were enough. To match the fingerprint of one **given** contract Mallory would need about 2^32, over 4 billion. The full SHA-256 digests differ: Carol should keep the whole digest.
 
 </details>
 
 ## Run
 
 ```
-python3 build_pki.py
+python3 two_contracts.py
 ```
 
-About 12 minutes. Python 3 and the library `cryptography` (`pip install cryptography`, version 41 or newer). No internet needed.
+About 10 minutes. Python 3.8 or newer, no extra libraries; the program runs about 1.5 seconds.

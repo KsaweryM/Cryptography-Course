@@ -1,36 +1,33 @@
-% Task 3: four servers that all say "shop.alice.example". Certificates from Task3/certs/.
-% CHECKED (openssl x509 -noout -subject -issuer -enddate, 2026-11-15):
-%   shop.pem: CN shop.alice.example, issuer Trusty CA, until 2027-03-20
-%   mallory-selfsigned.pem: CN shop.alice.example, issuer shop.alice.example (itself)
-%   mallory-own-name.pem: CN mallory.example, issuer Trusty CA
-%   shop-expired.pem: CN shop.alice.example, issuer Trusty CA, until 2025-08-20
+% Task 3: Bob's certificate. CHECKED: openssl x509 -text of Task3/solution output (= Lecture9/checks/bob.pem)
 \documentclass[12pt,tikz,border=6pt]{standalone}
 \input{common}
 \begin{document}
 \pagecolor{white}
-\begin{tikzpicture}[>=Stealth]
-  % ---------- the client ----------
-  \node[text=nInk, font=\fontsize{54}{56}\selectfont] (pc) at (0,0) {\faLaptop};
-  \node[font=\small\bfseries, text=nInk, below=0.0cm of pc, align=center] (pcl) {client.py\\ \normalfont\scriptsize wants shop.alice.example};
-  \node[actorlight=sTeal, font=\scriptsize, below=0.15cm of pcl] {trusts: Trusty CA};
-  % ---------- the servers ----------
-  \foreach \k/\port/\who/\col/\cn/\iss/\until/\style in {
-      0/8443/the real shop/sIndigo/shop.alice.example/Trusty CA/2027-03-20/cert,
-      1/8444/Mallory/sPink/shop.alice.example/itself (self-signed)/2027-03-20/fakecert,
-      2/8445/Mallory/sPink/mallory.example/Trusty CA/2027-03-20/fakecert,
-      3/8446/an old copy/sIndigo/shop.alice.example/Trusty CA/2025-08-20/cert} {
-    \pgfmathsetmacro{\y}{3.0-2.0*\k}
-    \node[hwmain, minimum width=1.3cm, minimum height=1.45cm, font=\scriptsize] (s\k) at (6.2,\y) {\faServer\\ \port};
-    \node[circle, fill=\col, text=white, minimum size=0.55cm, font=\scriptsize, inner sep=0pt] at (5.35,\y+0.55)
-      {\ifnum\k=1 \faUserSecret\else\ifnum\k=2 \faUserSecret\else\faUser\fi\fi};
-    \node[\style, anchor=west, text width=5.9cm, font=\scriptsize] at (7.2,\y)
-      {\textbf{\who}\\ subject: \texttt{\cn}\\ issuer: \iss\\ valid until \until};
-    \draw[data] (pc.east) ++(0.1,0) -- (s\k.west);
-    \node[circle, draw=AccentOrange, thick, fill=white, minimum size=0.55cm, font=\bfseries\small, text=AccentOrange]
-      at ($(pc.east)!0.62!(s\k.west)$) {?};
+\begin{tikzpicture}[>=Stealth, card]
+  \canode{ca}{-2.2,-1.5}{Trusty CA}
+  \node[privval, font=\small, anchor=north] at (-2.2,-2.9) {\faKey\ private key};
+  \node[cardbox, minimum width=13.4cm, minimum height=6.6cm, anchor=north west] (c) at (0,0) {};
+  \fill[nInk, rounded corners=4pt] (0,0) rectangle (13.4,-0.7);
+  \node[text=white, font=\bfseries, anchor=west] at (0.2,-0.35) {Certificate: bob.example};
+  \foreach \y/\k/\v/\st in {
+      -1.1/issuer/{C=GB, O=Trusty CA Ltd, CN=Trusty CA}/ready,
+      -1.65/subject/{C=GB, O=Bob Ltd, CN=bob.example}/todo1,
+      -2.2/serialNumber/{0x4F3A9C2E71D05B88}/todo2,
+      -2.75/notBefore/{2026-11-01 00:00:00 UTC}/todo2,
+      -3.3/notAfter/{2027-01-30 00:00:00 UTC}/todo2,
+      -3.85/public key/{Bob's Ed25519 key (bob\_public.pem)}/todo2} {
+    \node[font=\ttfamily\small\bfseries, text=nInk, anchor=west] at (0.3,\y) {\k};
+    \node[font=\small, text=nInk, anchor=west] at (3.4,\y) {\v};
   }
-  \node[note, anchor=north, align=center] at (6.5,-4.0)
-    {All four answer ``Welcome to Alice's shop. Please log in.''\\
-     Which ones does a client with \texttt{verify=False} talk to? Which ones does a correct client refuse, and why?};
+  \node[font=\small, text=aExec, anchor=west] at (11.4,-1.1) {\ok\ ready};
+  \node[font=\small, anchor=west] at (11.4,-1.65) {\badge{1}};
+  \draw[AccentOrange, thick, decorate, decoration={brace, amplitude=5pt}] (11.3,-2.0) -- (11.3,-4.05);
+  \node[font=\small, anchor=west] at (11.6,-3.0) {\badge{2}};
+  \draw[nLine] (0.2,-4.3) -- (13.2,-4.3);
+  \node[font=\ttfamily\small\bfseries, text=nInk, anchor=west] at (0.3,-4.85) {signature};
+  \node[caval, font=\small, anchor=west] at (3.4,-4.85) {builder.sign(ca\_private, None) \quad \badge{3}};
+  \node[font=\ttfamily\small\bfseries, text=nInk, anchor=west] at (0.3,-5.75) {save, show};
+  \node[note, anchor=west] at (3.4,-5.75) {bob.pem, fingerprint E8:C5:56:C2:\ldots? \quad \badge{4}};
+  \draw[data] (ca.east) -- (0,-1.5);
 \end{tikzpicture}
 \end{document}

@@ -1,68 +1,61 @@
-# Task 5: check three CSRs
+# Task 5: the leaked table without salt
 
 ## The situation
 
-You play the CA. Three certificate signing requests (CSRs) arrived:
+Bob's small web shop stored, for each user, `SHA-256(password)` in hex. The table has leaked: Mallory has `leaked_users.txt` with 12 users. She cannot reverse SHA-256, but she can guess: she has a list of 3 529 common passwords (`wordlist.txt`, made up for this course in the style of real lists).
 
-- `bob.csr`: Bob's request for `bob-shop.example`;
-- `bob-changed.csr`: the same request after Mallory changed a few bytes on the way (the name);
-- `mallory.csr`: Mallory's own request for `bob-shop.example`, made with her own key.
-
-A CSR carries a name, a public key and a signature made with the matching private key. Which requests should you accept?
-
-![Bob sends bob.csr (bob-shop.example, Bob's key, signed by Bob's key). On the way it becomes bob-changed.csr (mal-shop.example, Bob's key, Bob's old signature). Mallory sends mallory.csr (bob-shop.example, Mallory's key, signed by Mallory's key). You, the CA: is the signature valid?](figure.svg)
+![Left: the leaked table, user and stored SHA-256(password): alice e48443929f57ec4c..., bob 9cdb4a45f1bba581..., carol e4ad93ca07acb8d9..., dave e4ad93ca07acb8d9..., erin 48486e1514e84234..., frank 65e84be33532fb78..., ... 12 users. Right: Mallory with wordlist.txt (123456, password, 123456789, ..., 3 529 guesses) going into SHA-256, compared with every user. Cracked: ? of 12. A note: TODO 1 first, the server's login check, alice types monkey123 and monkey124.](figure.svg)
 
 ## Goal
 
-Check the signatures of four CSRs and see what a valid one proves.
+Write the server's login check, then crack as many users as you can, and count the SHA-256 computations.
 
 ## Ready for you
 
-- `bob.csr`, `bob-changed.csr`, `mallory.csr`.
-- `cert_ready.py` (a black box): `new_key()`; `make_csr(key, cn, dns_names)` builds a CSR and signs it with `key`; `save_csr`, `load_csr`; `subject_of(csr)`, `dns_names_of(csr)`; `key_id(public_key)` gives a short fingerprint of a public key (16 hex digits).
-- `csr.is_signature_valid` is `True` when the signature on the CSR verifies with the public key inside the same CSR. `csr.public_key()` gives that key.
+- `crack_unsalted.py`: `load_users(path)` returns two lists of the same length, `names[i]` and `digests[i]` (like two parallel arrays in C); `load_words(path)` returns the list of guesses.
+- `hashlib.sha256(text.encode()).hexdigest()`: `text.encode()` turns the Python text into bytes (UTF-8), as the server did.
+
+Before you run it, predict: how many of the 12 users fall, and how many SHA-256 computations does it take?
 
 ## Steps
 
-Write your code in place of the `TODO` comments in `check_csrs.py`:
+Write your code in `crack_unsalted.py`, in place of the `TODO` comments:
 
-1. Make your own key and a CSR for `"alice-shop.example"` (with the same name in `dns_names`) and save it as `alice.csr`.
-2. Load the four CSRs (yours first) into a list and print, for each, the file name, the subject and the DNS names.
-3. Print, for each CSR, whether its signature is valid.
-4. Print the `key_id` of the public key in `bob.csr` and in `mallory.csr`.
-
-`openssl req -in alice.csr -noout -text -verify` shows your CSR.
+1. `check_login(user, typed)`: find the index of `user` in `names` with an index loop, then return whether `hashlib.sha256(typed.encode()).hexdigest()` equals `digests[index]`.
+2. The dictionary attack: for every word, compute its digest **once** (add 1 to `hashes`), then compare it with the digest of every user. On a match, print `f"{names[u]}: {word}"` and add 1 to `cracked`.
+3. Print the summary line given in the comment.
+4. Print every pair of users with the same digest (two index loops, the inner one from `u + 1`).
 
 ## Expected output
-
-Predict first: which CSRs have a valid signature?
 
 <details>
 <summary>Check your answer</summary>
 
 ```
-alice.csr : CN=alice-shop.example ['alice-shop.example']
-bob.csr : CN=bob-shop.example ['bob-shop.example']
-bob-changed.csr : CN=mal-shop.example ['mal-shop.example']
-mallory.csr : CN=bob-shop.example ['bob-shop.example']
-
-alice.csr signature valid: True
-bob.csr signature valid: True
-bob-changed.csr signature valid: False
-mallory.csr signature valid: True
-
-key in bob.csr:     74099af184f4ade6
-key in mallory.csr: 03e9a0627939012b
+12 users, 3529 guesses in the list
+alice types monkey123: True
+alice types monkey124: False
+ivan: 123456
+frank: qwerty
+carol: iloveyou
+dave: iloveyou
+grace: dragon2024
+alice: monkey123
+oscar: football!
+judy: Summer2025
+bob: Liverpool1
+cracked 9 of 12 users with 3529 SHA-256 computations
+same digest: carol and dave
 ```
 
-The changed request fails: any change breaks the signature. But Mallory's own request for Bob's name is perfectly valid, only with a different key. A CSR proves that the sender holds the private key, not that the name is theirs: that is why the CA must check the name (DV, OV or EV) before it issues anything.
+One computation per guess, however many users there are. erin, heidi and peggy survive only because their passwords are not in the list.
 
 </details>
 
 ## Run
 
 ```
-python3 check_csrs.py
+python3 crack_unsalted.py
 ```
 
-About 10 minutes. Python 3 and the library `cryptography` (`pip install cryptography`, version 41 or newer). No internet needed.
+About 10 minutes. Python 3.8 or newer, no extra libraries; the program runs in a fraction of a second.

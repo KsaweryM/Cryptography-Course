@@ -1325,7 +1325,7 @@
   \begin{center}
     \begin{tikzpicture}
       \node[font=\small\bfseries, text=DeepBlue, anchor=west] at (-0.4,2.0) {Mostly today: proving who someone is};
-      \node[font=\scriptsize, text=gray, anchor=west] at (-0.4,1.6) {taught later in the course (Lectures 6 to 9)};
+      \node[font=\scriptsize, text=gray, anchor=west] at (-0.4,1.6) {taught later in the course (Lectures 8 to 12)};
       \foreach \y/\ic/\t/\d in {0.75/\faGlobe/a website/{when the browser connects to a website,\\ the server proves who it is with an RSA key},
                                -0.55/\faTerminal/SSH/{an RSA key instead of a password\\ when you log in to a server},
                                -1.85/\faRoute/VPN/{the two ends of the tunnel\\ prove who they are}} {
@@ -1351,7 +1351,7 @@
   %         RFC 9846 (July 2026) obsoletes RFC 8446 and keeps this. RSA stays for authentication (rsa_pss_* signature schemes).
   % source: OpenPGP RFC 9580 (RSA still allowed for encryption keys); S/MIME 4.0 RFC 8551 with RSA key transport (RFC 8017).
   % source: SSH: RFC 8332 (rsa-sha2-256/512 user and host keys); IPsec IKEv2: RFC 7296 (RSA authentication).
-  \say{Uczciwie: dziś RSA głównie potwierdza, kim jest serwer albo osoba; omówimy to później w kursie (wykłady 6 do 9). Gdy przeglądarka łączy się ze stroną, serwer pokazuje klucz publiczny RSA i udowadnia, że ma pasujący klucz prywatny. Klucz sesji ustala się dziś inną metodą: standard z 2018 roku (RFC 8446, w 2026 zastąpiony przez RFC 9846) usunął przesyłanie klucza przez RSA, bo nie chroni przeszłości (poprzedni slajd: wyciek klucza prywatnego). Szyfrowanie RSA nadal żyje w poczcie: OpenPGP i S/MIME zamykają RSA klucz każdej wiadomości, czyli dokładnie szyfrowanie hybrydowe z tego wykładu. SSH i VPN używają kluczy RSA do logowania i do potwierdzenia, kim są obie strony.}
+  \say{Uczciwie: dziś RSA głównie potwierdza, kim jest serwer albo osoba; omówimy to później w kursie (podpis cyfrowy w wykładzie 8, certyfikaty w wykładach 9 do 12). Gdy przeglądarka łączy się ze stroną, serwer pokazuje klucz publiczny RSA i udowadnia, że ma pasujący klucz prywatny. Klucz sesji ustala się dziś inną metodą: standard z 2018 roku (RFC 8446, w 2026 zastąpiony przez RFC 9846) usunął przesyłanie klucza przez RSA, bo nie chroni przeszłości (poprzedni slajd: wyciek klucza prywatnego). Szyfrowanie RSA nadal żyje w poczcie: OpenPGP i S/MIME zamykają RSA klucz każdej wiadomości, czyli dokładnie szyfrowanie hybrydowe z tego wykładu. SSH i VPN używają kluczy RSA do logowania i do potwierdzenia, kim są obie strony.}
 \end{frame}
 
 \begin{frame}{Good to know: GCHQ was first}

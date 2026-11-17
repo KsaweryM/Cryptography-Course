@@ -1,0 +1,1793 @@
+\documentclass[aspectratio=169,10pt]{beamer}
+% notes.tex defines \NOTESONLY and reads this file: then only the speaker notes are printed
+\ifdefined\NOTESONLY
+  \setbeameroption{show only notes}
+\fi
+
+\usepackage{lmodern}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[polish,english]{babel}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{colortbl}
+\usepackage{xcolor}
+\usepackage{fontawesome5}
+\usepackage{listings}
+\usepackage{etoolbox}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, calc, positioning, fit, decorations.pathreplacing, decorations.pathmorphing}
+\usepackage{pgfplots}
+% layers for the code windows drawn in TikZ: the window, then the line that runs now, then the text
+\pgfdeclarelayer{codebg}\pgfdeclarelayer{codehl}\pgfsetlayers{codebg,codehl,main}
+\pgfplotsset{compat=1.18}
+
+\usetheme{Madrid}
+\useinnertheme{rounded}
+\useoutertheme{miniframes}
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{itemize items}[circle]
+\setbeamertemplate{enumerate items}[default]
+\setbeamertemplate{blocks}[rounded][shadow=true]
+% one dot per idea, not per frame: \samedot before a frame gives it the dot of the frame before
+% (it undoes the step of the dot counter that the next frame makes)
+\newcommand{\samedot}{\addtocounter{subsectionslide}{-1}}
+% the default dot step of the circle dots (0.1 cm dots)
+\setbeamersize{mini frame size=.14cm,mini frame offset=-.01cm}
+
+% ======================================================================
+% Colour rules for presentations (Beamer + TikZ), from Agents/colors
+% ======================================================================
+
+% ---------- template ----------
+\definecolor{DeepBlue}{HTML}{283593}      % title bar, headings, links, control-flow arrows
+\definecolor{AccentOrange}{HTML}{EB5A14}  % annotations: step numbers, "look here", code highlight, conclusions
+\definecolor{LightGray}{HTML}{F5F6FA}     % background of information blocks
+\setbeamercolor{palette primary}{bg=DeepBlue,fg=white}
+\setbeamercolor{palette secondary}{bg=DeepBlue!80!black,fg=white}
+\setbeamercolor{palette tertiary}{bg=DeepBlue!90!black,fg=white}
+\setbeamercolor{title}{bg=DeepBlue,fg=white}
+\setbeamercolor{frametitle}{bg=DeepBlue,fg=white}
+\setbeamercolor{structure}{fg=DeepBlue}
+\setbeamercolor{item}{fg=AccentOrange}
+\setbeamercolor{alerted text}{fg=AccentOrange}
+\setbeamercolor{block title}{bg=DeepBlue,fg=white}
+\setbeamercolor{block body}{bg=LightGray,fg=black}
+\setbeamercolor{block title example}{bg=AccentOrange,fg=white}
+\setbeamercolor{block body example}{bg=AccentOrange!10,fg=black}
+\setbeamercolor{enumerate item}{fg=DeepBlue}
+\setbeamerfont{enumerate item}{series=\bfseries}
+
+% ---------- actors and categories: fills only (S1 to S6) ----------
+\definecolor{sIndigo}{HTML}{5C6BC0}   % S1
+\definecolor{sPink}{HTML}{EC407A}     % S2
+\definecolor{sViolet}{HTML}{7E57C2}   % S3
+\definecolor{sAmber}{HTML}{FFB300}    % S4: black text on it
+\definecolor{sTeal}{HTML}{26A69A}     % S5
+\definecolor{sBrown}{HTML}{8D6E63}    % S6
+% text variants that stay readable on white
+\definecolor{sPinkText}{HTML}{C2185B}
+\definecolor{sAmberText}{HTML}{A06A00}
+\definecolor{sTealText}{HTML}{00796B}
+
+% ---------- actions: frames only; results: signs only ----------
+\definecolor{aExec}{HTML}{43A047}     % runs now
+\definecolor{aRead}{HTML}{1E88E5}     % is read
+\definecolor{aWrite}{HTML}{E53935}    % is written
+
+% ---------- neutral (Blue Grey) ----------
+\definecolor{nInk}{HTML}{37474F}      % text in figures, waveforms, wires, data-flow arrows
+\definecolor{nLine}{HTML}{90A4AE}     % borders, axes
+\definecolor{nLight}{HTML}{CFD8DC}    % inactive lines, grids, empty places (dashed)
+\definecolor{nFill}{HTML}{ECEFF1}     % fill of boxes and used cells
+\definecolor{nIdle}{HTML}{E0E0E0}     % time lost (idle, busy waiting, bubbles)
+
+% ---------- TikZ styles ----------
+\tikzset{
+  aexec/.style={draw=aExec, line width=1.6pt},
+  aexecm/.style={aexec, label={[text=aExec, inner sep=1pt, font=\tiny]left:$\blacktriangleright$}},
+  aread/.style={draw=aRead, line width=1.6pt, dash pattern=on 3pt off 2pt},
+  awrite/.style={draw=aWrite, line width=2.4pt},
+  hw/.style={draw=nLine, thick, fill=nFill, text=nInk, rounded corners=3pt, align=center, inner sep=4pt},
+  hwmain/.style={draw=nInk, thick, fill=nInk, text=white, rounded corners=3pt, align=center, inner sep=4pt},
+  cell/.style={draw=nLine, thick, fill=white, text=nInk, font=\ttfamily\scriptsize},
+  cellused/.style={cell, fill=nFill},
+  cellfree/.style={cell, dashed, draw=nLight},
+  container/.style={draw=nLine, thick, dashed, rounded corners=5pt},
+  actor/.style={fill=#1, draw=#1, text=white, rounded corners=3pt, align=center, font=\scriptsize\bfseries, inner sep=4pt},
+  actorlight/.style={fill=#1!15, draw=#1, thick, text=nInk, rounded corners=3pt, align=center, inner sep=4pt},
+  suspended/.style={fill=#1!30, draw=#1, dashed, line width=0.9pt, text=nInk, rounded corners=3pt, align=center, inner sep=4pt},
+  ready/.style={fill=white, draw=#1, line width=0.8pt, text=nInk, rounded corners=3pt, align=center, inner sep=4pt},
+  idle/.style={fill=nIdle, draw=none, text=nInk, rounded corners=3pt, align=center, inner sep=4pt},
+  flow/.style={-{Stealth}, very thick, DeepBlue},
+  data/.style={-{Stealth}, very thick, nInk},
+  holds/.style={-{Stealth}, very thick, nInk},
+  waits/.style={-{Stealth}, very thick, nLine, dashed},
+  annot/.style={draw=AccentOrange, line width=1.4pt, rounded corners=3pt},
+}
+\tikzset{actoramber/.style={actor=sAmber, text=black}}
+
+% ---------- signs and small helpers ----------
+\newcommand{\ok}{\textcolor{aExec}{\faCheck}}
+\newcommand{\nok}{\textcolor{aWrite}{\faTimes}}
+\newcommand{\badge}[1]{\tikz[baseline=(b.base)]\node[circle,fill=AccentOrange,text=white,
+  inner sep=1.2pt,font=\bfseries\tiny] (b) {#1};}
+\newcommand{\bigbadge}[1]{\tikz[baseline=(b.base)]\node[circle,fill=AccentOrange,text=white,
+  inner sep=2pt,font=\bfseries\small] (b) {#1};}
+% ---------- text boxes ----------
+\newcommand{\defbox}[1]{%
+  \begin{beamercolorbox}[rounded=true,sep=0.1cm,wd=\linewidth]{block body example}
+    \footnotesize #1
+  \end{beamercolorbox}\vspace{0.06cm}}
+% a large definition in the middle of the slide
+\newcommand{\bigdef}[1]{%
+  \begin{beamercolorbox}[rounded=true,sep=0.25cm,wd=\linewidth]{block body example}
+    \centering\normalsize #1
+  \end{beamercolorbox}\vspace{0.06cm}}
+\newcommand{\stepbox}[2]{%
+  \begin{beamercolorbox}[rounded=true,sep=0.09cm,wd=\linewidth]{block body}
+    \footnotesize\textbf{#1}\\ #2
+  \end{beamercolorbox}\vspace{0.06cm}}
+\newcommand{\keymsg}[1]{%
+  \begin{beamercolorbox}[rounded=true,sep=0.1cm,wd=\textwidth]{block body example}
+    \centering\footnotesize #1
+  \end{beamercolorbox}}
+% a grey box without a title
+\newcommand{\plainbox}[1]{%
+  \begin{beamercolorbox}[rounded=true,sep=0.12cm,wd=\linewidth]{block body}
+    \centering\footnotesize #1
+  \end{beamercolorbox}\vspace{0.06cm}}
+\setbeamercolor{block body problem}{bg=AccentOrange!10,fg=black}
+\newcommand{\probbox}[2]{%
+  \begin{beamercolorbox}[rounded=true,sep=0.09cm,wd=\linewidth]{block body problem}
+    \footnotesize\textbf{\textcolor{AccentOrange}{\faExclamationTriangle}\ #1}\\ #2
+  \end{beamercolorbox}\vspace{0.06cm}}
+
+% ---------- code: dark window, grey dots, syntax colours ----------
+\definecolor{VSDarkBg}{RGB}{25,25,25}
+\definecolor{VSText}{RGB}{245,245,245}
+\definecolor{VSBlue}{RGB}{80,180,255}
+\definecolor{VSPurple}{RGB}{210,110,210}
+\definecolor{VSString}{RGB}{255,140,80}
+\definecolor{VSComment}{RGB}{80,220,80}
+\setbeamercolor{vscodelisting}{bg=VSDarkBg}
+\lstdefinestyle{code}{basicstyle=\color{VSText}\ttfamily\scriptsize, keywordstyle=\color{VSBlue}\bfseries,
+  stringstyle=\color{VSString}, commentstyle=\color{VSComment}\itshape, emphstyle=\color{VSPurple},
+  numbers=none, columns=fixed, basewidth=0.52em, keepspaces=true, showstringspaces=false, xleftmargin=6pt}
+\lstdefinestyle{py}{style=code, language=Python, emph={print,chr,zip,range,len,bytes,ord,hex}}
+\BeforeBeginEnvironment{lstlisting}{%
+  \begin{beamercolorbox}[rounded=true,sep=2mm,wd=\linewidth]{vscodelisting}%
+  \begin{tikzpicture}
+    \fill[nLine] (0,0) circle (3pt); \fill[nLine] (0.35,0) circle (3pt); \fill[nLine] (0.70,0) circle (3pt);
+  \end{tikzpicture}%
+  \vspace{-0.2cm}}
+\AfterEndEnvironment{lstlisting}{\end{beamercolorbox}}
+\newcommand{\hlcode}[1]{{\setlength{\fboxsep}{1pt}\colorbox{AccentOrange}{\textcolor{white}{\bfseries #1}}}}
+\newcommand{\eol}{\tikz[remember picture, overlay]\coordinate (eol) at (0,0.08);}
+\newcommand{\codenote}[3][0pt]{%
+  \begin{tikzpicture}[remember picture, overlay, >=Stealth]
+    \node[draw=AccentOrange, very thick, fill=AccentOrange!6, rounded corners=4pt, text width=0.33\paperwidth,
+      align=left, inner sep=6pt, font=\footnotesize, anchor=west] (cal)
+      at ([yshift=#1]eol -| {$(current page.west)!0.6!(current page.east)$}) {\textbf{\textcolor{AccentOrange}{#2}}\\[3pt]#3};
+    \draw[->, very thick, AccentOrange] (eol -| cal.west) -- ([xshift=4pt]eol);
+  \end{tikzpicture}}
+% program output: a light terminal line
+\newcommand{\terminal}[1]{%
+  \begin{tikzpicture}
+    \node[draw=nLine, thick, fill=nFill, rounded corners=3pt, inner sep=5pt, font=\ttfamily\small, text=nInk]
+      {\textcolor{nLine}{\$}\ #1};
+  \end{tikzpicture}}
+
+% ======================================================================
+% Course macros
+% ======================================================================
+% the starter files on GitHub: the word "GitHub" is the link.
+%   \ghlink{Task4} opens the folder of Task 4, \ghlink{} opens the folder of this lecture
+\newcommand{\ghbase}{https://github.com/KsaweryM/Cryptography-Course/tree/main/Lecture12}
+\newcommand{\ghlink}[1]{\href{\ghbase/#1}{\textcolor{DeepBlue}{\textbf{GitHub}}}}
+% the task slides: the steps are in the README on GitHub, the slide only opens the task
+%   \taskgoal{one line}   \taskready{the ready modules}   \opentask{Task2}{about 6 minutes}
+%   a task on paper: the question on the slide, then \onpaper{about 6 minutes}
+\newcommand{\taskgoal}[1]{{\centering\large\textcolor{AccentOrange}{\faBullseye}\ \textbf{Goal:} #1\par}\vspace{0.2cm}}
+\newcommand{\taskready}[1]{{\centering\normalsize\textcolor{nInk}{\faBox}\ \textbf{Ready:} #1\par}\vspace{0.2cm}}
+\newcommand{\opentask}[2]{%
+  \begin{beamercolorbox}[rounded=true,sep=0.35cm,wd=\linewidth]{block body example}
+    \centering
+    {\LARGE\faGithub\ \textbf{Open the task:}\ \href{\ghbase/#1}{\textcolor{DeepBlue}{\textbf{\texttt{#1}}}}}\\[8pt]
+    \footnotesize\href{\ghbase/#1}{\textcolor{DeepBlue}{\texttt{github.com/KsaweryM/Cryptography-Course/tree/main/Lecture12/#1}}}\\[6pt]
+    \small on \ghlink{#1}: the steps, the starter files and how to run them\ifx&#2&\else\qquad\faClock[regular]\ #2\fi
+  \end{beamercolorbox}}
+\newcommand{\onpaper}[1]{%
+  \begin{beamercolorbox}[rounded=true,sep=0.3cm,wd=\linewidth]{block body example}
+    \centering
+    {\LARGE\faPencil*\ \textbf{On paper}}\ifx&#1&\else\qquad\small\faClock[regular]\ #1\fi
+  \end{beamercolorbox}}
+
+% a page of the simulator website, printed in full so that students can type it:
+%   \simlink{elliptic-curves/\#2} prints and links ksawerym.github.io/Cryptography-simulators/elliptic-curves/#2
+\newcommand{\simbase}{ksawerym.github.io/Cryptography-simulators}
+\newcommand{\simlink}[1]{\href{https://\simbase/#1}{\textcolor{DeepBlue}{\texttt{\simbase/#1}}}}
+% "For the curious" line under a frame: \curious{elliptic-curves/\#2}
+\newcommand{\curious}[1]{{\footnotesize\textcolor{gray}{\faSearch\ For the curious:}\ \simlink{#1}}}
+
+% speaker notes (Polish): printed only in the notes PDF (make notes)
+\setbeamertemplate{note page}[default]
+\setbeamerfont{note page}{size=\normalsize}
+\newcommand{\say}[1]{\note{\selectlanguage{polish}#1}}
+
+% ======================================================================
+% Colour mapping for this lecture (colour rules, section 6)
+%   S1 sIndigo : Alice, the owner of a key (the publisher, the website, the sender)
+%   S2 sPink   : Mallory, the attacker, and a fake or rogue certificate
+%   S3 sViolet : a certificate (it carries the public key)
+%   S4 sAmber  : a private key (black text on it)
+%   S5 sTeal   : Bob, the one who checks (the user, the client, the relying party)
+%   S6 sBrown  : a CA or a TSA and its signature
+%   mechanisms (servers, HSM, logs, checks) are neutral; results only as signs
+% ======================================================================
+\tikzset{
+  person/.style={circle, fill=#1, draw=#1, text=white, minimum size=1.15cm, font=\Large, inner sep=0pt},
+  certbox/.style={draw=sViolet, thick, fill=sViolet!10, text=nInk, rounded corners=3pt, align=left, inner sep=5pt},
+  fakebox/.style={draw=sPink, thick, fill=sPink!10, text=nInk, rounded corners=3pt, align=left, inner sep=5pt},
+  privval/.style={draw=sAmber, thick, fill=sAmber!25, text=black, rounded corners=3pt, align=center, inner sep=4pt},
+  cabox/.style={fill=sBrown, draw=sBrown, text=white, rounded corners=3pt, align=center, font=\small\bfseries, inner sep=5pt},
+  tile/.style={hw, minimum width=#1, minimum height=2.3cm},
+  win/.style={draw=nLine, thick, fill=white, rounded corners=2pt},
+  qmark/.style={circle, draw=AccentOrange, thick, fill=white, minimum size=0.6cm, font=\bfseries, text=AccentOrange, inner sep=0pt},
+}
+\newcommand{\priv}[1]{\textcolor{sAmberText}{\textbf{#1}}}
+\newcommand{\hl}[1]{\textcolor{AccentOrange}{\textbf{#1}}}
+% a person: \personnode{name}{x,y}{colour}{caption}
+\newcommand{\personnode}[4]{%
+  \node[person=#3] (#1) at (#2) {\faUser};
+  \node[font=\small\bfseries, text=#3, below=0.08cm of #1] (#1lbl) {#4};}
+\newcommand{\mallorynode}[2]{%
+  \node[person=sPink] (#1) at (#2) {\faUserSecret};
+  \node[font=\small\bfseries, text=sPinkText, below=0.08cm of #1] (#1lbl) {Mallory};}
+% a tile with a big icon, a name and a line under it: \icontile{x,y}{width}{icon}{name}{text}
+\newcommand{\icontile}[5]{%
+  \node[hw, minimum width=#2, minimum height=3.0cm] (t) at (#1) {};
+  \node[text=nInk, font=\fontsize{28}{30}\selectfont] at ([yshift=0.75cm]t.center) {#3};
+  \node[font=\small\bfseries, text=nInk, text width=#2, align=center, font=\scriptsize\bfseries] at ([yshift=-0.1cm]t.center) {#4};
+  \node[font=\scriptsize, text=nInk, align=center, anchor=north] at ([yshift=-0.35cm]t.center) {#5};}
+% a small timeline year mark: \yearmark{x}{label}
+\newcommand{\yearmark}[2]{\draw[nLine, thick] (#1,-0.12) -- (#1,0.12);
+  \node[font=\scriptsize, text=gray, anchor=north] at (#1,-0.15) {#2};}
+\newcommand{\fd}{-{}-{}-{}-{}-}
+% a command for the terminal, in a dark window (not fragile, so Polish notes work): \cmdbox{line\\ line}
+\newcommand{\cmdbox}[2][6.6cm]{%
+  \begin{tikzpicture}
+    \node[fill=VSDarkBg, text=VSText, rounded corners=4pt, inner sep=7pt, font=\ttfamily\footnotesize, align=left,
+      text width=#1] {\textcolor{nLine}{\$}\ #2};
+  \end{tikzpicture}}
+
+\title{Cryptography}
+\subtitle{PKI in Practice: Good Practices and Incidents}
+\author{Ksawery Możdżyński}
+\date{}
+
+\begin{document}
+
+% ======================================================================
+% Opening
+% ======================================================================
+
+\begin{frame}
+  \titlepage
+  \say{Ostatni wykład tygodnia PKI. Wiemy już, czym jest certyfikat, kto go wydaje i jak się go sprawdza. Dziś: gdzie certyfikaty pracują poza kłódką w przeglądarce, jakie błędy popełnia się najczęściej i jakie prawdziwe wpadki z tego wynikły.}
+\end{frame}
+
+\begin{frame}{Agenda For Today}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \foreach \ic/\t [count=\k from 0] in {
+          {\faSitemap}/{See where certificates work beyond the padlock: code, documents, mail and logins.},
+          {\faTools}/{Learn five good practices and find the common mistakes in real code.},
+          {\faFire}/{Walk through real PKI incidents and the fixes they brought.}} {
+        \node[circle, fill=DeepBlue, text=white, minimum size=1.3cm, font=\LARGE] at (0,{-1.9*\k}) {\ic};
+        \node[anchor=west, text width=12cm, font=\large, align=left, execute at begin node={\hyphenpenalty=10000 }] at (1.0,{-1.9*\k}) {\t};
+      }
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \say{Trzy części: zastosowania, dobre praktyki i błędy, incydenty z wnioskami. Sześć zadań w Pythonie, każde samodzielne. Nazwy sekcji są na pasku u góry.}
+\end{frame}
+
+% ======================================================================
+\section[Where PKI is used]{Where PKI is used}
+% ======================================================================
+
+\begin{frame}{Recall: sign and verify}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      % sign
+      \personnode{a}{0,0}{sIndigo}{Alice}
+      \node[privval, font=\small] (sk) at (2.4,1.0) {\faKey\ private key};
+      \node[hw, font=\small] (d) at (2.4,-0.9) {\faFile*[regular]\ data};
+      \node[hwmain, minimum width=2.2cm, minimum height=1.2cm] (sg) at (5.2,0) {\faCogs\\ \texttt{sign}};
+      \draw[data] (sk.east) -- (sg.north west);
+      \draw[data] (d.east) -- (sg.south west);
+      \node[cabox, fill=sIndigo, draw=sIndigo, font=\small] (s) at (7.8,0) {\faStamp\ signature};
+      \draw[data] (sg) -- (s);
+      % verify
+      \node[hwmain, minimum width=2.2cm, minimum height=1.2cm] (vf) at (10.6,0) {\faCogs\\ \texttt{verify}};
+      \node[draw=sViolet, thick, fill=sViolet!12, text=nInk, rounded corners=3pt, font=\small] (pk) at (10.6,1.6) {\faKey\ public key};
+      \node[hw, font=\small] (d2) at (10.6,-1.6) {\faFile*[regular]\ data};
+      \draw[data] (s) -- (vf);
+      \draw[data] (pk) -- (vf);
+      \draw[data] (d2) -- (vf);
+      \node[font=\large, anchor=west] (r) at (12.1,0) {\ok\ / \nok};
+      \draw[data] (vf.east) -- (r.west);
+      \personnode{b}{13.2,-1.6}{sTeal}{Bob}
+    \end{tikzpicture}
+  \end{center}
+  \begin{center}\small
+    \texttt{verify} says \ok\ only if the data was not changed\\ and the signature was made with the matching \priv{private key}.
+  \end{center}
+  \keymsg{A signature proves who signed and that nothing changed since.}
+  \say{Przypomnienie z wykładu 8, bez matematyki: sign bierze klucz prywatny i dane, verify bierze klucz publiczny, dane i podpis, i mówi tak albo nie. Dziś używamy podpisu wyłącznie jako czarnej skrzynki.}
+\end{frame}
+
+\samedot
+\begin{frame}{Recall: a certificate}
+  \begin{columns}[c,onlytextwidth]
+    \column{0.47\textwidth}
+      \centering
+      \begin{tikzpicture}[>=Stealth]
+        \node[certbox, text width=5.2cm, font=\small] (c) at (0,0)
+          {\textbf{\faCertificate\ Certificate}\\[3pt]
+           subject: \texttt{shop.alice.example}\\
+           public key: \texttt{04 6b 17 d1 \ldots}\\
+           valid: 2026-09-01 to 2027-03-20\\
+           for: server authentication\\
+           issuer: Trusty CA};
+        \node[cabox, anchor=north east] (st) at ([shift={(0.25,0.3)}]c.north east) {\faStamp};
+        \node[font=\scriptsize, text=sBrown, anchor=north] at (c.south) {signed by Trusty CA};
+      \end{tikzpicture}
+    \column{0.5\textwidth}
+      \centering
+      \begin{tikzpicture}[>=Stealth]
+        \node[cabox, minimum width=3.4cm] (root) at (0,2.4) {\faStamp\ root CA};
+        \node[cabox, fill=sBrown!70, draw=sBrown, minimum width=3.4cm] (int) at (0,1.2) {\faStamp\ intermediate CA};
+        \node[certbox, minimum width=3.4cm, align=center, font=\small\bfseries] (leaf) at (0,0) {\faCertificate\ shop.alice.example};
+        \draw[data] (root) to node[right, font=\scriptsize] {signs} (int);
+        \draw[data] (int) to node[right, font=\scriptsize] {signs} (leaf);
+        \node[hw, font=\scriptsize, anchor=west] (ts) at (2.4,2.4) {\faArchive\ Bob's trust store};
+        \draw[nLine, thick, dashed] (ts) -- (root);
+      \end{tikzpicture}
+  \end{columns}
+  \vfill
+  \bigdef{A CA signs: ``this \textbf{public key} belongs to this \textbf{name}, for this \textbf{use}, until this \textbf{date}''.}
+  \say{Z wykładów 9 i 10: certyfikat wiąże nazwę z kluczem publicznym, podpisuje go urząd certyfikacji, a przeglądarka idzie łańcuchem aż do korzenia w swoim magazynie zaufania. Dziś zmienia się tylko jedno: czyja to nazwa i do czego służy certyfikat.}
+\end{frame}
+
+\begin{frame}{One idea, five places}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \foreach \ic/\name/\sub [count=\k from 0] in {
+          \faLock/HTTPS/{a server proves\\its name},
+          \faCode/code/{a company signs\\its programs},
+          \faFileSignature/documents/{a person signs\\a PDF},
+          \faEnvelope/e-mail/{a person signs\\and encrypts mail},
+          \faIdCard/logging in/{a person or device\\proves who it is}} {
+        \icontile{{2.95*\k},0}{2.8cm}{\ic}{\name}{\sub}
+      }
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small Always the same: somebody signs with a \priv{private key},\\ somebody else checks the certificate chain up to a root they trust.\end{center}
+  \keymsg{PKI is not only HTTPS: the same chain of trust works for code, documents, mail and logins.}
+  \say{Pięć miejsc, jeden mechanizm. Różni się tylko nazwa w certyfikacie (serwer, firma, osoba, adres e-mail, urządzenie) i to, kto sprawdza.}
+\end{frame}
+
+\samedot
+\begin{frame}{What the certificate is for: Extended Key Usage}
+  \begin{columns}[c,onlytextwidth]
+    \column{0.6\textwidth}
+      \centering\small
+      % CHECKED: RFC 5280, section 4.2.1.12 (id-kp OIDs)
+      \renewcommand{\arraystretch}{1.3}
+      \begin{tabular}{@{}lll@{}}
+        \toprule
+        \textbf{EKU} & \textbf{OID} & \textbf{used for} \\
+        \midrule
+        serverAuth & \texttt{1.3.6.1.5.5.7.3.1} & HTTPS servers \\
+        clientAuth & \texttt{1.3.6.1.5.5.7.3.2} & logging in \\
+        codeSigning & \texttt{1.3.6.1.5.5.7.3.3} & programs \\
+        emailProtection & \texttt{1.3.6.1.5.5.7.3.4} & S/MIME mail \\
+        timeStamping & \texttt{1.3.6.1.5.5.7.3.8} & timestamps \\
+        \bottomrule
+      \end{tabular}
+    \column{0.38\textwidth}
+      \centering
+      \begin{tikzpicture}[>=Stealth]
+        \node[certbox, font=\scriptsize, text width=3.8cm] (c) at (0,0)
+          {\textbf{\faCertificate\ shop.alice.example}\\ EKU: \textbf{serverAuth}};
+        \node[hw, font=\scriptsize] (p) at (-0.3,-2.0) {\faCode\ \texttt{setup.exe} signed with it};
+        \draw[data] (c) -- (p);
+        \node[font=\large, anchor=west] at (p.east) {\nok};
+        \node[font=\scriptsize, text=nInk, anchor=north] at (0,-2.45) {Windows refuses: wrong use};
+      \end{tikzpicture}
+  \end{columns}
+  \vfill
+  \curious{pki/\#2.3.eku}
+  \keymsg{The Extended Key Usage extension says what a certificate may be used for.}
+  \say{Rozszerzenie Extended Key Usage poznaliśmy w wykładzie 9. Tu widać, po co jest: certyfikat strony nie podpisze programu, a certyfikat do poczty nie uwierzytelni serwera. Weryfikator sprawdza ten numer OID. W symulatorze z linku widać EKU prawdziwego certyfikatu www.coventry.ac.uk.}
+\end{frame}
+
+\begin{frame}{HTTPS: the use we already know}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      % a browser window
+      \node[win, minimum width=7.6cm, minimum height=3.6cm] (w) at (0,0) {};
+      \fill[nFill] ([shift={(0.03,-0.03)}]w.north west) rectangle ([shift={(-0.03,-0.6)}]w.north east);
+      \foreach \i in {0,1,2} \fill[nLine] ([shift={(0.3+0.3*\i,-0.3)}]w.north west) circle (2.5pt);
+      \node[draw=nLine, fill=white, rounded corners=6pt, minimum width=5.2cm, minimum height=0.42cm, anchor=west,
+        font=\scriptsize, text=nInk] at ([shift={(1.3,-0.3)}]w.north west) {\faLock\ \ https://shop.alice.example};
+      \node[font=\large\bfseries, text=nInk] at (0,0.1) {Alice's shop};
+      \node[font=\small, text=gray] at (0,-0.6) {Please log in.};
+      \node[certbox, font=\scriptsize, anchor=west, text width=4.0cm] (c) at (4.6,0.4)
+        {\textbf{\faCertificate\ shop.alice.example}\\ EKU: serverAuth\\ issuer: Trusty CA};
+      \draw[data] ([shift={(1.45,-0.3)}]w.north west) to[bend left=20] (c.north west);
+      \personnode{b}{-5.0,0}{sTeal}{Bob}
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small
+    Name in the certificate $=$ name in the address bar. The browser checks it.\\
+    \textcolor{gray}{Lectures 9, 10 and 11: the certificate, the CAs, the checks and TLS.}
+  \end{center}
+  \say{Najczęstsze zastosowanie, znane z trzech poprzednich wykładów. Nie wracamy do szczegółów; reszta sekcji to cztery pozostałe zastosowania.}
+\end{frame}
+
+\begin{frame}{Code signing: the problem}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \personnode{a}{0,0}{sIndigo}{Alice Software Ltd}
+      \node[text=nInk, font=\fontsize{30}{32}\selectfont] (f) at (3.4,0) {\faFile*[regular]};
+      \node[font=\scriptsize\ttfamily, text=nInk, below=0.05cm of f] {photoedit-setup.exe};
+      \node[text=nLine, font=\fontsize{44}{46}\selectfont] (net) at (7.2,0) {\faCloud};
+      \node[font=\scriptsize, text=nInk, below=0.05cm of net, align=center] {download sites,\\mirrors, update servers};
+      \personnode{b}{11.4,0}{sTeal}{Bob}
+      \draw[data] (a) -- (f);
+      \draw[data] (f) -- (net);
+      \draw[data] (net) -- (b);
+      \mallorynode{m}{7.2,2.4}
+      \draw[data, sPink, dashed] (m.south) -- (net.north);
+      \node[font=\scriptsize, text=sPinkText, anchor=west] at (7.9,2.4) {adds malware?};
+      \node[qmark] at (11.4,1.3) {?};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small Bob runs a program from the internet with all his rights.\\
+    \textbf{Who made it?} \quad \textbf{Was it changed on the way?}\end{center}
+  \say{Instalator i każda aktualizacja przechodzą przez wiele serwerów. Bob uruchamia program z pełnymi uprawnieniami, więc musi wiedzieć, kto go zrobił i czy nikt go nie zmienił.}
+\end{frame}
+
+\samedot
+\begin{frame}{Code signing: the idea}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \personnode{a}{0,0}{sIndigo}{Alice Software Ltd}
+      \node[privval, font=\scriptsize] (k) at (0,-1.8) {\faKey\ private key};
+      \node[draw=nLine, thick, fill=white, rounded corners=2pt, minimum width=3.6cm, minimum height=2.6cm] (pkg) at (4.6,0) {};
+      \node[font=\scriptsize\ttfamily, text=nInk, anchor=north] at (pkg.north) {photoedit-setup.exe};
+      \node[text=nInk, font=\fontsize{22}{24}\selectfont] at (3.8,0.1) {\faFile*[regular]};
+      \node[cabox, fill=sIndigo, draw=sIndigo, font=\scriptsize] at (5.3,0.4) {\faStamp\ signature};
+      \node[certbox, font=\scriptsize, inner sep=2pt] at (5.3,-0.55) {\faCertificate\ certificate};
+      \draw[data] (a) -- (pkg.west |- a);
+      \draw[data] (k) -| (3.0,-0.5) -- ([yshift=-0.5cm]pkg.west);
+      \node[hwmain, minimum width=2.5cm, minimum height=1.3cm] (os) at (9.0,0) {\faCogs\\ Bob's OS checks};
+      \draw[data] (pkg) -- (os);
+      \node[font=\small, anchor=west, align=left] at (10.5,0.35) {\ok\ signature};
+      \node[font=\small, anchor=west, align=left] at (10.5,-0.35) {\ok\ chain, EKU};
+      \node[font=\scriptsize, text=gray, align=center] at (9.0,-1.4) {codeSigning, issued\\to Alice Software Ltd};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small
+    \begin{tabular}{@{}lll@{}}
+      Windows: Authenticode & macOS: Developer ID & Android: signed APK
+    \end{tabular}
+  \end{center}
+  \keymsg{The publisher signs the file; the operating system checks the signature and the certificate.}
+  \say{Plik niesie podpis i certyfikat wydawcy. System sprawdza podpis, łańcuch i to, że certyfikat ma EKU codeSigning. Na Androidzie certyfikat jest zwykle samopodpisany: system pilnuje tylko, żeby aktualizacja była podpisana tym samym kluczem co pierwsza wersja.}
+\end{frame}
+
+\samedot
+\begin{frame}{What Bob sees}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \foreach \x/\title/\pub/\col/\ic in {0/{Do you want to allow this app to make changes to your device?}/{Verified publisher: Alice Software Ltd}/DeepBlue/\faIcon{shield-alt},
+          7.4/{Do you want to allow this app from an unknown publisher to make changes to your device?}/{Publisher: Unknown}/AccentOrange/\faExclamationTriangle} {
+        \node[win, minimum width=6.6cm, minimum height=4.2cm, fill=white] (w) at (\x,0) {};
+        \fill[\col] ([shift={(0.03,-0.03)}]w.north west) rectangle ([shift={(-0.03,-0.75)}]w.north east);
+        \node[text=white, font=\small\bfseries, anchor=west] at ([shift={(0.2,-0.38)}]w.north west) {\ic\ User Account Control};
+        \node[font=\scriptsize, text=nInk, text width=6.0cm, anchor=north west] at ([shift={(0.2,-0.9)}]w.north west) {\title};
+        \node[font=\small\bfseries, text=nInk, anchor=west] at ([shift={(0.2,-2.15)}]w.north west) {\faFile*[regular]\ PhotoEdit Setup};
+        \node[font=\scriptsize, text=nInk, anchor=west] at ([shift={(0.2,-2.65)}]w.north west) {\pub};
+        \node[draw=nLine, fill=nFill, font=\scriptsize, minimum width=1.4cm] at ([shift={(-2.4,0.45)}]w.south east) {Yes};
+        \node[draw=nLine, fill=nFill, font=\scriptsize, minimum width=1.4cm] at ([shift={(-0.85,0.45)}]w.south east) {No};
+      }
+      \node[font=\small\bfseries, text=nInk] at (0,-2.5) {signed \ok};
+      \node[font=\small\bfseries, text=nInk] at (7.4,-2.5) {not signed \nok};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \say{Rysunek wzorowany na oknie Kontroli konta użytkownika w Windows (uproszczony). Bez podpisu Windows pokazuje ostrzeżenie i wydawcę Unknown; SmartScreen może też zablokować uruchomienie. Ludzie klikają Yes w obu przypadkach, ale firmy mogą zablokować niepodpisane programy polityką.}
+\end{frame}
+
+\begin{frame}{Signed does not mean safe}
+  \begin{columns}[t,onlytextwidth]
+    \column{0.48\textwidth}
+      \probbox{Stuxnet, 2010: stolen keys}{The worm's drivers were signed with the real private keys of two hardware companies, Realtek and JMicron. Windows saw valid signatures.}
+      \centering
+      \begin{tikzpicture}
+        \mallorynode{m}{0,0}
+        \node[privval, font=\scriptsize] (k) at (2.4,0.2) {\faKey\ Realtek's key};
+        \draw[data, sPink] (k) -- (m);
+      \end{tikzpicture}
+    \column{0.48\textwidth}
+      \probbox{SolarWinds, 2020: a poisoned build}{Attackers changed the code inside the company's build system. The update with the backdoor was signed with the company's own certificate and installed by fewer than 18\,000 customers.}
+      \centering
+      \begin{tikzpicture}
+        \node[hwmain, font=\scriptsize] (b) at (0,0) {\faCogs\ build};
+        \node[cabox, fill=sIndigo, draw=sIndigo, font=\scriptsize] (s) at (2.5,0) {\faStamp\ real signature};
+        \draw[data] (b) -- (s);
+        \node[circle, fill=sPink, text=white, font=\scriptsize, inner sep=2pt] at (-0.9,0.45) {\faBug};
+      \end{tikzpicture}
+  \end{columns}
+  \vfill
+  \keymsg{A signature says who signed the code, not that the code is good.}
+  % source: Stuxnet: Symantec W32.Stuxnet dossier (2011), certificates of Realtek and JMicron;
+  % SolarWinds: SEC filing of 14 December 2020, "fewer than 18,000" customers installed the update
+  \say{Stuxnet: sterowniki podpisane prawdziwymi, skradzionymi kluczami Realteka i JMicronu. SolarWinds: napastnicy weszli do systemu budowania, więc złośliwy kod dostał prawdziwy podpis firmy; według zgłoszenia do SEC aktualizację zainstalowało mniej niż 18 tysięcy klientów. Wniosek: chronić klucz i chronić proces budowania. Do ochrony klucza wrócimy w sekcji o dobrych praktykach.}
+\end{frame}
+
+% CHECKED: Task1/publisher.pem: Alice Software Ltd, 2024-01-01 to 2025-01-01; Task1/updates.json, 2.1 stamp 2024-06-12
+\begin{frame}{The problem: the certificate expires}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[x=0.38cm, >=Stealth]
+      \draw[nLine, very thick, -{Stealth}] (0,0) -- (37,0);
+      \yearmark{0}{2024}\yearmark{12}{2025}\yearmark{24}{2026}\yearmark{36}{2027}
+      \fill[sViolet!20, rounded corners=2pt] (0,0.35) rectangle (12,0.95);
+      \draw[sViolet, thick, rounded corners=2pt] (0,0.35) rectangle (12,0.95);
+      \node[font=\small, text=nInk] at (6,0.65) {\faCertificate\ Alice's certificate};
+      \draw[sViolet, thick, dashed] (12,0.35) -- (12,-2.4);
+      \node[font=\scriptsize\bfseries, text=sViolet, anchor=north] at (12,-2.4) {expired 2025-01-01};
+      \node[cabox, fill=sIndigo, draw=sIndigo, font=\scriptsize] (s) at (5.4,-1.3) {\faStamp\ signed};
+      \draw[nInk, thick] (5.4,-0.1) -- (s.north);
+      \node[font=\scriptsize, text=nInk, anchor=north] at (5.4,-1.75) {June 2024};
+      \draw[AccentOrange, very thick, dashed] (34.5,1.3) -- (34.5,-2.4);
+      \node[font=\small\bfseries, text=AccentOrange, anchor=south] at (34.5,1.3) {today: Bob installs};
+      \node[qmark, minimum size=0.9cm, font=\Large\bfseries] at (34.5,-1.3) {?};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small The certificate is no longer valid. But the file was signed while it was.\\
+    \textbf{Reject every program signed before 2025?} \quad \textbf{Or trust a key that may be stolen by now?}\end{center}
+  \say{Program podpisany w czerwcu 2024 ma działać latami. Certyfikat wygasł w styczniu 2025. Gdyby Windows odrzucał wszystko po wygaśnięciu, każdy stary program przestałby się instalować. Gdyby ignorował daty, skradziony klucz działałby wiecznie. Zapytać salę, co by zrobili.}
+\end{frame}
+
+\samedot
+\begin{frame}{The idea: a timestamp}
+  \begin{center}
+    \begin{tikzpicture}[x=0.38cm, >=Stealth]
+      \draw[nLine, very thick, -{Stealth}] (0,0) -- (37,0);
+      \yearmark{0}{2024}\yearmark{12}{2025}\yearmark{24}{2026}\yearmark{36}{2027}
+      \fill[sViolet!20, rounded corners=2pt] (0,0.35) rectangle (12,0.95);
+      \draw[sViolet, thick, rounded corners=2pt] (0,0.35) rectangle (12,0.95);
+      \node[font=\small, text=nInk] at (6,0.65) {\faCertificate\ Alice's certificate};
+      \draw[sViolet, thick, dashed] (12,0.35) -- (12,-2.0);
+      \node[cabox, fill=sIndigo, draw=sIndigo, font=\scriptsize] (s) at (1.6,-1.3) {\faStamp\ signed};
+      \node[cabox, font=\scriptsize] (t) at (9.4,-1.3) {\faClock\ TSA: 2024-06-12};
+      \draw[nInk, thick] (5.4,-0.1) -- (5.4,-0.8);
+      \draw[data] (s) -- (t);
+      \draw[AccentOrange, very thick, dashed] (34.5,1.3) -- (34.5,-2.0);
+      \node[font=\small\bfseries, text=AccentOrange, anchor=south] at (34.5,1.3) {today};
+      \node[font=\large] at (34.5,-1.3) {\ok};
+    \end{tikzpicture}
+  \end{center}
+  \vspace{-0.1cm}
+  \begin{columns}[t,onlytextwidth]
+    \column{0.5\textwidth}
+      \stepbox{1. Alice signs, then asks a TSA}{The Time-Stamping Authority signs (hash of her signature, time).}
+    \column{0.48\textwidth}
+      \stepbox{2. Bob checks both signatures and the time}{2024-06-12 is inside Alice's validity period \ok}
+  \end{columns}
+  \keymsg{A timestamp proves when the file was signed, so the signature outlives the certificate.}
+  \say{TSA, czyli urząd znacznika czasu, to zwykle usługa tego samego CA (RFC 3161). Podpisuje skrót podpisu Alice razem z czasem, więc nie da się dopisać znacznika z datą wsteczną. Ważne: znacznik po wygaśnięciu nic nie daje, a skradziony klucz bez prawdziwego znacznika z dawną datą nie pomoże złodziejowi.}
+\end{frame}
+
+\begin{frame}{Task 1: is this update still trusted?}
+  \begin{columns}[c,onlytextwidth]
+    \column{0.52\textwidth}
+      \taskgoal{check five signed files and accept or reject each one.}
+      \taskready{\texttt{codesign.py}: \texttt{verify\_signature}, \texttt{verify\_timestamp}, the validity dates; Alice's and the TSA's certificates.}
+    \column{0.46\textwidth}
+      \centering
+      \begin{tikzpicture}
+        \foreach \f/\t [count=\k from 0] in {2.1-setup/2024-06-12, 2.2-update/{no stamp}, 2.3-update/2025-03-02,
+            2.4-update/2024-05-20, 2.1-setup-mirror/2024-06-12} {
+          \node[font=\scriptsize\ttfamily, text=nInk, anchor=west] at (0,{-0.55*\k}) {\faFile*[regular]\ photoedit-\f.exe};
+          \node[font=\scriptsize, text=sBrown, anchor=west] at (4.3,{-0.55*\k}) {\faStamp\ \t};
+          \node[qmark, minimum size=0.42cm, font=\scriptsize\bfseries] at (6.4,{-0.55*\k}) {?};
+        }
+      \end{tikzpicture}
+  \end{columns}
+  \vfill
+  \opentask{Task1}{about 12 minutes}
+  \say{Około 12 minut. Kroki są w README: najpierw podpis Alice, potem brak znacznika, potem podpis TSA, na końcu data. Pięć plików, pięć różnych wyników. Pomocnik codesign.py robi kryptografię, studenci piszą tylko logikę decyzji.}
+\end{frame}
+
+% CHECKED: Task1/solution/check_updates.py, 2026-11-15
+\samedot
+\begin{frame}{Task 1: what we saw}
+  \vfill
+  \begin{center}\small
+    \renewcommand{\arraystretch}{1.35}
+    \begin{tabular}{@{}lll@{}}
+      \toprule
+      \textbf{file} & \textbf{result} & \textbf{why} \\
+      \midrule
+      \texttt{photoedit-2.1-setup.exe} & \ok\ accept & signed 2024-06-12, inside the validity period \\
+      \texttt{photoedit-2.2-update.exe} & \nok\ reject & no timestamp, the certificate expired on 2025-01-01 \\
+      \texttt{photoedit-2.3-update.exe} & \nok\ reject & signed 2025-03-02, after the certificate expired \\
+      \texttt{photoedit-2.4-update.exe} & \nok\ reject & bad timestamp: Mallory moved the time back \\
+      \texttt{photoedit-2.1-setup-mirror.exe} & \nok\ reject & bad signature: the file was changed \\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+  \vfill
+  \keymsg{Check the signature, then the timestamp, then the date: one accepted, four rejected for four reasons.}
+  \say{Kod rozwiązania jest w folderze solution. Wersja 2.3: klucz dalej działa, ale ktoś (może złodziej) użył go po wygaśnięciu, i prawdziwy znacznik czasu to ujawnia. Wersja 2.4: zmiana czasu psuje podpis TSA.}
+\end{frame}
+
+\begin{frame}{Signed documents: PDF}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      % a PDF reader
+      \node[win, minimum width=9.4cm, minimum height=5.0cm] (w) at (0,0) {};
+      \fill[nFill] ([shift={(0.03,-0.03)}]w.north west) rectangle ([shift={(-0.03,-0.55)}]w.north east);
+      \node[font=\scriptsize, text=nInk, anchor=west] at ([shift={(0.2,-0.28)}]w.north west) {\faFilePdf\ contract-2026-117.pdf};
+      \fill[aRead!10] ([shift={(0.03,-0.58)}]w.north west) rectangle ([shift={(-0.03,-1.15)}]w.north east);
+      \node[font=\small, text=nInk, anchor=west] at ([shift={(0.2,-0.87)}]w.north west)
+        {\textcolor{aExec}{\faCheckCircle}\ \textbf{Signed and all signatures are valid.}};
+      \foreach \i in {0,...,5} \draw[nLight, line width=2.5pt] ([shift={(0.8,-1.7-0.32*\i)}]w.north west) -- ++({6.4-0.6*mod(\i,2)},0);
+      \node[certbox, font=\scriptsize, anchor=south east, text width=3.6cm] at ([shift={(-0.25,0.2)}]w.south east)
+        {\faFileSignature\ \textbf{Digitally signed by Alice}\\ Date: 2026.11.03 14:21:07 +01'00'};
+      % who is trusted
+      \node[hw, font=\scriptsize, anchor=west, text width=3.8cm, align=left] (l1) at (5.3,1.0)
+        {\faList\ \textbf{Adobe Approved Trust List}\\ roots trusted by the reader};
+      \node[hw, font=\scriptsize, anchor=west, text width=3.8cm, align=left] (l2) at (5.3,-0.6)
+        {\faList\ \textbf{EU Trusted Lists}\\ qualified providers, per country};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small The signature and the signer's certificate live inside the PDF (format \textbf{PAdES}).\end{center}
+  \say{Podpis PDF: podpis i certyfikat siedzą w pliku. Czytnik ma własne listy zaufanych korzeni: Adobe Approved Trust List oraz europejskie listy zaufanych dostawców. Napis na pasku jest wzorowany na Adobe Acrobat. PAdES to europejski standard podpisu PDF.}
+\end{frame}
+
+\samedot
+\begin{frame}{eIDAS: three levels of e-signature}
+  \begin{columns}[c,onlytextwidth]
+    \column{0.58\textwidth}
+      \centering
+      \begin{tikzpicture}
+        \node[hw, minimum width=7.2cm, minimum height=1.0cm, align=left, font=\small, anchor=west] at (0,0)
+          {\textbf{electronic signature}: any data that shows intent,\\ even a typed name or a scanned signature};
+        \node[hw, minimum width=6.2cm, minimum height=1.0cm, align=left, font=\small, anchor=west] at (0.5,1.3)
+          {\textbf{advanced}: linked to the signer only,\\ detects any later change};
+        \node[cabox, minimum width=5.2cm, minimum height=1.0cm, align=left, font=\small, anchor=west] at (1.0,2.6)
+          {\textbf{qualified}: a qualified certificate\\ + a qualified signature device};
+        \node[font=\scriptsize, text=gray, anchor=west] at (0,-0.85) {Regulation (EU) No 910/2014, used since 1 July 2016};
+      \end{tikzpicture}
+    \column{0.4\textwidth}
+      \small
+      \textbf{Qualified certificate}: from a trust service provider checked by the state.\\[6pt]
+      \textbf{Qualified device} (QSCD): a smart card, a token, or a remote HSM.\\[6pt]
+      \textbf{Legal effect}: the same as a handwritten signature in every EU country.
+  \end{columns}
+  \vfill
+  \keymsg{A qualified e-signature counts like a handwritten one because the key and the certificate meet strict rules.}
+  % source: Regulation (EU) No 910/2014 (eIDAS), art. 3 and art. 25(2); applies from 1 July 2016
+  \say{eIDAS to rozporządzenie UE. Podpis kwalifikowany ma skutek prawny podpisu odręcznego (art. 25 ust. 2). Klucz musi być w urządzeniu kwalifikowanym, na przykład karcie albo zdalnym HSM dostawcy. W Wielkiej Brytanii po brexicie obowiązuje przeniesiona wersja, UK eIDAS. Następca to eIDAS 2 (rozporządzenie 2024/1183) z europejskim portfelem tożsamości cyfrowej; tylko wspomnieć.}
+\end{frame}
+
+\samedot
+\begin{frame}{Good to know: a signature that must last 20 years}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \draw[nLine, very thick, -{Stealth}] (0,0) -- (13,0);
+      \foreach \x/\y in {0/2026, 3/2029, 6/2032, 9/2036, 12/2046} {\yearmark{\x}{\y}}
+      \fill[sViolet!20] (0,0.35) rectangle (3,0.85); \draw[sViolet, thick] (0,0.35) rectangle (3,0.85);
+      \node[font=\scriptsize, text=nInk] at (1.5,0.6) {\faCertificate\ signer};
+      \node[cabox, font=\scriptsize] at (0.6,1.6) {\faClock\ timestamp};
+      \node[hw, font=\scriptsize, align=left] at (5.4,1.6) {\faArchive\ the chain and its\\ revocation status, saved};
+      \node[font=\scriptsize, text=nInk, align=center] at (12,1.6) {a court checks it:\\ still provable \ok};
+      \draw[data] (6.9,1.6) -- (11,1.6);
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small \textbf{Long-term validation (LTV)}: the PDF keeps a timestamp\\ and proof that the certificate was valid at that time.\\
+    \textcolor{gray}{The same idea as the timestamp in Task 1.}\end{center}
+  \say{Można pominąć. Umowa musi dać się sprawdzić za 20 lat, gdy certyfikat, CA, a może i serwer OCSP dawno nie istnieją. Dlatego dokument zapisuje znacznik czasu i dowody ważności (łańcuch, odpowiedzi o odwołaniu z wykładu 11). Później dokleja się kolejne znaczniki, gdy algorytmy się starzeją.}
+\end{frame}
+
+\begin{frame}{Secure e-mail: S/MIME}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \personnode{a}{0,0}{sIndigo}{Alice}
+      \node[privval, font=\scriptsize] (ka) at (2.6,1.4) {\faKey\ Alice's private key};
+      \node[hwmain, minimum width=1.8cm, minimum height=1.0cm, font=\small] (s) at (2.6,0) {\faCogs\ sign};
+      \node[draw=sViolet, thick, fill=sViolet!12, text=nInk, rounded corners=3pt, font=\scriptsize] (kb) at (5.6,1.4) {\faCertificate\ Bob's certificate};
+      \node[hwmain, minimum width=1.8cm, minimum height=1.0cm, font=\small] (e) at (5.6,0) {\faCogs\ encrypt};
+      \draw[data] (a) -- (s);
+      \draw[data] (ka) -- (s);
+      \draw[data] (s) -- (e);
+      \draw[data] (kb) -- (e);
+      \node[text=nInk, font=\fontsize{30}{32}\selectfont] (env) at (8.6,0) {\faEnvelope};
+      \node[font=\scriptsize, text=nInk, below=0.0cm of env] {.p7m};
+      \draw[data] (e) -- (env);
+      \personnode{b}{11.6,0}{sTeal}{Bob}
+      \draw[data] (env) -- (b);
+      \node[certbox, font=\scriptsize, text width=4.4cm, anchor=north] at (2.6,-1.4)
+        {\textbf{\faCertificate\ Alice's certificate}\\ SAN: \texttt{email:alice@alice.example}\\ EKU: emailProtection};
+      \node[font=\scriptsize, text=nInk, align=left, anchor=north west] at (6.4,-1.4)
+        {Bob decrypts with his private key,\\ then checks Alice's signature\\ and her certificate chain.};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \keymsg{S/MIME: sign with your own private key, encrypt with the recipient's public key from their certificate.}
+  \say{S/MIME jest wbudowane w Outlooka, Thunderbirda i Apple Mail. Adres e-mail stoi w rozszerzeniu SAN jako rfc822Name, przeznaczenie to emailProtection. Od 1 września 2023 CA wydające takie certyfikaty mają osobne wymagania CA/B Forum (S/MIME Baseline Requirements).}
+\end{frame}
+
+% CHECKED: openssl 3.0.13, 2026-11-15: self-made CA "Trusty Mail CA", Alice's P-256 certificate with
+%   subjectAltName=email:alice@alice.example and EKU emailProtection; outputs copied from the terminal
+\samedot
+\begin{frame}{S/MIME in the terminal}
+  \begin{columns}[t,onlytextwidth]
+    \column{0.5\textwidth}
+      \small Alice signs:\\[4pt]
+      \cmdbox{openssl cms -sign -in msg.txt\\ \ \ -signer alice.pem -inkey alice.key\\ \ \ -out msg.p7m}\\[8pt]
+      \small Bob checks:\\[4pt]
+      \cmdbox{openssl cms -verify -in msg.p7m\\ \ \ -CAfile trusty-mail-ca.pem}
+    \column{0.47\textwidth}
+      \small The output:\\[4pt]
+      \terminal{CMS Verification successful}\\[8pt]
+      \small Mallory changes ``at 10'' to ``at 11'':\\[4pt]
+      \terminal{CMS Verification failure}\\[8pt]
+      \scriptsize\textcolor{gray}{The mail starts with\\ \texttt{Content-Type: multipart/signed;}\\ \texttt{protocol="application/pkcs7-signature"}}
+  \end{columns}
+  \vfill
+  \say{Demo dla chętnych, w terminalu prowadzącego: każda komenda w jednej linii (tu złamana dla czytelności). Własne CA i certyfikat Alice z adresem e-mail zrobione wcześniej. Po zmianie jednej cyfry w treści weryfikacja pada. msg.txt to "Hi Bob, the meeting is at 10."}
+\end{frame}
+
+\samedot
+\begin{frame}{S/MIME: you need Bob's certificate first}
+  \begin{columns}[c,onlytextwidth]
+    \column{0.5\textwidth}
+      \stepbox{1. Bob sends Alice a signed mail}{His certificate travels with the signature.}
+      \stepbox{2. Alice's mail program keeps it}{Now she can encrypt to Bob.}
+      \probbox{Before that}{Alice cannot encrypt to Bob at all.}
+    \column{0.46\textwidth}
+      \stepbox{Bob loses his decryption key}{Every old encrypted mail is lost too.\\ \textbf{Back it up} (companies keep a copy).}
+      \stepbox{Bob loses his signing key}{He just gets a new one.\\ \textbf{Never copy it}: a copy could sign as Bob.}
+  \end{columns}
+  \vfill
+  \keymsg{Keep a backup of the key that decrypts, never of the key that signs.}
+  \say{Dwa praktyczne kłopoty S/MIME. Najpierw trzeba mieć certyfikat odbiorcy; zwykle przychodzi w podpisanej wiadomości. Firmy archiwizują klucze do odszyfrowania (inaczej stara poczta przepada), ale nie klucze do podpisu, bo kopia klucza do podpisu niszczy niezaprzeczalność. Dlatego często są dwa certyfikaty na osobę.}
+\end{frame}
+
+\begin{frame}{Logging in with a certificate}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \personnode{b}{0,0}{sTeal}{Bob}
+      \node[privval, font=\scriptsize] (k) at (0,-1.6) {\faKey\ on his card};
+      \node[hwmain, minimum width=2.2cm, minimum height=2.8cm] (srv) at (10,0) {\faServer\\[3pt] VPN, Wi-Fi\\ or a website};
+      \draw[data] (1.0,0.9) to node[above, font=\small] {\badge{1}\ hello, I am Bob + \faCertificate\ my certificate} (8.8,0.9);
+      \draw[data] (8.8,0.0) to node[above, font=\small] {\badge{2}\ sign this: \texttt{4f 1c a9 \ldots} (random)} (1.0,0.0);
+      \draw[data] (1.0,-0.9) to node[above, font=\small] {\badge{3}\ \faStamp\ the signature} (8.8,-0.9);
+      \node[font=\small, anchor=north, align=center] at (10,-1.6) {\badge{4}\ checks the chain,\\ EKU clientAuth\\ and the signature \ok};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \curious{pki/\#6.5}
+  \keymsg{The server checks the certificate and a fresh signature: there is no password to steal or to phish.}
+  \say{Ten sam podpis, w drugą stronę niż w HTTPS: tu klient udowadnia, kim jest. Wyzwanie jest losowe, więc nagrany podpis nie zadziała drugi raz. Klucz prywatny może być na karcie i nigdy jej nie opuszcza. W TLS to jest dokładnie mutual TLS z wykładu 11. W symulatorze z linku można przejść tę stronę klienta w handshake mTLS.}
+\end{frame}
+
+\samedot
+\begin{frame}{Where client certificates live}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \foreach \ic/\name/\sub [count=\k from 0] in {
+          \faIdCard/smart cards/{staff cards (US PIV),\\national ID cards},
+          \faNetworkWired/VPN/{company laptops\\get in only with a cert},
+          \faWifi/Wi-Fi 802.1X/{EAP-TLS: a certificate\\instead of a password},
+          \faServer/services/{mTLS between\\microservices}} {
+        \icontile{{3.4*\k},0}{3.1cm}{\ic}{\name}{\sub}
+      }
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small Every certificate here has the EKU \textbf{clientAuth}.\end{center}
+  \say{PIV to karta pracowników federalnych w USA; wiele krajów ma dowody osobiste z chipem i certyfikatem (na przykład Estonia, Polska). VPN: firmowe laptopy dostają certyfikat urządzenia. Wi-Fi: EAP-TLS. Usługi: mTLS, szczegóły w wykładzie 11.}
+\end{frame}
+
+\samedot
+\begin{frame}{Wi-Fi 802.1X: check the server too}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \node[text=nInk, font=\fontsize{36}{38}\selectfont] (pc) at (0,0) {\faLaptop};
+      \node[font=\scriptsize, text=nInk, below=0.0cm of pc] {Bob's laptop};
+      \node[text=nInk, font=\fontsize{28}{30}\selectfont] (ap) at (4.4,0.9) {\faWifi};
+      \node[font=\scriptsize, text=nInk, below=0.0cm of ap] {access point ``eduroam''};
+      \node[hwmain, minimum width=2.4cm, minimum height=1.3cm, font=\small] (r) at (9.0,0.9) {\faServer\\ RADIUS server};
+      \node[certbox, font=\scriptsize, anchor=west] at (10.4,0.9) {\faCertificate\ radius.uni.example};
+      \draw[data] (pc) -- (ap);
+      \draw[data] (ap) -- (r);
+      \node[circle, fill=sPink, text=white, font=\fontsize{20}{22}\selectfont, minimum size=1.1cm] (fake) at (4.4,-1.7) {\faWifi};
+      \node[font=\scriptsize\bfseries, text=sPinkText, right=0.1cm of fake, align=left] {Mallory's ``eduroam''\\ \normalfont any certificate};
+      \draw[data, sPink, dashed] (pc) to node[below left, font=\scriptsize, text=sPinkText] {password} (fake);
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \probbox{A common mistake}{The laptop does not check the RADIUS server's certificate, so it sends the login to a fake access point.}
+  \keymsg{Set the CA and the server name in the Wi-Fi profile: the client must check the server's certificate.}
+  \say{802.1X: laptop, punkt dostępowy i serwer RADIUS, który decyduje. Przy logowaniu hasłem (PEAP) serwer i tak pokazuje certyfikat; jeśli urządzenie go nie sprawdza, Mallory stawia sieć o tej samej nazwie i zbiera loginy. Dlatego eduroam każe instalować profil (narzędzie geteduroam), w którym są CA i nazwa serwera.}
+\end{frame}
+
+\samedot
+\begin{frame}{Five uses side by side}
+  \vfill
+  \begin{center}\small
+    \renewcommand{\arraystretch}{1.35}
+    \begin{tabular}{@{}lllll@{}}
+      \toprule
+      \textbf{use} & \textbf{whose certificate} & \textbf{EKU} & \textbf{who checks} & \textbf{after expiry} \\
+      \midrule
+      HTTPS & the server & serverAuth & the browser & site blocked \\
+      code & the publisher & codeSigning & the OS & fine if timestamped \\
+      documents & a person & (document signing) & the PDF reader & fine with LTV \\
+      e-mail & a person & emailProtection & the mail program & old mail still readable \\
+      logging in & a person or device & clientAuth & the server & no access \\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+  \vfill
+  \keymsg{Same chain of trust, different names, different checkers, different results after expiry.}
+  \say{Podsumowanie sekcji w jednej tabeli. Ostatnia kolumna jest ważna dla następnej sekcji: przy HTTPS i logowaniu wygaśnięcie od razu coś psuje, przy podpisach z czasem nie. Podpisy dokumentów używają różnych EKU, zależnie od dostawcy, dlatego w nawiasie.}
+\end{frame}
+
+% ======================================================================
+\section[Good practices]{Good practices and common mistakes}
+% ======================================================================
+
+\begin{frame}{Five rules}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \foreach \ic/\name/\sub [count=\k from 0] in {
+          \faKey/protect the key/{files, HSM, TPM},
+          \faCheckDouble/validate/{never verify=False},
+          \faIcon{sync-alt}/renew automatically/{validity gets shorter},
+          \faIcon{shield-alt}/strong algorithms/{no MD5, no SHA-1},
+          \faClipboardList/know your certificates/{inventory, alerts}} {
+        \icontile{{2.95*\k},0}{2.8cm}{\ic}{\name}{\sub}
+      }
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small Each rule: what goes wrong, what to do, and a task for three of them.\end{center}
+  \say{Pięć reguł, po kolei. Przy każdej: typowy błąd i co robić. Zadania 2, 3 i 4 są przy pierwszej, drugiej i piątej regule.}
+\end{frame}
+
+\begin{frame}{The private key is the identity}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \mallorynode{m}{0,0}
+      \node[privval, font=\small] (k) at (3.0,0.7) {\faKey\ shop's private key};
+      \node[certbox, font=\small] (c) at (3.0,-0.7) {\faCertificate\ shop.alice.example};
+      \draw[data, sPink] (k.west) -- (m);
+      \draw[data, sPink] (c.west) -- (m);
+      \node[font=\scriptsize, text=gray, anchor=north] at (3.0,-1.15) {public anyway};
+      \node[win, minimum width=4.4cm, minimum height=2.2cm] (w) at (8.8,0) {};
+      \fill[nFill] ([shift={(0.03,-0.03)}]w.north west) rectangle ([shift={(-0.03,-0.5)}]w.north east);
+      \node[font=\scriptsize, text=nInk] at ([yshift=-0.27cm]w.north) {\faLock\ https://shop.alice.example};
+      \node[font=\small\bfseries, text=sPinkText] at (8.8,-0.3) {Mallory's server};
+      \draw[data] (4.9,0) -- (w.west);
+      \personnode{b}{12.4,0}{sTeal}{Bob}
+      \node[font=\large] at (11.5,0.9) {\ok};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small With the key, Mallory passes every check, until the certificate expires or is revoked.\end{center}
+  \keymsg{Whoever holds the private key is the server: the certificate is public, the key is everything.}
+  \say{Certyfikat i tak jest publiczny, każdy może go pobrać. Cała tożsamość to klucz prywatny. Z kluczem Mallory przechodzi wszystkie testy przeglądarki; ratuje tylko odwołanie (wykład 11) albo koniec ważności.}
+\end{frame}
+
+\samedot
+\begin{frame}{How keys leak}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \foreach \ic/\name/\sub [count=\k from 0] in {
+          \faCodeBranch/a git repository/{the key committed\\with the code},
+          \faUsers/a readable file/{every user on\\the machine can read it},
+          \faArchive/backups/{copies in places\\nobody protects},
+          \faBox/a container image/{the key baked into\\a public image},
+          \faHeartbeat/{Heartbleed, 2014}/{a bug read the\\server's memory}} {
+        \icontile{{2.95*\k},0}{2.8cm}{\ic}{\name}{\sub}
+      }
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \keymsg{Most keys leak through copies and mistakes, not through broken cryptography.}
+  % source: Heartbleed, CVE-2014-0160, disclosed 7 April 2014; private keys extracted in the Cloudflare challenge (April 2014)
+  \say{Klucze wyciekają przez kopie: commit do publicznego repozytorium (GitHub ma skanowanie sekretów właśnie dlatego), pliki do odczytu dla wszystkich, kopie zapasowe, obrazy kontenerów. Heartbleed (CVE-2014-0160, kwiecień 2014): błąd w OpenSSL pozwalał czytać pamięć serwera po 64 KB; w konkursie Cloudflare udało się tak wyciągnąć klucz prywatny.}
+\end{frame}
+
+% CHECKED: Task2, python3 + cryptography 41.0.7: the PEM headers; ls -l of the two files (2026-11-15)
+\samedot
+\begin{frame}{Level 1: a protected file}
+  \begin{columns}[t,onlytextwidth]
+    \column{0.48\textwidth}
+      \centering\small\textbf{Anyone on the machine can use it}\\[6pt]
+      \cmdbox[6.2cm]{\scriptsize ls -l server.key\\ -rw-r-{}-r-{}- 1 www www 1704 server.key}\\[6pt]
+      \begin{tikzpicture}
+        \node[privval, font=\scriptsize\ttfamily, align=left, text width=5.8cm] {\fd BEGIN PRIVATE KEY\fd\\ MIIEvAIBADANBgkqhkiG9w0BAQEF\ldots};
+      \end{tikzpicture}\\[4pt]
+      \nok\ \scriptsize copy it, use it
+    \column{0.48\textwidth}
+      \centering\small\textbf{Only the owner, and only with the passphrase}\\[6pt]
+      \cmdbox[6.2cm]{\scriptsize ls -l server-locked.key\\ -rw-{}-{}-{}-{}-{}-{}- 1 www www 1874 server-locked.key}\\[6pt]
+      \begin{tikzpicture}
+        \node[draw=sAmber, thick, fill=white, rounded corners=3pt, font=\scriptsize\ttfamily, align=left, text width=5.8cm] {\fd BEGIN ENCRYPTED PRIVATE KEY\fd\\ MIIFLTBXBgkqhkiG9w0BBQ0wSjAp\ldots};
+      \end{tikzpicture}\\[4pt]
+      \ok\ \scriptsize a copy is useless without the passphrase
+  \end{columns}
+  \vfill
+  \keymsg{Mode 600 and a passphrase: two cheap steps that stop the simplest copies.}
+  \say{Uprawnienia 600: czytać i pisać może tylko właściciel (tu konto www, pod którym działa serwer). Zaszyfrowany PEM: kopia pliku bez hasła jest bezużyteczna. Słabość: hasło też trzeba gdzieś trzymać, żeby serwer wstał po restarcie.}
+\end{frame}
+
+\begin{frame}{Task 2: lock the key file}
+  \begin{columns}[c,onlytextwidth]
+    \column{0.55\textwidth}
+      \taskgoal{encrypt a key file, try to open it as Mallory, and allow only the owner to read it.}
+      \taskready{\texttt{server.key} (RSA, 2048 bits, not encrypted) and a passphrase.}
+    \column{0.43\textwidth}
+      \centering
+      \begin{tikzpicture}[>=Stealth]
+        \node[privval, font=\scriptsize\ttfamily] (a) at (0,0) {server.key};
+        \node[draw=sAmber, thick, fill=white, rounded corners=3pt, font=\scriptsize\ttfamily] (b) at (3.4,0) {\faLock\ server-locked.key};
+        \draw[data] (a) -- (b);
+        \mallorynode{m}{3.4,-1.6}
+        \draw[data, sPink, dashed] (m) -- (b);
+        \node[qmark] at (4.5,-1.3) {?};
+      \end{tikzpicture}
+  \end{columns}
+  \vfill
+  \opentask{Task2}{about 8 minutes}
+  \say{Około 8 minut. Zapis z BestAvailableEncryption, próby odczytu bez hasła i ze złym hasłem, chmod 600. Na Windowsie chmod tylko ustawia tylko do odczytu; to jest w README.}
+\end{frame}
+
+% CHECKED: Task2/solution/protect_key.py, 2026-11-15
+\samedot
+\begin{frame}{Task 2: what we saw}
+  \vfill
+  \begin{center}\footnotesize
+    \renewcommand{\arraystretch}{1.35}
+    \begin{tabular}{@{}l>{\raggedright\arraybackslash}p{7.6cm}l@{}}
+      \toprule
+      \textbf{Mallory tries} & \textbf{result} & \\
+      \midrule
+      \texttt{server.key}, no password & loaded, RSA 2048 bits & \nok \\
+      \texttt{server-locked.key}, no password & \texttt{TypeError: Password was not given but private key is encrypted} & \ok \\
+      \texttt{server-locked.key}, \texttt{123456} & \texttt{ValueError: Bad decrypt. Incorrect password?} & \ok \\
+      \bottomrule
+    \end{tabular}\\[10pt]
+    The mode of the locked file: \texttt{0o664} $\rightarrow$ \texttt{0o600}.
+  \end{center}
+  \vfill
+  \keymsg{An encrypted key file is useless to a thief without the passphrase; mode 600 keeps others from even copying it.}
+  \say{Znaczek ok oznacza: dobrze dla nas, Mallory przegrała. Pierwszy tryb zależy od systemu (u mnie 0o664, zwykle 0o644). Przy słabym haśle Mallory może próbować offline; dlatego długie hasło albo sprzęt.}
+\end{frame}
+
+\begin{frame}{Level 2: keys in hardware}
+  \begin{columns}[c,onlytextwidth]
+    \column{0.55\textwidth}
+      \centering
+      \begin{tikzpicture}[>=Stealth]
+        \node[hw, minimum width=2.2cm, minimum height=1.6cm] (srv) at (0,0) {\faServer\\ server};
+        \node[hwmain, minimum width=2.8cm, minimum height=2.4cm] (hsm) at (4.6,0) {};
+        \node[text=white, font=\small\bfseries, anchor=north] at (hsm.north) {HSM};
+        \node[privval, font=\scriptsize] at (4.6,-0.15) {\faKey\ private key};
+        \node[text=white, font=\scriptsize, anchor=south] at (hsm.south) {\faLock\ never leaves};
+        \draw[data] (1.1,0.45) to node[above, font=\scriptsize] {hash to sign} (3.2,0.45);
+        \draw[data] (3.2,-0.45) to node[below, font=\scriptsize] {signature} (1.1,-0.45);
+        \mallorynode{m}{4.6,-2.6}
+        \draw[data, sPink, dashed] (m) -- (hsm.south);
+        \node[font=\large] at (5.4,-1.75) {\nok};
+      \end{tikzpicture}
+    \column{0.43\textwidth}
+      \small
+      \textbf{HSM}: a hardware security module, a box or a cloud service.\\[4pt]
+      \textbf{TPM}: a chip in the PC or laptop.\\[4pt]
+      \textbf{Smart card, token}: in your pocket.\\[8pt]
+      The key is \textbf{made inside} and \textbf{never leaves}: the device signs on request.
+  \end{columns}
+  \vfill
+  \begin{center}\scriptsize Since 1 June 2023, the keys of public code signing certificates must be in hardware. Root CA keys live in offline HSMs.\end{center}
+  \keymsg{In hardware, a thief can at most use the key while inside; they cannot take it away.}
+  % source: CA/B Forum Code Signing Baseline Requirements, ballots CSC-13 and CSC-17: from 1 June 2023,
+  %   keys in a module of FIPS 140-2 level 2 or Common Criteria EAL 4+
+  \say{HSM podpisuje na żądanie; serwer nigdy nie widzi klucza. Włamywacz na serwerze może najwyżej podpisywać, dopóki tam siedzi, ale nie wyniesie klucza. Od 1 czerwca 2023 klucze certyfikatów do podpisu kodu muszą być w sprzęcie (FIPS 140-2 poziom 2 lub Common Criteria EAL 4+), co jest odpowiedzią na Stuxnet i podobne kradzieże. Klucze korzeni CA są w HSM offline, używane na ceremoniach.}
+\end{frame}
+
+\samedot
+\begin{frame}{File, TPM, HSM}
+  \vfill
+  \begin{center}\small
+    \renewcommand{\arraystretch}{1.4}
+    \begin{tabular}{@{}lllll@{}}
+      \toprule
+      & \textbf{plain file} & \textbf{encrypted file} & \textbf{TPM, smart card} & \textbf{HSM} \\
+      \midrule
+      a thief with the file & has the key \nok & needs the passphrase & cannot copy it \ok & cannot copy it \ok \\
+      speed & fast & fast & slow & fast \\
+      cost & free & free & in the device & expensive \\
+      typical use & tests & small servers & laptops, logins & CAs, code signing, banks \\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+  \vfill
+  \keymsg{Choose the protection by what a stolen key would cost you.}
+  \say{Można pominąć. Do testów plik wystarczy; do kluczy, które podpisują coś dla tysięcy ludzi (CA, podpis kodu), tylko sprzęt. TPM jest w prawie każdym nowym PC (Windows 11 go wymaga), ale jest wolny, więc nadaje się do logowania, nie do tysięcy podpisów na sekundę.}
+\end{frame}
+
+\begin{frame}{Mistake: turning validation off}
+  \begin{columns}[c,onlytextwidth]
+    \column{0.58\textwidth}
+      \small In Python, with the \texttt{requests} library:\\[3pt]
+      \cmdbox{requests.get(url, \hlcode{verify=False})}\\[6pt]
+      \small In Python, with \texttt{ssl}:\\[3pt]
+      \cmdbox{ctx.check\_hostname = \hlcode{False}\\ ctx.verify\_mode = \hlcode{ssl.CERT\_NONE}}\\[6pt]
+      \small On the command line:\\[3pt]
+      \cmdbox{curl \hlcode{-k} https://shop.alice.example}
+    \column{0.4\textwidth}
+      \stepbox{How it happens}{In testing, the server has a self-signed certificate. The check fails. Somebody turns it off ``for now''.}
+      \probbox{Then}{The line ships to production. Nothing fails, so nobody notices.}
+  \end{columns}
+  \vfill
+  \keymsg{Every one of these lines accepts any certificate from anyone.}
+  \say{verify=False w bibliotece requests, CERT\_NONE w module ssl, curl -k albo --insecure. Wszystkie wyłączają sprawdzanie łańcucha, dat i nazwy. Kod działa tak samo jak przedtem, dopóki nikt nie atakuje, dlatego błąd żyje latami.}
+\end{frame}
+
+\samedot
+\begin{frame}{What verify=False lets in}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \personnode{b}{0,0}{sTeal}{Bob's program}
+      \mallorynode{m}{5.2,0}
+      \node[hwmain, minimum width=2.2cm, minimum height=1.4cm] (s) at (10.4,0) {\faServer\\ real shop};
+      \node[fakebox, font=\scriptsize, anchor=south] at (5.2,0.75) {\faCertificate\ shop.alice.example, self-signed};
+      \draw[data] (b) to node[below, font=\scriptsize] {password, card number} (m);
+      \draw[data] (m) -- (s);
+      \node[font=\large] at (2.6,0.5) {\ok};
+      \node[font=\scriptsize, text=gray] at (2.6,1.0) {accepted};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small Mallory makes any certificate she likes, and the program talks to her.\\ She reads everything and passes it on to the real shop.\end{center}
+  \keymsg{With validation off, TLS still encrypts, but to whoever is in the middle.}
+  \say{To jest atak Mallory w środku z wykładu 9. Szyfrowanie nadal działa, tylko klucz uzgadniamy z Mallory. Bob nic nie widzi.}
+\end{frame}
+
+\samedot
+\begin{frame}{Good to know: the most dangerous code in the world}
+  \begin{columns}[c,onlytextwidth]
+    \column{0.55\textwidth}
+      \stepbox{2012, a study of real software}{Georgiev and others tested apps and libraries outside browsers: payment SDKs, cloud clients, mobile apps.}
+      \probbox{What they found}{Many checked the certificate chain but not the name, or did not check at all.}
+    \column{0.42\textwidth}
+      \stepbox{Python, until 3.4.3 (2015)}{\texttt{urllib} and \texttt{http.client} did not check certificates by default. PEP 476 turned the checks on.}
+  \end{columns}
+  \vfill
+  \keymsg{The certificate check is easy to switch off by accident: test that a bad certificate is refused.}
+  % source: M. Georgiev et al., "The Most Dangerous Code in the World: Validating SSL Certificates in Non-Browser Software", ACM CCS 2012;
+  % PEP 476 (Python 2.7.9 and 3.4.3)
+  \say{Można pominąć. Artykuł z ACM CCS 2012 znalazł zepsutą walidację w wielu bibliotekach i aplikacjach. Python przez lata domyślnie nie sprawdzał certyfikatów; PEP 476 to zmienił. Lekcja: w testach sprawdzać nie tylko, że dobry certyfikat działa, ale i że zły jest odrzucany.}
+\end{frame}
+
+\samedot
+\begin{frame}{Do this instead}
+  \begin{columns}[c,onlytextwidth]
+    \column{0.55\textwidth}
+      \small Trust your test CA, keep every check on:\\[3pt]
+      \cmdbox{ctx = ssl.create\_default\_context(\\ \ \ \ \ \hlcode{cafile="test-ca.pem"})}\\[6pt]
+      \small With \texttt{requests}:\\[3pt]
+      \cmdbox{requests.get(url, \hlcode{verify="test-ca.pem"})}
+    \column{0.42\textwidth}
+      \stepbox{Make a test CA}{Sign the test server's certificate with it (Lecture 10).}
+      \stepbox{Give the client the CA}{not ``trust everything''.}
+      \stepbox{Keep the name check}{\texttt{check\_hostname} stays \texttt{True}.}
+  \end{columns}
+  \vfill
+  \curious{pki/\#4.1}
+  \keymsg{Fix the trust, not the check: give the client the right CA instead of turning validation off.}
+  \say{Zamiast wyłączać sprawdzanie, podajemy klientowi nasze testowe CA. W produkcji zostaje domyślny magazyn zaufania systemu. W symulatorze z linku widać wszystkie sprawdzenia, które zostają włączone.}
+\end{frame}
+
+\begin{frame}{Task 3: what verify=False lets in}
+  \begin{columns}[c,onlytextwidth]
+    \column{0.5\textwidth}
+      \taskgoal{connect to four servers as a broken client, then as a correct one.}
+      \taskready{\texttt{servers.py}: four TLS servers on 127.0.0.1 and \texttt{fetch(context, port)}; \texttt{certs/trusty-ca.pem}.}
+    \column{0.48\textwidth}
+      \centering
+      \begin{tikzpicture}
+        \foreach \p/\w/\st [count=\k from 0] in {8443/the real shop/certbox, 8444/{Mallory, self-signed}/fakebox,
+            8445/{Mallory, her own name}/fakebox, 8446/an expired copy/certbox} {
+          \node[\st, font=\scriptsize, minimum width=4.4cm, anchor=west] at (0,{-0.62*\k}) {\faServer\ \p: \w};
+          \node[qmark, minimum size=0.45cm, font=\scriptsize\bfseries] at (4.9,{-0.62*\k}) {?};
+        }
+      \end{tikzpicture}
+  \end{columns}
+  \vfill
+  \opentask{Task3}{about 12 minutes}
+  \say{Około 12 minut. Wszystkie cztery serwery mówią, że są shop.alice.example. Najpierw klient z CERT\_NONE, potem create\_default\_context z naszym CA. Porty 8443 do 8446 na 127.0.0.1, bez internetu.}
+\end{frame}
+
+% CHECKED: Task3/solution/client.py, Python 3.12.3, OpenSSL 3.0.13, 2026-11-15
+\samedot
+\begin{frame}{Task 3: what we saw}
+  \vfill
+  \begin{center}\small
+    \renewcommand{\arraystretch}{1.35}
+    \begin{tabular}{@{}lll>{\raggedright\arraybackslash}p{6.3cm}@{}}
+      \toprule
+      \textbf{port} & \textbf{server} & \textbf{broken client} & \textbf{correct client} \\
+      \midrule
+      8443 & the real shop & talks \ok & talks \ok \\
+      8444 & Mallory, self-signed & talks \nok & refused: \texttt{self-signed certificate} \\
+      8445 & Mallory, her own name & talks \nok & refused: \texttt{Hostname mismatch, certificate is not valid for 'shop.alice.example'.} \\
+      8446 & an expired copy & talks \nok & refused: \texttt{certificate has expired} \\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+  \vfill
+  \keymsg{verify=False talks to all four; the default context refuses three, each for its own reason.}
+  \say{Port 8445 jest najciekawszy: certyfikat jest prawdziwy i podpisany przez Trusty CA, ale dla innej nazwy, więc łapie go tylko sprawdzenie nazwy. Dlatego check\_hostname=False jest tak samo groźne jak CERT\_NONE.}
+\end{frame}
+
+% CHECKED: CA/B Forum Baseline Requirements: 39 months from 1 April 2015; 825 days from 1 March 2018;
+%   398 days from 1 September 2020; Ballot SC-081v3 (April 2025): 200 days from 15 March 2026,
+%   100 days from 15 March 2027, 47 days from 15 March 2029. Before 2015: 60 months.
+\begin{frame}{Mistake: forgetting renewal}
+  \begin{center}\small The longest validity of a public TLS certificate:\end{center}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[x=0.0055cm]
+      \foreach \y/\lbl/\days/\shown in {0/before 2015/1826/5 years, -0.62/2015/1187/39 months, -1.24/2018/825/825 days,
+          -1.86/2020/398/398 days, -2.48/15 March 2026/200/200 days, -3.10/2027/100/100 days, -3.72/2029/47/47 days} {
+        \node[font=\small, text=nInk, anchor=east] at (-30,\y) {\lbl};
+        \fill[nInk, rounded corners=1pt] (0,\y-0.22) rectangle (\days,\y+0.22);
+        \node[font=\small\bfseries, text=nInk, anchor=west] at (\days+25,\y) {\shown};
+      }
+      \draw[AccentOrange, line width=1.4pt, rounded corners=3pt] (-560,-2.48-0.3) rectangle (700,-2.48+0.3);
+      \node[font=\scriptsize\bfseries, text=AccentOrange, anchor=west] at (720,-2.48) {now};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \keymsg{From 2029 a public certificate lives at most 47 days: about 8 renewals a year per certificate.}
+  \say{Zasady CA/Browser Forum, czyli CA i przeglądarek razem. Krok po kroku od 5 lat do 398 dni w 2020, a głosowanie SC-081 z kwietnia 2025 dodało trzy kroki: 200 dni od 15 marca 2026 (to obowiązuje teraz), 100 dni w 2027, 47 dni w 2029. Dlaczego krócej: w sekcji o incydentach.}
+\end{frame}
+
+\samedot
+\begin{frame}{Renew automatically}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \node[hw, minimum width=2.9cm, minimum height=1.2cm, font=\small] (a) at (0,1.4) {\faClock\ every day:\\ check the date};
+      \node[hw, minimum width=2.9cm, minimum height=1.2cm, font=\small] (b) at (4.6,1.4) {\faIcon{sync-alt}\ 30 days left?\\ ask for a new one};
+      \node[cabox, minimum width=2.9cm, minimum height=1.2cm] (c) at (4.6,-1.0) {\faStamp\ CA issues\\ via ACME};
+      \node[hw, minimum width=2.9cm, minimum height=1.2cm, font=\small] (d) at (0,-1.0) {\faServer\ install and\\ reload the server};
+      \draw[flow] (a) -- (b);
+      \draw[flow] (b) -- (c);
+      \draw[flow] (c) -- (d);
+      \draw[flow] (d) -- (a);
+      \node[hw, font=\small, anchor=west, text width=4.6cm, align=left] at (7.8,0.2)
+        {\faBell\ and an alert if renewal\\ fails 3 times in a row};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \keymsg{If renewal is not automatic, it will be forgotten.}
+  \say{ACME z wykładu 10: klient taki jak certbot sprawdza codziennie i odnawia, gdy zostaje jedna trzecia ważności, czyli przy 90 dniach około 30 dni (domyślnie od certbota 4.0, 2025; wcześniej stałe 30 dni, a przy certyfikatach krótszych niż 10 dni połowa ważności). Ważne jest też powiadomienie, gdy odnawianie zawodzi, i przeładowanie serwera po instalacji, bo inaczej stary certyfikat zostaje w pamięci.}
+\end{frame}
+
+\begin{frame}{Mistake: weak algorithms}
+  \begin{columns}[t,onlytextwidth]
+    \column{0.48\textwidth}
+      \centering\small\textbf{\ok\ Use}\\[4pt]
+      \renewcommand{\arraystretch}{1.3}
+      \begin{tabular}{@{}ll@{}}
+        \toprule
+        RSA & 2048 bits or more (3072 after 2030) \\
+        ECDSA & P-256, P-384 \\
+        Ed25519 & SSH, code, private PKI \\
+        hash & SHA-256 or longer \\
+        \bottomrule
+      \end{tabular}
+    \column{0.48\textwidth}
+      \centering\small\textbf{\nok\ Retired}\\[4pt]
+      \renewcommand{\arraystretch}{1.3}
+      \begin{tabular}{@{}ll@{}}
+        \toprule
+        MD5 & collisions since 2004 \\
+        SHA-1 & no new TLS certificates since 2016,\\ & first collision 2017 \\
+        RSA 1024 & retired by the early 2010s \\
+        \bottomrule
+      \end{tabular}
+  \end{columns}
+  \vfill
+  \begin{center}\small Coming: post-quantum signatures such as \textbf{ML-DSA} (FIPS 204, 2024).\\
+    \textcolor{gray}{Why a weak hash is so dangerous: see Incidents and lessons.}\end{center}
+  \keymsg{A certificate is only as strong as its weakest algorithm: the key, the hash and the CA's signature.}
+  % source: NIST SP 800-57 part 1 (112-bit security until 2030); CA/B Forum BR: SHA-1 issuance banned from 1 January 2016;
+  % SHAttered, 23 February 2017; FIPS 204, August 2024
+  \say{Publiczne certyfikaty WWW to dziś RSA albo ECDSA; Ed25519 jest świetny, ale publiczne CA go nie wydają dla stron, za to działa w SSH, podpisie pakietów i prywatnym PKI. SHA-1: zakaz nowych certyfikatów TLS od 2016, pierwsza kolizja SHAttered w lutym 2017. Kwantowo odporne podpisy: ML-DSA, standard FIPS 204 z 2024.}
+\end{frame}
+
+\begin{frame}{Mistake: not knowing what you have}
+  \begin{columns}[c,onlytextwidth]
+    \column{0.5\textwidth}
+      \centering
+      \begin{tikzpicture}
+        \foreach \ic/\nm [count=\k from 0] in {\faServer/web servers, \faBalanceScale/load balancers, \faPrint/printers,
+            \faNetworkWired/VPN, \faCode/internal APIs, \faVideo/cameras} {
+          \pgfmathsetmacro{\x}{2.1*mod(\k,3)}
+          \pgfmathsetmacro{\y}{-1.7*int(\k/3)}
+          \node[hw, minimum width=1.9cm, minimum height=1.4cm] (b) at (\x,\y) {};
+          \node[text=nInk, font=\Large] at ([yshift=0.2cm]b.center) {\ic};
+          \node[font=\scriptsize, text=nInk] at ([yshift=-0.38cm]b.center) {\nm};
+          \node[text=sViolet, font=\small] at ([shift={(-0.2,-0.2)}]b.north east) {\faCertificate};
+        }
+      \end{tikzpicture}
+    \column{0.48\textwidth}
+      \small An \textbf{inventory} lists every certificate:\\[4pt]
+      \renewcommand{\arraystretch}{1.2}
+      \begin{tabular}{@{}l@{}}
+        \faMapMarker*\ where it is installed\\
+        \faUser\ who owns it\\
+        \faCalendar*[regular]\ when it expires\\
+        \faKey\ which algorithm and key size\\
+        \faStamp\ which CA issued it
+      \end{tabular}\\[6pt]
+      Alerts at 30, 14 and 7 days. CT search (\texttt{crt.sh}) finds public ones you forgot.
+  \end{columns}
+  \vfill
+  \keymsg{You cannot renew a certificate you do not know exists.}
+  \say{W firmie certyfikaty są wszędzie, także na urządzeniach, o których nikt nie pamięta. Inwentaryzacja plus alarmy. Logi CT (wykład 10) pomagają znaleźć publiczne certyfikaty dla własnych domen.}
+\end{frame}
+
+\begin{frame}{Task 4: audit Carol's certificates}
+  \begin{columns}[c,onlytextwidth]
+    \column{0.52\textwidth}
+      \taskgoal{check eight certificates on 2026-12-01 against three rules.}
+      \taskready{\texttt{certinfo.py}: \texttt{expires}, \texttt{key\_info}, \texttt{hash\_name}; the folder \texttt{certs/}.}
+    \column{0.46\textwidth}
+      \small Rules:\\[3pt]
+      \faCalendar*[regular]\ renew when fewer than 30 days are left\\
+      \faHashtag\ no \texttt{md5} or \texttt{sha1} in the CA's signature\\
+      \faKey\ RSA keys of at least 2048 bits
+  \end{columns}
+  \vfill
+  \opentask{Task4}{about 12 minutes}
+  \say{Około 12 minut. Data audytu jest stała, żeby wszyscy dostali to samo. Odejmowanie dat w Pythonie daje różnicę z polem days.}
+\end{frame}
+
+% CHECKED: Task4/solution/audit.py, 2026-11-15
+\samedot
+\begin{frame}{Task 4: what we saw}
+  \vfill
+  \begin{center}\small
+    \renewcommand{\arraystretch}{1.25}
+    \begin{tabular}{@{}lllrl@{}}
+      \toprule
+      \textbf{file} & \textbf{key} & \textbf{hash} & \textbf{days left} & \textbf{problems} \\
+      \midrule
+      api.pem & EC 384 & sha256 & 23 & \nok\ renew now \\
+      build.pem & Ed25519 & sha256 & 212 & \ok \\
+      camera.pem & RSA 2048 & md5 & 684 & \nok\ weak hash \\
+      intranet.pem & RSA 1024 & sha1 & 1184 & \nok\ weak hash, weak key \\
+      mail.pem & RSA 2048 & sha256 & 11 & \nok\ renew now \\
+      printer.pem & RSA 2048 & sha256 & $-59$ & \nok\ expired \\
+      vpn.pem & RSA 3072 & sha256 & 81 & \ok \\
+      www.pem & EC 256 & sha256 & 150 & \ok \\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+  \vfill
+  \keymsg{6 problems in 8 certificates: old devices bring weak algorithms, busy servers bring near expiry.}
+  \say{Kamera i intranet są samopodpisane i ważne przez lata: długie życie i słabe algorytmy chodzą w parze. Drukarka wygasła 59 dni temu i nikt nie zauważył. Klucz EC 256 bitów jest tak mocny jak RSA około 3072 bitów, więc reguła o długości dotyczy tylko RSA.}
+\end{frame}
+
+% ======================================================================
+\section[Incidents]{Incidents and lessons}
+% ======================================================================
+
+\begin{frame}{Fourteen years of PKI incidents}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[x=0.92cm]
+      \draw[nLine, very thick, -{Stealth}] (-0.3,0) -- (14.4,0);
+      \foreach \y in {2008,2010,...,2022} {\yearmark{\y-2008}{\y}}
+      \foreach \yr/\yy/\an/\t/\ic in {2008.95/1.2/south/{MD5\\ rogue CA}/\faHashtag, 2011.2/-1.0/north/{Comodo}/\faUserSecret,
+          2011.65/1.2/south/{DigiNotar}/\faFire, 2012.4/-2.1/north/{Flame}/\faBug,
+          2017.3/1.2/south east/{Symantec\\ distrusted}/\faBan, 2017.6/-1.0/north/{Equifax:\\ blind monitor}/\faEyeSlash,
+          2018.93/1.2/south west/{O2: an\\ expired cert}/\faIcon{signal},
+          2021.75/-1.0/north/{old Let's Encrypt\\ root expires}/\faCalendarTimes} {
+        \pgfmathsetmacro{\x}{\yr-2008}
+        \fill[AccentOrange] (\x,0) circle (3pt);
+        \draw[nLine, thick] (\x,0) -- (\x,\yy);
+        \node[hw, font=\scriptsize, anchor=\an, align=center] at (\x,\yy) {\ic\\ \t};
+      }
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small Three kinds of failure: a \textbf{weak algorithm}, a \textbf{CA that fails}, a \textbf{certificate nobody renewed}.\end{center}
+  \say{Przegląd. Pójdziemy prawie po kolei: najpierw kolizja MD5 i Flame (słaby algorytm), potem Comodo, DigiNotar i Symantec (zawodzi CA), na końcu wygasłe certyfikaty. Każdy incydent przyniósł zmianę, którą dziś znamy.}
+\end{frame}
+
+\begin{frame}{Recall: a hash collision}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \node[actorlight=sIndigo, font=\small, text width=3.4cm] (a) at (0,1.0) {document A};
+      \node[actorlight=sPink, font=\small, text width=3.4cm] (b) at (0,-1.0) {document B $\neq$ A};
+      \node[hwmain, minimum width=2.0cm, minimum height=1.2cm] (h) at (4.6,0) {\faCogs\\ MD5};
+      \draw[data] (a.east) -- (h);
+      \draw[data] (b.east) -- (h);
+      \node[hw, font=\small\ttfamily] (o) at (9.4,0) {7e58325ffced260e\ldots};
+      \draw[data] (h) to node[above, font=\scriptsize] {the same hash} (o);
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \bigdef{\textbf{Collision}: two different inputs with the same hash. For MD5 they are easy to make since 2004.}
+  \keymsg{A CA signs the hash of a certificate: if two certificates share a hash, they share the signature.}
+  \say{Z wykładu 7: funkcja skrótu powinna utrudniać znalezienie dwóch wejść z tym samym skrótem. Dla MD5 pierwszą kolizję pokazali Wang i współpracownicy w 2004; dziś zwykły laptop robi to w sekundy. Podpis jest liczony nad skrótem, więc kolizja skrótu to kolizja podpisu.}
+\end{frame}
+
+% source: marc-stevens.nl/research/hashclash/rogue-ca: 25C3, Berlin, 30 December 2008; RapidSSL; more than 200 PS3;
+%   rogue CA valid 31 July 2004 to 2 September 2004; the serial number and the validity were predicted
+\begin{frame}{2008: two certificates, one MD5}
+  \begin{columns}[c,onlytextwidth]
+    \column{0.62\textwidth}
+      \centering
+      \begin{tikzpicture}[>=Stealth]
+        \node[certbox, text width=3.6cm, font=\scriptsize] (a) at (0,0)
+          {\textbf{\faCertificate\ website certificate}\\ serial: \textbf{predicted}\\ valid: \textbf{predicted}\\ CA: \textbf{FALSE}\\ public key: \textcolor{AccentOrange}{\textbf{collision bytes}}};
+        \node[fakebox, text width=3.6cm, font=\scriptsize] (b) at (4.6,0)
+          {\textbf{\faCertificate\ rogue CA certificate}\\ serial: the same\\ valid: Aug 2004\\ CA: \textbf{TRUE}\\ comment: \textcolor{AccentOrange}{\textbf{collision bytes}}};
+        \node[hw, font=\scriptsize\ttfamily] (h) at (2.3,-2.4) {the same MD5};
+        \draw[data] (a.south) -- (h);
+        \draw[data] (b.south) -- (h);
+      \end{tikzpicture}
+    \column{0.36\textwidth}
+      \small Researchers built two certificates with the same MD5 on more than \textbf{200 PlayStation 3} consoles.\\[6pt]
+      To do it, they had to guess what \textbf{RapidSSL} would write: the next serial number and the exact time.
+  \end{columns}
+  \vfill
+  \keymsg{The two certificates differ in what matters, CA: FALSE or TRUE, but not in their MD5.}
+  \say{Sotirov, Stevens, Appelbaum, Lenstra, Molnar, Osvik i de Weger. Pokazane na kongresie 25C3 w Berlinie 30 grudnia 2008. RapidSSL (marka VeriSign) nadal podpisywał MD5 i nadawał kolejne numery seryjne, więc dało się przewidzieć zawartość certyfikatu. Udało się przy czwartej próbie, w weekend.}
+\end{frame}
+
+\samedot
+\begin{frame}{2008: one signature for both}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \node[cabox] (ca) at (0,0) {\faStamp\ RapidSSL\\ \normalfont\scriptsize signs MD5};
+      \node[certbox, font=\small] (a) at (4.4,0.9) {\faCertificate\ website certificate};
+      \node[fakebox, font=\small] (b) at (4.4,-0.9) {\faCertificate\ rogue CA};
+      \draw[data] (ca) to node[above, font=\scriptsize] {buys, signed} (a);
+      \draw[data, dashed, sPink] (a) to node[right, font=\scriptsize, text=sPinkText] {copy the signature} (b);
+      \node[hw, font=\small, anchor=west, text width=4.4cm, align=left] (r) at (8.0,-0.9)
+        {\textbf{a CA trusted by every browser}: it could sign a certificate for any website};
+      \draw[data] (b) -- (r);
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small The researchers dated their rogue CA to August 2004, so it was never valid when shown.\\
+    CAs that still used MD5 stopped within weeks.\end{center}
+  \keymsg{A weak hash lets one honest signature cover a second, dangerous certificate.}
+  \say{Podpis RapidSSL pod niewinnym certyfikatem pasował do fałszywego CA, bo skrót był ten sam. Badacze celowo ustawili ważność na sierpień 2004, żeby fałszywe CA nikomu nie zaszkodziło. VeriSign przestał używać MD5 w RapidSSL w ciągu kilku dni.}
+\end{frame}
+
+\begin{frame}{Task 5: one signature, two documents}
+  \begin{columns}[c,onlytextwidth]
+    \column{0.52\textwidth}
+      \taskgoal{show that one MD5 signature fits two different requests, and a SHA-256 one does not.}
+      \taskready{\texttt{trusty.py}: \texttt{verify}, \texttt{what\_it\_says}; two requests and two signatures by Trusty CA.}
+    \column{0.46\textwidth}
+      \centering
+      \begin{tikzpicture}
+        \node[actorlight=sIndigo, font=\scriptsize, text width=4.6cm] at (0,0.7) {A: shop.alice.example is a website. It may NOT sign certificates.};
+        \node[actorlight=sPink, font=\scriptsize, text width=4.6cm] at (0,-0.7) {B: Mallory is a CA. She may sign certificates for any website.};
+        \node[qmark] at (3.0,0) {?};
+      \end{tikzpicture}
+  \end{columns}
+  \vfill
+  \opentask{Task5}{about 8 minutes}
+  \say{Około 8 minut. Pierwsze 128 bajtów to słynna kolizja MD5 z 2004; jeden bajt z nich wybiera zdanie, które pokazuje program. Uproszczenie: w prawdziwym certyfikacie bajty kolizji siedzą w polu klucza publicznego, a rolę zdania gra flaga CA.}
+\end{frame}
+
+% CHECKED: Task5/solution/collide.py, 2026-11-15
+\samedot
+\begin{frame}{Task 5: what we saw}
+  \vfill
+  \begin{center}\small
+    \renewcommand{\arraystretch}{1.35}
+    \begin{tabular}{@{}lll@{}}
+      \toprule
+      & \textbf{request A} & \textbf{request B} \\
+      \midrule
+      bytes that differ & \multicolumn{2}{c}{6 of 308} \\
+      MD5 & \texttt{7e58325ffced260e\ldots0907} & \texttt{7e58325ffced260e\ldots0907} \\
+      SHA-256 & \texttt{99cfc680cafeeddc\ldots} & \texttt{748ac700ab50682b\ldots} \\
+      MD5 signature & \ok\ True & \nok\ \textbf{True}: fits a request Trusty CA never saw \\
+      SHA-256 signature & \ok\ True & \ok\ False \\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+  \vfill
+  \keymsg{With MD5, Trusty CA's signature on A is also a valid signature on B. With SHA-256 it is not.}
+  \say{Kod w folderze solution. Znaczki oceniają wynik z punktu widzenia bezpieczeństwa: True dla B przy MD5 to porażka. Tak wyglądał atak z 2008, tylko z prawdziwymi certyfikatami.}
+\end{frame}
+
+% source: MSRC blog "Flame malware collision attack explained" (June 2012); Microsoft Security Advisory 2718704;
+%   M. Stevens (CWI): a new variant of a chosen-prefix collision attack on MD5
+\begin{frame}{2012: Flame}
+  \begin{columns}[c,onlytextwidth]
+    \column{0.52\textwidth}
+      \centering
+      \begin{tikzpicture}[>=Stealth]
+        \node[cabox, text width=4.6cm] (ca) at (0,1.6) {\faStamp\ Microsoft Terminal Server\\ Licensing CA \normalfont\scriptsize (MD5, chains to a Microsoft root)};
+        \node[fakebox, font=\scriptsize, text width=4.6cm] (f) at (0,0) {\faCertificate\ forged by collision: \textbf{Microsoft code signing}};
+        \draw[data] (ca) -- (f);
+        \node[circle, fill=sPink, text=white, font=\Large, minimum size=1.0cm] (m) at (-1.6,-1.6) {\faBug};
+        \node[hw, font=\scriptsize] (wu) at (1.4,-1.6) {fake Windows Update};
+        \draw[data, sPink] (f) -- (wu);
+        \draw[data, sPink] (wu) -- (m);
+      \end{tikzpicture}
+    \column{0.46\textwidth}
+      \small \textbf{Flame}: spy malware found in May 2012, mostly in the Middle East.\\[6pt]
+      An old corner of Microsoft's PKI still signed with \textbf{MD5}, and its certificates could sign code.\\[6pt]
+      Flame forged a certificate with a new MD5 collision and posed as \textbf{Windows Update} inside local networks.
+  \end{columns}
+  \vfill
+  \keymsg{Four years after 2008, one forgotten MD5 CA was still enough.}
+  \say{Flame odkryty w maju 2012. Licencjonowanie Terminal Server używało certyfikatów z MD5, które łańcuchem prowadziły do korzenia Microsoftu i nadawały się do podpisu kodu. Twórcy Flame zrobili nowy wariant kolizji z wybranym prefiksem (analiza Marca Stevensa). Microsoft w czerwcu 2012 (Security Advisory 2718704) przeniósł te certyfikaty do niezaufanych. Lekcja: inwentaryzacja dotyczy też CA.}
+\end{frame}
+
+% source: Comodo incident report, 23 March 2011; Wikipedia "Comodo Cybersecurity"
+\begin{frame}{2011: Comodo}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \mallorynode{m}{0,0}
+      \node[hw, minimum width=2.8cm, minimum height=1.3cm, font=\small] (ra) at (3.6,0) {\faUserTie\ a reseller's\\ RA account};
+      \node[cabox, minimum width=2.4cm, minimum height=1.3cm] (ca) at (7.2,0) {\faStamp\ Comodo};
+      \draw[data, sPink] (m) to node[above, font=\scriptsize, text=sPinkText] {stolen login} (ra);
+      \draw[data] (ra) to node[above, font=\scriptsize] {9 requests} (ca);
+      \foreach \d [count=\k from 0] in {mail.google.com, www.google.com, login.yahoo.com, login.skype.com,
+          addons.mozilla.org, login.live.com} {
+        \node[fakebox, font=\scriptsize\ttfamily, anchor=west, inner sep=2pt] at (9.2,{1.4-0.55*\k}) {\faCertificate\ \d};
+      }
+      \draw[data] (ca.east) -- (9.1,0);
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small 15 March 2011: 9 certificates for 7 domains. Revoked within hours; browsers blocked them by an update.\end{center}
+  \keymsg{A registration authority can make a CA issue anything: its accounts are as sensitive as the CA's key.}
+  \say{Napastnik przejął konto partnera (RA, urzędu rejestracji), który mógł zlecać certyfikaty w imieniu Comodo. 9 certyfikatów dla 7 domen, na liście 6 z nich (siódma to "global trustee"). Comodo odwołało je szybko, przeglądarki wpisały je na czarne listy w aktualizacji. Comodo zostało zaufane.}
+\end{frame}
+
+% source: Fox-IT "Black Tulip" report (2012); Wikipedia "DigiNotar": *.google.com issued 10 July 2011, at least 531 rogue
+%   certificates, found 28 August 2011, Dutch government took over 3 September, bankrupt 20 September 2011
+\begin{frame}{2011: DigiNotar, 1. the break-in}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[x=1.1cm, >=Stealth]
+      \draw[nLine, very thick, -{Stealth}] (0,0) -- (12.4,0);
+      \foreach \m/\lbl in {0/June, 2/July, 4/August, 6/September, 8/October} {
+        \draw[nLine, thick] (1.5*\m/1.0,-0.12) -- (1.5*\m/1.0,0.12);
+        \node[font=\scriptsize, text=gray, anchor=north] at (1.5*\m/1.0,-0.15) {\lbl\ 2011};
+      }
+      \fill[sPink!25] (0.5,0.3) rectangle (5.6,0.8);
+      \node[font=\scriptsize, text=nInk] at (3.05,0.55) {attackers inside DigiNotar's network};
+      \node[fakebox, font=\scriptsize, anchor=south] (g) at (3.3,1.3) {\faCertificate\ \texttt{*.google.com}, 10 July};
+      \draw[nInk, thick] (3.3,0.8) -- (g.south);
+      \node[font=\scriptsize, text=nInk, anchor=north, align=center] at (4.1,-0.7) {at least \textbf{531} rogue certificates;\\ DigiNotar notices, tells nobody};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small DigiNotar: a Dutch CA, trusted by every browser, also issuing for the Dutch government.\end{center}
+  \say{DigiNotar, holenderskie CA, także dla administracji rządowej. Napastnicy siedzieli w sieci od czerwca. 10 lipca powstał certyfikat *.google.com, razem co najmniej 531 fałszywych. DigiNotar zauważył włamanie w lipcu, odwołał część certyfikatów i nikomu nie powiedział.}
+\end{frame}
+
+\samedot
+\begin{frame}{2011: DigiNotar, 2. found by a pin}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \personnode{u}{0,0}{sTeal}{a Gmail user in Iran}
+      \mallorynode{m}{4.0,0}
+      \node[fakebox, font=\scriptsize, anchor=south] at (4.0,0.75) {\faCertificate\ \texttt{*.google.com} by DigiNotar};
+      \node[hwmain, minimum width=2.2cm, minimum height=1.2cm, font=\small] (g) at (8.2,0) {\faServer\\ Gmail};
+      \draw[data] (u) -- (m);
+      \draw[data] (m) -- (g);
+      \node[hw, font=\scriptsize, text width=3.8cm, align=left, anchor=north] at (0,-1.3)
+        {\faChrome\ Chrome knew Google's real keys (a \textbf{pin}): this key is not one of them \nok};
+      \node[hw, font=\scriptsize, text width=4.0cm, align=left, anchor=north] at (6.4,-1.3)
+        {OCSP checks for the fake certificate came from about \textbf{300\,000} addresses, almost all in Iran};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small 28 August 2011: a user posts Chrome's warning. Seven weeks after the certificate was made.\end{center}
+  \say{Na szczęście Chrome miał wbudowane piny dla domen Google (pinning, wykład 11), więc odrzucił certyfikat mimo poprawnego łańcucha. Użytkownik z Iranu opisał to 28 sierpnia. Z logów OCSP DigiNotar widać było około 300 tysięcy adresów, głównie z Iranu: ktoś czytał ich pocztę. Te liczby pochodzą z raportu Fox-IT.}
+\end{frame}
+
+\samedot
+\begin{frame}{2011: DigiNotar, 3. removed}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \foreach \ic/\t/\d [count=\k from 0] in {\faBan/{removed from browsers'\\ trust stores}/{from 29 August},
+          \faLandmark/{the Dutch state takes\\ over its operations}/{3 September},
+          \faGavel/{DigiNotar is\\ bankrupt}/{20 September}} {
+        \node[hw, minimum width=3.8cm, minimum height=2.4cm] (b) at ({4.3*\k},0) {};
+        \node[text=nInk, font=\fontsize{26}{28}\selectfont] at ([yshift=0.5cm]b.center) {\ic};
+        \node[font=\small, text=nInk, align=center] at ([yshift=-0.45cm]b.center) {\t};
+        \node[font=\small\bfseries, text=nInk, below=0.1cm of b] {\d};
+      }
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \keymsg{Any CA in the trust store can issue for any domain: one broken CA breaks everybody's security.}
+  \say{Przeglądarki usunęły DigiNotar z magazynów zaufania, więc wszystkie jego certyfikaty, także prawdziwe certyfikaty rządowe, przestały działać. Holenderska administracja musiała w pośpiechu wymieniać certyfikaty. 20 września DigiNotar ogłosił upadłość. Najważniejszy wniosek: problem nie dotyczył tylko klientów DigiNotar, tylko Google'a, który nigdy z DigiNotar nie współpracował.}
+\end{frame}
+
+% source: Google Security Blog, 11 September 2017, "Chrome's Plan to Distrust Symantec Certificates"
+\begin{frame}{2015 to 2018: Symantec}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[x=2.6cm]
+      \draw[nLine, very thick, -{Stealth}] (0,0) -- (4.5,0);
+      \foreach \y in {2015,2016,2017,2018,2019} {\yearmark{\y-2015}{\y}}
+      \foreach \x/\up/\t in {0.7/1/{test certificates for\\ \texttt{google.com}, seen in CT},
+          2.2/-1/{the browsers find thousands\\ of doubtful certificates},
+          2.65/1/{CA business sold\\ to DigiCert},
+          3.3/-1/{Chrome 66: older\\ certificates distrusted},
+          3.8/1/{Chrome 70: all old\\ Symantec certificates}} {
+        \ifnum\up=1 \def\anc{south}\else\def\anc{north}\fi
+        \fill[AccentOrange] (\x,0) circle (3pt);
+        \draw[nLine, thick] (\x,0) -- (\x,{1.0*\up});
+        \node[hw, font=\scriptsize, anchor=\anc] at (\x,{1.0*\up}) {\t};
+      }
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small Symantec (with Thawte, GeoTrust, RapidSSL) issued a large share of all web certificates.\end{center}
+  \keymsg{Even the biggest CA can be removed: trust is earned again every year, not owned.}
+  \say{2015: pracownicy Symanteca wydali testowe certyfikaty dla google.com bez zgody Google; wyszło to dzięki CT. 2017: przeglądarki znalazły tysiące wątpliwych certyfikatów, część wydana przez partnerów bez kontroli. Plan Google: Chrome 66 (kwiecień 2018) przestał ufać certyfikatom wydanym przed 1 czerwca 2016, Chrome 70 (październik 2018) wszystkim ze starej infrastruktury. Symantec sprzedał biznes CA firmie DigiCert w 2017.}
+\end{frame}
+
+% source: TechCrunch and Computing, 7 December 2018 (Ericsson: an expired certificate in SGSN-MME software);
+%   Let's Encrypt: DST Root CA X3 expired on 30 September 2021
+\begin{frame}{When a certificate simply expires}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \foreach \ic/\nm/\d/\t [count=\k from 0] in {
+          \faIcon{signal}/{O2 and SoftBank}/{6 December 2018}/{a certificate in Ericsson's\\ network software expired:\\ about 30 million O2 users\\ without mobile data for a day},
+          \faUsers/{Microsoft Teams}/{3 February 2020}/{a sign-in certificate\\ expired: users could not\\ log in for hours},
+          \faCalendarTimes/{Let's Encrypt's old root}/{30 September 2021}/{DST Root CA X3 expired:\\ old phones and devices\\ could no longer connect}} {
+        \node[hw, minimum width=4.4cm, minimum height=4.0cm] (b) at ({4.7*\k},0) {};
+        \node[text=nInk, font=\fontsize{24}{26}\selectfont] at ([yshift=1.25cm]b.center) {\ic};
+        \node[font=\small\bfseries, text=nInk] at ([yshift=0.45cm]b.center) {\nm};
+        \node[font=\scriptsize, text=gray] at ([yshift=0.05cm]b.center) {\d};
+        \node[font=\scriptsize, text=nInk, align=center, anchor=north] at ([yshift=-0.2cm]b.center) {\t};
+      }
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \keymsg{No attacker needed: a forgotten expiry date stops services for millions.}
+  \say{O2: oprogramowanie Ericssona w rdzeniu sieci (SGSN-MME) miało wbudowany certyfikat, który wygasł 6 grudnia 2018; około 30 do 32 milionów osób bez danych przez prawie dobę, tego samego dnia SoftBank w Japonii. Teams: luty 2020, kilka godzin (relacje prasowe). DST Root CA X3: stary korzeń Let's Encrypt, stare urządzenia bez nowego korzenia przestały się łączyć.}
+\end{frame}
+
+% source: US House Committee on Oversight and Government Reform, "The Equifax Data Breach", December 2018:
+%   attack from 13 May 2017, 76 days; the SSL Visibility device inactive for 19 months because of an expired certificate;
+%   renewed on 29 July 2017; at least 324 expired certificates
+\samedot
+\begin{frame}{Equifax 2017: the blind monitor}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \mallorynode{m}{0,0}
+      \node[hwmain, minimum width=2.4cm, minimum height=1.4cm, font=\small] (db) at (4.0,0) {\faDatabase\\ customer data};
+      \node[hw, minimum width=2.6cm, minimum height=1.4cm, font=\small] (mon) at (8.4,0) {\faEyeSlash\ traffic monitor};
+      \node[certbox, font=\scriptsize, anchor=north] at (8.4,-0.85) {\faCertificate\ expired 19 months ago};
+      \draw[data, sPink] (db) to node[above, font=\scriptsize, text=sPinkText] {data out} (m);
+      \draw[nLine, thick, dashed] (db) to node[above, font=\scriptsize] {cannot read TLS} (mon);
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small Attackers took data for \textbf{76 days}. On 29 July 2017 the certificate was renewed,\\ and the monitor showed the suspicious traffic at once. At least 324 certificates had expired.\end{center}
+  \keymsg{An expired certificate can switch off your security without anybody noticing.}
+  \say{Według raportu komisji Kongresu USA z grudnia 2018: urządzenie, które rozszyfrowywało i oglądało ruch wychodzący, nie działało 19 miesięcy przez wygasły certyfikat. Po jego wymianie 29 lipca 2017 od razu zobaczono podejrzany ruch. Wyciek dotyczył około 148 milionów osób. Główną przyczyną była niezałatana dziura w Apache Struts; certyfikat sprawił, że nikt tego nie widział.}
+\end{frame}
+
+% source: RFC 6962 (June 2013); Chrome Certificate Transparency policy: SCTs required for certificates issued from 30 April 2018
+\begin{frame}{Lesson 1: Certificate Transparency}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \node[cabox] (ca) at (0,0) {\faStamp\ any CA};
+      \node[hwmain, minimum width=2.6cm, minimum height=1.6cm] (log) at (4.2,0) {\faScroll\\ public CT logs};
+      \draw[data] (ca) to node[above, font=\scriptsize] {every certificate} (log);
+      \personnode{a}{8.8,1.0}{sIndigo}{Alice, the domain owner}
+      \node[hw, font=\scriptsize] (mon) at (8.8,-1.2) {\faBell\ monitors such as \texttt{crt.sh}};
+      \draw[data] (log) -- (a);
+      \draw[data] (log) -- (mon);
+      \node[font=\scriptsize, text=nInk, align=center] at (0,-1.4) {the browser accepts a\\ certificate only if it was logged};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small A rogue certificate can no longer hide: everyone can see it within hours.\\
+    \textcolor{gray}{DigiNotar's fake certificate stayed unseen for seven weeks; Symantec's test certificates were found in CT.}\end{center}
+  \keymsg{CT does not stop a bad certificate; it makes sure the domain owner can see it.}
+  \say{Mechanizm CT z wykładu 10. Tu z punktu widzenia incydentów: pomysł powstał w Google po DigiNotar (RFC 6962, 2013), a Chrome wymaga dowodów wpisu do logu (SCT) dla certyfikatów wydanych od 30 kwietnia 2018. Właściciel domeny może obserwować logi sam albo przez serwis.}
+\end{frame}
+
+% CHECKED: dig +short CAA google.com -> 0 issue "pki.goog" (2026-11-15)
+% source: RFC 8659 (obsoletes RFC 6844); CA/B Forum Ballot 187: CAs must check CAA from 8 September 2017
+\samedot
+\begin{frame}{Lesson 2: CAA}
+  \begin{columns}[c,onlytextwidth]
+    \column{0.52\textwidth}
+      \small A DNS record that says which CAs may issue for a domain:\\[6pt]
+      \cmdbox[6.4cm]{dig +short CAA google.com\\ 0 issue "pki.goog"}\\[6pt]
+      \small Only Google Trust Services may issue for \texttt{google.com}.
+    \column{0.46\textwidth}
+      \stepbox{Since 8 September 2017}{every public CA must check CAA before it issues.}
+      \stepbox{A CA that ignores it}{breaks the rules, and CT shows it.}
+      \probbox{But}{CAA cannot stop a hacked or careless CA, only an honest one.}
+  \end{columns}
+  \vfill
+  \keymsg{CAA shrinks the list of CAs that may issue for you from about a hundred to the ones you chose.}
+  \say{Prawdziwy rekord google.com: tylko pki.goog, czyli Google Trust Services. CAA (RFC 8659) sprawdzają uczciwe CA od 8 września 2017. Przy DigiNotar CAA by nie pomogło: napastnik nie pytał DNS. Pomaga przy pomyłkach i oszustwach typu Comodo, gdy CA działa normalnie.}
+\end{frame}
+
+\begin{frame}{Task 6: hunt in a CT log}
+  \begin{columns}[c,onlytextwidth]
+    \column{0.52\textwidth}
+      \taskgoal{find the certificates for \texttt{alice-shop.example} that Alice did not order.}
+      \taskready{\texttt{ctlog.py}: \texttt{dns\_names}, \texttt{issuer\_cn}, \texttt{CAA\_ID}; nine log entries, her orders and her CAA record.}
+    \column{0.46\textwidth}
+      \centering
+      \begin{tikzpicture}
+        \foreach \d/\ca [count=\k from 0] in {10-05/Trusty CA, 10-14/Trusty CA, 11-02/Shady CA, 11-06/Trusty CA} {
+          \node[certbox, font=\scriptsize, minimum width=4.4cm, anchor=west, inner sep=3pt] at (0,{-0.55*\k}) {2026-\d\quad \ca\quad \ldots alice-shop\ldots};
+          \node[qmark, minimum size=0.42cm, font=\scriptsize\bfseries] at (4.9,{-0.55*\k}) {?};
+        }
+      \end{tikzpicture}
+  \end{columns}
+  \vfill
+  \opentask{Task6}{about 10 minutes}
+  \say{Około 10 minut. Uwaga na pułapkę: nazwa alice-shop.example.mallory.example kończy się na domenę Mallory, nie Alice. Odcisk SHA-256 liczy metoda fingerprint z biblioteki.}
+\end{frame}
+
+% CHECKED: Task6/solution/ct_watch.py, 2026-11-15
+\samedot
+\begin{frame}{Task 6: what we saw}
+  \vfill
+  \begin{center}\small
+    \renewcommand{\arraystretch}{1.35}
+    \begin{tabular}{@{}llll@{}}
+      \toprule
+      \textbf{issued} & \textbf{CA} & \textbf{names} & \textbf{verdict} \\
+      \midrule
+      2026-10-05 & Trusty CA & alice-shop.example, www.alice-shop.example & \ok\ ordered by Alice \\
+      2026-10-14 & Trusty CA & api.alice-shop.example & \ok\ ordered by Alice \\
+      2026-11-02 & Shady CA & alice-shop.example, www.alice-shop.example & \nok\ broke CAA: report it \\
+      2026-11-06 & Trusty CA & login.alice-shop.example & \nok\ CAA allowed it: who ordered it? \\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+  \vfill
+  \keymsg{CT shows every certificate for your domain; your own list tells which ones are not yours.}
+  \say{Dwa podejrzane certyfikaty. Shady CA złamał CAA: zgłosić do CA i do przeglądarek. Trusty CA miał prawo wydać, więc ktoś go oszukał albo ktoś z firmy zamówił bez wiedzy Alice: zapytać CA i poprosić o odwołanie. W 2011 taki certyfikat byłby niewidoczny tygodniami.}
+\end{frame}
+
+\begin{frame}{Lesson 3: shorter certificates}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[x=0.028cm]
+      \foreach \y/\lbl/\days in {0/398 days (2020)/398, -1.0/47 days (2029)/47} {
+        \node[font=\small, text=nInk, anchor=east] at (-10,\y) {\lbl};
+        \fill[sPink!30, rounded corners=1pt] (0,\y-0.3) rectangle (\days,\y+0.3);
+        \draw[sPink, thick, dashed, rounded corners=1pt] (0,\y-0.3) rectangle (\days,\y+0.3);
+      }
+      \node[font=\scriptsize, text=sPinkText, anchor=south west] at (0,0.35) {a stolen key or a wrong certificate works this long, at most:};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{columns}[t,onlytextwidth]
+    \column{0.48\textwidth}
+      \stepbox{Revocation is weak}{Clients often skip the check when it fails (Lecture 11).}
+    \column{0.48\textwidth}
+      \stepbox{Expiry always works}{Every client checks the date, offline too.}
+  \end{columns}
+  \keymsg{Short certificates limit the damage of every mistake, and force the automation that prevents outages.}
+  \say{Gdy odwołanie zawodzi, jedyną pewną granicą jest data ważności. Przy 47 dniach skradziony klucz lub błędny certyfikat działa najwyżej półtora miesiąca. Efekt uboczny: nikt nie odnowi ręcznie ośmiu razy w roku, więc wszyscy muszą zautomatyzować, a to zapobiega awariom jak w O2.}
+\end{frame}
+
+\begin{frame}{Incidents and lessons}
+  \vfill
+  \begin{center}\small
+    \renewcommand{\arraystretch}{1.35}
+    \begin{tabular}{@{}lll@{}}
+      \toprule
+      \textbf{incident} & \textbf{what failed} & \textbf{what changed} \\
+      \midrule
+      MD5 rogue CA 2008, Flame 2012 & a weak hash & MD5, then SHA-1 retired \\
+      Comodo 2011 & a reseller's account & tighter control of RAs \\
+      DigiNotar 2011 & a hacked CA, hidden for weeks & Certificate Transparency \\
+      Symantec 2015 to 2018 & careless issuing & distrust, found through CT \\
+      wrong CA issues & nobody asked the owner & CAA (2017) \\
+      O2 2018, Equifax 2017 & nobody renewed & automation, shorter certificates \\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+  \vfill
+  \keymsg{Every rule of today's PKI is the answer to an incident.}
+  \say{Tabela łączy incydenty z regułami z drugiej sekcji. Warto zapytać salę: która reguła ochroniłaby przed którym incydentem.}
+\end{frame}
+
+\begin{frame}{Summary}
+  \vfill
+  \begin{tikzpicture}
+    \foreach \t [count=\k] in {
+        {Certificates sign \textbf{code}, \textbf{documents} and \textbf{mail} and log people in; EKU says which use.},
+        {A \textbf{timestamp} keeps a signature valid after the certificate expires.},
+        {Protect the \textbf{private key}: mode 600, a passphrase, or hardware that never lets it out.},
+        {Never turn validation off; \textbf{renew automatically}; use \textbf{strong algorithms}; keep an \textbf{inventory}.},
+        {MD5, DigiNotar, Symantec and expired certificates gave us \textbf{CT}, \textbf{CAA} and \textbf{shorter certificates}.}} {
+      \node[hw, text width=12.6cm, align=left, minimum height=0.95cm, anchor=west, font=\small] at (0.8,{-1.1*\k}) {\t};
+      \node[circle, fill=AccentOrange, text=white, font=\bfseries, minimum size=0.7cm] at (0.4,{-1.1*\k}) {\k};
+    }
+  \end{tikzpicture}
+  \vfill
+  \say{Po jednym zdaniu na każdy cel. To koniec tygodnia PKI: od pytania, czyj to klucz, przez CA, walidację i TLS, do praktyki.}
+\end{frame}
+
+\end{document}

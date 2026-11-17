@@ -1,18 +1,20 @@
-% Task 4: which certificate fits? Four certificates of Trusty CA (Lecture6/checks/make_files.py)
+% Task 4: invert a short hash.
 \documentclass[12pt,tikz,border=6pt]{standalone}
 \input{common}
 \begin{document}
 \pagecolor{white}
-\begin{tikzpicture}[>=Stealth, card]
-  \foreach \l/\s [count=\k from 0] in {A/{www.alice-shop.example}, B/{Trusty CA Issuing 1}, C/{Carol Software Ltd}, D/{*.dave.example}} {
-    \node[cardbox, minimum width=3.6cm, minimum height=3.6cm] (c) at ({4.0*\k},0) {};
-    \node[text=nInk, font=\huge] at ({4.0*\k},0.8) {\faCertificate};
-    \node[font=\large\bfseries, text=nInk] at ({4.0*\k},-0.1) {cert\_\l.pem};
-    \node[font=\scriptsize\ttfamily, text=nInk] at ({4.0*\k},-0.7) {\s};
-    \node[font=\scriptsize, text=gray] at ({4.0*\k},-1.3) {SAN?\ \ CA?\ \ EKU?\ \ critical?};
-  }
-  \node[note, anchor=north west, align=left] at (-1.8,-2.3)
-    {\textcolor{AccentOrange}{\faQuestionCircle}\ Which one is a CA? \quad Which one may sign programs?\\[3pt]
-     \textcolor{AccentOrange}{\faQuestionCircle}\ Which one fits www.alice-shop.example, shop.dave.example, dave.example?};
+\begin{tikzpicture}[>=Stealth]
+  \node[msgval, font=\small\ttfamily] (n) at (0,1.6) {Alice: the door code is 0886};
+  \node[hwmain] (h) at (4.6,1.6) {\faCogs\ SHA-256};
+  \node[dgval, font=\small] (t) at (8.6,1.6) {first $k$ bits: the target};
+  \draw[data] (n) -- (h); \draw[data] (h) -- (t);
+  \node[font=\scriptsize, text=gray, anchor=north] at (t.south) {$k$ = 12, 16, 20};
+  \mallorynode{mal}{-2.4,-0.8}
+  \node[msgval, font=\small\ttfamily, align=left] (tries) at (0,-0.8) {"0", "1", "2", \ldots};
+  \node[hwmain] (h2) at (4.6,-0.8) {\faCogs\ SHA-256};
+  \node[dgval, font=\small] (c) at (8.6,-0.8) {first $k$ bits};
+  \draw[data] (tries) -- (h2); \draw[data] (h2) -- (c);
+  \draw[very thick, sBrown, <->] (t.south) ++(0,-0.4) -- node[right, font=\small, text=nInk] {equal?} (c.north);
+  \node[unk, align=center] at (12.0,0.4) {tries = ?\\ seconds = ?};
 \end{tikzpicture}
 \end{document}

@@ -1,0 +1,6 @@
+INVOICE 2026-117
+From: Alice Smith, web design
+To:   Bob Jones
+Work: new home page, 3 days
+Total: 1200 GBP
+Pay to account 12-34-56 87654321 by 30 November 2026.

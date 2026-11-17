@@ -1,0 +1,22 @@
+% Task 8: logins with a hash chain.
+\documentclass[12pt,tikz,border=6pt]{standalone}
+\input{common}
+\begin{document}
+\pagecolor{white}
+\begin{tikzpicture}[>=Stealth]
+  \personnode{alice}{-1.4,0}{sIndigo}{Alice}
+  \node[secval, font=\small] (x0) at (0.4,0) {$x_0$};
+  \foreach \k/\x in {1/2.0, 2/3.6} \node[dgval, font=\small] (x\k) at (\x,0) {$x_\k$};
+  \node[font=\large] (dots) at (5.0,0) {$\cdots$};
+  \node[dgval, font=\small] (x99) at (6.4,0) {$x_{99}$};
+  \node[dgval, font=\small] (x100) at (8.1,0) {$x_{100}$};
+  \draw[data] (x0) -- node[above, font=\scriptsize] {H} (x1); \draw[data] (x1) -- node[above, font=\scriptsize] {H} (x2);
+  \draw[data] (x2) -- (dots); \draw[data] (dots) -- (x99); \draw[data] (x99) -- node[above, font=\scriptsize] {H} (x100);
+  \node[font=\scriptsize, text=gray, anchor=north] at (x0.south) {secret seed};
+  \node[hw, font=\small, minimum width=3.0cm] (srv) at (11.2,0) {\faServer\ Bob's server\\ \scriptsize stores $x_{100}$};
+  \draw[data, dashed, nLine] (x100) -- (srv);
+  \foreach \k in {1,...,5} \node[unk, font=\scriptsize, anchor=west] at (9.8,{-0.9-0.6*\k}) {login \k: OK or REJECTED?};
+  \evenode{eve}{6.6,-2.6}
+  \node[font=\scriptsize, text=sPinkText, anchor=west] at (7.3,-2.6) {listens};
+\end{tikzpicture}
+\end{document}

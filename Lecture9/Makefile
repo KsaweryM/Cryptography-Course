@@ -1,4 +1,4 @@
-# Builds Lecture 9 (PKI in Practice: Good Practices and Incidents).
+# Builds Lecture 9 (Why PKI and the X.509 Certificate).
 #
 #   make           build the slides
 #   make slides    the same
@@ -11,7 +11,7 @@
 LATEXMK   := latexmk
 LATEXOPTS := -pdf -interaction=nonstopmode -halt-on-error -file-line-error
 
-NAME   := Lecture_9_PKI_in_Practice_Good_Practices_and_Incidents
+NAME   := Lecture_9_Why_PKI_and_the_X.509_Certificate
 SLIDES := $(NAME).pdf
 BUILD  := build
 

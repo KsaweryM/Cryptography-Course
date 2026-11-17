@@ -1,55 +1,51 @@
-# Task 6: a self-signed certificate
+# Task 6: a Git object id
 
 ## The situation
 
-Alice runs a test server, `www.alice.example`, and has no CA. She makes a self-signed certificate: the issuer and the subject are the same name, and she signs it with her own private key. Its signature can be checked with the public key inside the same certificate. Mallory tries two tricks: she puts her own key into Alice's certificate, and she makes her own self-signed certificate with Alice's name.
+Bob keeps Alice's pancake recipe, `recipe.txt`, in a Git repository. Git does not name the file by its file name inside its database; it names it by a digest of its content, the **object id**. Bob ran `git hash-object recipe.txt` and got `e2fcdc71d93339fed5fc9b69eecf7c2b4712665c`. Can you get the same 40 hex digits with `hashlib` alone? And what happens to the id when Mallory changes one character of the recipe?
 
-![Three certificate cards, all with issuer = subject = CN=www.alice.example. Alice's certificate: Alice's key, signed with Alice's private key, verify? (steps 1 to 3). Mallory swaps the key: Mallory's key, still signed with Alice's private key, verify? (step 4). Mallory's own: Mallory's key, signed with Mallory's private key, verify? (step 5).](figure.svg)
+![A violet file recipe.txt (108 bytes): "Pancakes for four, 2 eggs, 250 ml milk...". In front of it a grey header "blob 108" followed by a zero byte. Both together go into a dark box SHA-1; out comes a brown object id "= ?" (40 hex digits), compared with what Git printed, e2fcdc71...4712665c. Below, Mallory in pink changes "2 eggs" into "3 eggs", and the new id is "= ?".](figure.svg)
 
 ## Goal
 
-Make Alice's self-signed certificate and check its signature with its own key. Then try both tricks of Mallory. What does a good signature on a self-signed certificate prove?
+Compute Git's object id of a file yourself and compare it with the output of Git; see what one changed character does to it.
 
 ## Ready for you
 
-- `cert_tools.py`: `load_private_key(path)` and `make_cert(subject, issuer, public_key, signing_key)`, which builds and signs a certificate as in Task 3 (serial number and dates are fixed).
-- `signing.py`: `verify(public_key, data, signature)` returns `True` or `False`.
-- `alice_private.pem` and `mallory_private.pem`, loaded as `alice_private` and `mallory_private`; the name `name` (`CN=www.alice.example`); the raw 32-byte public keys `alice_raw` and `mallory_raw`.
+- `git_id.py`: `GIT_SAYS`, the output of `git hash-object recipe.txt` (Git 2.43, 2026-11-17), and `content`, the bytes of the file.
+- `recipe.txt`: the recipe, 108 bytes.
+
+Git uses **SHA-1**, an older hash function with a 20-byte (160-bit) digest, written as 40 hex digits: `hashlib.sha1(data).hexdigest()`.
 
 ## Steps
 
-Write your code in place of the `TODO` comments in `self_signed.py`:
-
-1. Make Alice's certificate: the subject and the issuer are both `name`, the public key is `alice_private.public_key()`, and `alice_private` signs it.
-2. Print the subject and the issuer (`.rfc4514_string()`) and whether they are equal (`==`).
-3. Write `check(cert)`: verify the signature of `cert` with the public key inside the same `cert`. The signed bytes are `cert.tbs_certificate_bytes`, the signature is `cert.signature`, the key is `cert.public_key()`.
-4. Mallory puts her key into Alice's certificate: `der = bytearray(cert.public_bytes(serialization.Encoding.DER))`, `pos = der.find(alice_raw)`, then copy the 32 bytes of `mallory_raw` over `der[pos]` to `der[pos + 31]` in a loop. Load the result with `x509.load_der_x509_certificate(bytes(der))` and print `check()` of it.
-5. Mallory makes her own self-signed certificate with the same `name`, her public key and her private key. Print `check()` of it.
+1. The header: `b"blob " + str(len(content)).encode() + b"\0"`. `str(len(content)).encode()` writes the length in decimal ASCII digits, like `sprintf(buf, "%d", n)` in C; `b"\0"` is one zero byte, as at the end of a C string.
+2. `object_id = hashlib.sha1(header + content).hexdigest()`. `header + content` joins the two byte strings, like two `memcpy` calls into one buffer.
+3. `changed = content.replace(b"2 eggs", b"3 eggs")`, then the object id of `changed` in the same way.
 
 ## Expected output
 
-The subject and issuer (equal), then three results: Alice's certificate, the one with the swapped key, and Mallory's own.
+`the same: True`, then an id after Mallory's change that has nothing in common with the first one.
 
 <details>
 <summary>Check your answer</summary>
 
 ```
-subject: CN=www.alice.example
-issuer:  CN=www.alice.example
-issuer == subject: True
-Alice's certificate, signature OK: True
-Mallory's key in Alice's certificate (at byte 132 ), signature OK: False
-Mallory's own certificate for www.alice.example, signature OK: True
+header: b'blob 108\x00' (9 bytes)
+my object id:  e2fcdc71d93339fed5fc9b69eecf7c2b4712665c
+git says:      e2fcdc71d93339fed5fc9b69eecf7c2b4712665c
+the same: True
+after Mallory: ac97bb421067a34b98a0a7b7eded80535b9749d4
 ```
 
-Swapping the key changes the signed bytes, so the check fails. But Mallory's own certificate passes: it has the same name, and its signature is correct for the key inside it. A good signature on a self-signed certificate only proves that whoever made it has the matching private key. It says nothing about who owns the name; that trust must come from outside (a CA, or a fingerprint you checked).
+Git and you get the same id, because the id depends only on the content. If one character changes, the id changes completely, so Git notices any change of any file, and two equal files are stored only once.
 
 </details>
 
 ## Run
 
 ```
-python3 self_signed.py
+python3 git_id.py
 ```
 
-About 10 minutes. Python 3 and the library `cryptography` (version 41 or newer).
+About 7 minutes. Python 3.8 or newer, no extra libraries. If you have Git: `git hash-object recipe.txt` prints the same id.

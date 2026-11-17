@@ -1,23 +1,23 @@
-% Task 5: PEM by hand. CHECKED: Task5/solution/pem_by_hand.py
+% Task 5: which mirror is honest? Values from checks/make_task5.py.
 \documentclass[12pt,tikz,border=6pt]{standalone}
 \input{common}
 \begin{document}
 \pagecolor{white}
-\begin{tikzpicture}[>=Stealth, card]
-  \node[term, font=\ttfamily\scriptsize, anchor=north west] (p) at (0,0) {\five BEGIN CERTIFICATE\five\\
-    MIIBITCB1KADAgECAghPOpwucdBbiDAFBgMrZXAwOTELMAkGA1UEBhMCR0IxFjAU\\
-    BgNVBAoMDVRydXN0eSBDQSBMdGQxEjAQBgNVBAMMCVRydXN0eSBDQTAeFw0yNjEx\\
-    \ldots\\ YOkUYA0=\\ \five END CERTIFICATE\five};
-  \node[font=\small\bfseries, text=nInk, anchor=south west] at (p.north west) {bob.pem};
-  \node[byte, minimum width=1.0cm] at (0.5,-4.0) {30};
-  \foreach \b [count=\k from 1] in {82,01,21,30,81,D4,A0} \node[byte, minimum width=1.0cm] at ({0.5+1.05*\k},-4.0) {\b};
-  \node[font=\large, text=nInk] at (9.0,-4.0) {\ldots};
-  \node[note, anchor=west] at (9.5,-4.0) {293 bytes};
-  \draw[data] (3,-2.9) -- node[right, font=\small] {\badge{1}\ join the lines \quad \badge{2}\ Base64 decode} (3,-3.6);
-  \node[hwmain, minimum width=2.4cm, minimum height=0.9cm, font=\small\bfseries] (h) at (4,-5.6) {SHA-256};
-  \draw[data] (4,-4.35) -- (h);
-  \node[note, anchor=west] at (5.4,-5.0) {\badge{3}\ the same as the library?};
-  \node[cell, font=\ttfamily\small, anchor=north, minimum height=0.6cm] at (4,-6.4) {E8:C5:56:C2:\ldots \quad \badge{4}};
-  \node[todo, anchor=north west] at (8.6,-5.2) {\badge{5}\ flip one bit of byte 100:\\how many of the 32 bytes\\of the fingerprint change?};
+\begin{tikzpicture}[>=Stealth]
+  \personnode{alice}{0,2.2}{sIndigo}{Alice}
+  \node[hw, font=\small] (web) at (3.4,2.2) {\faGlobe\ Alice's website};
+  \node[dgval, font=\scriptsize\ttfamily, anchor=west] (sum) at (5.0,2.2) {SHA256SUMS: 347ec73c\ldots 690e89d1};
+  \draw[data] (alice) -- (web);
+  \foreach \m/\x in {a/0.8, b/4.6, c/8.4} {
+    \node[hw, minimum width=3.4cm, minimum height=2.0cm] (m\m) at (\x,-0.6) {};
+    \node[font=\small\bfseries, text=nInk, anchor=north] at (m\m.north) {\faServer\ mirror-\m};
+    \node[msgval, font=\scriptsize] at (\x,-0.5) {editor-2.4.1-installer.bin};
+    \node[dgval, font=\scriptsize] at (\x,-1.2) {its own SHA256SUMS};
+  }
+  \mallorynode{mal}{11.4,-0.4}
+  \node[font=\Large\bfseries, text=AccentOrange] at (11.4,0.6) {?};
+  \personnode{bob}{4.6,-3.4}{sTeal}{Bob}
+  \foreach \m in {a,b,c} \draw[data] (m\m.south) -- (bob);
+  \node[unk, anchor=west] at (6.0,-3.4) {the same as on Alice's website?};
 \end{tikzpicture}
 \end{document}

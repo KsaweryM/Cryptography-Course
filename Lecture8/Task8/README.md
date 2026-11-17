@@ -1,64 +1,66 @@
-# Task 8: pins and renewals
+# Task 8: the same k twice
 
 ## The situation
 
-Bob's phone app talks only to `api.bob.example`. In 2026 he shipped the app with **pins**: a pin of the whole 2026 certificate, and two pins of public keys (SPKI pins): the key of the 2026 certificate and a backup key that he keeps offline and has never used. In December 2026 the certificate must be renewed. Bob has three options: a new certificate with the same key, one with a brand new key, or one with the backup key. Which of them will the app still accept?
+Alice Games makes a game console. The console runs a program only if it carries a valid ECDSA signature (curve P-256, SHA-256) made with Alice Games' private key `d`; the console knows only the public key `Q = d x G`. But the signing program of Alice Games uses the same `k` every time. Mallory has two signed games and wants to run her own program on every console.
 
-![Bob's app from 2026 has pinned: a certificate pin, cert_pin(api_2026.pem), and two key pins, spki_pin(api_2026.pem) and 80E24poONJAEyvB/...u+I4=, a backup key kept in Bob's safe. Four certificates: api_2026.pem (January 2026, key 1), api_2027_same_key.pem (December 2026, key 1 again), api_2027_new_key.pem (December 2026, key 2), api_2027_backup_key.pem (December 2026, the backup key). For each: does the certificate pin match? Does a key pin match?](figure.svg)
+![A console that knows only Q. game_1.txt with the signature r = a7ef2367...e3800979, s1 = b109701c...737ab4af and game_2.txt with r = a7ef2367...e3800979, s2 = 76b7f5c7...34c86b4b: the same r, so the same k. Mallory computes k = ?, then d = ?, signs mallory_game.txt: console accepts?](figure.svg)
 
 ## Goal
 
-Compute certificate pins and key pins, and find which of the renewed certificates the app still accepts.
+Recover the private key `d` from the two signatures, check it against `Q`, and sign Mallory's program so that the console accepts it.
 
 ## Ready for you
 
-- `pins_ready.py` (do not change it): `FILES`, the four certificate files, and `load_cert(filename)`.
-- `certs/`: the four certificates of `api.bob.example`.
-- `pins.py`: the pins of the app and the loop over the certificates.
+- `ecdsa_ready.py`: `q` (the order of G; all ECDSA numbers are mod q), `hash_number(data)` (z: SHA-256 as a number), `public_key(d)` (the point d x G as a pair `(x, y)`), `sign(d, data)` (a new signature `(r, s)`) and `verify(Q, data, r, s)`.
+- `recover_key.py`: the three files as bytes, `Q`, and the two signatures `(r1, s1)` and `(r2, s2)`.
+- `pow(x, -1, q)`: the inverse of x mod q (Lecture 3). Dividing by x mod q means multiplying by `pow(x, -1, q)`.
+
+The two formulas of ECDSA you need (slides "Inside ECDSA" and "The same k twice"): `r` is the x of k x G, and `s = (z + r d) / k mod q`.
 
 ## Steps
 
-Write your code in place of the `TODO` comments in `pins.py`:
+Write your code in place of the `None` after each `TODO` in `recover_key.py`:
 
-1. `cert_pin(cert)`: take the DER bytes of the whole certificate, `cert.public_bytes(serialization.Encoding.DER)`, hash them with SHA-256 and encode the 32 bytes in base64: `base64.b64encode(hashlib.sha256(der).digest()).decode()`.
-2. `spki_pin(cert)`: the same, but only for the public key (the SubjectPublicKeyInfo):
-   `cert.public_key().public_bytes(serialization.Encoding.DER, serialization.PublicFormat.SubjectPublicKeyInfo)`.
-3. In the loop: compare `cert_pin(cert)` with `APP_CERT_PIN`, and `spki_pin(cert)` with each pin in `APP_SPKI_PINS` (use an index loop). Print the file name and `match` or `NO` for each kind of pin.
+1. `z1`, `z2`: the hashes of `game_1` and `game_2` as numbers.
+2. `k`: subtract the two equations for `s`; `r d` disappears. Solve for `k`, mod `q`.
+3. `d`: put `k` into the equation of the first signature and solve for `d`, mod `q`.
+4. `d_matches`: is `public_key(d) == Q`?
+5. `mallory_valid`: sign `mallory_game` with `d` (`r, s = sign(d, mallory_game)`) and check it with `verify(Q, ...)`.
 
-**Predict first:** which of the three renewals pass the certificate pin? Which pass a key pin?
+<details>
+<summary>Hint for steps 2 and 3</summary>
+
+k = (z1 - z2) / (s1 - s2) mod q, and d = (s1 k - z1) / r1 mod q. Write each division as a multiplication by `pow(..., -1, q)` and end with `% q`.
+
+</details>
 
 ## Expected output
-
-The app's pins on the first two lines, then one line per certificate.
 
 <details>
 <summary>Check your answer</summary>
 
 ```
-app cert pin: YG8DPNekiK+QyyAVTSAYvpVlTXSPIcO51TvSbnO5GVE=
-app key pins: ['/Bbx1A2gOvArfgXexc8HhPf+aZ1GbF9+OPlh0/gtaFQ=', '80E24poONJAEyvB/qmN1uvdylRrWLUT6ExA0k7hu+I4=']
-api_2026.pem               cert pin: match  key pin: match
-api_2027_same_key.pem      cert pin: NO     key pin: match
-api_2027_new_key.pem       cert pin: NO     key pin: NO
-api_2027_backup_key.pem    cert pin: NO     key pin: match
+signature of game 1 valid: True
+signature of game 2 valid: True
+z1 = 0xca3b4660cf2082827b96167343c32b9ea99a7fba27515b3dc9c1d234b3cefd2
+z2 = 0xab62eabbe775ef323b410fd4fef32b791aeaf80f9a13bcaef0555a2e71036a46
+k  = 0xccfc9b5a4810d39278af4285a63e384b21ceca0ae4346ae10a22902e518abbc0
+d  = 0xdb8c7cb15301165917fb456dbe9f471410044244de069f55e3c64f2aa1189f1c
+public_key(d) == Q: True
+the console accepts Mallory's program: True
 ```
 
-Every renewal breaks the certificate pin. A key pin survives a renewal with the same key, and the backup pin saves Bob when he must change the key (for example after a leak). With a new key that was never pinned, the app stops working until every user installs an update.
-
-You can check a key pin with the same command as on the slides:
-
-```
-openssl x509 -in certs/api_2026.pem -pubkey -noout | openssl pkey -pubin -outform der | openssl dgst -sha256 -binary | base64
-```
-
-It prints `/Bbx1A2gOvArfgXexc8HhPf+aZ1GbF9+OPlh0/gtaFQ=`.
+The same `r` in both signatures shows that `k` repeated. Two equations with the same unknown `k` give `k`, and then `d`. This is what happened to the Sony PlayStation 3 in 2010.
 
 </details>
 
 ## Run
 
 ```
-python3 pins.py
+python3 recover_key.py
 ```
 
-About 10 minutes. Python 3 and the `cryptography` library (version 41 or newer); works offline.
+About 12 minutes. Python 3 and the library `cryptography` (used by `ecdsa_ready.py` for `sign` and `verify`).
+
+Want to see it move? The [signatures simulator, step 5](https://ksawerym.github.io/Cryptography-simulators/signatures/#5) does the same attack step by step on the small curve of Lecture 5. Open it after the task.

@@ -1,0 +1,19 @@
+\documentclass[tikz,border=8pt]{standalone}
+\input{common.tex}
+\begin{document}
+\begin{tikzpicture}[>=Stealth]
+\foreach \x/\nm/\sty/\sg/\who in {0/alice\_server/apub/asig/Alice, 6.4/mallory\_server/mpub/mpriv/Mallory} {
+  \node[hw, minimum width=5.4cm, minimum height=2.8cm] at (\x,0) {};
+  \node[font=\small\bfseries, text=nInk] at (\x,1.05) {\faServer\ \nm/};
+  \node[msg, font=\scriptsize, minimum width=4.4cm] at (\x,0.4) {update.sh};
+  \node[\sg, font=\scriptsize, minimum width=4.4cm] at (\x,-0.25) {update.sig (by \who)};
+  \node[\sty, font=\scriptsize, minimum width=4.4cm] at (\x,-0.9) {public\_key.pem};
+}
+\who{D}{-2.0,-2.4}{nInk}{\faUser}{Dave}
+\node[apub, font=\scriptsize\ttfamily, anchor=west] at (-0.9,-2.4) {built-in key: 64ecb2f9\ldots 9778ec42};
+\foreach \y/\t in {-3.3/{each server checked with the key from the server}, -4.0/{Mallory's key = built-in key?}, -4.7/{Mallory's update with the built-in key?}} {
+  \node[font=\small, text=nInk, anchor=west] at (-0.9,\y) {\t};
+  \node[unk] at (8.4,\y) {?};
+}
+\end{tikzpicture}
+\end{document}

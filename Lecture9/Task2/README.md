@@ -1,63 +1,59 @@
-# Task 2: lock the key file
+# Task 2: a signed name card
 
 ## The situation
 
-`server.key` is the private key of a web server: whoever has this file can pretend to be the server. Right now it is a plain PEM file that every user of the machine may read (`-rw-r--r--`). Mallory has an account on the same machine. She only needs to copy the file.
+Alice wants Bob's public key, but Mallory sits on the network and can swap it for her own. A party that everybody trusts, the certificate authority Trusty CA, checks that the key is really Bob's and signs the card `name=bob.example;key=<Bob's key>`. Alice already has the public key of Trusty CA, so she can check the card. Can Mallory change it?
 
-Two cheap protections: **encrypt the file** with a passphrase, and let **only the owner** read it (mode `600`).
-
-![A web server with two key files. server.key, mode -rw-r--r--, starts with -----BEGIN PRIVATE KEY----- and base64 text; now anyone on the server can read it. Mallory copies it, and now she is the server. Below, server-locked.key, mode -rw-------, starts with -----BEGIN ENCRYPTED PRIVATE KEY----- and question marks: your job, a passphrase and mode 600. Mallory copies that one too: what does she get without the passphrase?](figure.svg)
+![Trusty CA (brown, with its private key) signs Bob's card: name=bob.example;key=2fa8b9a6...702e3c40, with the signature still unknown (steps 1 and 2). Below, Alice with the public key of Trusty CA checks the card (step 3). Mallory, with her key 456918eb...539d5bcb, tries two tricks: her key in the card with the CA signature (step 4), and her key with her own signature (step 5).](figure.svg)
 
 ## Goal
 
-Write an encrypted copy of the key, check what Mallory gets from it without the passphrase, and allow only the owner to read the file.
+Play Trusty CA and sign Bob's card; play Alice and check it; then try both tricks of Mallory and see what Alice gets.
 
 ## Ready for you
 
-- `server.key`: an RSA key of 2048 bits, not encrypted.
-- `PASSPHRASE` in `protect_key.py`.
-- From the `cryptography` library: `serialization.load_pem_private_key(data, password=...)` reads a key; `key.private_bytes(...)` writes one.
+- `signing.py`: digital signatures as a black box (Ed25519, from the library `cryptography`):
+  - `sign(private_key, data)` returns the signature (64 bytes),
+  - `verify(public_key, data, signature)` returns `True` or `False`,
+  - `key_hex(public_key)` returns the 32 bytes of a public key as hex text.
+- The keys, already loaded at the top of `name_card.py`: `ca_private`, `ca_public`, `bob_public`, `mallory_private`, `mallory_public`.
 
 ## Steps
 
-Write your code in place of the `TODO` comments in `protect_key.py`:
+Write your code in place of the `TODO` comments in `name_card.py`:
 
-1. Read `server.key` and print its first line and its mode: `oct(os.stat("server.key").st_mode & 0o777)` (like `stat()` in C). Load it with `password=None` and print `key.key_size`.
-2. Write the key to `server-locked.key`, encrypted with `serialization.BestAvailableEncryption(PASSPHRASE)`. Print the first line of the new file.
-3. Play Mallory: load `server-locked.key` with `password=None`, then with `b"123456"`. Each try raises an exception; catch it with `try: ... except (TypeError, ValueError) as e:` and print `type(e).__name__` and `e`. Then load it with `PASSPHRASE`.
-4. `os.chmod("server-locked.key", 0o600)` and print the new mode.
-
-Hints: `data.split(b"\n")[0]` is the first line of `data`; `open(name, "wb").write(data)` writes bytes to a file.
+1. Make Bob's card: the bytes `b"name=bob.example;key="` followed by `key_hex(bob_public)`. `key_hex` gives text; `.encode()` turns text into bytes, and `+` joins two byte strings. Print it.
+2. Trusty CA signs the card with its private key: `signature = sign(ca_private, card)`. Print `signature.hex()`.
+3. Alice checks the card with the public key of Trusty CA: print `verify(ca_public, card, signature)`.
+4. Mallory keeps the signature but puts her own key in the card: `fake = b"name=bob.example;key="` followed by `key_hex(mallory_public)`. Print what Alice gets for `fake` with the same `signature`.
+5. Mallory signs `fake` with her own private key. Alice checks it as always, with the public key of Trusty CA. Print the result.
 
 ## Expected output
 
-The plain file loads without a password; the locked one does not, and its mode becomes `0o600`.
+Your two keys, the card and the signature, then three lines: `True` for Bob's card, and a result for each trick of Mallory.
 
 <details>
 <summary>Check your answer</summary>
 
 ```
-server.key starts with:   -----BEGIN PRIVATE KEY-----
-server.key mode:          0o664
-loaded without a password, RSA 2048 bits
-
-server-locked.key starts with: -----BEGIN ENCRYPTED PRIVATE KEY-----
-
-password None : TypeError: Password was not given but private key is encrypted
-password b'123456' : ValueError: Bad decrypt. Incorrect password?
-password PASSPHRASE : loaded, RSA 2048 bits
-
-server-locked.key mode:   0o600
+Bob's key:     2fa8b9a6b0d5878b924cb42b1188f4e5f12cf7aa0d6faa0f2d715304702e3c40
+Mallory's key: 456918eb304833d3885ff5c8f8091b98ca67d882d81deeb5c2590cfb539d5bcb
+card:          b'name=bob.example;key=2fa8b9a6b0d5878b924cb42b1188f4e5f12cf7aa0d6faa0f2d715304702e3c40'
+signature:     5d034483ee304edd20c5d8652d973ff06104445dd771b3303fc46de25e17176e5acc643a5b7f657abe7e45d6f655791fce16aa808360631a4509d6b3c4043f0a
+Bob's card, CA signature:         True
+Mallory's key, CA signature:      False
+Mallory's key, Mallory signature: False
 ```
 
-The first mode depends on your system (`0o644` on most Linux machines). On Windows, `chmod` can only make a file read-only, so the last line shows `0o666` or `0o444`: there the access rules (ACLs) do this job. The passphrase still has to live somewhere when the server starts; that is why big sites keep keys in hardware (HSM).
+Ed25519 signatures have no randomness, so your signature is exactly this one. Changing the card changes the signed bytes, so the old signature fails. Mallory's own signature fails because Alice always checks with the key of Trusty CA, not with a key from the card.
 
 </details>
 
 ## Run
 
 ```
-python3 protect_key.py
+pip install cryptography
+python3 name_card.py
 ```
 
-About 8 minutes. Python 3 and the `cryptography` library (`pip install cryptography`).
+About 12 minutes. Python 3 and the library `cryptography` (version 41 or newer). No internet needed after the install.

@@ -1,23 +1,19 @@
-% Task 8: pins. Values from Task8/solution/pins.py.
-% CHECKED: SPKI pins (openssl ... | base64): api_2026 and api_2027_same_key /Bbx1A2gO...; new_key MuQjtz+Y...;
-%   backup_key 80E24poO...
-\documentclass[12pt,tikz,border=6pt]{standalone}
-\input{common}
+\documentclass[tikz,border=8pt]{standalone}
+\input{common.tex}
 \begin{document}
-\pagecolor{white}
 \begin{tikzpicture}[>=Stealth]
-  \node[person=sTeal] (app) at (-1.2,0) {\faMobile*};
-  \node[font=\small\bfseries, text=sTealText, above=0.08cm of app] {Bob's app (2026)};
-  \node[card=nLine, fill=white, anchor=west, text width=9.8cm] at (1.0,0) {\textbf{pinned in the app}\\[2pt]
-    certificate pin: \texttt{cert\_pin(api\_2026.pem)}\\
-    key pins: \texttt{spki\_pin(api\_2026.pem)},\\ \hspace*{1.3cm}\texttt{80E24poONJAEyvB/\ldots u+I4=} (a backup key, offline)};
-  \node[privval, anchor=west] at (11.6,0.3) {\faKey\ backup key\\ in Bob's safe};
-  \foreach \k/\f/\d in {0/api\_2026.pem/{Jan 2026, key 1}, 1/api\_2027\_same\_key.pem/{Dec 2026, key 1 again},
-      2/api\_2027\_new\_key.pem/{Dec 2026, key 2}, 3/api\_2027\_backup\_key.pem/{Dec 2026, the backup key}} {
-    \pgfmathsetmacro{\y}{-1.8-0.75*\k}
-    \node[smallcard=sTeal, anchor=west] at (0,\y) {\cert\ \texttt{\f}};
-    \node[font=\small, text=gray, anchor=west] at (6.0,\y) {\d};
-    \node[font=\small, anchor=west] at (10.6,\y) {cert pin \textcolor{AccentOrange}{\bfseries ?}\quad key pin \textcolor{AccentOrange}{\bfseries ?}};
-  }
+\node[hw, minimum width=3.2cm, minimum height=2.0cm] (c) at (0,0) {\faGamepad\\ console\\ \scriptsize knows Q only};
+\node[msg, font=\small] (g1) at (5.0,1.2) {game\_1.txt};
+\node[asig, font=\scriptsize\ttfamily] (s1) at (10.2,1.2) {r = a7ef2367\ldots e3800979, s1 = b109701c\ldots 737ab4af};
+\node[msg, font=\small] (g2) at (5.0,0) {game\_2.txt};
+\node[asig, font=\scriptsize\ttfamily] (s2) at (10.2,0) {r = a7ef2367\ldots e3800979, s2 = 76b7f5c7\ldots 34c86b4b};
+\draw[data] (g1) -- (s1); \draw[data] (g2) -- (s2);
+\node[font=\scriptsize\bfseries, text=AccentOrange] at (10.2,-0.6) {the same r: the same k};
+\who{M}{0,-2.8}{sPink}{\faUserSecret}{Mallory}
+\node[unk] (k) at (3.2,-2.6) {k = ?};
+\node[unk] (d) at (5.6,-2.6) {d = ?};
+\node[msg, font=\small, draw=sPink, line width=1.2pt] (mg) at (8.6,-2.6) {mallory\_game.txt};
+\node[unk] at (11.6,-2.6) {console accepts?};
+\draw[data] (M) -- (k); \draw[data] (k) -- (d); \draw[data] (d) -- (mg);
 \end{tikzpicture}
 \end{document}

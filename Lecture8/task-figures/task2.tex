@@ -1,0 +1,20 @@
+\documentclass[tikz,border=8pt]{standalone}
+\input{common.tex}
+\begin{document}
+\begin{tikzpicture}[>=Stealth]
+\node[msg, font=\small] (m) at (0,0.6) {\textquotedblleft Bob, the meeting is moved to Friday 10:00. Alice\textquotedblright{}};
+\node[apriv, font=\small] (k) at (-2.4,-0.4) {\faKey\ Alice's private key};
+\node[hwmain] (s) at (1.8,-0.4) {\faCogs\ sign};
+\node[unk, font=\small] (sig) at (5.4,-0.4) {signature, 64 bytes = ?};
+\draw[data] (k) -- (s); \draw[data] (m.south) ++(1.8,0) -- (s.north); \draw[data] (s) -- (sig);
+\node[apub, font=\small] (pk) at (-2.4,-2.2) {\faKey\ Alice's public key};
+\node[hwmain] (v) at (1.8,-2.2) {\faCogs\ verify};
+\draw[data] (pk) -- (v);
+\who{B}{1.8,-3.6}{sTeal}{\faUser}{Bob}
+\foreach \y/\txt in {-1.6/{the message + Alice's signature}, -2.3/{the message with \textbf{11:00} + Alice's signature}, -3.0/{the message with 11:00 + \textcolor{sPinkText}{Mallory's signature}}} {
+  \node[font=\small, text=nInk, anchor=west] at (3.6,\y) {\txt};
+  \node[unk] at (11.2,\y) {?};
+}
+\node[mpriv, font=\small] at (7.4,-4.0) {\faKey\ Mallory's private key};
+\end{tikzpicture}
+\end{document}

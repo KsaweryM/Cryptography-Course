@@ -1,19 +1,23 @@
-% Task 3: build Trusty Root CA, Trusty CA 1 and a leaf for alice-shop.example, then a TLS client checks them.
+% Task 3: two contracts, one fingerprint. The matching variants are not shown.
 \documentclass[12pt,tikz,border=6pt]{standalone}
 \input{common}
 \begin{document}
 \pagecolor{white}
 \begin{tikzpicture}[>=Stealth]
-
-  \cert{rt}{0,0}{sViolet}{4.6cm}{Trusty Root CA}{self-signed\\CA:TRUE, path\_len 1\\20 years}
-  \cert{in}{5.6,0}{sBrown}{4.6cm}{Trusty CA 1}{signed by the root\\CA:TRUE, path\_len 0\\5 years}
-  \cert{lf}{11.2,0}{sIndigo}{4.6cm}{alice-shop.example}{signed by Trusty CA 1\\CA:FALSE\\90 days}
-  \draw[sig] (rt.east) -- node[above, font=\small] {signs} (in.west);
-  \draw[sig] (in.east) -- node[above, font=\small] {signs} (lf.west);
-  \foreach \x/\n in {0/1, 5.6/2, 11.2/3} \node[circle, fill=AccentOrange, text=white, font=\bfseries\small, minimum size=0.6cm] at (\x-2.3,0.05) {\n};
-  \node[hwmain, minimum width=4.6cm, minimum height=1.4cm, align=center, font=\small\bfseries] (tls) at (5.6,-3.6) {\faLock\ TLS client\\trusts only Trusty Root CA};
-  \draw[data] (lf.south) |- node[pos=0.75, above, font=\small] {leaf + intermediate} (tls.east);
-  \draw[data, dashed] (rt.south) |- node[pos=0.75, above, font=\small] {in its trust store} (tls.west);
-  \node[note, anchor=north] at (tls.south) {\badge{5}\ OK, or why not?};
+  \node[msgval, font=\scriptsize\ttfamily, text width=5.6cm, align=left] (f) at (0,0) {Contract\\ Mallory sells her bike to Alice.\\ The price is \textbf{100} pounds.\\ Alice pays on 1 March.\\ Mallory gives the bike to Alice on\\ the same day.\\ Signed: Alice, Mallory};
+  \node[font=\small\bfseries, text=nInk, above=0.1cm of f] {FAIR: $2^{16}$ variants};
+  \node[msgval, font=\scriptsize\ttfamily, text width=5.6cm, align=left] (u) at (7.6,0) {Contract\\ Mallory sells her bike to Alice.\\ The price is \textbf{1000} pounds.\\ Alice pays on 1 March.\\ Mallory gives the bike to Alice on\\ the same day.\\ Signed: Alice, Mallory};
+  \node[font=\small\bfseries, text=nInk, above=0.1cm of u] {UNFAIR: up to $2^{24}$ variants};
+  \node[font=\scriptsize, text=AccentOrange, align=center] at (3.8,-1.6) {every gap between words:\\ one space or two};
+  \node[mech, minimum width=3.0cm] (fp) at (3.8,-2.6) {\faCogs\ fingerprint: first 32 bits of SHA-256};
+  \draw[data] (f.south) |- (fp.west);
+  \draw[data] (u.south) |- (fp.east);
+  \node[digval, font=\small\ttfamily] (d) at (3.8,-3.7) {the same 32 bits = ?};
+  \draw[data] (fp) -- (d);
+  \node[person=sTeal] (c) at (8.2,-3.7) {\faUser};
+  \node[font=\small\bfseries, text=sTealText, right=0.1cm of c] {Carol keeps only these 32 bits};
+  \draw[data] (d) -- (c);
+  \mallorynode{m}{-1.8,-3.4}
+  \node[unk, font=\scriptsize] at (-1.8,-4.9) {fair number = ?\\ unfair number = ?};
 \end{tikzpicture}
 \end{document}

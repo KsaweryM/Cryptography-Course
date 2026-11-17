@@ -1,80 +1,47 @@
-# Task 7: two real certificates
+# Task 7: commitments
 
 ## The situation
 
-`coventry.pem` and `bbc.pem` are the real certificates of www.coventry.ac.uk and www.bbc.co.uk, saved on 15 November 2026 with
+On Monday, before the match Coventry City against Leeds United, Alice, Mallory and Carol each want to prove later that they predicted the final score, without telling anybody now. Each publishes a **commitment**: Alice and Mallory publish SHA-256(r ‖ prediction), where r is 16 secret random bytes; Carol publishes only SHA-256(prediction). The match ends 2:1. On Saturday Alice and Mallory reveal r and their prediction, and both say "2:1". Bob checks them. Then he wonders whether he could have read Carol's prediction already on Monday.
 
-```
-openssl s_client -connect www.coventry.ac.uk:443 -servername www.coventry.ac.uk < /dev/null > out.txt
-```
-
-(and the same for www.bbc.co.uk), keeping the first certificate. No internet is needed for the task. The sites get new certificates every few weeks, so what they send today is probably newer.
-
-![Two certificate cards. coventry.pem: subject CN=www.coventry.ac.uk, issuer WE1 (Google Trust Services), key EC P-256. bbc.pem: subject CN=www.bbc.com, O=BRITISH ..., C=GB, issuer GlobalSign GCC R46 OV TLS CA 2025, key RSA 2048. On both: days valid? SAN: ? names. Below, five names with a question mark each: www.coventry.ac.uk, coventry.ac.uk, www.bbc.co.uk, news.bbc.co.uk, sport.bbc.co.uk. Step 3: covers(cert, host): is host one of the DNS names in the SAN?](figure.svg)
+![Monday: Alice in indigo, Mallory and Carol each publish a brown commitment; Alice's and Mallory's are made from an amber secret r and a violet prediction, Carol's only from a prediction. Saturday: Alice and Mallory reveal r and "2:1". Bob in teal recomputes and asks "match? ?" for each. Bob also tries all scores 0:0 to 9:9 against Carol's commitment: "Carol predicted ?".](figure.svg)
 
 ## Goal
 
-Read the two certificates: who they belong to, who issued them, for how many days, and which names they cover.
-
-Predict first: does the university's certificate cover `coventry.ac.uk`, without `www.`?
+Make and check commitments with a hash, catch the one who changed her prediction, and see why the random r is needed.
 
 ## Ready for you
 
-- `coventry.pem`, `bbc.pem`.
-- `cert_tools.py`: `load_cert`, `valid_from(cert)` and `valid_until(cert)` (dates in UTC), `find_extension(cert, kind)`, `key_name(public_key)` (for example `EC P-256`), `oid_name(oid)`.
-- In `read_real.py`: the loop over the two files, which already prints the key and the signature algorithm.
+- `commit.py`: the three published commitments, the revealed values of Alice and Mallory, and the printing. Each part says `not done yet: TODO n` until its TODO is done.
 
 ## Steps
 
-Write your code in place of the `TODO` comments in `read_real.py`:
-
-1. Print the subject and the issuer (`.rfc4514_string()`).
-2. Print how many days the certificate is valid: `(valid_until(cert) - valid_from(cert)).days`.
-3. Write `covers(cert, host)`: `san = find_extension(cert, x509.SubjectAlternativeName)`, `names = san.get_values_for_type(x509.DNSName)`, then loop over `names` with an index and return `True` if one of them `== host`, otherwise `False`.
-4. In the loop over the files: print how many DNS names the SAN has, and the first three of them.
-5. After the loop: for every host in `hosts` and every certificate, print the result of `covers()`.
+1. In `commit(r, prediction)`: return `hashlib.sha256(r + prediction).hexdigest()`. `r + prediction` joins the two byte strings.
+2. In `check(commitment, r, prediction)`: compute the commitment again from `r` and `prediction` and compare it with the published `commitment` (`==` on two strings compares them character by character, like `strcmp(a, b) == 0`).
+3. Carol's commitment has no r. Try every score `home:away` with `home` and `away` from 0 to 9 (two nested `for` loops), as bytes `(str(home) + ":" + str(away)).encode()`, until `hashlib.sha256(guess).hexdigest() == CAROL_COMMIT`. Count the tries.
 
 ## Expected output
 
-For each certificate: subject, issuer, dates, days, key, signature algorithm, the SAN count; then a table of `True` and `False`.
+Alice passes, Mallory fails, and Carol's prediction is found in fewer than 100 tries.
 
 <details>
 <summary>Check your answer</summary>
 
 ```
-== coventry.pem
-   subject:   CN=www.coventry.ac.uk
-   issuer:    CN=WE1,O=Google Trust Services,C=US
-   valid:     2026-10-13 02:29:16+00:00 to 2027-01-11 03:29:14+00:00
-   days:      90
-   key:       EC P-256
-   signature: ecdsa-with-SHA256
-   SAN names: 1 ['www.coventry.ac.uk']
-== bbc.pem
-   subject:   CN=www.bbc.com,O=BRITISH BROADCASTING CORPORATION,L=London,ST=London,C=GB
-   issuer:    CN=GlobalSign GCC R46 OV TLS CA 2025,O=GlobalSign nv-sa,C=BE
-   valid:     2026-08-21 11:32:02+00:00 to 2027-01-24 05:46:23+00:00
-   days:      155
-   key:       RSA 2048
-   signature: sha256WithRSAEncryption
-   SAN names: 22 ['www.bbc.com', 'account.bbc.com', 'session.bbc.com']
-www.coventry.ac.uk    coventry.pem: True  bbc.pem: False
-coventry.ac.uk        coventry.pem: False  bbc.pem: False
-www.bbc.co.uk         coventry.pem: False  bbc.pem: True
-news.bbc.co.uk        coventry.pem: False  bbc.pem: True
-sport.bbc.co.uk       coventry.pem: False  bbc.pem: False
+commit(r, 1:0) with r = b'r': 544c617b43e09262d154e248e68fd39f0648df05360f04587bad2f8f59ab4f52
+Alice says 2:1, matches her commitment: True
+Mallory says 2:1, matches her commitment: False
+Carol predicted 3:1 (found after 32 tries)
 ```
 
-- The university's certificate has one name only, `www.coventry.ac.uk`: it does **not** cover `coventry.ac.uk`.
-- The BBC certificate says `CN=www.bbc.com`, but covers `www.bbc.co.uk` and `news.bbc.co.uk` because they are in its SAN. `sport.bbc.co.uk` is not, so that site needs another certificate.
-- The SAN decides, not the CN, and a name that looks similar is not enough.
+Mallory committed to a different score on Monday and now claims 2:1: to pass, she would need another input with the same digest, a second preimage. Carol's prediction is one of only 100 scores, so Bob just hashes all of them: preimage resistance protects nothing when the input can be guessed. The 16 random bytes of r make the input impossible to guess (2^128 possibilities).
 
 </details>
 
 ## Run
 
 ```
-python3 read_real.py
+python3 commit.py
 ```
 
-About 12 minutes. Python 3 and the library `cryptography` (version 41 or newer). No internet needed.
+About 9 minutes. Python 3.8 or newer, no extra libraries.

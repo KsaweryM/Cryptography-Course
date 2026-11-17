@@ -1,59 +1,69 @@
-# Task 2: a signed name card
+# Task 2: count the changed bits
 
 ## The situation
 
-Alice wants Bob's public key, but Mallory sits on the network and can swap it for her own. A party that everybody trusts, the certificate authority Trusty CA, checks that the key is really Bob's and signs the card `name=bob.example;key=<Bob's key>`. Alice already has the public key of Trusty CA, so she can check the card. Can Mallory change it?
+Alice writes to Bob: `Meet Carol at the library at 10:00`. Mallory changes one single bit of the message on the way: the lowest bit of the first byte, so `M` (0x4D) becomes `L` (0x4C). Bob compares the SHA-256 digest of what he got with the digest of what Alice sent. How different are the two digests: one bit, a few bits, or more? Then you repeat the experiment 1000 times with other messages to see whether the first result was luck.
 
-![Trusty CA (brown, with its private key) signs Bob's card: name=bob.example;key=2fa8b9a6...702e3c40, with the signature still unknown (steps 1 and 2). Below, Alice with the public key of Trusty CA checks the card (step 3). Mallory, with her key 456918eb...539d5bcb, tries two tricks: her key in the card with the CA signature (step 4), and her key with her own signature (step 5).](figure.svg)
+![Two messages in violet, "Meet Carol at the library at 10:00" and "Leet Carol at the library at 10:00", with the changed bit of the first byte marked: 0100 1101 and 0100 1100. Each goes into SHA-256; the two brown digests, 256 bits each, are compared bit by bit with XOR, and a counter asks "changed bits = ? of 256".](figure.svg)
 
 ## Goal
 
-Play Trusty CA and sign Bob's card; play Alice and check it; then try both tricks of Mallory and see what Alice gets.
+Count in how many of the 256 bit positions two digests differ, for one pair and for 1000 pairs, and see what one changed bit of input does to the output.
 
 ## Ready for you
 
-- `signing.py`: digital signatures as a black box (Ed25519, from the library `cryptography`):
-  - `sign(private_key, data)` returns the signature (64 bytes),
-  - `verify(public_key, data, signature)` returns `True` or `False`,
-  - `key_hex(public_key)` returns the 32 bytes of a public key as hex text.
-- The keys, already loaded at the top of `name_card.py`: `ca_private`, `ca_public`, `bob_public`, `mallory_private`, `mallory_public`.
+- `avalanche.py`:
+  - `MESSAGE`: Alice's message.
+  - `flip_bit(data, i)`: a copy of `data` with bit number `i` changed (bit 0 is the lowest bit of byte 0).
+  - the printing, including a small text histogram. Each line says `not done yet: TODO n` until its TODO is done.
 
 ## Steps
 
-Write your code in place of the `TODO` comments in `name_card.py`:
+1. In `count_diff_bits(a, b)`: for every index `i`, `x = a[i] ^ b[i]` has a 1 exactly where the two bytes differ (XOR, as in C). Count the ones of `x` with a loop as in C: `while x != 0: count = count + (x & 1); x = x >> 1`. Return `count`. The program tests it: 0x0f and 0x01 differ in 3 bits.
+2. One pair: `d1` and `d2` are the SHA-256 digests (`.digest()`, 32 bytes) of `MESSAGE` and of `flip_bit(MESSAGE, 0)`; `one_pair = count_diff_bits(d1, d2)`.
+3. 1000 trials: for `t` from 0 to 999, `m1 = MESSAGE + t.to_bytes(4, "big")` (the message with the trial number appended as 4 bytes, so every trial has a different message), `m2 = flip_bit(m1, t % (8 * len(m1)))` (one bit changed, at a different place every time), and count the differing bits of their digests. Keep the smallest, the largest and the sum, and add 1 to `histogram[diff]`.
 
-1. Make Bob's card: the bytes `b"name=bob.example;key="` followed by `key_hex(bob_public)`. `key_hex` gives text; `.encode()` turns text into bytes, and `+` joins two byte strings. Print it.
-2. Trusty CA signs the card with its private key: `signature = sign(ca_private, card)`. Print `signature.hex()`.
-3. Alice checks the card with the public key of Trusty CA: print `verify(ca_public, card, signature)`.
-4. Mallory keeps the signature but puts her own key in the card: `fake = b"name=bob.example;key="` followed by `key_hex(mallory_public)`. Print what Alice gets for `fake` with the same `signature`.
-5. Mallory signs `fake` with her own private key. Alice checks it as always, with the public key of Trusty CA. Print the result.
+Predict first: one bit of the input changed. How many of the 256 output bits change?
 
 ## Expected output
 
-Your two keys, the card and the signature, then three lines: `True` for Bob's card, and a result for each trick of Mallory.
+The test line, the two digests and the number of changed bits, then the smallest, largest and average of 1000 trials and a histogram.
 
 <details>
 <summary>Check your answer</summary>
 
 ```
-Bob's key:     2fa8b9a6b0d5878b924cb42b1188f4e5f12cf7aa0d6faa0f2d715304702e3c40
-Mallory's key: 456918eb304833d3885ff5c8f8091b98ca67d882d81deeb5c2590cfb539d5bcb
-card:          b'name=bob.example;key=2fa8b9a6b0d5878b924cb42b1188f4e5f12cf7aa0d6faa0f2d715304702e3c40'
-signature:     5d034483ee304edd20c5d8652d973ff06104445dd771b3303fc46de25e17176e5acc643a5b7f657abe7e45d6f655791fce16aa808360631a4509d6b3c4043f0a
-Bob's card, CA signature:         True
-Mallory's key, CA signature:      False
-Mallory's key, Mallory signature: False
+test: 0x0f and 0x01 differ in 3 bits (should be 3)
+digest 1: 732060cea8098b9544f35ac67fd4eb6f92cf7d28d07620fe0b090978a02f231d
+digest 2: 46da9bbfaac6536ff0615de35d84bbd3a2babdf8983d87d8470a92e72964dd8f
+one bit changed in the message, 121 of 256 bits changed in the digest
+1000 trials: smallest 104  largest 152  average 127.723
+how many trials gave each number of changed bits (one # per 5 trials):
+  100 to 103:  0
+  104 to 107:  2
+  108 to 111: ### 19
+  112 to 115: ######### 48
+  116 to 119: ################# 89
+  120 to 123: ############################## 154
+  124 to 127: ###################################### 191
+  128 to 131: ################################## 172
+  132 to 135: ############################### 155
+  136 to 139: ################### 95
+  140 to 143: ######## 42
+  144 to 147: #### 23
+  148 to 151: # 9
+  152 to 155:  1
+  156 to 159:  0
 ```
 
-Ed25519 signatures have no randomness, so your signature is exactly this one. Changing the card changes the signed bytes, so the old signature fails. Mallory's own signature fails because Alice always checks with the key of Trusty CA, not with a key from the card.
+About half of the 256 bits change, never just a few: the digests of two almost equal messages look like two unrelated random numbers. This is the avalanche effect.
 
 </details>
 
 ## Run
 
 ```
-pip install cryptography
-python3 name_card.py
+python3 avalanche.py
 ```
 
-About 12 minutes. Python 3 and the library `cryptography` (version 41 or newer). No internet needed after the install.
+About 8 minutes. Python 3.8 or newer, no extra libraries. The 1000 trials take well under a second.

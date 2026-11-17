@@ -1,54 +1,64 @@
-# Task 4: who may sign?
+# Task 4: two real collisions
 
 ## The situation
 
-Mallory bought an honest certificate for her own website `mallory.example`, so she has a private key and a certificate signed by Trusty CA 1. She uses that key to sign a certificate for `bank.example`. The signature is mathematically correct. Will a TLS client accept it?
+In 2004 Xiaoyun Wang, Dengguo Feng, Xuejia Lai and Hongbo Yu published two different 128-byte messages with the same MD5 digest. In 2017 researchers from CWI Amsterdam and Google (SHAttered) published two different PDF files with the same SHA-1 digest. You have both pairs: `md5_a.bin` and `md5_b.bin` (Wang's messages) and `sha1_a.bin` and `sha1_b.bin` (the first 320 bytes of the two SHAttered PDFs, downloaded from shattered.io on 2026-11-17; after these 320 bytes the inner state of SHA-1 is already the same, so the rest of the PDF is not needed).
 
-A second case: the company Acme gets its own intermediate CA, "Acme Corp CA", limited by Name Constraints to names under `acme.example`. What happens when it issues a certificate for `bank.example`?
-
-![Top: Trusty CA 1 (CA:TRUE) signs mallory.example (CA:FALSE, Mallory's key), which signs a dashed pink certificate bank.example: accepted? Bottom: Acme Corp CA (permitted: acme.example) issues www.acme.example and bank.example: accepted?](figure.svg)
+![Two pairs of files: md5_a.bin and md5_b.bin, 128 bytes, Wang, Feng, Lai, Yu (2004); sha1_a.bin and sha1_b.bin, 320 bytes, the start of the SHAttered PDFs (2017). For each file the MD5, SHA-1 and SHA-256 digests are question marks, with "same?" under each pair. Then: add the same text to the end of both files of each pair: are the digests still the same?](figure.svg)
 
 ## Goal
 
-See a TLS client reject a correct signature made by a leaf, and a name outside a CA's limits.
+Check which hash function each pair breaks, and whether the collision survives when the same text is added to the end of both files.
 
 ## Ready for you
 
-- In `who_may_sign.py`: Trusty Root CA, Trusty CA 1 and Mallory's honest certificate are already made, and the first line of output checks Mallory's own site.
-- `cert_ready.py` (a black box): `new_key`, `make_cert`, `signed_by`, `tls_check` as in Task 3. `make_cert(..., permitted=["acme.example"])` adds Name Constraints to a CA certificate.
+- `real_collisions.py`: `load_file(path)`, the list of the two pairs, `SUFFIX` (the text to add), and the loop over the pairs.
+- `hashlib.md5(data).hexdigest()`, `hashlib.sha1(data).hexdigest()`, `hashlib.sha256(data).hexdigest()` return a digest as hex text. `a + SUFFIX` joins two byte strings, like `memcpy` of both into one buffer in C.
+
+Before you run it, predict: does the MD5 pair also collide in SHA-1? Does it still collide after you add text?
 
 ## Steps
 
-Write your code in place of the `TODO` comments in `who_may_sign.py`:
+Write your code in `real_collisions.py`, in place of the `TODO` comments:
 
-1. Mallory signs a certificate for `bank.example` with her leaf: a new key `fake_key`, then `make_cert("bank.example", fake_key, mallory, mallory_key, ca=False, days=90, dns_names=["bank.example"])`.
-2. Print `signed_by(fake, mallory)`, then let the TLS client connect: `tls_check(fake_key, [fake, mallory, inter], root, "bank.example")`.
-3. Make "Acme Corp CA", signed by the root, `ca=True`, `path_len=0`, with `permitted=["acme.example"]`.
-4. Let the Acme CA issue `www.acme.example` and `bank.example` (one key is enough for both) and call `tls_check` for each, with the chain `[leaf, acme]`.
+1. In `count_different`, count the positions `i` where `a[i] != b[i]`: an index loop over `range(len(a))`, as in C. Return the count.
+2. Print the MD5, the SHA-1 and the SHA-256 of `a` and of `b`, one line each.
+3. Add `SUFFIX` to the end of both (`a + SUFFIX`, `b + SUFFIX`) and print their MD5 and SHA-1 again.
 
 ## Expected output
-
-Predict first: what does `signed_by` say in step 2? And the TLS client?
 
 <details>
 <summary>Check your answer</summary>
 
 ```
-1. mallory.example:           OK
-2. her key signed the fake:   True
-   bank.example via Mallory:  invalid CA certificate
-3. www.acme.example via Acme: OK
-4. bank.example via Acme:     permitted subtree violation
+md5_a.bin and md5_b.bin: 128 bytes each, 6 bytes differ
+  MD5     a: 79054025255fb1a26e4bc422aef54eb4
+  MD5     b: 79054025255fb1a26e4bc422aef54eb4
+  SHA-1   a: a34473cf767c6108a5751a20971f1fdfba97690a
+  SHA-1   b: 4283dd2d70af1ad3c2d5fdc917330bf502035658
+  SHA-256 a: 8d12236e5c4ed9f4e790db4d868fd5c399df267e18ff65c1107c328228cffc98
+  SHA-256 b: b9fef2a8fc93b05e7701e97196fda6c4fbeea25ff8e64fdfee7015eca8fa617d
+  with the suffix: MD5   a: 2eb33e858c3caeed58bda9dc975f5d21
+  with the suffix: MD5   b: 2eb33e858c3caeed58bda9dc975f5d21
+  ...
+sha1_a.bin and sha1_b.bin: 320 bytes each, 62 bytes differ
+  MD5     a: 736acaed4ec96ab7120fb5fd750f1f07
+  MD5     b: 80e808e7abdbe9109903c71f049a30f7
+  SHA-1   a: f92d74e3874587aaf443d1db961d4e26dde13e9c
+  SHA-1   b: f92d74e3874587aaf443d1db961d4e26dde13e9c
+  ...
+  with the suffix: SHA-1 a: 61d5e3914c69b226129d601cebadb818fafc8edd
+  with the suffix: SHA-1 b: 61d5e3914c69b226129d601cebadb818fafc8edd
 ```
 
-Mallory's signature is correct, but her certificate says `CA:FALSE`, so the client rejects the chain (`invalid CA certificate`). The Acme CA may issue only names under `acme.example` (`permitted subtree violation`). A client trusts the rules written in the chain, not only the signatures.
+Each pair breaks only the function it was computed for; SHA-256 tells all four files apart. A common suffix keeps the collision, because after the colliding blocks both files have the same inner state, and the rest of the input is processed the same way.
 
 </details>
 
 ## Run
 
 ```
-python3 who_may_sign.py
+python3 real_collisions.py
 ```
 
-About 10 minutes. Python 3 and the library `cryptography` (`pip install cryptography`, version 41 or newer). No internet needed.
+About 8 minutes. Python 3.8 or newer, no extra libraries.

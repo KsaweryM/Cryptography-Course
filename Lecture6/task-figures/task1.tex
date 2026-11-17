@@ -1,0 +1,18 @@
+% Task 1: first digests. The digests are the results of the task, so they are shown as unknown.
+% CHECKED: FIPS 180-4 example: SHA-256("abc") = ba7816bf...f20015ad
+\documentclass[12pt,tikz,border=6pt]{standalone}
+\input{common}
+\begin{document}
+\pagecolor{white}
+\begin{tikzpicture}[>=Stealth]
+  \foreach \y/\t/\s in {2.4/{"abc"}/3 bytes, 1.2/{"Hello, Bob!"}/11 bytes, 0/{empty}/0 bytes, -1.2/{invoice.txt}/161 bytes, -2.4/{bytes(1000000)}/1 000 000 bytes} {
+    \node[msgval, minimum width=3.6cm, anchor=east] at (0,\y) {\t\ \textcolor{gray}{\scriptsize(\s)}};
+    \node[hwmain, minimum width=2.2cm] at (1.7,\y) {\faCogs\ SHA-256};
+    \draw[data] (0.05,\y) -- (0.55,\y);
+    \draw[data] (2.85,\y) -- (3.4,\y);
+    \node[unk, anchor=west, font=\small\bfseries] at (3.4,\y) {32 bytes = ?};
+  }
+  \node[dgval, font=\scriptsize\ttfamily, anchor=west] (fips) at (6.4,2.4) {FIPS 180-4: ba7816bf\ldots f20015ad};
+  \node[font=\small\bfseries, text=AccentOrange, anchor=south] at (fips.north) {the same?};
+\end{tikzpicture}
+\end{document}

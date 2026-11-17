@@ -1,55 +1,55 @@
-# Task 6: hunt in a CT log
+# Task 6: a self-signed certificate
 
 ## The situation
 
-Alice owns the domain `alice-shop.example`. Every publicly trusted certificate is written into public **Certificate Transparency** logs, so she can read what any CA issued for her domain, even behind her back. She keeps the SHA-256 fingerprints of the certificates she ordered, and her DNS has a **CAA** record that allows only Trusty CA to issue for her domain.
+Alice runs a test server, `www.alice.example`, and has no CA. She makes a self-signed certificate: the issuer and the subject are the same name, and she signs it with her own private key. Its signature can be checked with the public key inside the same certificate. Mallory tries two tricks: she puts her own key into Alice's certificate, and she makes her own self-signed certificate with Alice's name.
 
-`ct_log.pem` is a piece of a log: nine certificates from October and November 2026.
-
-![A list of nine CT log entries, oldest first, each with a question mark: 2026-10-02 Green CA bob-bakery.example, www.bob-bakery.example; 2026-10-05 Trusty CA alice-shop.example, www.alice-shop.example; 2026-10-09 Green CA carol.example; 2026-10-14 Trusty CA api.alice-shop.example; 2026-10-21 Green CA alice-shop.example.mallory.example; 2026-10-25 Trusty CA dave.example, mail.dave.example; 2026-11-02 Shady CA alice-shop.example, www.alice-shop.example; 2026-11-06 Trusty CA login.alice-shop.example; 2026-11-09 Shady CA bob.example. Alice owns alice-shop.example. Her my_orders.txt has the SHA-256 fingerprints 606599e5fee40972... and 4e74d58c752088e8...; her caa.txt is the DNS record CAA 0 issue "trusty-ca.example". Which entries are for Alice's domain? Which of those did she not order? Which CA broke her CAA record?](figure.svg)
+![Three certificate cards, all with issuer = subject = CN=www.alice.example. Alice's certificate: Alice's key, signed with Alice's private key, verify? (steps 1 to 3). Mallory swaps the key: Mallory's key, still signed with Alice's private key, verify? (step 4). Mallory's own: Mallory's key, signed with Mallory's private key, verify? (step 5).](figure.svg)
 
 ## Goal
 
-Find the certificates for Alice's domain that she did not order, and say for each one whether the CA broke her CAA record.
+Make Alice's self-signed certificate and check its signature with its own key. Then try both tricks of Mallory. What does a good signature on a self-signed certificate prove?
 
 ## Ready for you
 
-- `ctlog.py`: `load_log(path)` (a list of certificates), `load_orders(path)` (her fingerprints as hex text), `dns_names(cert)` (a list of names), `issuer_cn(cert)`, `issued_on(cert)`, `CAA_ID` (a `dict`: the CAA name of each CA, `CAA_ID["Trusty CA"]` is `"trusty-ca.example"`) and `ALLOWED` (the CAA names in `caa.txt`).
-- From the `cryptography` library: `cert.fingerprint(hashes.SHA256())` returns the SHA-256 of the whole certificate; `.hex()` turns it into hex text.
+- `cert_tools.py`: `load_private_key(path)` and `make_cert(subject, issuer, public_key, signing_key)`, which builds and signs a certificate as in Task 3 (serial number and dates are fixed).
+- `signing.py`: `verify(public_key, data, signature)` returns `True` or `False`.
+- `alice_private.pem` and `mallory_private.pem`, loaded as `alice_private` and `mallory_private`; the name `name` (`CN=www.alice.example`); the raw 32-byte public keys `alice_raw` and `mallory_raw`.
 
 ## Steps
 
-Write your code in place of the `TODO` comments in `ct_watch.py`, inside the loop over the log:
+Write your code in place of the `TODO` comments in `self_signed.py`:
 
-1. Is the certificate for Alice's domain? Yes if one of its names is `DOMAIN` or ends with `"." + DOMAIN` (`name.endswith(...)`). Careful: `alice-shop.example.mallory.example` is Mallory's domain, not Alice's. If not, `continue`.
-2. `fp = cert.fingerprint(hashes.SHA256()).hex()`. If `fp in orders`, print `mine:` with the names and the date, then `continue`.
-3. Otherwise print `UNKNOWN:` with the names, the CA and the date. If `CAA_ID[issuer_cn(cert)] in ALLOWED`, the CA was allowed: ask it who ordered the certificate. If not, the CA broke CAA: report it.
+1. Make Alice's certificate: the subject and the issuer are both `name`, the public key is `alice_private.public_key()`, and `alice_private` signs it.
+2. Print the subject and the issuer (`.rfc4514_string()`) and whether they are equal (`==`).
+3. Write `check(cert)`: verify the signature of `cert` with the public key inside the same `cert`. The signed bytes are `cert.tbs_certificate_bytes`, the signature is `cert.signature`, the key is `cert.public_key()`.
+4. Mallory puts her key into Alice's certificate: `der = bytearray(cert.public_bytes(serialization.Encoding.DER))`, `pos = der.find(alice_raw)`, then copy the 32 bytes of `mallory_raw` over `der[pos]` to `der[pos + 31]` in a loop. Load the result with `x509.load_der_x509_certificate(bytes(der))` and print `check()` of it.
+5. Mallory makes her own self-signed certificate with the same `name`, her public key and her private key. Print `check()` of it.
 
 ## Expected output
 
-Two certificates are Alice's, two are not. One CA broke CAA, the other did not.
+The subject and issuer (equal), then three results: Alice's certificate, the one with the swapped key, and Mallory's own.
 
 <details>
 <summary>Check your answer</summary>
 
 ```
-9 certificates in the log, 2 ordered by Alice, CAA allows ['trusty-ca.example']
-mine:    ['alice-shop.example', 'www.alice-shop.example'] issued 2026-10-05
-mine:    ['api.alice-shop.example'] issued 2026-10-14
-UNKNOWN: ['alice-shop.example', 'www.alice-shop.example'] from Shady CA issued 2026-11-02
-  this CA broke CAA: report it and ask the browsers to look at it
-UNKNOWN: ['login.alice-shop.example'] from Trusty CA issued 2026-11-06
-  CAA allowed this CA: ask it who ordered the certificate
+subject: CN=www.alice.example
+issuer:  CN=www.alice.example
+issuer == subject: True
+Alice's certificate, signature OK: True
+Mallory's key in Alice's certificate (at byte 132 ), signature OK: False
+Mallory's own certificate for www.alice.example, signature OK: True
 ```
 
-CAA cannot stop a CA that ignores it, and it cannot stop the allowed CA from being fooled. The log makes both cases visible within days, instead of months as with DigiNotar in 2011. Real logs are read by monitors such as crt.sh, which can e-mail you when a new certificate for your domain appears.
+Swapping the key changes the signed bytes, so the check fails. But Mallory's own certificate passes: it has the same name, and its signature is correct for the key inside it. A good signature on a self-signed certificate only proves that whoever made it has the matching private key. It says nothing about who owns the name; that trust must come from outside (a CA, or a fingerprint you checked).
 
 </details>
 
 ## Run
 
 ```
-python3 ct_watch.py
+python3 self_signed.py
 ```
 
-About 10 minutes. Python 3 and the `cryptography` library (`pip install cryptography`).
+About 10 minutes. Python 3 and the library `cryptography` (version 41 or newer).

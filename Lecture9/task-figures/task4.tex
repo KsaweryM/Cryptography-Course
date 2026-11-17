@@ -1,37 +1,18 @@
-% Task 4: Carol's folder of certificates. Values from Task4/certs/ (python3, Task4/certinfo.py, 2026-11-15):
-% CHECKED: api EC 384 sha256 2026-12-24; build Ed25519 sha256 2027-07-01; camera RSA 2048 md5 2028-10-15;
-%   intranet RSA 1024 sha1 2030-02-27; mail RSA 2048 sha256 2026-12-12; printer RSA 2048 sha256 2026-10-03;
-%   vpn RSA 3072 sha256 2027-02-20; www EC 256 sha256 2027-04-30. Audit day 2026-12-01.
+% Task 4: which certificate fits? Four certificates of Trusty CA (Lecture9/checks/make_files.py)
 \documentclass[12pt,tikz,border=6pt]{standalone}
 \input{common}
 \begin{document}
 \pagecolor{white}
-\begin{tikzpicture}[>=Stealth]
-  \node[person=sTeal] (c) at (-1.0,1.2) {\faUser};
-  \node[font=\small\bfseries, text=sTealText, below=0.05cm of c] (cl) {Carol};
-  \node[font=\scriptsize, text=nInk, below=0.0cm of cl, align=center] {audit day\\ \textbf{2026-12-01}};
-  \node[text=nLine, font=\fontsize{40}{42}\selectfont] at (-1.0,-2.2) {\faFolderOpen};
-  \node[font=\scriptsize\ttfamily, text=nInk] at (-1.0,-3.1) {certs/};
-  \foreach \k/\f/\key/\h/\exp in {
-      0/api.pem/EC 384/sha256/2026-12-24,
-      1/build.pem/Ed25519/sha256/2027-07-01,
-      2/camera.pem/RSA 2048/md5/2028-10-15,
-      3/intranet.pem/RSA 1024/sha1/2030-02-27,
-      4/mail.pem/RSA 2048/sha256/2026-12-12,
-      5/printer.pem/RSA 2048/sha256/2026-10-03,
-      6/vpn.pem/RSA 3072/sha256/2027-02-20,
-      7/www.pem/EC 256/sha256/2027-04-30} {
-    \pgfmathsetmacro{\x}{1.3+3.55*mod(\k,4)}
-    \pgfmathsetmacro{\y}{1.0-2.6*int(\k/4)}
-    \node[cert, minimum width=3.3cm, minimum height=2.2cm, anchor=north west] (b) at (\x,\y+1.0) {};
-    \node[font=\small\bfseries, text=nInk, anchor=north west] at ([shift={(0.12,-0.1)}]b.north west) {\faCertificate\ \f};
-    \node[font=\scriptsize, text=nInk, anchor=north west, align=left] at ([shift={(0.12,-0.6)}]b.north west)
-      {key: \key\\ CA hash: \texttt{\h}\\ expires: \exp};
-    \node[circle, draw=AccentOrange, thick, fill=white, minimum size=0.5cm, font=\bfseries\small, text=AccentOrange]
-      at ([shift={(-0.3,0.3)}]b.south east) {?};
+\begin{tikzpicture}[>=Stealth, card]
+  \foreach \l/\s [count=\k from 0] in {A/{www.alice-shop.example}, B/{Trusty CA Issuing 1}, C/{Carol Software Ltd}, D/{*.dave.example}} {
+    \node[cardbox, minimum width=3.6cm, minimum height=3.6cm] (c) at ({4.0*\k},0) {};
+    \node[text=nInk, font=\huge] at ({4.0*\k},0.8) {\faCertificate};
+    \node[font=\large\bfseries, text=nInk] at ({4.0*\k},-0.1) {cert\_\l.pem};
+    \node[font=\scriptsize\ttfamily, text=nInk] at ({4.0*\k},-0.7) {\s};
+    \node[font=\scriptsize, text=gray] at ({4.0*\k},-1.3) {SAN?\ \ CA?\ \ EKU?\ \ critical?};
   }
-  \node[note, anchor=north, align=center] at (8.4,-3.5)
-    {Rules: renew when fewer than 30 days are left; no \texttt{md5} or \texttt{sha1}; RSA keys of at least 2048 bits.\\
-     Which certificates break a rule?};
+  \node[note, anchor=north west, align=left] at (-1.8,-2.3)
+    {\textcolor{AccentOrange}{\faQuestionCircle}\ Which one is a CA? \quad Which one may sign programs?\\[3pt]
+     \textcolor{AccentOrange}{\faQuestionCircle}\ Which one fits www.alice-shop.example, shop.dave.example, dave.example?};
 \end{tikzpicture}
 \end{document}

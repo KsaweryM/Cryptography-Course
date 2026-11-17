@@ -1,56 +1,53 @@
-# Task 2: look into a trust store
+# Task 2: collisions of a short digest
 
 ## The situation
 
-A trust store is the list of root certificates that a program trusts without any proof. `trust_store.pem` is a copy of the trust store of Ubuntu 24.04 (package `ca-certificates` 20260816, taken from the Mozilla root program), copied on 15 November 2026: the same file that Python's `ssl` module reads on that system. `we1.pem` is the intermediate certificate WE1 that the server www.coventry.ac.uk sends. Find out what is in the store and which root issued WE1.
+A full SHA-256 digest has 256 bits, and nobody has ever found two inputs with the same one. Here we keep only the first 24, 32 or 40 bits of SHA-256: a **short digest**. The birthday paradox says that among N possible values a repeat comes after about 1.18 √N random tries, so with n bits after about 1.18 · 2^(n/2). Is that true for a real hash?
 
-![A box trust_store.pem full of violet root certificates, and the brown certificate we1.pem (subject WE1, issuer GTS Root R4) pointing at one of them: who issued me?](figure.svg)
+![Messages "note 0", "note 1", "note 2", ..., "note j" go into SHA-256, of which only the first bits are kept; each gives a short digest shown as question marks. A table "seen" maps short digest to note number, like a hash table in C. The digest of note j is "seen before!". Sizes 24, 32, 40 bits; prediction about 1.18 · 2^(n/2) notes; your answer i = ?, j = ?](figure.svg)
 
 ## Goal
 
-Count what is in a real trust store and find the root that issued WE1.
+For 24, 32 and 40 bits, find two messages "note i" and "note j" with the same short digest, and compare the number of messages you needed with the prediction.
 
 ## Ready for you
 
-- `trust_store.pem`, `we1.pem`.
-- `cert_ready.py` (a black box): `load_certs(path)` reads every certificate of a PEM file into a list; `load_cert`, `subject_of`, `valid_from`, `valid_until`, `signed_by` as in Task 1; `key_type(cert)` gives text such as `"RSA 4096"` or `"EC P-384"`.
-- Dates can be compared with `<` and `>` like numbers.
+- `find_collision.py`: `short_hash(data, bits)` returns the first `bits` bits of SHA-256(data) as a whole number.
+- The loop at the end runs `find_collision(bits)` for 24, 32 and 40 bits and measures the time.
+- `seen = {}` is a Python dictionary: a hash table, as you would write in C, with the short digest as the key and the message number as the value. `h in seen` asks "is this key in the table?" in one step; `seen[h] = i` stores a value; `seen[h]` reads it back.
+
+Before you run it, predict: about how many messages for 40 bits?
 
 ## Steps
 
-Write your code in place of the `TODO` comments in `look_into_store.py`:
+Write your code in `find_collision.py`, in place of the `TODO` comments:
 
-1. Print how many roots are in the store (`len(store)`).
-2. Count the roots that signed themselves: `store[i].subject == store[i].issuer`.
-3. Count the roots with an RSA key and with an EC key: `key_type(store[i]).startswith("RSA")`.
-4. Find the oldest root (the smallest `valid_from`) and the root that expires last (the largest `valid_until`), with one loop, as you would find a minimum in C. Print their subjects and dates.
-5. Find the root whose subject equals `we1.issuer`, print its subject and key type, and check that it signed WE1 with `signed_by`.
+1. In `find_collision`, compute the short digest of the message: `h = short_hash(message, bits)`.
+2. If `h` is already in `seen`, you have a collision: return `(seen[h], i)`, the number of the earlier message and of this one.
+3. Otherwise remember it: `seen[h] = i`. Then delete the line `return None   # remove this line ...`.
+4. In the loop at the end, replace the `not done yet: TODO 4` line with the `print` given in the comment above it.
 
 ## Expected output
 
-Predict first: about how many roots? More RSA or more EC?
+One line per size. The messages are fixed, so everybody gets the same notes; only the times differ between computers.
 
 <details>
 <summary>Check your answer</summary>
 
 ```
-roots in the store: 120
-self-signed: 120
-RSA keys: 80  EC keys: 40
-oldest: CN=Izenpe.com,O=IZENPE S.A.,C=ES from 2007-12-13
-expires last: CN=SECOM TLS ECC Root CA 2024,O=SECOM Trust Systems Co.\, Ltd.,C=JP on 2049-01-14
-WE1 was issued by: CN=GTS Root R4,O=Google Trust Services LLC,C=US EC P-384
-signed WE1: True
+24 bits: note 1076 and note 4202 -> 5a34b2, after 4203 messages (predicted about 4833), 0.02 s
+32 bits: note 53529 and note 75183 -> 42f58c3e, after 75184 messages (predicted about 77332), 0.19 s
+40 bits: note 803992 and note 915856 -> d8ff4c408b, after 915857 messages (predicted about 1237320), 2.25 s
 ```
 
-All 120 roots are self-signed. Two thirds use RSA, but the newer roots use elliptic curves. WE1 was issued by GTS Root R4, which is in the store: that is where the chain of Task 1 ends.
+The prediction is where the chance reaches 50%, so a real search ends a bit earlier or later. Every 8 more bits make the search about 2^4 = 16 times longer; to hit one **given** 40-bit digest you would need about 2^40, a trillion tries.
 
 </details>
 
 ## Run
 
 ```
-python3 look_into_store.py
+python3 find_collision.py
 ```
 
-About 8 minutes. Python 3 and the library `cryptography` (`pip install cryptography`, version 41 or newer). No internet needed.
+About 10 minutes. Python 3.8 or newer, no extra libraries; the program runs about 3 seconds.

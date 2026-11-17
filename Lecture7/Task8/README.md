@@ -1,65 +1,57 @@
-# Task 8: is this validity allowed?
+# Task 8: what the cost costs
 
 ## The situation
 
-Public TLS certificates may not live as long as their owners would like. The CA/Browser Forum and the browsers have shortened the limit several times, and the limit that counts is the one in force on the day the certificate was issued:
+bcrypt has a **cost**: one bcrypt does 2^cost rounds of its slow key setup, so every +1 should double the time. Part 1: measure it. Part 2: Mallory has stolen Victor's bcrypt text (cost 4, `stolen_bcrypt.txt`) from a shop's database and tries the 20 most common passwords (`top20.txt`). How fast can she guess, compared with plain SHA-256?
 
-| Issued on or after | At most |
-|---|---|
-| 1 March 2018 | 825 days |
-| 1 September 2020 | 398 days |
-| 15 March 2026 | 200 days |
-| 15 March 2027 | 100 days |
-| 15 March 2029 | 47 days |
-
-The folder `certs/` holds 8 certificates: `coventry.pem` and `python-org.pem` are real (saved on 15 November 2026), the other six were made for this task, some of them dated in the future.
-
-![A time line of the limits: 825 days from 1 March 2018, 398 days from 1 September 2020, 200 days from 15 March 2026, 100 days from 15 March 2027, 47 days from 15 March 2029. For each of the 8 certificates in certs/: is the number of days valid within the limit on the day it was issued?](figure.svg)
+![Part 1: four boxes cost 4, cost 5, cost 6, cost 7, each with a stopwatch and "? s". Part 2: Mallory with top20.txt (123456, password, ...) going into check_password together with the stolen text $2b$04$Bm9vfEMu3JI4IV.ybN/ip.o0s/IPx...; found after ? tries, bcrypt: ? guesses/s, SHA-256: ? guesses/s.](figure.svg)
 
 ## Goal
 
-Check eight certificates against the limit that held on the day each was issued.
+See how the time of bcrypt grows with the cost, crack a weak password behind bcrypt, and compare Mallory's speed with SHA-256.
 
 ## Ready for you
 
-- `certs/`: the 8 certificates; the list of file names is in `check_validity.py`.
-- `cert_ready.py` (a black box): `load_cert`, `valid_from`, `valid_until`.
-- A date to compare with: `datetime.datetime(2026, 3, 15, tzinfo=UTC)`; dates compare with `>=` like numbers. The difference of two dates is a duration: `(a - b).total_seconds()`.
+- `bcrypt_ready.py` (you do not need to read it): `hash_password(password, cost)` and `check_password(password, stored)`; pure Python, about 100 times slower than C, so all numbers are smaller than on a real server, but the proportions are the same.
+- `slow_hash.py`: `load_lines(path)` reads a text file without the comment lines; `stored` and `guesses` are loaded for you.
+- `time.perf_counter()` returns seconds as a float, like `clock_gettime` in C: take it before and after, and subtract.
+
+Before you run it, predict: how many guesses per second against bcrypt, compared with SHA-256?
 
 ## Steps
 
-Write your code in place of the `TODO` comments in `check_validity.py`:
+Write your code in `slow_hash.py`, in place of the `TODO` comments:
 
-1. Write `max_days(issued)`: a chain of `if` statements, the newest date first, that returns the limit from the table (and `None` before 1 March 2018).
-2. In the loop, compute how many days the certificate is valid: `(valid_until(cert) - valid_from(cert)).total_seconds() / 86400`.
-3. Compare it with `max_days(valid_from(cert))` and print the file name, the issue date, the days, the limit, and `OK` or `TOO LONG`.
+1. For `cost` in 4, 5, 6, 7 (`range(4, 8)`): measure one `hash_password("test password", cost)` and print `f"cost {cost}: {seconds:.2f} s"`.
+2. Try the guesses in order with `check_password(guess, stored)`, counting the tries. When one matches, print `f"found after {tries} tries: {guess}"` and `break`. Measure the whole loop and print the guesses per second as in the comment.
+3. Measure SHA-256 on the same 20 guesses, 10 000 times over (200 000 hashes), and print the guesses per second as in the comment.
 
 ## Expected output
 
-Predict first: is the 397-day certificate of www.python.org allowed?
+Your times will differ (they depend on the computer), but the doubling and the gap between bcrypt and SHA-256 will be similar. The whole program runs about 10 seconds.
 
 <details>
 <summary>Check your answer</summary>
 
 ```
-coventry.pem    2026-10-13   90 days, limit 200 : OK
-python-org.pem  2026-01-13  397 days, limit 398 : OK
-shop-2019.pem   2019-05-01  730 days, limit 825 : OK
-shop-2021.pem   2021-03-01  730 days, limit 398 : TOO LONG
-api-2026.pem    2026-04-01  397 days, limit 200 : TOO LONG
-blog-2026.pem   2026-11-01  199 days, limit 200 : OK
-mail-2027.pem   2027-04-01  100 days, limit 100 : OK
-vpn-2029.pem    2029-06-01   90 days, limit  47 : TOO LONG
+cost 4: 0.22 s
+cost 5: 0.42 s
+cost 6: 0.82 s
+cost 7: 1.69 s
+stolen: $2b$04$Bm9vfEMu3JI4IV.ybN/ip.o0s/IPxPkzhcVSMvbHjN0qqn0.Cm3Lu
+found after 20 tries: sunshine
+bcrypt cost 4: 4.4 guesses per second
+SHA-256: 690705 guesses per second
 ```
 
-`python-org.pem` lives 397 days and was issued in January 2026, just before the limit dropped to 200 days, so it is fine; the same certificate issued in April 2026 (`api-2026.pem`) is too long. In 2029 even the 90 days of Let's Encrypt will be too long.
+(Intel i5-8265U, Python 3.12.) A weak password falls even behind bcrypt, but every guess costs as much as about 150 000 SHA-256 guesses, and real servers use cost 10 to 12, which is 64 to 256 times slower again.
 
 </details>
 
 ## Run
 
 ```
-python3 check_validity.py
+python3 slow_hash.py
 ```
 
-About 8 minutes. Python 3 and the library `cryptography` (`pip install cryptography`, version 41 or newer). No internet needed.
+About 10 minutes. Python 3.8 or newer, no extra libraries.

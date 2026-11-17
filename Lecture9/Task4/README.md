@@ -1,70 +1,79 @@
-# Task 4: audit Carol's certificates
+# Task 4: which certificate fits?
 
 ## The situation
 
-Carol looks after the servers of Carol Corp. Last month a web server went down for a day: its certificate had expired and nobody was watching it. Carol collected every certificate she could find into the folder `certs/`. Now she wants a script that checks them all on the audit day, 2026-12-01, against three rules: renew when fewer than 30 days are left, no MD5 or SHA-1 in the CA's signature, and RSA keys of at least 2048 bits.
+Trusty CA has issued four certificates: `cert_A.pem` to `cert_D.pem`. Their subjects alone do not say what each one may be used for: the extensions do. Read the Subject Alternative Name, Basic Constraints, Key Usage, Extended Key Usage and the critical flags, and decide.
 
-![Carol, audit day 2026-12-01, and her folder certs/ with eight certificate cards, each with a question mark. api.pem: key EC 384, CA hash sha256, expires 2026-12-24. build.pem: Ed25519, sha256, 2027-07-01. camera.pem: RSA 2048, md5, 2028-10-15. intranet.pem: RSA 1024, sha1, 2030-02-27. mail.pem: RSA 2048, sha256, 2026-12-12. printer.pem: RSA 2048, sha256, 2026-10-03. vpn.pem: RSA 3072, sha256, 2027-02-20. www.pem: EC 256, sha256, 2027-04-30. Which certificates break a rule?](figure.svg)
+![Four certificate cards: cert_A.pem (www.alice-shop.example), cert_B.pem (Trusty CA Issuing 1), cert_C.pem (Carol Software Ltd) and cert_D.pem (*.dave.example), each with the questions SAN? CA? EKU? critical? Below: which one is a CA, which one may sign programs, and which one fits www.alice-shop.example, shop.dave.example and dave.example?](figure.svg)
 
 ## Goal
 
-Print, for every certificate, how many days are left and which rules it breaks; count the problems.
+Print the main extensions of the four certificates, then answer: which one is a CA? Which one may sign programs? Which one fits `www.alice-shop.example`, `shop.dave.example` and `dave.example`?
 
 ## Ready for you
 
-- `certinfo.py`: `load_folder(folder)` returns a list of `(file name, certificate)`; `expires(cert)` the end of the validity period; `key_info(cert)` a pair such as `("RSA", 2048)`; `hash_name(cert)` the hash in the CA's signature, such as `"sha256"`; `subject_cn(cert)` and `issuer_cn(cert)` the names.
-- In `audit.py`: `TODAY`, `RENEW_DAYS = 30`, `WEAK_HASHES = ["md5", "sha1"]`, `MIN_RSA_BITS = 2048`, and the loop that prints one line per certificate.
+- `cert_tools.py`:
+  - `load_cert(path)` reads a certificate,
+  - `find_extension(cert, kind)` returns the value of one extension, or `None` when the certificate does not have it. `kind` is a class, for example `x509.SubjectAlternativeName`,
+  - `ext_name(ext)` and `oid_name(oid)` give short names such as `keyUsage` or `serverAuth`.
+- In `which_cert.py`: the loop over the four files, which prints each subject.
 
 ## Steps
 
-Write your code in place of the `TODO` comments in `audit.py`, inside the loop:
+Write your code in place of the `TODO` comments in `which_cert.py`, inside the loop:
 
-1. `days_left = (expires(cert) - TODAY).days`: subtracting two dates gives a time difference, and `.days` is its number of whole days. Print it.
-2. If `days_left < 0`: print `EXPIRED`; else if `days_left < RENEW_DAYS`: print `RENEW NOW`. (`elif` is C's `else if`.)
-3. If `hash_name(cert) in WEAK_HASHES`: print `WEAK HASH`. (`x in list` is a loop that looks for `x`.)
-4. If the key is `"RSA"` and has fewer than `MIN_RSA_BITS` bits: print `WEAK KEY`. Add 1 to `problems` for every rule broken.
+1. The names: `san = find_extension(cert, x509.SubjectAlternativeName)`. If it is `None`, print `none`; otherwise print `san.get_values_for_type(x509.DNSName)`, a list of the DNS names.
+2. A CA? `bc = find_extension(cert, x509.BasicConstraints)`, then print `bc.ca`.
+3. What may the key do? `ku = find_extension(cert, x509.KeyUsage)`: print `ku.digital_signature` and `ku.key_cert_sign`. Then `eku = find_extension(cert, x509.ExtendedKeyUsage)`: if it is not `None`, it is a list of purposes; print `oid_name(eku[k])` for every `k`.
+4. Which extensions are critical? Loop over `cert.extensions` and print `ext_name(ext)` for every `ext` with `ext.critical` equal to `True`.
+
+Then answer the questions from the Goal. Remember: a `*` matches exactly one label (the part between two dots), the left-most one.
 
 ## Expected output
 
-Eight certificates; five of them break at least one rule.
+For each certificate: its subject, the SAN names, `CA: True` or `False`, the key usage, the extended key usage and the list of critical extensions.
 
 <details>
 <summary>Check your answer</summary>
 
 ```
-api.pem        api.carol-corp.example       EC        384 sha256  from Trusty CA
-  days left: 23
-  RENEW NOW
-build.pem      build.carol-corp.example     Ed25519   256 sha256  from Carol Corp Internal CA
-  days left: 212
-camera.pem     camera.carol-corp.example    RSA      2048 md5     from camera.carol-corp.example
-  days left: 684
-  WEAK HASH
-intranet.pem   intranet.carol-corp.example  RSA      1024 sha1    from intranet.carol-corp.example
-  days left: 1184
-  WEAK HASH
-  WEAK KEY
-mail.pem       mail.carol-corp.example      RSA      2048 sha256  from Trusty CA
-  days left: 11
-  RENEW NOW
-printer.pem    printer.carol-corp.example   RSA      2048 sha256  from Carol Corp Internal CA
-  days left: -59
-  EXPIRED
-vpn.pem        vpn.carol-corp.example       RSA      3072 sha256  from Carol Corp Internal CA
-  days left: 81
-www.pem        www.carol-corp.example       EC        256 sha256  from Trusty CA
-  days left: 150
-6 problems in 8 certificates
+== cert_A.pem  subject: CN=www.alice-shop.example,O=Alice Shop Ltd,C=GB
+   SAN:          ['alice-shop.example', 'www.alice-shop.example']
+   CA:           False
+   key usage:    digital_signature True  key_cert_sign False
+   ext. usage:   ['serverAuth']
+   critical:     ['keyUsage']
+== cert_B.pem  subject: CN=Trusty CA Issuing 1,O=Trusty CA Ltd,C=GB
+   SAN:          none
+   CA:           True
+   key usage:    digital_signature True  key_cert_sign True
+   ext. usage:   none
+   critical:     ['basicConstraints', 'keyUsage']
+== cert_C.pem  subject: CN=Carol Software Ltd,O=Carol Software Ltd,C=GB
+   SAN:          none
+   CA:           False
+   key usage:    digital_signature True  key_cert_sign False
+   ext. usage:   ['codeSigning']
+   critical:     ['basicConstraints', 'keyUsage', 'extendedKeyUsage']
+== cert_D.pem  subject: CN=*.dave.example,O=Dave Games Ltd,C=GB
+   SAN:          ['*.dave.example']
+   CA:           False
+   key usage:    digital_signature True  key_cert_sign False
+   ext. usage:   ['serverAuth', 'clientAuth']
+   critical:     ['basicConstraints', 'keyUsage']
 ```
 
-Six problems in five certificates. The camera and the intranet are self-signed (issuer = subject) and valid for years: long life and weak algorithms often come together on old devices. The key size rule is only for RSA: an EC key of 256 bits is as strong as RSA with about 3072 bits.
+- A CA: **B** (`CA: True` and `key_cert_sign`).
+- May sign programs: **C** (`codeSigning`).
+- `www.alice-shop.example`: **A**. `shop.dave.example`: **D** (`*` = `shop`).
+- `dave.example`: **none of them**. `*.dave.example` needs one label in place of `*`.
 
 </details>
 
 ## Run
 
 ```
-python3 audit.py
+python3 which_cert.py
 ```
 
-About 12 minutes. Python 3 and the `cryptography` library (`pip install cryptography`).
+About 10 minutes. Python 3 and the library `cryptography` (version 41 or newer).

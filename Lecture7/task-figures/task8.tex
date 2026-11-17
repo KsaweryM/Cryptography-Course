@@ -1,19 +1,22 @@
-% Task 8: validity limits by issue date. source: CA/Browser Forum (825 days from 2018-03-01, ballot SC-081 for 2026 to 2029),
-%   398 days from 2020-09-01 (browser root programs).
+% Task 8: what the cost costs. The stolen text is the real one from stolen_bcrypt.txt; the password is the answer.
 \documentclass[12pt,tikz,border=6pt]{standalone}
 \input{common}
 \begin{document}
 \pagecolor{white}
 \begin{tikzpicture}[>=Stealth]
-
-  \begin{scope}[x=1.0cm]
-    \draw[nInk, very thick, -{Stealth}] (-0.5,0) -- (13.4,0);
-    \foreach \x/\l/\d in {0/{1 Mar\\2018}/825, 2.6/{1 Sep\\2020}/398, 7.6/{15 Mar\\2026}/200, 10.0/{15 Mar\\2027}/100, 12.4/{15 Mar\\2029}/47} {
-      \draw[nInk, thick] (\x,-0.15) -- (\x,0.15);
-      \node[font=\small, text=nInk, below=3pt, align=center] at (\x,-0.15) {\l};
-      \node[hw, font=\small\bfseries, above=10pt] at (\x,0.15) {\d\ days};
-    }
-  \end{scope}
-  \node[note, anchor=north, align=center] at (6.2,-1.6) {\faFolderOpen\ certs/: 8 certificates, coventry.pem and python-org.pem are real.\\For each: is the number of days valid within the limit on the day it was issued?};
+  \node[font=\small\bfseries, text=nInk, anchor=west] at (-0.4,1.3) {Part 1: one bcrypt at cost 4, 5, 6, 7};
+  \foreach \c/\x in {4/0.4, 5/2.4, 6/4.4, 7/6.4} {
+    \node[hw, font=\small, minimum width=1.6cm] at (\x,0.5) {cost \c};
+    \node[text=nInk] at (\x-0.4,-0.2) {\faStopwatch};
+    \node[unk, font=\scriptsize] at (\x+0.3,-0.2) {? s};
+  }
+  \node[font=\small\bfseries, text=nInk, anchor=west] at (-0.4,-1.2) {Part 2: Mallory has Victor's stored text and the 20 most common passwords};
+  \mallorynode{m}{0.2,-2.6}
+  \node[msgval, font=\scriptsize\ttfamily, text width=1.9cm, align=left] (w) at (2.4,-2.6) {123456\\ password\\ \ldots\\ top20.txt};
+  \node[digval, font=\scriptsize\ttfamily] (t) at (7.6,-2.0) {\$2b\$04\$Bm9vfEMu3JI4IV.ybN/ip.o0s/IPx\ldots};
+  \node[mech, font=\scriptsize\bfseries] (h) at (5.4,-2.9) {\faCogs\ check\_password};
+  \draw[data] (w) -- (h);
+  \draw[data] (t) -- (h);
+  \node[unk, font=\small, align=left] at (9.2,-3.3) {found after ? tries\\ bcrypt: ? guesses/s\\ SHA-256: ? guesses/s};
 \end{tikzpicture}
 \end{document}

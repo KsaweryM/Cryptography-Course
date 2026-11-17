@@ -1,4 +1,4 @@
-# Builds Lecture 7 (Certificate Authorities and the Certificate Lifecycle).
+# Builds Lecture 7 (Breaking Hashes: Collisions and Passwords).
 #
 #   make           build the slides
 #   make slides    the same
@@ -11,7 +11,7 @@
 LATEXMK   := latexmk
 LATEXOPTS := -pdf -interaction=nonstopmode -halt-on-error -file-line-error
 
-NAME   := Lecture_7_Certificate_Authorities_and_the_Certificate_Lifecycle
+NAME   := Lecture_7_Breaking_Hashes_Collisions_and_Passwords
 SLIDES := $(NAME).pdf
 BUILD  := build
 

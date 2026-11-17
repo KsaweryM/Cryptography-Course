@@ -1,19 +1,24 @@
-% Task 5: three CSRs. CHECKED: Task5/solution/check_csrs.py (bob True, bob-changed False, mallory True).
+% Task 5: the leaked table without salt (real digests from leaked_users.txt; the passwords are the answer).
 \documentclass[12pt,tikz,border=6pt]{standalone}
 \input{common}
 \begin{document}
 \pagecolor{white}
 \begin{tikzpicture}[>=Stealth]
-
-  \person{bob}{0,0}{sTeal}{Bob}
-  \person{mal}{0,-3.6}{sPink}{Mallory}
-  \cert{c1}{4.6,1.1}{sTeal}{5.4cm}{bob.csr}{\textbf{Subject:} bob-shop.example\\\textbf{Key:} Bob's key\\signed by Bob's key}
-  \cert{c2}{12.2,1.1}{sPink}{5.4cm}{bob-changed.csr}{\textbf{Subject:} \textcolor{sPinkText}{\textbf{mal}}-shop.example\\\textbf{Key:} Bob's key\\signature: Bob's, as it was}
-  \cert{c3}{4.6,-2.5}{sPink}{5.4cm}{mallory.csr}{\textbf{Subject:} bob-shop.example\\\textbf{Key:} Mallory's key\\signed by Mallory's key}
-  \draw[sig] (bob.east) -- (c1h.west |- bob.east);
-  \draw[sig] (c1.east) -- node[above, font=\small] {bytes changed} node[below, font=\small] {on the way} (c2.west);
-  \draw[sig] (mal.east) -- (c3h.west |- mal.east);
-  \node[hwmain, minimum width=3.6cm, minimum height=2.0cm, align=center, font=\small] (ca) at (12.2,-3.1) {\Large\faLandmark\\[2pt]\textbf{you: the CA}\\signature valid?};
-  \draw[data, dashed] (c3.east) -- (ca.west |- c3.east);
+  \node[font=\small\bfseries, text=nInk] at (0,0.6) {user};
+  \node[font=\small\bfseries, text=nInk] at (3.4,0.6) {stored: SHA-256(password)};
+  \foreach \u/\d [count=\k from 0] in {alice/e48443929f57ec4c, bob/9cdb4a45f1bba581, carol/e4ad93ca07acb8d9, dave/e4ad93ca07acb8d9, erin/48486e1514e84234, frank/65e84be33532fb78} {
+    \node[hw, minimum width=1.6cm, font=\small] at (0,{-0.55*\k}) {\u};
+    \node[digval, minimum width=4.4cm, font=\small\ttfamily] at (3.4,{-0.55*\k}) {\d\ldots};
+  }
+  \node[font=\small, text=gray] at (1.7,-3.4) {\ldots\ 12 users};
+  \node[font=\scriptsize\bfseries, text=nInk] at (1.7,-3.9) {leaked\_users.txt};
+  \mallorynode{m}{6.4,-2.4}
+  \node[msgval, font=\scriptsize\ttfamily, text width=2.2cm, align=left] (w) at (8.6,-2.2) {123456\\ password\\ 123456789\\ \ldots\\ 3\,529 guesses};
+  \node[font=\scriptsize\bfseries, text=nInk, below=0.05cm of w] {wordlist.txt};
+  \node[mech, font=\scriptsize\bfseries] (h) at (11.2,-2.2) {\faCogs\ SHA-256};
+  \draw[data] (w) -- (h);
+  \draw[data] (h.north) |- node[above, pos=0.8, font=\scriptsize] {compare with every user} (6.0,-0.3);
+  \node[unk, font=\small] at (11.2,-3.6) {cracked: ? of 12};
+  \node[hw, font=\scriptsize, text width=4.2cm, align=left] at (11.2,1.2) {TODO 1 first: the server's\\ login check, alice types\\ monkey123 and monkey124};
 \end{tikzpicture}
 \end{document}
