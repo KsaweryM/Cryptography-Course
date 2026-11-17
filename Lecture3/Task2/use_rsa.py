@@ -50,7 +50,26 @@ ciphertext = int(
     "4"
 )
 
-# TODO 1: decrypt the ciphertext with decrypt(ciphertext, key) and print it
-# TODO 2: encrypt the reply "Yes, at 5 pm." with encrypt(text, key) for Alice
-#         and print the first 30 digits of the result: str(reply)[:30]
-# TODO 3: try to decrypt your own reply with YOUR private key. What do you get?
+# TODO 1: decrypt the ciphertext with your private key: decrypt(ciphertext, my_private_key)
+message = None
+
+# TODO 2: encrypt the reply "Yes, at 5 pm." for Alice with HER public key: encrypt(text, alice_public_key)
+reply = None
+
+# TODO 3: decrypt your own reply with YOUR private key: decrypt(reply, my_private_key)
+#         What do you get, and why?
+mine = None
+
+# The printing is ready: each line says "not done yet" until its TODO is done.
+if message is None:
+    print("not done yet: TODO 1")
+else:
+    print("Alice says:", message)
+if reply is None:
+    print("not done yet: TODO 2")
+else:
+    print("reply:    ", str(reply)[:30], "...")
+if mine is None:
+    print("not done yet: TODO 3")
+else:
+    print("my key on my reply:", repr(mine[:8]))

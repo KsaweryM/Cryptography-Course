@@ -35,7 +35,7 @@ instead of only reading about them.
   **ElGamal** encryption, and what happens when the random number is reused.
 - **Lecture 5** shows why **elliptic curves** give the same safety with keys about 12 times
   shorter: points on a curve modulo p, **adding points** by hand, **scalar multiplication** and
-  the ECDLP, **ECDH and X25519** with HKDF, and ElGamal on a curve.
+  the ECDLP, **ECDH** and ElGamal on a small curve, then **X25519** with HKDF.
 
 The second part starts where public-key cryptography leaves a gap: a public key does not say
 whose it is.

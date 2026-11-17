@@ -19,11 +19,11 @@ Decrypt Alice's message, then encrypt a reply for her.
 
 ## Steps
 
-Write your code in place of the `TODO` comments in `use_rsa.py`:
+Write your code in place of the `TODO` comments in `use_rsa.py`. The `print` lines at the end are ready: each one says `not done yet` until its TODO is done.
 
-1. Decrypt `ciphertext` with your private key and print it.
-2. Encrypt the reply `"Yes, at 5 pm."` with Alice's public key and print the first 30 digits of the result: `str(reply)[:30]` (`str` turns the number into text, `[:30]` keeps its first 30 characters).
-3. Try to decrypt your own reply with **your** private key. What do you get, and why?
+1. Decrypt `ciphertext` with your private key: `message = decrypt(ciphertext, my_private_key)`. It prints `Alice says: ...`.
+2. Encrypt the reply `"Yes, at 5 pm."` with Alice's public key and store it in `reply`. It prints the first 30 digits of the number: `str(reply)[:30]` (`str` turns the number into text, `[:30]` keeps its first 30 characters).
+3. Try to decrypt your own reply with **your** private key and store it in `mine`. It prints the first 8 characters of what you get. What do you get, and why?
 
 ## Expected output
 
@@ -35,10 +35,10 @@ Alice's question, then the start of your reply as a number, then whatever your p
 ```
 Alice says: Can we meet on Friday at the library?
 reply:     148116905244108187548815493601 ...
-my key on my reply: '\x06��Z���1Ű��d>(�\\lE��8\x1c�W�...
+my key on my reply: '\x06��Z���1'
 ```
 
-The last line is nonsense (the exact characters depend on your terminal and on how much of it you print): what is locked with Alice's public key, only Alice's private key opens. Even Bob cannot read his own reply any more.
+The last line is nonsense: the bytes are not text, and each `�` is a byte that is not a valid letter. What is locked with Alice's public key, only Alice's private key opens. Even Bob cannot read his own reply any more.
 
 </details>
 

@@ -77,23 +77,27 @@
 \newcommand{\badge}[1]{\tikz[baseline=(b.base)]\node[circle,fill=AccentOrange,text=white,
   inner sep=1.5pt,font=\bfseries\footnotesize] (b) {#1};}
 
-% ---------- Diffie-Hellman roles (the colours of the Diffie-Hellman simulator) ----------
-\definecolor{rPub}{HTML}{2F6FDB}  \definecolor{rPubBg}{HTML}{E5EDFB}
-\definecolor{rSec}{HTML}{E2A60E}  \definecolor{rSecBg}{HTML}{FDF3DC}
-\definecolor{rSh}{HTML}{2FA84F}   \definecolor{rShBg}{HTML}{E3F4E8}
-\definecolor{rMsg}{HTML}{8A5CD8}  \definecolor{rMsgBg}{HTML}{F1EAFD}
-\definecolor{rMal}{HTML}{D6336C}  \definecolor{rMalBg}{HTML}{FBE3EC}
-\definecolor{rPubText}{HTML}{1F55B5}
-\definecolor{rSecText}{HTML}{9A6B00}
-\definecolor{rShText}{HTML}{1E7E4F}
+% ---------- Diffie-Hellman roles: the colours of the Lecture 4 slides (and of the simulator) ----------
+%   public values: neutral grey; secrets: amber; the shared secret: amber, stronger fill; message: violet;
+%   Eve and Mallory: pink; ciphertext: brown; Alice: indigo; Bob: teal
+\definecolor{rPub}{HTML}{90A4AE}  \definecolor{rPubBg}{HTML}{ECEFF1}
+\definecolor{rSec}{HTML}{FFB300}  \definecolor{rSecBg}{HTML}{FFECBF}
+\definecolor{rSh}{HTML}{FFB300}   \definecolor{rShBg}{HTML}{FFDB80}
+\definecolor{rMsg}{HTML}{7E57C2}  \definecolor{rMsgBg}{HTML}{ECE6F6}
+\definecolor{rMal}{HTML}{EC407A}  \definecolor{rMalBg}{HTML}{FCE2EB}
+\definecolor{rCtx}{HTML}{8D6E63}  \definecolor{rCtxBg}{HTML}{EEE9E7}
+\definecolor{rPubText}{HTML}{37474F}
+\definecolor{rSecText}{HTML}{A06A00}
+\definecolor{rShText}{HTML}{A06A00}
 \definecolor{rMsgText}{HTML}{6A3FB8}
-\definecolor{rMalText}{HTML}{B0245A}
+\definecolor{rMalText}{HTML}{C2185B}
 \definecolor{rChg}{HTML}{D9621C}
 \tikzset{
   pubv/.style={draw=rPub, thick, fill=rPubBg, text=nInk, rounded corners=3pt, align=center, inner sep=5pt},
   secv/.style={draw=rSec, thick, fill=rSecBg, text=nInk, rounded corners=3pt, align=center, inner sep=5pt},
   shv/.style={draw=rSh, thick, fill=rShBg, text=nInk, rounded corners=3pt, align=center, inner sep=5pt},
   msgv/.style={draw=rMsg, thick, fill=rMsgBg, text=nInk, rounded corners=3pt, align=center, inner sep=5pt},
+  ctxv/.style={draw=rCtx, thick, fill=rCtxBg, text=nInk, rounded corners=3pt, align=center, inner sep=5pt},
   malv/.style={draw=rMal, thick, fill=rMalBg, text=nInk, rounded corners=3pt, align=center, inner sep=5pt},
   unkv/.style={draw=nLine, thick, dashed, fill=white, text=nInk, rounded corners=3pt, align=center, inner sep=5pt},
   todo/.style={draw=AccentOrange, line width=1.4pt, fill=AccentOrange!10, text=nInk, rounded corners=3pt, align=center, inner sep=5pt},
@@ -104,9 +108,9 @@
 \newcommand{\person}[6]{%
   \node[circle, fill=#3, minimum size=1.15cm, inner sep=0pt, text=white, font=\Large] (#1) at (#2) {#4};
   \node[font=\small\bfseries, text=#6, below=1pt of #1] (#1name) {#5};}
-% as in the simulator: Alice and Bob dark, the attacker pink
-\newcommand{\alice}[2]{\person{#1}{#2}{nInk}{\faUser}{Alice}{nInk}}
-\newcommand{\bob}[2]{\person{#1}{#2}{nInk}{\faUser}{Bob}{nInk}}
+% as on the slides: Alice indigo, Bob teal, the attacker pink
+\newcommand{\alice}[2]{\person{#1}{#2}{sIndigo}{\faUser}{Alice}{sIndigo}}
+\newcommand{\bob}[2]{\person{#1}{#2}{sTeal}{\faUser}{Bob}{sTealText}}
 \newcommand{\mallory}[2]{\person{#1}{#2}{rMal}{\faUserNinja}{Mallory}{rMalText}}
 % a TODO tag on the corner of a node: \todotag{node}
 \newcommand{\todotag}[1]{\node[fill=AccentOrange, text=white, font=\tiny\bfseries, rounded corners=2pt, inner sep=2pt,

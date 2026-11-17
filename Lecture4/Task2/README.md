@@ -21,20 +21,20 @@ Write your code in place of the `TODO` comments in `dh.py`:
 
 1. Alice's secret `a` and Bob's secret `b`: random 256-bit numbers, `secrets.randbits(256)`.
 2. `A = G^a mod P` (Alice sends it) and `B = G^b mod P` (Bob sends it). In Python `pow(G, a, P)` computes `G^a mod P` quickly, even for huge numbers. Python integers have no size limit: there is no overflow as with `int` in C.
-3. Alice computes `B^a mod P`, Bob computes `A^b mod P`.
-4. Print whether both results are equal, `print("equal:", ...)`, and the first 20 digits of the secret, `print("secret:", str(x)[:20], "...")`. `str(x)[:20]` gives the first 20 digits of `x` (a slice: the characters 0 to 19).
+3. Alice computes `s_alice = B^a mod P`, Bob computes `s_bob = A^b mod P`.
+4. Print whether both results are equal, `print("equal:", s_alice == s_bob)`, and the first 20 digits of the secret, `print("secret:", str(s_alice)[:20], "...")`. `str(x)[:20]` gives the first 20 digits of `x` (a slice: the characters 0 to 19).
 
 ## Expected output
 
-`True`, then 20 digits, then the time. The digits are new on every run (the secrets are random), and your time will be different, but it should be a few milliseconds.
+Without your code the program prints `not done yet: TODO 1 to 4`. With it: `True`, then 20 digits, then the time. The digits are new on every run (the secrets are random). The time below was measured on a laptop with an Intel Core i5-8265U; your times will differ, but they should be a few milliseconds.
 
 <details>
 <summary>Check your answer</summary>
 
 ```
 equal: True
-secret: 17703899368065106010 ...
-took 12.2 ms
+secret: 11974210656905040766 ...
+took 11.4 ms
 ```
 
 </details>

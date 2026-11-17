@@ -14,7 +14,8 @@ Read Alice's message, and pass it on so that Bob notices nothing.
 
 - `network.py` (do not change it): `P`, `G`, Alice, Bob and the network, `run(mallory)`, which calls your three functions in the order of the figure.
 - `network.py`: `key_from_secret(secret)` turns a Diffie-Hellman secret into a 32-byte key (with SHA-256), `encrypt(key, text)` gives bytes, `decrypt(key, data)` gives text.
-- `mitm.py`: the class `Mallory` with her secret `self.m` and her public value `self.M = G^m mod P`.
+- The cipher in `network.py` is a simple stream cipher: it XORs the bytes of the text with a keystream made from the key by SHA-256, and the same XOR again gives the text back.
+- `mitm.py`: the class `Mallory` with her secret m (`self.m`) and her public value M = g^m mod p (`self.M`). M is what she sends instead of A and B.
 
 ## Steps
 

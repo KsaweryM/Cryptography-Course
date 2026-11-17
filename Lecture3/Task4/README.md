@@ -1,53 +1,49 @@
-# Task 4: your own RSA
+# Task 4: does it always work?
 
 ## The situation
 
-On the slides, Bob made his keys in five steps from p = 17 and q = 11. Now you make your own key the same way, from two primes with about 20 digits each (small enough that the result fits on the screen; real keys have about 309 digits per prime). Then you use it: encrypt the number 2026 with the public key and decrypt it with the private key.
+The small key from the slides: p = 17, q = 11, so n = 187, e = 7 and d = 23. On the slides, 88 was encrypted to 11 and came back as 88. But is that luck? Some messages P share a factor with n: the multiples of 17 and of 11, such as 17 and 22. Do they come back too? With only 187 possible messages, you can simply try them all.
 
-![my_rsa.py gives p = 37908704904578413183 and q = 58606630333925820283 (secret) and e = 65537 (public). Steps 1 to 3: n = p times q (public), phi = (p - 1)(q - 1) (secret), d = the inverse of e mod phi (secret), all question marks. Step 4: the message 2026 goes through C = message to the power e mod n with the public key {e, n}, giving C = ?. Step 5: P = C to the power d mod n with the private key {d, n}, giving P = ?, which must be 2026.](figure.svg)
+![always.py: the public key {e, n} = {7, 187} and the private key {d, n} = {23, 187}. For every P: pow(P, 7, 187) gives C, pow(C, 23, 187) should give P again; if not, add P to wrong. Below, a grid of all 187 values from 0 to 186; the multiples of 17 and 11 (0, 11, 17, 22, 33, 34, and so on) are framed in orange: they share a factor with n = 187. Predict first: do they come back?](figure.svg)
 
 ## Goal
 
-Make your own RSA key from two primes, then encrypt and decrypt the number 2026.
+Check whether every P from 0 to 186 comes back after encrypting and decrypting.
+
+**Predict first:** does it also work for P = 17, which divides n?
 
 ## Ready for you
 
-- `my_rsa.py`: the two primes `p` and `q`, the public exponent `e = 65537` and `message = 2026`.
+- `always.py`: the small key `n, e, d = 187, 7, 23` and the `print` lines. `wrong` starts as `None` (nothing yet, like `NULL` in C), so the file prints `not done yet` until you fill it in.
 
 ## Steps
 
-Write your code in place of the `TODO` comments in `my_rsa.py`:
+Write your code in place of the `TODO` comment in `always.py`:
 
-1. `n = p * q`
-2. `phi = (p - 1) * (q - 1)`
-3. `d`, the inverse of e mod phi: in Python `pow(e, -1, phi)`.
-4. C = message<sup>e</sup> mod n: in Python `pow(message, e, n)`.
-5. P = C<sup>d</sup> mod n, the same way with `d`.
-
-Then print n, d, C and P: `print("n =", n)` and so on. Python integers have no size limit, so 40-digit numbers need no special type (unlike `long` in C).
+1. Start with an empty list, `wrong = []`. Then for every P in `range(n)` (0 to n - 1, like `for (P = 0; P < n; P++)` in C): encrypt with `C = pow(P, e, n)`, decrypt with `pow(C, d, n)`, and add P to the list with `wrong.append(P)` if the result is not P. One loop and one comparison.
 
 ## Expected output
 
-Four lines. n has 40 digits; d and C look like random 40-digit numbers; P must be the original message.
+How many values were checked and the list of the ones that did not come back.
 
 <details>
 <summary>Check your answer</summary>
 
 ```
-n = 2221701454780507748530735154427775990789
-d = 1367151349159148221410861819858768950381
-C = 736246060401132335090489988934276767570
-P = 2026
+checked: 187 values
+wrong:   []
 ```
+
+The list is empty: RSA works for every P from 0 to n - 1, also for P = 17 (17 -> 85 -> 17) and the other multiples of 17 and 11.
 
 </details>
 
 ## Run
 
 ```
-python3 my_rsa.py
+python3 always.py
 ```
 
-About 8 minutes. Python 3.8 or newer (for `pow(e, -1, phi)`), no extra libraries.
+About 4 minutes. Python 3, no extra libraries.
 
-Want to see it move? In [Making the keys](https://ksawerym.github.io/Cryptography-simulators/rsa/#2), the same five steps with your own primes, and how the extended Euclidean algorithm finds d.
+Want to see it move? In [Why decryption works](https://ksawerym.github.io/Cryptography-simulators/rsa/#3), the same 187 values with the reason (Euler's theorem), and why the multiples of 17 and 11 work too.

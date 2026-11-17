@@ -55,6 +55,13 @@ C2_second = int(
 # You know the first message (it was printed on a public receipt):
 first = "Payment approved: 250 EUR, order 1187."
 
-# TODO 1: the hidden mask y^k: C2_first = M_first * y^k mod P, so y^k = C2_first * (inverse of M_first) mod P
-# TODO 2: the second message: M_second = C2_second * (inverse of y^k) mod P
-# TODO 3: print it as text: print("second message:", number_to_text(M_second))
+M_second = None   # the second message as a number: TODO 2
+
+# TODO 1: what is the same in both C2? Compute it from the known first message
+#         (M_first = text_to_number(first)).
+# TODO 2: use it to get the second message M_second from C2_second.
+
+if M_second is None:
+    print("not done yet: TODO 1 and 2")
+else:
+    print("second message:", number_to_text(M_second))

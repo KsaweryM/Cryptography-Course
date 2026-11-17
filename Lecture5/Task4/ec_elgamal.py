@@ -27,7 +27,7 @@ def add(P, Q):
 def mul(k, P):
     """Ready: k P = P + P + ... + P (k times)."""
     R = O
-    for _ in range(k):
+    for i in range(k):
         R = add(R, P)
     return R
 
@@ -37,9 +37,10 @@ def neg(P):
     return (P[0], -P[1] % p)
 
 
-d = 7              # Bob's private key
+d = 5              # Bob's private key
 Q = mul(d, G)      # Bob's public key
-M = (13, 10)       # the message, already turned into a point of the curve
+M = (10, 11)       # the message, already turned into a point of the curve
+k = 6              # Alice's random number for this message
 
 
 def encrypt(M, Q, k):
@@ -52,8 +53,15 @@ def decrypt(C1, C2, d):
     return None
 
 
-C = encrypt(M, Q, 4)
+# The printing is ready: it says "not done yet" until the TODO is done.
 print("Q =", Q)
-print("ciphertext (C1, C2):", C)
-if C is not None:
-    print("decrypted:", decrypt(C[0], C[1], d))
+C = encrypt(M, Q, k)
+if C is None:
+    print("not done yet: TODO 1")
+else:
+    print("ciphertext (C1, C2):", C)
+    D = decrypt(C[0], C[1], d)
+    if D is None:
+        print("not done yet: TODO 2")
+    else:
+        print("decrypted:", D)

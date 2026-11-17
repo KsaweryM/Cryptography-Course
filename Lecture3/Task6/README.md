@@ -18,12 +18,12 @@ Find the PIN without the private key.
 
 Write your code in place of the `TODO` comment in `pin.py`:
 
-1. Find the PIN without the private key and store it in `pin`.
+1. Find the PIN without the private key and store it in `pin`. Until then the file prints `not found yet`.
    - Hint: the public key is public, so you can encrypt any number yourself with `pow(number, e, n)`.
 
 ## Expected output
 
-The PIN and the time it took. Your time will be different, but it is well under a second or two.
+The PIN and the time it took. Your time will be different, but it is under a second.
 
 <details>
 <summary>Check your answer</summary>

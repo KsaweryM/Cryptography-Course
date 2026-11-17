@@ -26,15 +26,24 @@ PROBLEMS = [
     (896107, 808927, 241789, (119763, 855066), (490971, 493613)),   # p has 20 bits
     (9788083, 4564841, 5425030, (7065671, 8730247), (619167, 4946861)),   # p has 24 bits
 ]
+BITS = [16, 20, 24]   # the number of bits of each p
 
 
 def find_k(p, a, G, T):
     # TODO: start with R = G and k = 1, keep adding G (R = add(R, G, a, p))
-    #       until R == T, then return k
+    #       and counting (k = k + 1) until R == T, then return k
     return None
 
 
-for p, a, b, G, T in PROBLEMS:
+for i in range(len(PROBLEMS)):
+    p = PROBLEMS[i][0]
+    a = PROBLEMS[i][1]
+    G = PROBLEMS[i][3]
+    T = PROBLEMS[i][4]
     start = time.perf_counter()
     k = find_k(p, a, G, T)
-    print(f"{p.bit_length()} bits: k = {k}   {time.perf_counter() - start:.3f} s")
+    seconds = time.perf_counter() - start
+    if k is None:
+        print(f"{BITS[i]} bits: not done yet: TODO in find_k")
+    else:
+        print(f"{BITS[i]} bits: k = {k}   {seconds:.3f} s")

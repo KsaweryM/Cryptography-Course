@@ -7,7 +7,7 @@
 \pagecolor{white}
 \begin{tikzpicture}[>=Stealth]
   % the public group
-  \node[pubv, minimum width=9.4cm, minimum height=1.3cm] (grp) at (6,2.3) {};
+  \node[pubv, minimum width=11cm, minimum height=1.3cm] (grp) at (6,2.3) {};
   \node[font=\small\bfseries, text=rPubText, anchor=north west] at ([xshift=4pt,yshift=-3pt]grp.north west) {\faEye\ public: everybody, Eve too};
   \node[font=\small, text=nInk] at (6,2.05) {$p$ = \texttt{32317006071311\ldots} (2048 bits, 617 digits)\qquad $g = 2$};
   \node[font=\scriptsize, text=gray, anchor=north] at (grp.south) {group 14 from RFC 3526, ready in \texttt{dh.py}};
@@ -22,7 +22,7 @@
   \node[pubv, font=\small, minimum width=3.2cm] (A) at (0,-3.6) {$A = g^{a} \bmod p$};
   \node[pubv, font=\small, minimum width=3.2cm] (B) at (12,-3.6) {$B = g^{b} \bmod p$};
   \draw[data] (a) -- (A); \draw[data] (b) -- (B);
-  \draw[wire] (A.east) ++(0,0.15) -- node[above=3pt, font=\small, text=nInk] {$A$ (about 617 digits)} ([yshift=0.15cm]B.west);
+  \draw[wire] (A.east) ++(0,0.15) -- node[above=3pt, font=\small, text=nInk] {$A$ (up to 617 digits)} ([yshift=0.15cm]B.west);
   \draw[wire] (B.west) ++(0,-0.15) -- node[below=3pt, font=\small, text=nInk] {$B$} ([yshift=-0.15cm]A.east);
 
   % the shared secret on both sides

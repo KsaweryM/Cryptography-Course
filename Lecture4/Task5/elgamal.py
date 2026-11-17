@@ -50,11 +50,14 @@ def decrypt(C1, C2, x):
 
 M = text_to_number("Meet me at the old bridge at noon.")
 if encrypt(M, y) is None:
-    raise SystemExit("encrypt() is not written yet")
+    raise SystemExit("not done yet: TODO 1")
 C1, C2 = encrypt(M, y)
 print("C1 =", str(C1)[:30], "...")
 print("C2 =", str(C2)[:30], "...")
-print("decrypted:", number_to_text(decrypt(C1, C2, x)))
+M_back = decrypt(C1, C2, x)
+if M_back is None:
+    raise SystemExit("not done yet: TODO 2")
+print("decrypted:", number_to_text(M_back))
 
 C1b, C2b = encrypt(M, y)
 print("the same message again gives the same C1:", C1 == C1b)

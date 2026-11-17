@@ -207,6 +207,13 @@
 %   \simlink{elliptic-curves/\#2} prints and links ksawerym.github.io/Cryptography-simulators/elliptic-curves/#2
 \newcommand{\simbase}{ksawerym.github.io/Cryptography-simulators}
 \newcommand{\simlink}[1]{\href{https://\simbase/#1}{\textcolor{DeepBlue}{\texttt{\simbase/#1}}}}
+% a slide that sends the room to the simulator (shown live by the lecturer): \opensim{elliptic-curves/\#1}
+\newcommand{\opensim}[1]{%
+  \begin{beamercolorbox}[rounded=true,sep=0.35cm,wd=\linewidth]{block body example}
+    \centering
+    {\LARGE\faDesktop\ \textbf{Open the simulator}}\\[8pt]
+    \normalsize\simlink{#1}
+  \end{beamercolorbox}}
 % "For the curious" line under a frame: \curious{elliptic-curves/\#2}
 \newcommand{\curious}[1]{{\footnotesize\textcolor{gray}{\faSearch\ For the curious:}\ \simlink{#1}}}
 
@@ -317,14 +324,14 @@
       \foreach \ic/\t [count=\k from 0] in {
           {\faIcon{compress-arrows-alt}}/{See why elliptic curves give the same safety with much shorter keys.},
           {\faChartLine}/{Add and multiply points on a small curve, on paper and in Python.},
-          {\faHandshake}/{Agree on a key and encrypt a message on real curves.}} {
+          {\faHandshake}/{Agree on a key and encrypt a message on a small curve; agree on a real key with X25519 and a key derivation.}} {
         \node[circle, fill=DeepBlue, text=white, minimum size=1.3cm, font=\LARGE] at (0,{-1.9*\k}) {\ic};
         \node[anchor=west, text width=12cm, font=\large, align=left, execute at begin node={\hyphenpenalty=10000 }] at (1.0,{-1.9*\k}) {\t};
       }
     \end{tikzpicture}
   \end{center}
   \vfill
-  \say{Najpierw po co, potem matematyka na małej krzywej, potem prawdziwe krzywe w kodzie. Nazwy sekcji są na pasku u góry.}
+  \say{Najpierw po co, potem matematyka na małej krzywej, potem ECDH i ElGamal na małej krzywej, na końcu prawdziwe klucze: X25519 i funkcja wyprowadzania klucza. Nazwy sekcji są na pasku u góry.}
 \end{frame}
 
 % ======================================================================
@@ -344,7 +351,7 @@
       % RSA
       \node[hw, minimum width=5.4cm, minimum height=2.2cm] (rsa) at (6.6,0) {};
       \node[font=\bfseries, text=nInk, anchor=north] at (rsa.north) {RSA};
-      \node[font=\large, text=nInk] at (6.6,0) {$C = P^e \bmod n$};
+      \node[font=\large, text=nInk] at (6.6,0) {$C = M^e \bmod n$};
       \node[actorlight=sAmber, minimum width=5.0cm, anchor=north] (rsap) at (6.6,-1.6)
         {\faLock\ safe while \textbf{factoring} is hard:\\split $n$ into its primes};
       \draw[data] (dh.south) -- (dhp.north);
@@ -356,7 +363,7 @@
     Both use a \pub{public key} that everybody may know\\ and a \priv{private key} that only its owner knows.
   \end{center}
   \vfill
-  \say{Przypomnienie z dwóch poprzednich wykładów. Logarytm dyskretny: z g, p i $g^a$ mod p znaleźć a. Faktoryzacja: rozkład n na czynniki pierwsze.}
+  \say{Przypomnienie z dwóch poprzednich wykładów. Logarytm dyskretny: z g, p i $g^a$ mod p znaleźć a. Faktoryzacja: rozkład n na czynniki pierwsze. W RSA piszę tu M (wiadomość), bo od sekcji o dodawaniu litera P oznacza punkt krzywej.}
 \end{frame}
 
 \samedot
@@ -388,25 +395,37 @@
 
 \samedot
 \begin{frame}{Where long keys hurt}
+  % CHECKED: public keys: RSA-3072 modulus 3072 / 8 = 384 bytes; X25519 32 bytes (RFC 7748, section 5)
+  % CHECKED: one key agreement = 1 / (operations per second) from the slide "Measured on a laptop":
+  %   openssl speed on i5-8265U, OpenSSL 3.0.13: DH 3072 bits 1 390/s = 0.72 ms, X25519 29 600/s = 0.034 ms
   \vfill
-  \begin{center}
-    \begin{tikzpicture}
-      \foreach \x/\ic/\name/\sub in {0/\faCreditCard/a payment card/{a small chip,\\little memory, little power},
-          3.6/\faThermometerHalf/a sensor/{a battery that\\must last years},
-          7.2/\faIcon{mobile-alt}/a phone/{thousands of\\connections a day},
-          10.8/\faLock/a certificate/{sent with every\\HTTPS connection}} {
-        \node[hw, minimum width=3.1cm, minimum height=2.4cm] (b) at (\x,0) {};
-        \node[text=nInk] at (\x,0.35) {\fontsize{34}{36}\selectfont\ic};
-        \node[font=\bfseries, text=nInk] at (\x,-0.7) {\name};
-        \node[font=\small, text=gray, align=center, below=0.15cm of b] {\sub};
-      }
-    \end{tikzpicture}
-  \end{center}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.48\textwidth}
+      \centering\small\textbf{public key}, sent on every connection\\[8pt]
+      \begin{tikzpicture}[x=0.0095cm]
+        \foreach \y/\name/\v/\col/\shown in {0/RSA-3072/384/nInk/384 bytes, -0.9/on a curve/32/AccentOrange/32 bytes} {
+          \node[font=\small, text=nInk, anchor=east] at (-8,\y) {\name};
+          \fill[\col, rounded corners=1.5pt] (0,\y-0.3) rectangle (\v,\y+0.3);
+          \node[font=\small\bfseries, text=nInk, anchor=west] at (\v+8,\y) {\shown};
+        }
+      \end{tikzpicture}
+    \column{0.48\textwidth}
+      \centering\small\textbf{one key agreement}, on a laptop\\[8pt]
+      \begin{tikzpicture}[x=4.4cm]
+        \foreach \y/\name/\v/\col/\shown in {0/DH-3072/0.72/nInk/0.72 ms, -0.9/on a curve/0.034/AccentOrange/0.034 ms} {
+          \node[font=\small, text=nInk, anchor=east] at (-0.02,\y) {\name};
+          \fill[\col, rounded corners=1.5pt] (0,\y-0.3) rectangle (\v,\y+0.3);
+          \node[font=\small\bfseries, text=nInk, anchor=west] at (\v+0.02,\y) {\shown};
+        }
+      \end{tikzpicture}
+  \end{columns}
   \vfill
-  \say{HTTPS to zwykłe strony WWW z kłódką. Certyfikat to klucz publiczny serwera, za który ręczy zaufana firma; jest wysyłany przy każdym połączeniu.}
+  \begin{center}\small A phone makes thousands of connections a day; a payment card or a sensor has a small chip and little power.\end{center}
+  \keymsg{Long keys cost bytes on every connection and time on every key agreement.}
+  \say{Klucz publiczny RSA-3072 to 384 bajty (sam moduł n), klucz na krzywej (X25519) to 32 bajty. Czas jednego uzgodnienia klucza na moim laptopie (openssl speed, szczegóły na slajdzie Measured on a laptop): Diffie-Hellman 3072 bity około 0,72 ms, X25519 około 0,034 ms. Na małym chipie karty płatniczej albo czujnika te same operacje trwają dużo dłużej, a pamięci i energii jest mało. Klucz publiczny serwera jest wysyłany przy każdym połączeniu HTTPS (strony WWW z kłódką).}
 \end{frame}
 
-\begin{frame}{The idea: a harder group}
+\begin{frame}{The idea: points instead of numbers}
   \begin{center}\small Keep Diffie-Hellman and ElGamal exactly as they are,
     but replace ``numbers modulo $p$'' with ``points on a curve''.\end{center}
   \vfill
@@ -435,7 +454,7 @@
   \begin{center}\small Modulo $p$, Eve has clever shortcuts, so $p$ needs 2048 bits. On a good curve she has none:\\
     only a general search of $\sqrt{\text{number of points}}$ steps, so \textbf{256 bits} give $2^{128}$: \textbf{128 bits} of security.\end{center}
   \keymsg{The same ideas on a curve: keys about 12 times shorter.}
-  \say{ElGamal to szyfr z wykładu 4. Dlaczego krzywe pozwalają na krótsze klucze: dla liczb modulo p istnieją sprytne metody (z tej samej rodziny co na faktoryzację z wykładu 3), które działają dużo szybciej niż sprawdzanie po kolei; dlatego p musi mieć 2048 bitów. Na punktach dobrej krzywej te metody nie działają. Zostają metody ogólne, działające w każdej grupie (np. rho Pollarda); potrzebują około pierwiastka z liczby punktów kroków, czyli dla 256 bitów około 2 do 128. Samo sprawdzanie po kolei byłoby jeszcze wolniejsze (2 do 256).}
+  \say{ElGamal to szyfr z wykładu 4. Dlaczego krzywe pozwalają na krótsze klucze: dla liczb modulo p istnieją sprytne metody (z tej samej rodziny co na faktoryzację z wykładu 3), które działają dużo szybciej niż sprawdzanie po kolei; dlatego p musi mieć 2048 bitów. Na punktach dobrej krzywej te metody nie działają. Zostają metody ogólne, które działają dla wszystkiego, co da się tak dodawać i mnożyć (np. rho Pollarda); potrzebują około pierwiastka z liczby punktów kroków, czyli dla 256 bitów około 2 do 128. Samo sprawdzanie po kolei byłoby jeszcze wolniejsze (2 do 256).}
 \end{frame}
 
 \begin{frame}{Elliptic-curve cryptography, 1985}
@@ -463,6 +482,21 @@
   \bigdef{\textbf{ECC}: elliptic-curve cryptography.}
   \vfill
   \say{Wymyślone niezależnie przez dwie osoby w tym samym roku. Szerzej używane od lat 2000, gdy wygasły wątpliwości patentowe i pojawiły się standardy.}
+\end{frame}
+
+\begin{frame}{See it: ECDH as a black box}
+  \begin{center}\small Alice and Bob agree on the same point of a curve; Eve sees only the public values.\end{center}
+  \vfill
+  \opensim{elliptic-curves/\#1}
+  \vfill
+  \begin{enumerate}\small
+    \item Alice picks a secret $a$, Bob a secret $b$. Each sends one public point to the other.
+    \item Change $a$ or $b$ with $+$ and $-$: the shared point changes, but both sides always get the same one.
+    \item Look at Eve's box: she sees the curve, $G$ and the two public points, never $a$ or $b$.
+  \end{enumerate}
+  \vfill
+  \keymsg{Two secrets in, one shared point out. Today: what happens inside.}
+  \say{Pokazać na żywo, około 3 minut. Na razie czarna skrzynka: nie tłumaczymy jeszcze, co to punkt ani mnożenie punktu; to jest treść kolejnych sekcji. Ustawienia startowe a = 3, b = 10 to te same liczby co na slajdzie ECDH on our curve. Karty z atakiem Eve nie otwierać: pokazuje wielokrotności G, które studenci policzą w zadaniach 1 i 2.}
 \end{frame}
 
 % ======================================================================
@@ -524,9 +558,8 @@
       \centering
       \modgrid[0.25]{\draw[AccentOrange, thick, dashed] (-0.6,8.5) -- (16.6,8.5);}
   \end{columns}
-  \curious{elliptic-curves/\#3}
   \keymsg{Modulo $p$, the curve is a cloud of dots.}
-  \say{Linia zamieniła się w rozsypane kropki. Symetria została: obok punktu (x, y) zawsze leży (x, 17 - y). W symulatorze można kliknąć dowolne pole siatki i sprawdzić, czy to punkt krzywej.}
+  \say{Linia zamieniła się w rozsypane kropki. Symetria została: obok punktu (x, y) zawsze leży (x, 17 - y).}
 \end{frame}
 
 \samedot
@@ -549,7 +582,8 @@
   \vfill
   \bigdef{Both sides are 1: $(5, 1)$ is on the curve.}
   \vfill
-  \say{Każdy punkt można tak sprawdzić. (5, 2) by nie pasował: lewa strona to 4.}
+  \curious{elliptic-curves/\#3}
+  \say{Każdy punkt można tak sprawdzić. (5, 2) by nie pasował: lewa strona to 4. W symulatorze można kliknąć dowolne pole siatki i zobaczyć to samo sprawdzenie.}
 \end{frame}
 
 \samedot
@@ -585,14 +619,15 @@
         \draw[nLine] (-0.8,-0.8) rectangle (17,17);}
         & our toy curve & $17$ & $19$ \\
       \textcolor{nInk}{\Large\faLandmark} & P-256 (NIST) & $2^{256} - 2^{224} + \ldots$ & about $2^{256}$ \\
-      \textcolor{nInk}{\Large\faGlobe} & Curve25519 & $2^{255} - 19$ & about $2^{252}$ in its main group \\
+      \textcolor{nInk}{\Large\faGlobe} & Curve25519 & $2^{255} - 19$ & about $2^{255}$ \\
       \bottomrule
     \end{tabular}
   \end{center}
   \vfill
   \bigdef{Too many points to list, but the rules are the same.}
   \vfill
-  \say{P-256 to krzywa ze standardu NIST, amerykańskiego instytutu standardów. Curve25519 zaproponował Daniel J. Bernstein w 2006 roku. Na małej krzywej uczymy się zasad, w kodzie użyjemy prawdziwych.}
+  \curious{elliptic-curves/\#1.4}
+  \say{W symulatorze, na dole kroku 1, ta sama wymiana kluczy działa na P-256 z liczbami 256-bitowymi. P-256 to krzywa ze standardu NIST, amerykańskiego instytutu standardów. Curve25519 zaproponował Daniel J. Bernstein w 2006 roku; ma 8 razy około $2^{252}$ punktów, a wielokrotności G to około $2^{252}$ z nich (zob. The order of G). Na małej krzywej uczymy się zasad, w kodzie użyjemy prawdziwych.}
 \end{frame}
 
 % ======================================================================
@@ -716,8 +751,8 @@
   \defbox{``$/\,v \bmod p$'' means multiplying by the \textbf{modular inverse} of $v$:
     the number $v^{-1}$ with $v \cdot v^{-1} = 1 \bmod p$.}
   \vfill
-  \curious{math/extended-euclid/}
-  \say{Wzory wynikają z przecięcia prostej z krzywą; wyprowadzenie pomijamy. Odwrotność modularna z wykładów 3 i 4: v razy $v^{-1}$ mod p daje 1, w Pythonie pow(v, -1, p). Link prowadzi do rozszerzonego algorytmu Euklidesa z wykładu 3, który tę odwrotność liczy.}
+  \curious{math/extended-euclid/}\quad\curious{elliptic-curves/\#4}
+  \say{Wzory wynikają z przecięcia prostej z krzywą; wyprowadzenie pomijamy. Odwrotność modularna z wykładów 3 i 4: v razy $v^{-1}$ mod p daje 1, w Pythonie pow(v, -1, p). Link prowadzi do rozszerzonego algorytmu Euklidesa z wykładu 3, który tę odwrotność liczy. Drugi link: te same wzory w symulatorze, z tabelką odwrotności modulo 17.}
 \end{frame}
 
 % doubling G = (5, 1) on the toy curve, #1 = the step of this slide (1 to 3)
@@ -846,7 +881,7 @@
     \column{0.56\textwidth}
       \taskgoal{write the point addition in Python, then add $G$ again and again until you reach $O$.}
       \taskready{\texttt{ec\_toy.py}: the curve, $G$, $O$ (\texttt{None}), and the cases $P + O$ and $P + (-P)$.}
-      {\centering\small\textcolor{AccentOrange}{\faQuestionCircle}\ \textbf{Predict first:} how many points before $O$?\par}
+      \probbox{Predict first}{How many points before $O$?}
     \column{0.42\textwidth}
       \centering
       \modgrid[0.17]{
@@ -884,8 +919,8 @@
         \gmark{5,1}{$G$}{below right}}
   \end{columns}
   \vfill
-  \keymsg{$G$ visits every point of the curve, then returns to $O$ after 19 steps.}
-  \say{Kod sprawdzony; nie pokazujemy go, jest w folderze solution. Wszystkie 18 punktów i O: G generuje całą krzywą. 18G = (5, 16) to lustrzane odbicie G, dlatego następny krok daje O. Porównać z przewidywaniami z tablicy.}
+  \keymsg{The multiples jump around with no pattern: that is why finding $k$ is hard.}
+  \say{Kod sprawdzony; nie pokazujemy go, jest w folderze solution. Wszystkie 18 punktów i O: G odwiedza całą krzywą, po 19 krokach wraca do O. Kolejne wielokrotności skaczą po siatce bez żadnego wzoru; to zapowiedź ECDLP. 18G = (5, 16) to lustrzane odbicie G, dlatego następny krok daje O. Porównać z przewidywaniami z tablicy.}
 \end{frame}
 
 % ======================================================================
@@ -941,8 +976,10 @@
   \vfill
   \bigdef{For a 256-bit $k$: about \textbf{256 doublings}, not $2^{256}$ additions.}
   \vfill
-  \curious{elliptic-curves/\#3}
-  \say{To ten sam pomysł co szybkie potęgowanie przez kwadraty z wykładu 3. W Pythonie mnożenie na P-256 trwa około 11 ms. W symulatorze, w zakładce kG: double and add, można wpisać dowolne k i przejść krok po kroku.}
+  \curious{elliptic-curves/\#3.2}
+  % CHECKED: python3 (3.12) on i5-8265U, P-256, double and add with the add() of the tasks (pow(v, -1, p)),
+  %   200 random 256-bit k: 10.9 ms and 10.4 ms per kG
+  \say{Zamiast dodawać G sto razy, podwajamy: G, 2G, 4G, ..., 64G, to 6 podwojeń. Potem dodajemy te, które składają się na 100: 100 = 64 + 32 + 4, czyli jedynki w zapisie dwójkowym 100 = 1100100. Dla 256-bitowego k to około 256 podwojeń i najwyżej 256 dodawań. W zwykłym Pythonie, z tym samym dodawaniem co w zadaniach, jedno mnożenie na P-256 trwa około 11 ms. W symulatorze, w zakładce kG: double and add, można wpisać dowolne k i przejść krok po kroku.}
 \end{frame}
 
 \begin{frame}{The hard problem: ECDLP}
@@ -959,8 +996,9 @@
     \end{tikzpicture}
   \end{center}
   \vfill
+  \curious{elliptic-curves/\#1.3}
   \keymsg{Multiplying a point is easy. Finding the multiplier is hard.}
-  \say{To ten sam problem co logarytm dyskretny, tylko w grupie punktów. Na małej krzywej odpowiedź jest w liście z zadania 2, na prawdziwej nie da się jej znaleźć.}
+  \say{To ten sam problem co logarytm dyskretny, tylko na punktach krzywej. W symulatorze (karta Eve's attack) Eve szuka sekretu na małej krzywej, dodając G raz za razem. Na małej krzywej odpowiedź jest w liście z zadania 2, na prawdziwej nie da się jej znaleźć.}
 \end{frame}
 
 \begin{frame}{Task 3: find k}
@@ -979,9 +1017,8 @@
 \begin{frame}{Task 3: what we saw}
   \vfill
   \begin{center}
-    % CHECKED: Task3/solution/ecdlp.py on the author's laptop (the draft): 0.053 s, 1.15 s, 14.1 s;
-    %   k = 37100, 826876, 8762309. A second run on 2026-11-11, on a busy machine: 0.065 s, 1.48 s, 66 s.
-    %   A third run on 2026-11-15: 0.081 s, 1.54 s, 19.3 s, the same k.
+    % CHECKED: python3 Task3/solution/ecdlp.py, 2026-11-17, i5-8265U, Python 3.12.3: 0.042 s, 1.201 s, 15.601 s;
+    %   k = 37100, 826876, 8762309 (the same series is in Task3/README.md)
     % a log scale by hand: height = log10(seconds) + 2, so 0.01 s is 0 and 100 s is 4
     \begin{tikzpicture}[y=1.0cm]
       \foreach \e/\lbl in {0/0.01 s, 1/0.1 s, 2/1 s, 3/10 s, 4/100 s} {
@@ -989,7 +1026,7 @@
         \node[font=\tiny, text=gray, anchor=east] at (0,\e) {\lbl};
       }
       \draw[nLine, thick] (0,0) -- (0,4.1);
-      \foreach \x/\t/\lbl/\k in {1.3/0.053/16 bits/37\,100, 3.8/1.15/20 bits/826\,876, 6.3/14.1/24 bits/8\,762\,309} {
+      \foreach \x/\t/\lbl/\k in {1.3/0.042/16 bits/37\,100, 3.8/1.20/20 bits/826\,876, 6.3/15.6/24 bits/8\,762\,309} {
         \pgfmathsetmacro{\h}{log10(\t)+2}
         \fill[sPink, rounded corners=1pt] (\x-0.5,0) rectangle (\x+0.5,\h);
         \node[font=\scriptsize\bfseries, text=nInk, anchor=south] at (\x,\h) {\t\ s};
@@ -1000,7 +1037,7 @@
   \end{center}
   \vfill
   \keymsg{Every 4 more bits make the search more than 10 times longer.}
-  \say{Pomiar z mojego laptopa; u studentów czasy będą inne, ale proporcje podobne. Porównać z przewidywaniami z tablicy. Czas rośnie razem z k, czyli z liczbą dodawań: k jest kolejno około 22 i 11 razy większe; średnio 4 bity więcej to 16 razy więcej dodawań. Dla 256 bitów nasze dodawanie po kolei potrzebowałoby około 2 do 255 dodawań. Najlepszy znany atak na dobrą krzywą (metoda rho Pollarda) potrzebuje około 2 do 128 kroków, pierwiastek z liczby punktów; to wciąż nieosiągalne.}
+  \say{Pomiar z mojego laptopa (i5-8265U, Python 3.12); u studentów czasy będą inne, ale proporcje podobne. Porównać z przewidywaniami z tablicy. Czas rośnie razem z k, czyli z liczbą dodawań: k jest kolejno około 22 i 11 razy większe; średnio 4 bity więcej to 16 razy więcej dodawań. Dla 256 bitów nasze dodawanie po kolei potrzebowałoby około 2 do 255 dodawań. Najlepszy znany atak na dobrą krzywą (metoda rho Pollarda) potrzebuje około 2 do 128 kroków, pierwiastek z liczby punktów; to wciąż nieosiągalne.}
 \end{frame}
 
 \begin{frame}{The order of G}
@@ -1030,35 +1067,6 @@
   \begin{center}\small $G$ must have a huge prime order, or $kG$ takes too few values.\end{center}
   \keymsg{The choice of $G$ matters: a large prime order, or the curve is weak.}
   \say{Jak przy złym g w wykładzie 4: jeśli wielokrotności G zapętlą się szybko, napastnik ma mało do sprawdzenia. Rząd pierwszy chroni też przed atakami, które rozbijają problem na mniejsze kawałki.}
-\end{frame}
-
-\begin{frame}{Good to know: where do the constants come from?}
-  \vfill
-  \begin{columns}[T,onlytextwidth]
-    \column{0.48\textwidth}
-      % CHECKED: b of P-256 (FIPS 186-4, D.1.2.3)
-      \begin{tikzpicture}
-        \node[hw, text width=6.1cm, align=left, minimum height=3.3cm] (c) {
-          \textbf{P-256} \textcolor{gray}{(NIST, 2000)}\\[4pt]
-          \scriptsize\ttfamily b = 5ac635d8 aa3a93e7 b3ebbd55 769886bc\\
-          \hspace*{1.6em}651d06b0 cc53b0f6 3bce3c3e 27d2604b\\[6pt]
-          \normalfont\small comes from the hash of a \textbf{seed nobody can explain}};
-        \node[circle, fill=aWrite, text=white, font=\large, inner sep=4pt] at (c.north east) {\faQuestion};
-      \end{tikzpicture}
-    \column{0.48\textwidth}
-      % CHECKED: A24 = 121665 = (486662 - 2) / 4 in Task4/x25519_ready.py
-      \begin{tikzpicture}
-        \node[hw, text width=6.1cm, align=left, minimum height=3.3cm] (c) {
-          \textbf{Curve25519} \textcolor{gray}{(2006)}\\[4pt]
-          \small $y^2 = x^3 + \mathbf{486662}\,x^2 + x \bmod 2^{255} - 19$\\[6pt]
-          every constant is the \textbf{smallest} that meets the stated rules};
-        \node[circle, fill=aExec, text=white, font=\large, inner sep=4pt] at (c.north east) {\faListOl};
-      \end{tikzpicture}
-  \end{columns}
-  \vfill
-  \bigdef{Many prefer curves whose constants anybody can check.}
-  \vfill
-  \say{Można pominąć. Nie znamy żadnej słabości P-256, ale pochodzenia jej stałych nie da się sprawdzić. Dlatego wiele nowych systemów wybiera Curve25519.}
 \end{frame}
 
 % ======================================================================
@@ -1113,9 +1121,10 @@
     \end{tikzpicture}
   \end{center}
   \vspace{-0.1cm}
-  \begin{center}\small Both get the same point $a\,b\,G$. Eve saw only $G$, $A$ and $B$.\end{center}
+  \begin{center}\small Both get the same point $a\,b\,G$. Eve saw only $G$, $A$ and $B$.\\
+    \textcolor{gray}{Like Diffie-Hellman, ECDH alone does not stop Mallory (lecture 4).}\end{center}
   \keymsg{ECDH is Diffie-Hellman with points instead of powers.}
-  \say{Eve to podsłuchująca osoba z poprzednich wykładów. ECDH to Elliptic-Curve Diffie-Hellman.}
+  \say{Eve to podsłuchująca osoba z poprzednich wykładów. ECDH to Elliptic-Curve Diffie-Hellman. Mallory, który podmienia A i B w drodze, robi tu dokładnie ten sam atak co w wykładzie 4.}
 \end{frame}
 
 \samedot
@@ -1139,96 +1148,6 @@
   \vfill
   \curious{elliptic-curves/\#1}
   \say{Sprawdzone w Pythonie. Wspólny punkt to 30G, a 30 mod 19 = 11, czyli 11G = (13, 10) z listy. W symulatorze można zmieniać sekrety a i b na tej samej krzywej i zobaczyć atak Eve na tak małą krzywą.}
-\end{frame}
-
-\begin{frame}{A point is not a key}
-  \begin{center}\small The shared secret is a \textbf{point}. ChaCha20 or AES needs \textbf{32 random-looking bytes}.\end{center}
-  \vfill
-  \begin{center}
-    \begin{tikzpicture}[>=Stealth]
-      \node[privval, minimum height=1.0cm, font=\small] (p) at (0,0) {secret point\\$a\,b\,G$};
-      % the funnel
-      \fill[nInk, rounded corners=2pt] (3.2,1.1) -- (5.6,1.1) -- (4.75,0.25) -- (4.75,-0.9) -- (4.05,-0.9) -- (4.05,0.25) -- cycle;
-      \node[text=white, font=\small\bfseries] at (4.4,0.62) {KDF};
-      \node[text=white, font=\small] at (4.4,-0.35) {\faCogs};
-      \draw[data] (p.east) -- (3.55,0.62);
-      \foreach \y/\lbl in {0.7/key 1: Alice $\rightarrow$ Bob, -0.7/key 2: Bob $\rightarrow$ Alice} {
-        \draw[data] (4.9,-0.3) -- (6.6,\y);
-        \foreach \i in {0,...,7} \node[keybyte, minimum width=0.42cm, minimum height=0.42cm] at ({6.95+0.44*\i},\y) {};
-        \node[font=\scriptsize, text=nInk, anchor=west] at (10.4,\y) {\lbl};
-      }
-    \end{tikzpicture}
-  \end{center}
-  \vfill
-  \defbox{\textbf{KDF}: key derivation function. \quad secret point $\rightarrow$ one or more symmetric keys.}
-  \begin{center}\small The common choice is \textbf{HKDF} (RFC 5869), built on a hash function.\end{center}
-  \vfill
-  \say{KDF wyciąga z sekretu równomiernie losowe bajty i może zrobić z jednego sekretu kilka kluczy, na przykład osobno dla każdego kierunku. Funkcja skrótu z poprzednich wykładów: odcisk dowolnych danych. RFC to oficjalny dokument standardu internetowego.}
-\end{frame}
-
-% a cube of bytes: \bytecube{x,y}{fill colour}{label}{caption}
-\newcommand{\bytecube}[4]{%
-  \begin{scope}[shift={(#1)}]
-    \fill[#2!25, draw=#2, thick] (0,0) rectangle (1.6,1.6);
-    \fill[#2!45, draw=#2, thick] (0,1.6) -- (0.5,2.05) -- (2.1,2.05) -- (1.6,1.6) -- cycle;
-    \fill[#2!60, draw=#2, thick] (1.6,0) -- (2.1,0.45) -- (2.1,2.05) -- (1.6,1.6) -- cycle;
-    \node[font=\large\bfseries, text=nInk, align=center] at (0.8,0.8) {32\\[-2pt]\scriptsize bytes};
-    \node[font=\small\bfseries, text=nInk, anchor=north] at (1.05,-0.1) {#3};
-    \node[font=\scriptsize, text=gray, anchor=north] at (1.05,-0.55) {#4};
-  \end{scope}}
-
-\samedot
-\begin{frame}{X25519}
-  \begin{center}\small ECDH on Curve25519, as used on the internet (RFC 7748):\end{center}
-  \vfill
-  \begin{center}
-    \begin{tikzpicture}
-      \bytecube{0,0}{sAmber}{private key}{32 random bytes}
-      \bytecube{4.2,0}{sViolet}{public key}{sent to the other side}
-      \bytecube{8.4,0}{sAmber}{shared key}{the same on both sides}
-    \end{tikzpicture}
-  \end{center}
-  \vfill
-  \bigdef{Designed to be hard to implement wrongly.}
-  \vfill
-  \say{X25519 liczy tylko współrzędną x i ma wzory bez przypadków szczególnych, dlatego trudno popełnić w nim błąd. Dla porównania klucz publiczny RSA 3072 ma 384 bajty.}
-\end{frame}
-
-\begin{frame}{Task 4: X25519}
-  \vfill
-  \taskgoal{Alice and Bob agree on a secret with X25519, then derive a ChaCha20 key with HKDF.}
-  \taskready{\texttt{x25519\_ready.py}: \texttt{public\_key}, \texttt{x25519} and \texttt{hkdf}, in plain Python.}
-  \taskready{\texttt{ecdh.py}: the two private keys, the test values of RFC 7748.}
-  \vfill
-  \opentask{Task4}{about 6 minutes}
-  \vfill
-  \say{Około 6 minut. Polecenia są w README na GitHubie. public\_key(private) to d razy G na Curve25519, x25519(mój prywatny, cudzy publiczny) daje wspólny sekret. Wynik można porównać z dokumentem RFC 7748, punkt 6.1. x25519\_ready.py zawiera też funkcję hkdf, napisaną na hmac i hashlib z biblioteki standardowej.}
-\end{frame}
-
-\samedot
-\begin{frame}{Task 4: what we saw}
-  % CHECKED: Task4/solution/ecdh.py: the secret is the one in RFC 7748, section 6.1; equal: True
-  \vfill
-  \begin{center}
-    \begin{tikzpicture}[>=Stealth]
-      \personnode{alice}{0,0}{sIndigo}{Alice}
-      \personnode{bob}{10.4,0}{sTeal}{Bob}
-      \draw[data, <->] (0.9,0.1) -- node[above, font=\small] {public keys, 32 bytes each} (9.5,0.1);
-      \node[privval, font=\footnotesize\ttfamily, align=center] (s) at (5.2,-1.55)
-        {4a5d9d5ba4ce2de1728e3bf480350f25\\e07e21c947d19e3376f09b3c1e161742};
-      \node[font=\scriptsize, text=gray, anchor=south] at (s.north) {the same secret on both sides \; \textcolor{aExec}{\faCheck}};
-      \draw[data] (alicelbl.south) |- (s.west);
-      \draw[data] (boblbl.south) |- (s.east);
-      \node[hwmain, font=\small\bfseries] (kdf) at (5.2,-3.0) {\faCogs\ HKDF};
-      \draw[data] (s.south) -- (kdf.north);
-      \node[privval, font=\footnotesize\ttfamily, align=center, anchor=west] at (6.4,-3.0)
-        {8232af18b2d158a8\ldots ff392f78};
-      \node[font=\scriptsize, text=gray, anchor=east] at (4.2,-3.0) {\texttt{"lecture 5 chat key"}};
-    \end{tikzpicture}
-  \end{center}
-  \vfill
-  \keymsg{The same 32-byte secret on both sides, as in RFC 7748.}
-  \say{Rozwiązanie sprawdzone. Sekret zgadza się z RFC 7748, punkt 6.1, equal: True. Klucz dla ChaCha20 z hkdf: 8232af18b2d158a867dead920cb27b5f70409d17ef4712ba664eb4d2ff392f78. Funkcja hkdf daje wynik zgodny z wektorami z RFC 5869.}
 \end{frame}
 
 % ======================================================================
@@ -1281,59 +1200,135 @@
         \gmark[sBrown]{3,1}{$C_1$}{above left}\gmark[sBrown]{5,1}{$C_2$}{above right}}
   \end{columns}
   \vfill
-  \curious{elliptic-curves/\#1}
+  \curious{elliptic-curves/\#1.2}
   \say{W symulatorze, w zakładce ElGamal, są te same liczby. 4Q = 28G = 9G = (7, 6), bo 28 mod 19 = 9. Odjęcie punktu to dodanie punktu przeciwnego (7, 11). Liczby sprawdzone w Pythonie.}
 \end{frame}
 
-\begin{frame}{Task 5: ElGamal on a curve}
+\begin{frame}{Task 4: ElGamal on a curve}
   \vfill
   \taskgoal{write \texttt{encrypt(M, Q, k)} and \texttt{decrypt(C1, C2, d)} on the small curve.}
-  \taskready{\texttt{ec\_elgamal.py}: \texttt{add}, \texttt{mul}, \texttt{neg} (the point $-P$), Bob's keys \priv{$d = 7$} and \pub{$Q = 7G$}, the message $M = (13, 10)$.}
+  \taskready{\texttt{ec\_elgamal.py}: \texttt{add}, \texttt{mul}, \texttt{neg} (the point $-P$), Bob's keys \priv{$d = 5$} and \pub{$Q = 5G$}, the message $M = (10, 11)$, Alice's \priv{$k = 6$}.}
   \vfill
-  \opentask{Task5}{about 7 minutes}
+  \opentask{Task4}{about 7 minutes}
   \vfill
-  \say{Około 7 minut. Polecenia są w README na GitHubie. Wzory są na slajdzie ElGamal on a curve: C1 = kG, C2 = M + kQ, a przy odszyfrowaniu M = C2 + neg(d C1). mul(k, P) dodaje P k razy; na małej krzywej to wystarczy.}
+  \say{Około 7 minut. Polecenia są w README na GitHubie. Wzory są na slajdzie ElGamal on a curve: C1 = kG, C2 = M + kQ, a przy odszyfrowaniu M = C2 + neg(d C1). mul(k, P) dodaje P k razy; na małej krzywej to wystarczy. Liczby w zadaniu są inne niż w przykładzie (d = 5, k = 6, M = (10, 11)), żeby wynik nie był przepisaniem slajdu.}
+\end{frame}
+
+\samedot
+\begin{frame}{Task 4: what we saw}
+  % CHECKED: python3 Task4/solution/ec_elgamal.py prints Q = (9, 16), ciphertext ((16, 13), (13, 7)), decrypted (10, 11);
+  %   d C1 = 5 (16, 13) = (13, 10) = 6 Q
+  \begin{columns}[c,onlytextwidth]
+    \column{0.55\textwidth}
+      \small \priv{$d = 5$}, \; \pub{$Q = 5G = (9, 16)$}, \; $M = (10, 11)$
+      \vspace{0.25cm}
+
+      \stepbox{Encrypt with $k = 6$}{$C_1 = \ctx{(16, 13)}$, \; $C_2 = \ctx{(13, 7)}$}
+      \vspace{0.2cm}
+      \stepbox{Decrypt with $d = 5$}{$d\,C_1 = (13, 10)$, \; $C_2 - (13, 10) = \mathbf{(10, 11)} = M$ \; \ok}
+    \column{0.42\textwidth}
+      \centering
+      \modgrid[0.25]{\gmark{9,16}{$Q$}{below right}\gmark[nInk]{10,11}{$M$}{above left}
+        \gmark[sBrown]{16,13}{$C_1$}{below left}\gmark[sBrown]{13,7}{$C_2$}{above left}}
+  \end{columns}
+  \vfill
+  \keymsg{Two short functions: ElGamal on a curve works.}
+  \say{Kod sprawdzony (folder solution). Program wypisuje Q = (9, 16), ciphertext (C1, C2): ((16, 13), (13, 7)) i decrypted: (10, 11). d C1 = 5 · 6G = 30G = 11G = (13, 10), to samo co k Q = 6 · 5G.}
+\end{frame}
+
+% ======================================================================
+\section[Real keys]{Real keys: X25519}
+% ======================================================================
+
+\begin{frame}{A point is not a key}
+  \begin{center}\small The shared secret is a \textbf{point}. ChaCha20 or AES-256 needs \textbf{32 random-looking bytes}.\end{center}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \node[privval, minimum height=1.0cm, font=\small] (p) at (0,0) {secret point\\$a\,b\,G$};
+      % the funnel
+      \fill[nInk, rounded corners=2pt] (3.2,1.1) -- (5.6,1.1) -- (4.75,0.25) -- (4.75,-0.9) -- (4.05,-0.9) -- (4.05,0.25) -- cycle;
+      \node[text=white, font=\small\bfseries] at (4.4,0.62) {KDF};
+      \node[text=white, font=\small] at (4.4,-0.35) {\faCogs};
+      \draw[data] (p.east) -- (3.55,0.62);
+      \foreach \y/\lbl in {0.7/key 1: Alice $\rightarrow$ Bob, -0.7/key 2: Bob $\rightarrow$ Alice} {
+        \draw[data] (4.9,-0.3) -- (6.6,\y);
+        \foreach \i in {0,1,5,6} \node[keybyte, minimum width=0.42cm, minimum height=0.42cm] at ({6.95+0.44*\i},\y) {};
+        \node[font=\scriptsize\bfseries, text=sAmberText] at ({6.95+0.44*3},\y) {$\cdots$ 32 bytes $\cdots$};
+        \node[font=\scriptsize, text=nInk, anchor=west] at (10.4,\y) {\lbl};
+      }
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \defbox{\textbf{KDF}: key derivation function. \quad secret point $\rightarrow$ one or more symmetric keys.}
+  \begin{center}\small The common choice is \textbf{HKDF} (RFC 5869), built on a hash function.\end{center}
+  \vfill
+  \say{ChaCha20 i AES-256 biorą 32-bajtowy klucz (AES-128 bierze 16 bajtów). KDF wyciąga z sekretu równomiernie losowe bajty i może zrobić z jednego sekretu kilka kluczy, na przykład osobno dla każdego kierunku. Funkcja skrótu z poprzednich wykładów: odcisk dowolnych danych. RFC to oficjalny dokument standardu internetowego.}
+\end{frame}
+
+% a cube of bytes: \bytecube{x,y}{fill colour}{label}{caption}
+\newcommand{\bytecube}[4]{%
+  \begin{scope}[shift={(#1)}]
+    \fill[#2!25, draw=#2, thick] (0,0) rectangle (1.6,1.6);
+    \fill[#2!45, draw=#2, thick] (0,1.6) -- (0.5,2.05) -- (2.1,2.05) -- (1.6,1.6) -- cycle;
+    \fill[#2!60, draw=#2, thick] (1.6,0) -- (2.1,0.45) -- (2.1,2.05) -- (1.6,1.6) -- cycle;
+    \node[font=\large\bfseries, text=nInk, align=center] at (0.8,0.8) {32\\[-2pt]\scriptsize bytes};
+    \node[font=\small\bfseries, text=nInk, anchor=north] at (1.05,-0.1) {#3};
+    \node[font=\scriptsize, text=gray, anchor=north] at (1.05,-0.55) {#4};
+  \end{scope}}
+
+\samedot
+\begin{frame}{X25519}
+  \begin{center}\small ECDH on Curve25519, as used on the internet (RFC 7748):\end{center}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \bytecube{0,0}{sAmber}{private key}{32 random bytes}
+      \bytecube{4.2,0}{sViolet}{public key}{sent to the other side}
+      \bytecube{8.4,0}{sAmber}{shared secret}{$\rightarrow$ HKDF $\rightarrow$ key}
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \bigdef{Designed to be hard to implement wrongly.}
+  \vfill
+  \say{X25519 liczy tylko współrzędną x i ma wzory bez przypadków szczególnych, dlatego trudno popełnić w nim błąd. Dla porównania klucz publiczny RSA 3072 ma 384 bajty.}
+\end{frame}
+
+\begin{frame}{Task 5: X25519}
+  \vfill
+  \taskgoal{Alice and Bob agree on a secret with X25519, then derive a ChaCha20 key with HKDF.}
+  \taskready{\texttt{x25519\_ready.py}: \texttt{public\_key}, \texttt{x25519} and \texttt{hkdf}, in plain Python.}
+  \taskready{\texttt{ecdh.py}: the two private keys, the test values of RFC 7748.}
+  \vfill
+  \opentask{Task5}{about 6 minutes}
+  \vfill
+  \say{Około 6 minut. Polecenia są w README na GitHubie. public\_key(private) to d razy G na Curve25519, x25519(mój prywatny, cudzy publiczny) daje wspólny sekret. Wynik można porównać z dokumentem RFC 7748, punkt 6.1. x25519\_ready.py zawiera też funkcję hkdf, napisaną na hmac i hashlib z biblioteki standardowej.}
 \end{frame}
 
 \samedot
 \begin{frame}{Task 5: what we saw}
-  % CHECKED: Task5/solution/ec_elgamal.py prints Q = (0, 6), ciphertext ((3, 1), (5, 1)), decrypted (13, 10)
-  \begin{columns}[c,onlytextwidth]
-    \column{0.55\textwidth}
-      \stepbox{Encrypt with $k = 4$}{$C_1 = \ctx{(3, 1)}$, \; $C_2 = \ctx{(5, 1)}$}
-      \vspace{0.2cm}
-      \stepbox{Decrypt with $d = 7$}{$C_2 - 7\,C_1 = \mathbf{(13, 10)} = M$ \; \ok}
-      \vspace{0.3cm}
-      \centering\small The same numbers as in the example on our curve.
-    \column{0.42\textwidth}
-      \centering
-      \modgrid[0.25]{\gmark{0,6}{$Q$}{above right}\gmark[nInk]{13,10}{$M$}{above left}
-        \gmark[sBrown]{3,1}{$C_1$}{above left}\gmark[sBrown]{5,1}{$C_2$}{above right}}
-  \end{columns}
-  \vfill
-  \keymsg{Two short functions: ElGamal on a curve works.}
-  \say{Kod sprawdzony, wynik jak na slajdzie z przykładem. Program wypisuje ciphertext (C1, C2): ((3, 1), (5, 1)) i decrypted: (13, 10).}
-\end{frame}
-
-\begin{frame}{ECC and ElGamal side by side}
+  % CHECKED: Task5/solution/ecdh.py: the secret is the one in RFC 7748, section 6.1; equal: True
   \vfill
   \begin{center}
-    \renewcommand{\arraystretch}{1.45}
-    \begin{tabular}{@{}l@{\qquad}l@{\qquad}l@{}}
-      \toprule
-      & \textbf{ElGamal (numbers)} & \textbf{ElGamal on a curve} \\
-      \midrule
-      operation & multiply mod $p$ & add points \\
-      repeated operation & power $g^k$ & multiple $k\,G$ \\
-      hard problem & discrete logarithm & ECDLP \\
-      key for 128 bits & 3072 bits & \hl{256 bits} \\
-      trap & \textcolor{aWrite}{a repeated $k$} & \textcolor{aWrite}{a repeated $k$} \\
-      \bottomrule
-    \end{tabular}
+    \begin{tikzpicture}[>=Stealth]
+      \personnode{alice}{0,0}{sIndigo}{Alice}
+      \personnode{bob}{10.4,0}{sTeal}{Bob}
+      \draw[data, <->] (0.9,0.1) -- node[above, font=\small] {public keys, 32 bytes each} (9.5,0.1);
+      \node[privval, font=\footnotesize\ttfamily, align=center] (s) at (5.2,-1.55)
+        {4a5d9d5ba4ce2de1728e3bf480350f25\\e07e21c947d19e3376f09b3c1e161742};
+      \node[font=\scriptsize, text=gray, anchor=south] at (s.north) {the same secret on both sides \; \textcolor{aExec}{\faCheck}};
+      \draw[data] (alicelbl.south) |- (s.west);
+      \draw[data] (boblbl.south) |- (s.east);
+      \node[hwmain, font=\small\bfseries] (kdf) at (5.2,-3.0) {\faCogs\ HKDF};
+      \draw[data] (s.south) -- (kdf.north);
+      \node[privval, font=\footnotesize\ttfamily, align=center, anchor=west] at (6.4,-3.0)
+        {8232af18b2d158a8\ldots ff392f78};
+      \node[font=\scriptsize, text=gray, anchor=east] at (4.2,-3.0) {\texttt{"lecture 5 chat key"}};
+    \end{tikzpicture}
   \end{center}
   \vfill
-  \keymsg{Same algorithm, a different group, keys 12 times shorter.}
-  \say{Pułapka jest ta sama, bo algorytm jest ten sam.}
+  \keymsg{The same 32-byte secret on both sides, as in RFC 7748.}
+  \say{Rozwiązanie sprawdzone. Sekret zgadza się z RFC 7748, punkt 6.1, equal: True. Klucz dla ChaCha20 z hkdf: 8232af18b2d158a867dead920cb27b5f70409d17ef4712ba664eb4d2ff392f78. Funkcja hkdf daje wynik zgodny z wektorami z RFC 5869.}
 \end{frame}
 
 % ======================================================================
@@ -1413,6 +1408,36 @@
   \say{TLS 1.3 to protokół zabezpieczający HTTPS. IoT to internet rzeczy: małe urządzenia w sieci. Coraz częściej X25519 łączy się z nowym algorytmem odpornym na komputery kwantowe (X25519MLKEM768).}
 \end{frame}
 
+\begin{frame}{Good to know: where do the constants come from?}
+  \vfill
+  \begin{columns}[T,onlytextwidth]
+    \column{0.48\textwidth}
+      % CHECKED: b of P-256 (FIPS 186-4, D.1.2.3)
+      \begin{tikzpicture}
+        \node[hw, text width=6.1cm, align=left, minimum height=3.3cm] (c) {
+          \textbf{P-256} \textcolor{gray}{(NIST, 2000)}\\[4pt]
+          \scriptsize\ttfamily b = 5ac635d8 aa3a93e7 b3ebbd55 769886bc\\
+          \hspace*{1.6em}651d06b0 cc53b0f6 3bce3c3e 27d2604b\\[6pt]
+          \normalfont\small comes from the hash of a \textbf{seed nobody can explain}};
+        \node[circle, fill=aWrite, text=white, font=\large, inner sep=4pt] at (c.north east) {\faQuestion};
+      \end{tikzpicture}
+    \column{0.48\textwidth}
+      % CHECKED: A24 = 121665 = (486662 - 2) / 4 in Task5/x25519_ready.py; RFC 7748, section 4.1: v^2 = u^3 + A*u^2 + u
+      \begin{tikzpicture}
+        \node[hw, text width=6.1cm, align=left, minimum height=3.3cm] (c) {
+          \textbf{Curve25519} \textcolor{gray}{(2006)}\\[4pt]
+          \small $y^2 = x^3 + \mathbf{486662}\,x^2 + x \bmod 2^{255} - 19$\\[2pt]
+          \scriptsize\textcolor{gray}{another, equivalent form, with an $x^2$ term}\\[4pt]\small
+          every constant is the \textbf{smallest} that meets the stated rules};
+        \node[circle, fill=aExec, text=white, font=\large, inner sep=4pt] at (c.north east) {\faListOl};
+      \end{tikzpicture}
+  \end{columns}
+  \vfill
+  \bigdef{Many prefer curves whose constants anybody can check.}
+  \vfill
+  \say{Można pominąć. Nie znamy żadnej słabości P-256, ale pochodzenia jej stałych nie da się sprawdzić. Dlatego wiele nowych systemów wybiera Curve25519. Curve25519 jest zapisana w innej postaci niż $y^2 = x^3 + ax + b$ (z wyrazem $x^2$); taką krzywą można przeliczyć na zwykłą postać, rachunki są równoważne.}
+\end{frame}
+
 \begin{frame}{Good to know: quantum computers}
   \begin{columns}[c,onlytextwidth]
     \column{0.4\textwidth}
@@ -1425,8 +1450,12 @@
       \probbox{Shor's algorithm}{would solve the ECDLP too, on a big quantum computer.}
       \vspace{0.3cm}
       \stepbox{That is why}{X25519 is now often paired with a post-quantum algorithm.}
+      \vspace{0.3cm}
+      % CHECKED: NIST IR 8547 (final, October 2026), tables 2 and 4: ECDSA, EdDSA, RSA, ECDH, finite field DH:
+      %   deprecated after 2030, disallowed after 2035
+      \plainbox{The same NIST plan as for RSA (lecture 3) covers ECC:\\ deprecated after 2030, disallowed after 2035.}
   \end{columns}
-  \say{Można pominąć. Paradoksalnie krótsze klucze ECC byłyby dla komputera kwantowego łatwiejsze niż RSA. Takiego komputera jeszcze nie ma.}
+  \say{Można pominąć. Paradoksalnie krótsze klucze ECC byłyby dla komputera kwantowego łatwiejsze niż RSA. Takiego komputera jeszcze nie ma. Plan NIST IR 8547 (wersja końcowa z października 2026) obejmuje także uzgadnianie kluczy na krzywych (ECDH).}
 \end{frame}
 
 \begin{frame}{Summary}
@@ -1436,8 +1465,8 @@
         {ECC gives the same tools as DH and ElGamal with keys about \textbf{12 times shorter}.},
         {A curve mod $p$ is a set of points; we \textbf{add} them with lines and simple formulas.},
         {$kG$ is fast by \textbf{double and add}; finding $k$ is the \textbf{ECDLP}; $G$ needs a large prime order.},
-        {\textbf{ECDH} (X25519) agrees on a point; a \textbf{KDF} such as HKDF turns it into a key.},
-        {ElGamal works on curves too; a \textbf{repeated $k$} gives away the message.}} {
+        {\textbf{ECDH} agrees on a point; a \textbf{KDF} such as HKDF turns it into a key (X25519 in practice).},
+        {\textbf{ElGamal} works on curves too: $C_1 = kG$, $C_2 = M + kQ$.}} {
       \node[hw, text width=12.6cm, align=left, minimum height=0.95cm, anchor=west, font=\small] at (0.8,{-1.1*\k}) {\t};
       \node[circle, fill=AccentOrange, text=white, font=\bfseries, minimum size=0.7cm] at (0.4,{-1.1*\k}) {\k};
     }

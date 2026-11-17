@@ -28,4 +28,8 @@ start = time.perf_counter()
 # TODO: find the PIN without the private key.
 #       Hint: you can encrypt any number yourself with the public key.
 pin = None
-print("PIN:", pin, f"   found in {time.perf_counter() - start:.2f} s")
+
+if pin is None:
+    print("not found yet")
+else:
+    print("PIN:", pin, f"   found in {time.perf_counter() - start:.2f} s")

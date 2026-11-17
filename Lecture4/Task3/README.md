@@ -8,36 +8,40 @@ Eve saw p, g and Alice's public value A = g^a mod p. To get the shared secret sh
 
 ## Goal
 
-Find the secret a of each problem by trying a = 1, 2, 3, ..., and see how the time grows with the size of p.
+Find the secret a of each problem by trying a = 1, 2, 3, ..., see how the time grows with the size of p, and use your own speed to estimate how long a real 256-bit secret would take.
 
 **Predict first:** each p is 4 bits longer than the one before. How many times longer will the search take?
 
 ## Ready for you
 
 - `dlog.py`: `PROBLEMS`, the four problems, each a tuple `(p, g, A)`.
-- `dlog.py`: the loop that calls your `find_exponent(p, g, A)` for each problem and prints the number of bits, `a` and the time.
+- `dlog.py`: the loop that calls your `find_exponent(p, g, A)` for each problem and prints the number of bits, `a` and the time. After the loop, `a` and `seconds` hold the result of the last (28-bit) problem.
 
 ## Steps
 
-Write your code in place of the `TODO` comment in `dlog.py`, in `find_exponent(p, g, A)`:
+Write your code in place of the `TODO` comments in `dlog.py`:
 
-1. Try a = 1, 2, 3, ...: keep `value = g^a mod p`. Do not call `pow` again for every a: multiply the previous value by g, mod p (`value = value * g % p`). When `value == A`, return a.
+1. In `find_exponent(p, g, A)`: try a = 1, 2, 3, ...: keep `value = g^a mod p`. Do not call `pow` again for every a: multiply the previous value by g, mod p (`value = value * g % p`). When `value == A`, return a.
+2. After the loop: from 28 bits to 256 bits. For the last problem you tried `a` values in `seconds` seconds, so your speed is `tries_per_second = a / seconds`. A real secret a has 256 bits: trying them all is about 2^256 tries (`2**256` in Python; `**` is the power, there is no such operator in C). How many years is that at your speed? One year is `365 * 24 * 3600` seconds. Print it with `print(f"{tries_per_second:.0f} tries per second, a of 256 bits: about {years:.1e} years")`: `:.0f` prints a number with no digits after the point, `:.1e` like `%.1e` in C's `printf` (`3.5e+62` means 3.5 × 10^62).
 
 ## Expected output
 
-Four lines. The time grows fast: the last one takes several seconds. Your times will be different (they depend on the computer and on its load), but compare them with your prediction.
+Without your code every line says `not done yet`. With it: four lines, then your estimate. The time grows fast: the last search takes several seconds. The times below were measured on a laptop with an Intel Core i5-8265U; your times will differ (they depend on the computer and on its load), but compare them with your prediction.
 
 <details>
 <summary>Check your answer</summary>
 
 ```
-16 bits: a = 17773   0.003 s
-20 bits: a = 415826   0.056 s
-24 bits: a = 3465539   0.487 s
-28 bits: a = 60546499   8.548 s
+16 bits: a = 17773   0.002 s
+20 bits: a = 415826   0.035 s
+24 bits: a = 3465539   0.336 s
+28 bits: a = 60546499   5.836 s
+10374805 tries per second, a of 256 bits: about 3.5e+62 years
 ```
 
 Every 4 more bits make the search about 16 times longer (2^4 = 16). The jumps are not exactly equal, because a is a different size in each problem.
+
+About 3.5 × 10^62 years: the universe is about 1.4 × 10^10 years old. Even a computer a million times faster would not get anywhere.
 
 </details>
 
@@ -47,4 +51,4 @@ Every 4 more bits make the search about 16 times longer (2^4 = 16). The jumps ar
 python3 dlog.py
 ```
 
-About 6 minutes. Python 3, no extra libraries.
+About 8 minutes. Python 3, no extra libraries.

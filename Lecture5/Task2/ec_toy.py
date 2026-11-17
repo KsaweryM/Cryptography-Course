@@ -16,12 +16,15 @@ def add(P, Q):
     if x1 == x2 and (y1 + y2) % p == 0:
         return O
     # TODO 1: the slope s
-    #   if P == Q (doubling):   s = (3 * x1^2 + a) / (2 * y1)   mod p
-    #   otherwise:              s = (y2 - y1) / (x2 - x1)       mod p
+    #   if P == Q (doubling):   s = (3 * x1 * x1 + a) / (2 * y1)   mod p
+    #   otherwise:              s = (y2 - y1) / (x2 - x1)          mod p
     #   "/ v mod p" means "* pow(v, -1, p)"
-    # TODO 2: x3 = s^2 - x1 - x2 mod p,   y3 = s * (x1 - x3) - y1 mod p
+    # TODO 2: x3 = s * s - x1 - x2 mod p,   y3 = s * (x1 - x3) - y1 mod p,   return (x3, y3)
+    print("not done yet: TODO 1 and TODO 2 in add()")   # delete this line when add() is done
     return O
 
 
-# TODO 3: print G, 2G, 3G, ... by adding G again and again,
-#         until you reach O. How many points do you get?
+# TODO 3: print G, 2G, 3G, ... by adding G again and again, until you reach O.
+#         start with k = 1 and R = G; while R is not O: print(f"{k}G = {R}"), R = add(R, G), k = k + 1
+#         after the loop: print(f"{k}G = O")
+print("not done yet: TODO 3")   # delete this line when you write the loop

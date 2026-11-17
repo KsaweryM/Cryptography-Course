@@ -25,14 +25,14 @@ Write your code in place of the `TODO` comments in `elgamal.py`:
 
 ## Expected output
 
-The first digits of C1 and C2 (new on every run, because k is random), then the message, then whether the same message gives the same C1 twice.
+Without your code the program prints `not done yet: TODO 1` (or `TODO 2` when only `encrypt` is written). With it: the first digits of C1 and C2 (new on every run, because k is random), then the message, then whether the same message gives the same C1 twice.
 
 <details>
 <summary>Check your answer</summary>
 
 ```
-C1 = 705046884062151247803948219803 ...
-C2 = 154515346338198761448162095481 ...
+C1 = 705101917349925772918798772582 ...
+C2 = 317423494363215020228847441093 ...
 decrypted: Meet me at the old bridge at noon.
 the same message again gives the same C1: False
 ```

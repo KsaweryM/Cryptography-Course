@@ -1,48 +1,41 @@
-% Task 4: your own RSA. Values from Task4/my_rsa.py.
-% CHECKED (python3): p and q have 20 digits each, n = p*q has 40 digits.
-%   n, phi, d, C and P are the answer: not shown, only "?" boxes.
+% Task 4: does it always work? Values from Task4/always.py: n = 187 = 17 x 11, e = 7, d = 23.
+% CHECKED (python3): the multiples of 11 and 17 below 187 are 0, 11, 17, 22, 33, 34, ... (27 numbers with gcd(P, 187) > 1, 0 included).
+%   Whether each P comes back is the answer: the grid shows only the values to check, no results.
 \documentclass[12pt,tikz,border=6pt]{standalone}
 \input{common}
 \begin{document}
 \pagecolor{white}
 \begin{tikzpicture}[>=Stealth]
-  \node[font=\normalsize\bfseries, text=nInk, anchor=west] at (-1.6,1.15)
-    {\faFile*[regular]\ \texttt{my\_rsa.py}: make the keys from two primes};
-  % given: p, q (secret), e (public)
-  \node[secv, anchor=west, font=\ttfamily\small] (p) at (0,0.3) {p = 37908704904578413183};
-  \node[secv, anchor=west, font=\ttfamily\small] (q) at (0,-0.55) {q = 58606630333925820283};
-  \node[pubv, anchor=west, font=\ttfamily\small] (e) at (0,-1.6) {e = 65537};
-  \node[font=\scriptsize, text=nInk, anchor=west] at (e.east) {\ given};
-  \node[font=\scriptsize, anchor=west] at ([xshift=2pt]p.east) {\secret};
-  \node[font=\scriptsize, anchor=west] at ([xshift=2pt]q.east) {\secret};
+  % the key
+  \node[font=\normalsize\bfseries, text=nInk, anchor=west] at (-0.35,1.35) {\faFile*[regular]\ \texttt{always.py}: the small key, $p = 17$, $q = 11$};
+  \node[pubv, anchor=west] (pub) at (-0.35,0.5) {\faLockOpen\ public \{e, n\} = \{7, 187\}};
+  \node[secv, anchor=west] (prv) at ([xshift=0.3cm]pub.east) {\faKey\ private \{d, n\} = \{23, 187\}};
 
-  % the TODOs: n, phi, d
-  \foreach \k/\y/\t/\st/\tag in {1/0.3/n = p $\cdot$ q/rPub/\public, 2/-0.55/phi = (p - 1)(q - 1)/rSec/\secret, 3/-1.6/d = the inverse of e mod phi/rSec/\secret} {
-    \node[circle, fill=AccentOrange, text=white, font=\scriptsize\bfseries, inner sep=1.5pt] at (7.2,\y) {\k};
-    \node[draw=\st, thick, fill=white, rounded corners=3pt, anchor=west, font=\small, text=nInk, inner sep=4pt] (t\k) at (7.55,\y) {\t\ = \textcolor{AccentOrange}{\textbf{?}}};
-    \node[font=\scriptsize, anchor=west] at ([xshift=2pt]t\k.east) {\tag};
+  % one round trip, for every P
+  \node[msgv, font=\ttfamily\small] (P) at (0.3,-0.6) {P};
+  \node[mech, font=\ttfamily\small] (enc) at (2.75,-0.6) {pow(P, 7, 187)};
+  \node[ctv, font=\ttfamily\small] (C) at (5.15,-0.6) {C};
+  \node[mech, font=\ttfamily\small] (dec) at (7.6,-0.6) {pow(C, 23, 187)};
+  \node[unkv, font=\ttfamily\small\bfseries] (P2) at (10.75,-0.6) {P again?};
+  \draw[data] (P) -- (enc); \draw[data] (enc) -- (C); \draw[data] (C) -- (dec); \draw[data] (dec) -- (P2);
+  \node[font=\scriptsize, text=nInk, anchor=west, align=left] at (11.8,-0.6) {if not:\\ add P to \texttt{wrong}};
+
+  % every P from 0 to 186: 11 rows of 17
+  \def\s{0.72}
+  \foreach \i in {0,...,186} {
+    \pgfmathtruncatemacro{\r}{\i/17}
+    \pgfmathtruncatemacro{\c}{mod(\i,17)}
+    \pgfmathtruncatemacro{\aa}{mod(\i,11)}
+    \pgfmathtruncatemacro{\bb}{mod(\i,17)}
+    \ifnum\aa=0 \tikzset{cst/.style={draw=AccentOrange, line width=1.3pt, fill=AccentOrange!12}}\else
+      \ifnum\bb=0 \tikzset{cst/.style={draw=AccentOrange, line width=1.3pt, fill=AccentOrange!12}}\else
+        \tikzset{cst/.style={draw=rMsg!60, thick, fill=rMsgBg}}\fi\fi
+    \node[cst, rounded corners=1.5pt, minimum width={\s cm-0.08cm}, minimum height=0.46cm, inner sep=0pt,
+      font=\ttfamily\scriptsize, text=nInk] at ({\s*\c},{-1.85-0.55*\r}) {\i};
   }
-  \draw[data] (5.6,-0.15) -- (6.9,-0.15);
-
-  % the two keys
-  \node[pubv, minimum width=3.6cm] (pub) at (1.5,-3.0) {\faLockOpen\ public key \{e, n\}};
-  \node[secv, minimum width=3.6cm] (prv) at (8.6,-3.0) {\faKey\ private key \{d, n\}};
-
-  % encrypt and decrypt 2026
-  \node[msgv, font=\ttfamily\normalsize] (m) at (-1.1,-4.35) {2026};
-  \node[font=\scriptsize, text=nInk, anchor=north] at (m.south) {message};
-  \node[circle, fill=AccentOrange, text=white, font=\scriptsize\bfseries, inner sep=1.5pt] at (-0.1,-3.7) {4};
-  \node[mech] (enc) at (1.5,-4.35) {C = message$^{e}$ mod n};
-  \node[ctv, minimum width=1.8cm] (c) at (5.05,-4.35) {C = \textcolor{AccentOrange}{\textbf{?}}};
-  \node[circle, fill=AccentOrange, text=white, font=\scriptsize\bfseries, inner sep=1.5pt] at (7.3,-3.7) {5};
-  \node[mech] (dec) at (8.6,-4.35) {P = C$^{d}$ mod n};
-  \node[msgv, minimum width=1.8cm] (p2) at (11.9,-4.35) {P = \textcolor{AccentOrange}{\textbf{?}}};
-  \node[font=\scriptsize, text=nInk, anchor=north] at (p2.south) {must be 2026};
-  \draw[data] (m) -- (enc);
-  \draw[data] (enc) -- (c);
-  \draw[data] (c) -- (dec);
-  \draw[data] (dec) -- (p2);
-  \draw[data] (pub) -- ([yshift=0.33cm]enc.north);
-  \draw[data] (prv) -- ([yshift=0.33cm]dec.north);
+  \node[font=\small, text=nInk, anchor=west] at (-0.35,-8.0)
+    {\textcolor{rMsg}{\faSquare}\ every P from 0 to 186: 187 values to check};
+  \node[font=\small, text=nInk, anchor=west] at (-0.35,-8.55)
+    {\textcolor{AccentOrange}{\faSquare}\ P shares a factor with n = 187 (a multiple of 17 or 11): predict first, does it come back?};
 \end{tikzpicture}
 \end{document}

@@ -14,7 +14,8 @@ Find k on all three curves and see how the time grows with the size of p.
 
 - `ecdlp.py`: `add(P, Q, a, p)` adds two points of the curve (`None` is O).
 - `PROBLEMS`: the three curves, each with `p`, `a`, `b`, the base point `G` and the public point `T`.
-- The loop at the end calls `find_k(p, a, G, T)` for each curve and prints the bits of p, your k and the time.
+- `BITS`: the number of bits of each p.
+- The loop at the end goes over the curves by index, like `for (i = 0; i < 3; i++)` in C: `range(len(PROBLEMS))` gives 0, 1, 2, and `PROBLEMS[i][0]` is the p of curve i. It calls `find_k(p, a, G, T)` and prints the bits of p, your k and the time. Until you write `find_k`, it prints `not done yet`.
 
 Before you run it, predict: each p is 4 bits longer. How many times longer will the search take?
 
@@ -22,23 +23,23 @@ Before you run it, predict: each p is 4 bits longer. How many times longer will 
 
 Write your code in place of the `TODO` in `find_k` in `ecdlp.py`:
 
-1. Start with `R = G` and `k = 1`. Keep adding G, `R = add(R, G, a, p)`, and count with `k`, until `R == T`. Then return `k`.
-   - `R == T` compares two tuples element by element: both x and both y must be equal.
+1. Start with `R = G` and `k = 1`. While `R != T`: add G, `R = add(R, G, a, p)`, and count, `k = k + 1`. Then return `k`.
+   - `R != T` compares two tuples element by element, like comparing two structs field by field in C: the points differ if x or y differs.
 
 ## Expected output
 
-Three lines, one per curve: the bits of p, the k you found and the time. Your times will be different; the last curve takes about 15 to 20 seconds.
+Three lines, one per curve: the bits of p, the k you found and the time. Your times will differ from the ones below (they depend on the computer), but the proportions will be similar; the last curve takes about 15 to 20 seconds.
 
 <details>
 <summary>Check your answer</summary>
 
 ```
-16 bits: k = 37100   0.081 s
-20 bits: k = 826876   1.541 s
-24 bits: k = 8762309   19.343 s
+16 bits: k = 37100   0.042 s
+20 bits: k = 826876   1.201 s
+24 bits: k = 8762309   15.601 s
 ```
 
-The k values must be exactly these. The time grows with k, the number of additions: here each 4 more bits made the search about 19 and 13 times longer. For 256 bits it would be about 2^255 additions.
+The k values must be exactly these. The time grows with k, the number of additions: here each 4 more bits made the search about 29 and 13 times longer (k itself grew about 22 and 11 times). For 256 bits it would be about 2^255 additions.
 
 </details>
 
@@ -50,4 +51,4 @@ python3 ecdlp.py
 
 About 6 minutes. Python 3.8 or newer, no extra libraries.
 
-Want to see it move? In the [elliptic-curves simulator, step 1](https://ksawerym.github.io/Cryptography-simulators/elliptic-curves/#1), Eve runs the same attack on the curve mod 17.
+Want to see it move? In the [elliptic-curves simulator, step 1](https://ksawerym.github.io/Cryptography-simulators/elliptic-curves/#1.3), Eve runs the same attack on the curve mod 17.

@@ -24,7 +24,7 @@
   \draw[data, rPub] (y.west) -| ([xshift=0.5cm]enc.north);
   \node[secv, font=\scriptsize] (k) at (-0.6,-2.6) {\faDice\ a new\\ random $k$};
   \draw[data] (k) -- (enc);
-  \node[shv, draw=nLine, fill=nFill, font=\small, minimum width=2.6cm] (c) at (7.0,-2.6) {$(C_1, C_2)$};
+  \node[ctxv, font=\small, minimum width=2.6cm] (c) at (7.0,-2.6) {$(C_1, C_2)$};
   \draw[data] (enc) -- (c);
   % decrypt
   \node[todo, font=\ttfamily\small, minimum width=3.6cm, minimum height=0.9cm] (dec) at (11.6,-2.6) {decrypt(C1, C2, x)}; \todotag{dec}
@@ -36,7 +36,7 @@
   % twice
   \node[todo, font=\ttfamily\small, minimum width=3.6cm, minimum height=0.9cm, draw=nLine, fill=nFill, line width=0.8pt] (enc2) at (2.2,-4.1) {encrypt(M, y)};
   \node[font=\scriptsize, text=nInk, anchor=east] at (enc2.west) {the same $M$ again\ };
-  \node[shv, draw=nLine, fill=nFill, font=\small, minimum width=2.6cm] (c2) at (7.0,-4.1) {$(C_1', C_2')$};
+  \node[ctxv, font=\small, minimum width=2.6cm] (c2) at (7.0,-4.1) {$(C_1', C_2')$};
   \draw[data] (enc2) -- (c2);
   \node[font=\small\bfseries, text=AccentOrange] at (7.0,-3.35) {$C_1 \overset{?}{=} C_1'$};
 \end{tikzpicture}

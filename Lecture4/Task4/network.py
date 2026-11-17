@@ -32,12 +32,21 @@ def _stream(key, length):
 
 
 def encrypt(key, text):
-    data = text.encode()
-    return bytes(x ^ y for x, y in zip(data, _stream(key, len(data))))
+    """XOR the bytes of the text with a keystream made from the key (as in a stream cipher)."""
+    data = bytearray(text.encode())
+    stream = _stream(key, len(data))
+    for i in range(len(data)):
+        data[i] = data[i] ^ stream[i]
+    return bytes(data)
 
 
 def decrypt(key, data):
-    return bytes(x ^ y for x, y in zip(data, _stream(key, len(data)))).decode(errors="replace")
+    """The same XOR again gives the text back."""
+    out = bytearray(data)
+    stream = _stream(key, len(out))
+    for i in range(len(out)):
+        out[i] = out[i] ^ stream[i]
+    return out.decode(errors="replace")
 
 
 class Alice:

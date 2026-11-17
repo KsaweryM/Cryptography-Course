@@ -17,32 +17,33 @@ Finish the point addition, then list G, 2G, 3G, ... until you reach O. How many 
 
 ## Steps
 
-Write your code in place of the `TODO` comments in `ec_toy.py`:
+Write your code in place of the `TODO` comments in `ec_toy.py`. Each `print("not done yet: ...")` line is there only so that the unchanged file says what is missing: delete it when you do its TODO.
 
-1. The slope `s`. For doubling (`P == Q`): `s = (3 * x1^2 + a) / (2 * y1) mod p`; otherwise `s = (y2 - y1) / (x2 - x1) mod p`.
+1. The slope `s`. For doubling (`P == Q`): `s = (3 * x1 * x1 + a) / (2 * y1) mod p`; otherwise `s = (y2 - y1) / (x2 - x1) mod p`.
    - Python has no `/` modulo p: "`/ v mod p`" means "`* pow(v, -1, p)`", the modular inverse (Python 3.8 or newer). Then `% p`.
-   - `x1 ** 2` or `x1 * x1` is the square. In Python `^` is XOR, as in C, not a power.
-2. `x3 = s^2 - x1 - x2 mod p` and `y3 = s * (x1 - x3) - y1 mod p`, then `return (x3, y3)`.
+   - Write the square as `x1 * x1`. In Python `^` is XOR, as in C, not a power.
+2. `x3 = s * s - x1 - x2 mod p` and `y3 = s * (x1 - x3) - y1 mod p`, then `return (x3, y3)`.
    - Python's `%` never gives a negative result: `-7 % 17` is `10`, not `-7` as in C.
-3. Print G, 2G, 3G, ...: start with `R = G` and keep doing `R = add(R, G)` until `R is O`. Print each point with its number, for example `print(f"{k}G = {R}")`.
+3. Print G, 2G, 3G, ...: start with `k = 1` and `R = G`. While `R is not O`: `print(f"{k}G = {R}")`, then `R = add(R, G)` and `k = k + 1`. After the loop, print the last line, the point at infinity: `print(f"{k}G = O")`.
+   - `f"{k}G = {R}"` is like `printf("%dG = (%d, %d)\n", k, x, y)` in C: the values in `{}` are put into the text.
 
 ## Expected output
 
-One line per point, starting with `1G = (5, 1)`, `2G = (6, 3)` and `3G = (10, 6)` (the values from the slides and Task 1), and then the point at infinity. Count the lines before O.
+One line per point, in exactly this format: `1G = (5, 1)`, `2G = (6, 3)`, `3G = (10, 6)` (the values from the slides and Task 1), and so on; the last line is `<k>G = O`, the point at infinity. Count the lines before O.
 
 <details>
 <summary>Check your answer</summary>
 
 ```
- 1G = (5, 1)
- 2G = (6, 3)
- 3G = (10, 6)
- 4G = (3, 1)
- 5G = (9, 16)
- 6G = (16, 13)
- 7G = (0, 6)
- 8G = (13, 7)
- 9G = (7, 6)
+1G = (5, 1)
+2G = (6, 3)
+3G = (10, 6)
+4G = (3, 1)
+5G = (9, 16)
+6G = (16, 13)
+7G = (0, 6)
+8G = (13, 7)
+9G = (7, 6)
 10G = (7, 11)
 11G = (13, 10)
 12G = (0, 11)
@@ -67,4 +68,4 @@ python3 ec_toy.py
 
 About 10 minutes. Python 3.8 or newer, no extra libraries.
 
-Want to see it move? In the [elliptic-curves simulator, step 3](https://ksawerym.github.io/Cryptography-simulators/elliptic-curves/#3), the tab "Multiples of G" adds G step by step, and [step 4](https://ksawerym.github.io/Cryptography-simulators/elliptic-curves/#4) shows one addition number by number.
+Want to see it move? In the [elliptic-curves simulator, step 3](https://ksawerym.github.io/Cryptography-simulators/elliptic-curves/#3.3), "Multiples of G" adds G step by step, and [step 4](https://ksawerym.github.io/Cryptography-simulators/elliptic-curves/#4) shows one addition number by number.

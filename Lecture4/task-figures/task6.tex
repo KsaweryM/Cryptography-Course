@@ -9,12 +9,12 @@
   \node[font=\small\bfseries, text=nInk, anchor=west] at (-1.2,1.1) {\faEnvelope\ two ElGamal ciphertexts for Bob, from \texttt{reuse.py}};
   % first
   \node[font=\small\bfseries, text=nInk, anchor=east] at (1.15,0) {first:};
-  \node[pubv, font=\small, draw=AccentOrange, line width=1.6pt, fill=AccentOrange!12] (c1a) at (3.5,0) {$C_1$ = \texttt{26838989395851\ldots}};
-  \node[pubv, font=\small] (c2a) at (8.9,0) {$C_2$ = \texttt{17820659653148\ldots}};
+  \node[ctxv, font=\small, draw=AccentOrange, line width=1.6pt] (c1a) at (3.5,0) {$C_1$ = \texttt{26838989395851\ldots}};
+  \node[ctxv, font=\small] (c2a) at (8.9,0) {$C_2$ = \texttt{17820659653148\ldots}};
   % second
   \node[font=\small\bfseries, text=nInk, anchor=east] at (1.15,-1.45) {second:};
-  \node[pubv, font=\small, draw=AccentOrange, line width=1.6pt, fill=AccentOrange!12] (c1b) at (3.5,-1.45) {$C_1$ = \texttt{26838989395851\ldots}};
-  \node[pubv, font=\small] (c2b) at (8.9,-1.45) {$C_2$ = \texttt{19065383106845\ldots}};
+  \node[ctxv, font=\small, draw=AccentOrange, line width=1.6pt] (c1b) at (3.5,-1.45) {$C_1$ = \texttt{26838989395851\ldots}};
+  \node[ctxv, font=\small] (c2b) at (8.9,-1.45) {$C_2$ = \texttt{19065383106845\ldots}};
   \draw[decorate, decoration={brace, mirror, amplitude=5pt}, AccentOrange, thick] ([xshift=-0.1cm,yshift=-0.12cm]c1b.south west) -- ([xshift=0.1cm,yshift=-0.12cm]c1b.south east)
     node[midway, below=6pt, font=\small\bfseries, text=AccentOrange, align=center] {the same: the sender\\ used the same $k$ twice};
 

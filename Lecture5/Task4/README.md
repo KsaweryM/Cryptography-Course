@@ -1,58 +1,54 @@
-# Task 4: X25519
+# Task 4: ElGamal on a curve
 
 ## The situation
 
-Alice and Bob want to chat with ChaCha20, so they need a shared 32-byte key, but they have never met and Eve reads everything on the network. They use X25519: ECDH on Curve25519, as in TLS 1.3 and Signal. Each has a 32-byte private key and sends only the public key. Each then combines their own private key with the other's public key, and both should get the same secret. HKDF turns that secret into the ChaCha20 key. The private keys here are the test values from RFC 7748, section 6.1, so you can compare your result with the standard.
+Bob has a key pair on the small curve y^2 = x^3 + 2x + 2 mod 17: the private number d = 5 and the public point Q = 5G = (9, 16). Alice wants to send him a message that is already a point of the curve, M = (10, 11). She picks a random k = 6 and sends two points, C1 = kG and C2 = M + kQ. Only Bob, who knows d, can take kQ off again: d C1 = d k G = k Q, so M = C2 - d C1.
 
-![Alice and Bob, each with a 32-byte private key in amber: Alice's starts 77076d0a7318a57d and ends b177fba51db92c2a, Bob's starts 5dab087e624a8a4b and ends 1c2f8b27ff88e0eb. public_key turns each into a public key, "public A = ?" and "public B = ?", in violet; A goes to Bob and B to Alice, and Eve listens and sees A and B. x25519(private, B) on Alice's side and x25519(private, A) on Bob's side each give "secret = ?", with "= ?" between them. Alice's secret goes into hkdf with info b"lecture 5 chat key" and out comes "ChaCha20 key, 32 bytes = ?".](figure.svg)
+![The curve mod 17 as a grid of dots, with G = (5, 1) and Q = (9, 16) in violet and M = (10, 11) in dark ink. Alice has the message M = (10, 11) and a random k = 6; Bob has the private d = 5 and the public Q = 5G = (9, 16), which goes to Alice. Alice's box encrypt(M, Q, k): C1 = kG, C2 = M + kQ, marked TODO 1, sends "C1 = ?, C2 = ?" in brown to Bob's box decrypt(C1, C2, d): M = C2 - dC1, marked TODO 2, which gives "decrypted = ?". Ready: add(P, Q), mul(k, P), neg(P), the point -P.](figure.svg)
 
 ## Goal
 
-Agree on a shared secret as Alice and as Bob, check that both are the same, and derive a ChaCha20 key from it.
+Write ElGamal encryption and decryption with points, and check that Bob gets M back.
 
 ## Ready for you
 
-- `x25519_ready.py` (RFC 7748 and RFC 5869, in plain Python):
-  - `public_key(private)`: the public key, that is d × G on Curve25519. 32 bytes in, 32 bytes out.
-  - `x25519(my_private, other_public)`: the shared secret, 32 bytes.
-  - `hkdf(secret, info)`: a 32-byte key made from the secret; `info` is a label for what the key is for.
-- `ecdh.py`: `alice_private` and `bob_private`, 32 bytes each. A `bytes` object is like a `const uint8_t[32]` in C.
+- `ec_elgamal.py`:
+  - `add(P, Q)`: P + Q on the curve. `O = None` is the point at infinity.
+  - `mul(k, P)`: k P = P + P + ... + P (k times).
+  - `neg(P)`: -P, the point with the opposite y. Subtracting a point is adding its negative.
+  - `G = (5, 1)`, Bob's `d = 5` and `Q = mul(d, G)`, the message `M = (10, 11)` and Alice's random `k = 6`.
+- At the end the file calls `encrypt(M, Q, k)`, prints the ciphertext and then the result of `decrypt`. Until a TODO is done, it prints `not done yet: TODO 1` or `TODO 2` instead.
 
 ## Steps
 
-Write your code in place of the `TODO` comments in `ecdh.py`:
+Write your code in place of the `TODO` comments in `ec_elgamal.py`:
 
-1. The public keys: `public_key(alice_private)` and `public_key(bob_private)`.
-2. The shared secret on both sides: Alice uses `x25519(alice_private, bob_public)`, Bob uses `x25519(bob_private, alice_public)`.
-3. Print both secrets with `.hex()` (the bytes as a hex string) and whether they are equal: `==` compares two `bytes` objects byte by byte, like `memcmp(a, b, 32) == 0` in C.
-4. Derive the ChaCha20 key: `hkdf(secret, b"lecture 5 chat key")`, and print it with `.hex()`. `b"..."` is a `bytes` literal.
+1. `encrypt(M, Q, k)`: `C1 = kG` and `C2 = M + kQ`. Return both: `return C1, C2` returns a tuple, like a small struct of two points in C.
+2. `decrypt(C1, C2, d)`: `S = d C1`, then `M = C2 - S`, that is `add(C2, neg(S))`. Return M.
 
 ## Expected output
 
-The two public keys, the two secrets (the same 64 hex digits twice), `equal: True`, and the 32-byte key. Compare the secret with RFC 7748, section 6.1.
+Three lines: Bob's public key Q = (9, 16), the ciphertext (two points), and the decrypted point, which must be M = (10, 11) again.
 
 <details>
 <summary>Check your answer</summary>
 
 ```
-Alice's public key:  8520f0098930a754748b7ddcb43ef75a0dbf3a0d26381af4eba4a98eaa9b4e6a
-Bob's public key:    de9edb7d7b7dc1b4d35b61c2ece435373f8343c85b78674dadfc7e146f882b4f
-secret (Alice):      4a5d9d5ba4ce2de1728e3bf480350f25e07e21c947d19e3376f09b3c1e161742
-secret (Bob):        4a5d9d5ba4ce2de1728e3bf480350f25e07e21c947d19e3376f09b3c1e161742
-equal: True
-ChaCha20 key:        8232af18b2d158a867dead920cb27b5f70409d17ef4712ba664eb4d2ff392f78
+Q = (9, 16)
+ciphertext (C1, C2): ((16, 13), (13, 7))
+decrypted: (10, 11)
 ```
 
-The public keys and the secret are exactly the values in RFC 7748, section 6.1. Your labels may differ; the hex values must not.
+Bob gets M back: d C1 = 5 × 6G and k Q = 6 × 5G are the same point, (13, 10), so he takes off exactly what Alice added.
 
 </details>
 
 ## Run
 
 ```
-python3 ecdh.py
+python3 ec_elgamal.py
 ```
 
-About 6 minutes. Python 3, no extra libraries.
+About 7 minutes. Python 3.8 or newer, no extra libraries.
 
-Want to see it move? The [elliptic-curves simulator, step 1](https://ksawerym.github.io/Cryptography-simulators/elliptic-curves/#1) runs the same exchange on the small curve mod 17 and on P-256: change the secrets and watch both sides get the same point.
+Want to see it move? In the [elliptic-curves simulator, step 1](https://ksawerym.github.io/Cryptography-simulators/elliptic-curves/#1.2), the tab "ElGamal: encrypt a point" does the same on this curve: set M, k and d to the values of this task.
