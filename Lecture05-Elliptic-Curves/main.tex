@@ -846,22 +846,22 @@
     Here $3 \cdot 6 = 18 = 1 \bmod 17$, so $3^{-1} = 6$ (check: $3 \cdot 12 = 36 = 2 \bmod 17$). Every result is taken mod $p$.
     \textbf{$p$ prime}: every $v \neq 0$ has a $v^{-1}$.}
   \curious{math/extended-euclid/}
-  \say{To jest sedno przejścia: geometria (prosta, trzeci punkt, odbicie) dała wzory, a wzory działają w każdej arytmetyce, w której można dodawać, mnożyć i dzielić. Zmienia się tylko arytmetyka: zamiast dzielenia mnożymy przez odwrotność modularną i każdy wynik bierzemy mod p. Odwrotność modularna z wykładów 3 i 4: v razy $v^{-1}$ mod p daje 1, w Pythonie pow(v, -1, p). Link prowadzi do rozszerzonego algorytmu Euklidesa z wykładu 3, który tę odwrotność liczy. Modulo p nie ma już rysunku z prostą, ale wzory zostają te same.}
+  \say{To jest sedno przejścia: geometria (prosta, trzeci punkt, odbicie) dała wzory, a wzory działają w każdej arytmetyce, w której można dodawać, mnożyć i dzielić. Zmienia się tylko arytmetyka: zamiast dzielenia mnożymy przez odwrotność modularną i każdy wynik bierzemy mod p. Odwrotność modularna z wykładów 3 i 4: v razy $v^{-1}$ mod p daje 1, w Pythonie pow(v, -1, p). Link prowadzi do rozszerzonego algorytmu Euklidesa z wykładu 3, który tę odwrotność liczy. Modulo p prosta też istnieje, tylko zawija się na siatce; pokazuje to symulator w kroku 5, po zadaniu 2.}
 \end{frame}
 
 \begin{frame}{See it: from real numbers to modulo 17}
   \begin{center}\small The same addition in two kinds of arithmetic, and the points of the curve modulo 17, found one by one.\end{center}
   \vfill
-  \opensim{elliptic-curves/\#3}
+  \opensim{elliptic-curves/\#3.1}
   \vfill
   \begin{enumerate}\small
-    \item Side by side: move $P$ and $Q$ with the sliders on the real curve, pick two dots modulo 17. Only the division and ``mod 17'' differ.
-    \item Alice and Bob on the real curve: change $a$ and $b$, and the last digits disagree. Modulo 17 they always agree.
-    \item The table $x = 0, 1, \ldots, 16$: press next, and the points of the curve appear on the grid one by one.
+    \item Part 1, side by side: move $P$ and $Q$ with the sliders on the real curve, pick two dots modulo 17. Only the division and ``mod 17'' differ.
+    \item Part 2, Alice and Bob on the real curve: change $a$ and $b$, and the last digits disagree. Modulo 17 they always agree.
+    \item Part 3, the table $x = 0, 1, \ldots, 16$: press next, and the points of the curve appear on the grid one by one.
   \end{enumerate}
   \vfill
   \keymsg{The same equation and the same formulas, with exact whole numbers.}
-  \say{Pokazać na żywo, około 4 minut. Część 1: po lewej rachunek na ułamkach dziesiętnych, po prawej te same wzory modulo 17; wyróżnione są tylko miejsca, które się różnią. Część 2: zmieniać a i b; na liczbach rzeczywistych ostatnie cyfry się rozjeżdżają, modulo 17 wynik jest zawsze ten sam. Część 3: tabela x od 0 do 16, prawa strona równania mod 17 i pasujące y; punkty pojawiają się na siatce po kolei. Na dole kroku: dlaczego siatka wygląda na losową, choć równanie jest to samo (wartości x³ + 2x + 2 rosną gładko, ale mod 17 zawijają się co 17). Część 1 startuje od (0, 6) + (3, 1); obok suwaków mały rysunek krzywej rzeczywistej z P, Q i P + Q, obok menu siatka modulo 17. Pary G + 2G nie da się tu wybrać: to zadanie 2.}
+  \say{Pokazać na żywo, około 4 minut. Część 1: po lewej rachunek na ułamkach dziesiętnych, po prawej te same wzory modulo 17; wyróżnione są tylko miejsca, które się różnią. Część 2: zmieniać a i b; na liczbach rzeczywistych ostatnie cyfry się rozjeżdżają, modulo 17 wynik jest zawsze ten sam. Część 3: tabela x od 0 do 16, prawa strona równania mod 17 i pasujące y; punkty pojawiają się na siatce po kolei. Część 4 (dla chętnych): dlaczego siatka wygląda na losową, choć równanie jest to samo (wartości x³ + 2x + 2 rosną gładko, ale mod 17 zawijają się co 17). Każda część to osobna zakładka na górze kroku, przechodzi się przyciskiem ,,Next''. Część 1 startuje od (0, 6) + (3, 1); obok suwaków mały rysunek krzywej rzeczywistej z P, Q i P + Q, obok menu siatka modulo 17. Pary G + 2G nie da się tu wybrać: to zadanie 2.}
 \end{frame}
 
 % ======================================================================
@@ -1009,7 +1009,7 @@
   \vfill
   \curious{elliptic-curves/\#5}
   \keymsg{Two different points: the slope is $(y_2 - y_1) \cdot (x_2 - x_1)^{-1} \bmod 17$.}
-  \say{W symulatorze (link) przykład G + G liczy krok po kroku podwajanie z poprzednich slajdów; G + 2G (to zadanie) można wybrać ręcznie w menu P i Q, tak jak dowolne dwa punkty. Wynik sprawdzony programem. 1022 = 60 · 17 + 2. Tu dzielenie było łatwe, bo mianownik to 1; zwykle trzeba policzyć odwrotność modulo 17.}
+  \say{W symulatorze (link) przykład G + G liczy krok po kroku podwajanie z poprzednich slajdów; G + 2G (to zadanie) można wybrać ręcznie w menu P i Q, tak jak dowolne dwa punkty. Rysunek obok rachunku: prosta przez G i 2G o nachyleniu 2 modulo 17 zawija się na siatce, trafia w krzywą w trzecim punkcie (10, 11), a jego odbicie to 3G = (10, 6), czyli ten sam obraz co na krzywej rzeczywistej. Wynik sprawdzony programem. 1022 = 60 · 17 + 2. Tu dzielenie było łatwe, bo mianownik to 1; zwykle trzeba policzyć odwrotność modulo 17.}
 \end{frame}
 
 \begin{frame}{Task 3: all points from G}
