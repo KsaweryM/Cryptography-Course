@@ -33,7 +33,7 @@ tag_check_mallory = None
 # TODO 3: Bob writes a note and makes its tag himself, with the same SHARED_KEY:
 #         bob_tag = hmac.new(SHARED_KEY, note, "sha256").digest()
 #         Then Carol, a judge who is given the key, checks the note and bob_tag the same way as in TODO 2.
-note = b"Alice owes Bob 500 pounds. Signed: Alice"
+note = b"Alice owes Bob 500 pounds."
 carol_check = None
 
 # The printing is ready: each line says "not done yet" until its TODO is done.

@@ -22,7 +22,7 @@ Find how many blocks the padding makes, then build SHA-256 from `pad` and `compr
 ## Steps
 
 1. Predict first: how many 64-byte blocks for a message of 3 bytes, 55, 56, 64 bytes? Then check: for each `n`, `padded = pad(bytes(n))`, `blocks = len(padded) // 64` (`//` is integer division, as `/` on `int` in C), and print with the format in the TODO.
-2. In `my_sha256(message)`: `padded = pad(message)`, `state = IV`, then for `i = 0, 64, 128, ...` below `len(padded)` (`range(0, len(padded), 64)`): `state = compress(state, padded[i:i + 64])`. `padded[i:i + 64]` is the 64 bytes from index `i`, like `&padded[i]` with length 64 in C. Print the first word of the state after each block, then `return state_to_bytes(state)`.
+2. In `my_sha256(message)`: `padded = pad(message)`, `state = IV`, then for `i = 0, 64, 128, ...` below `len(padded)` (`range(0, len(padded), 64)`): `state = compress(state, padded[i:i + 64])`. `padded[i:i + 64]` is the 64 bytes from index `i`, like `&padded[i]` with length 64 in C. Print the first word of the state after each block, with `k = i // 64 + 1` the number of the block (1, 2, ...), then `return state_to_bytes(state)`.
 
 ## Expected output
 

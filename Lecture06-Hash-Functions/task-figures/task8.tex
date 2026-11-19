@@ -13,10 +13,10 @@
   \draw[data] (x0) -- node[above, font=\scriptsize] {H} (x1); \draw[data] (x1) -- node[above, font=\scriptsize] {H} (x2);
   \draw[data] (x2) -- (dots); \draw[data] (dots) -- (x99); \draw[data] (x99) -- node[above, font=\scriptsize] {H} (x100);
   \node[font=\scriptsize, text=gray, anchor=north] at (x0.south) {secret seed};
-  \node[hw, font=\small, minimum width=3.0cm] (srv) at (11.2,0) {\faServer\ Bob's server\\ \scriptsize stores $x_{100}$};
+  \node[draw=sTeal, thick, fill=sTeal!15, text=nInk, rounded corners=3pt, align=center, inner sep=5pt, font=\small, minimum width=3.0cm] (srv) at (11.2,0) {\faServer\ Bob's server\\ \scriptsize stores $x_{100}$};
   \draw[data, dashed, nLine] (x100) -- (srv);
   \foreach \k in {1,...,5} \node[unk, font=\scriptsize, anchor=west] at (9.8,{-0.9-0.6*\k}) {login \k: OK or REJECTED?};
-  \evenode{eve}{6.6,-2.6}
-  \node[font=\scriptsize, text=sPinkText, anchor=west] at (7.3,-2.6) {listens};
+  \mallorynode{mal}{6.6,-2.6}
+  \node[font=\scriptsize, text=sPinkText, anchor=west, align=left] at (7.3,-2.6) {listens and\\ sends logins too};
 \end{tikzpicture}
 \end{document}

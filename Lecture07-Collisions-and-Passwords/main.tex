@@ -1,5 +1,6 @@
 \documentclass[aspectratio=169,10pt]{beamer}
-% notes.tex defines \NOTESONLY and reads this file: then only the speaker notes are printed
+% the speaker notes only: define \NOTESONLY before this file is read, for example
+%   pdflatex -jobname=notes '\def\NOTESONLY{}\input{main}'   (twice; gives notes.pdf, one note page per slide)
 \ifdefined\NOTESONLY
   \setbeameroption{show only notes}
 \fi
@@ -217,7 +218,7 @@
 % "For the curious" line under a frame: \curious{elliptic-curves/\#2}
 \newcommand{\curious}[1]{{\footnotesize\textcolor{gray}{\faSearch\ For the curious:}\ \simlink{#1}}}
 
-% speaker notes (Polish): printed only in the notes PDF (make notes)
+% speaker notes (Polish): not shown in the slides; \NOTESONLY prints only them (see line 2)
 \setbeamertemplate{note page}[default]
 \setbeamerfont{note page}{size=\normalsize}
 \newcommand{\say}[1]{\note{\selectlanguage{polish}#1}}
@@ -337,7 +338,7 @@
       \begin{tikzpicture}[>=Stealth]
         \docnode{a}{0,0}{document A}{sViolet}
         \docnode{b}{2.4,0}{document B}{sViolet}
-        \node[digval, minimum width=2.6cm, font=\small\ttfamily] (d) at (1.2,-2.2) {af00d510\ldots};
+        \node[digval, minimum width=2.6cm, font=\small\ttfamily] (d) at (1.2,-2.2) {cc8321d6\ldots};
         \draw[data] (a.south) ++(0,-0.35) -- (d.north west);
         \draw[data] (b.south) ++(0,-0.35) -- (d.north east);
       \end{tikzpicture}\\[6pt]
@@ -346,7 +347,7 @@
       \centering
       \begin{tikzpicture}[>=Stealth]
         \node[unk, minimum width=2.6cm, minimum height=0.9cm] (p) at (0,0) {password = ?};
-        \node[digval, minimum width=2.6cm, font=\small\ttfamily] (d) at (0,-2.2) {e4ad93ca\ldots};
+        \node[digval, minimum width=2.6cm, font=\small\ttfamily] (d) at (0,-2.2) {2bb80d53\ldots};
         \draw[data] (p) -- (d);
         \node[font=\Large, text=sPink] at (2.0,-1.1) {\faUserSecret};
       \end{tikzpicture}\\[6pt]
@@ -354,6 +355,7 @@
   \end{columns}
   \vfill
   \keymsg{Today: two ways around a hash function that nobody can reverse.}
+  % CHECKED: python3: SHA-256("contract") = cc8321d6..., SHA-256("secret") = 2bb80d53... (made-up examples, not task answers)
   \say{Główne pytanie wykładu. Odpowiedź będzie na końcu, w tabeli. Uwaga, która warto powiedzieć od razu: w żadnym z tych ataków nie odwracamy SHA-256. W kolizjach wybieramy sprytnie dane wejściowe; w hasłach zgadujemy wejście, bo ludzie wybierają przewidywalne hasła.}
 \end{frame}
 
@@ -449,7 +451,7 @@
   \vfill
   \bigdef{In a room of \textbf{23 people}, the chance that two of them share a birthday is more than \textbf{50\%}.}
   \vfill
-  \say{Najpierw zapytać salę, zanim pokażemy liczbę: ile osób musi być w sali, żeby z szansą 50\% dwie miały urodziny tego samego dnia? Zwykle pada 183 (połowa z 365). Prawda: 23 osoby. Dokładnie 50,7\% (365 dni, bez 29 lutego, każdy dzień tak samo prawdopodobny). Jeśli w sali jest ponad 40 osób, można sprawdzić na żywo: każdy mówi dzień i miesiąc. Paradoks to nie błąd w matematyce, tylko błąd intuicji.}
+  \say{Najpierw zapytać salę, zanim pokażemy liczbę: ile osób musi być w sali, żeby z szansą 50\% dwie miały urodziny tego samego dnia? Zwykle pada 183 (połowa z 365). Prawda: 23 osoby. Dokładnie 50,7\% (365 dni, bez 29 lutego, każdy dzień tak samo prawdopodobny). Sprawdzenie na żywo (około 4 minuty): każdy po kolei mówi dzień i miesiąc urodzin, prowadzący zapisuje na tablicy; kto usłyszy swój dzień, podnosi rękę. Przy ponad 40 osobach para prawie na pewno się znajdzie (89\%); przy mniejszej sali pokazać to samo w symulatorze dwa slajdy dalej. Paradoks to nie błąd w matematyce, tylko błąd intuicji.}
 \end{frame}
 
 \samedot
@@ -512,6 +514,21 @@
   \say{Krzywa to przybliżenie ze wzoru; punkty to dokładne wartości. Po 57 osobach szansa przekracza 99\%. Dla funkcji skrótu znaczy to: kilka razy więcej niż $\sqrt{N}$ prób i kolizja jest praktycznie pewna.}
 \end{frame}
 
+\samedot
+\begin{frame}{See it: any pair or a given value}
+  \opensim{passwords/\#1}
+  \vfill
+  \begin{enumerate}\small\setlength{\itemsep}{6pt}
+    \item $N = 365$, \textbf{any pair}: press \textbf{non-stop}. Each run draws random days until one repeats; the histogram collects thousands of runs.
+    \item Switch to \textbf{a given value}: now a run ends only when one fixed day comes up. Watch the histogram move far to the right.
+    \item Repeat with $N = 2^{16}$ and $N = 2^{20}$: the orange line $1.18\sqrt{N}$ stays in the middle of the any-pair runs.
+  \end{enumerate}
+  \vfill
+  \keymsg{Half of the any-pair runs end before $1.18\sqrt{N}$; a given value needs about $N$.}
+  % CHECKED: python3: 1.18 * sqrt(365) = 22.5, 1.18 * 2^8 = 302, 1.18 * 2^10 = 1208; given value: median N ln 2 = 253 for N = 365
+  \say{Pokaz na żywo, około 3 minuty, szczególnie gdy sala jest za mała na sprawdzenie urodzin. Rozmiary 365, $2^{16}$ i $2^{20}$ są celowo inne niż w zadaniach 1 i 2. Dla danej wartości (dany dzień) mediana to $N \ln 2$, dla 365 dni około 253 osób; dla dowolnej pary około 23. Na histogramie widać też, że pojedynczy przebieg bywa dużo krótszy albo dłuższy: wzór mówi tylko, gdzie jest połowa.}
+\end{frame}
+
 \begin{frame}{Task 1: birthdays on paper}
   \vfill
   \begin{enumerate}\setlength{\itemsep}{8pt}
@@ -544,7 +561,7 @@
     \end{tabular}
   \end{center}
   \vfill
-  \keymsg{A 64-bit digest falls to a collision in an afternoon on one laptop.}
+  \keymsg{A 64-bit digest falls to a collision in an afternoon on one laptop (with a search that saves memory).}
   \say{Zwrócić uwagę na punkt 4: 64 bity to dużo, gdy trzeba trafić w dany skrót ($2^{64}$ prób, setki tysięcy lat na laptopie), ale mało dla kolizji. Dlatego skróty kryptograficzne mają co najmniej 256 bitów. Uwaga praktyczna: przy 5 miliardach skrótów trzeba je gdzieś przechowywać; prawdziwe ataki używają sprytniejszych metod bez dużej pamięci, ale liczba prób jest taka sama.}
 \end{frame}
 
@@ -665,13 +682,13 @@
       \draw[nLine, thick] (0,0) -- (0,3.4);
       % heights precomputed in python3: log10(n) - 3 for 4203, 4833, 75184, 77332, 915857, 1237320
       \foreach \x/\h/\hp/\lbl/\txt in {1.6/0.624/0.684/24 bits/4\,203, 4.6/1.876/1.888/32 bits/75\,184, 7.6/2.962/3.092/40 bits/915\,857} {
-        \fill[sBrown, bar] (\x-0.5,0) rectangle (\x+0.3,\h);
+        \fill[nInk, bar] (\x-0.5,0) rectangle (\x+0.3,\h);
         \draw[AccentOrange, very thick, dashed] (\x-0.8,\hp) -- (\x+0.6,\hp);
         \node[font=\scriptsize\bfseries, text=nInk, above] at (\x-0.1,\hp) {\txt};
         \node[font=\small, text=nInk] at (\x-0.1,-0.35) {\lbl};
       }
       \node[font=\scriptsize, text=AccentOrange, anchor=west] at (0.2,3.75) {- - - prediction $1.18 \cdot 2^{n/2}$};
-      \node[font=\scriptsize, text=sBrown, anchor=west] at (4.2,3.75) {\rule{6pt}{6pt}\ messages until the first repeat};
+      \node[font=\scriptsize, text=nInk, anchor=west] at (4.2,3.75) {\rule{6pt}{6pt}\ messages until the first repeat};
     \end{tikzpicture}
   \end{center}
   \vfill
@@ -695,7 +712,7 @@
   \vfill
   \begin{center}\small The same laptop and the same Python, about 690\,000 SHA-256 digests per second.\end{center}
   \keymsg{Matching a given digest costs about the square of a collision.}
-  \say{To ta sama funkcja i ten sam komputer. Różnica bierze się tylko z tego, czy atakujący może wybrać oba wejścia. 690 tysięcy skrótów na sekundę zmierzyliśmy na laptopie prowadzącego (Python, jeden rdzeń); dokładna liczba nie jest ważna, ważny jest stosunek.}
+  \say{To ta sama funkcja i ten sam komputer. Różnica bierze się tylko z tego, czy atakujący może wybrać oba wejścia. 690 tysięcy skrótów na sekundę zmierzyliśmy na laptopie autora (Python, jeden rdzeń); dokładna liczba nie jest ważna, ważny jest stosunek.}
 \end{frame}
 
 \begin{frame}{Collisions with a meaning}
@@ -712,9 +729,9 @@
     \end{tikzpicture}
   \end{center}
   \vfill
-  \begin{center}\small 16 gaps $\rightarrow$ $2^{16} = 65\,536$ fair variants that all read the same.\end{center}
+  \begin{center}\small 16 gaps $\rightarrow$ $2^{16} = 65\,536$ fair variants that all read the same. \textcolor{gray}{(Yuval, 1979)}\end{center}
   \keymsg{Invisible changes turn one contract into thousands of versions.}
-  \say{Sztuczka znana od lat 70. (Gideon Yuval, 1979; nazwiska nie trzeba podawać). Zamiast spacji można zmieniać synonimy, przecinki, entery. Każdy wariant czyta się tak samo, ale ma inny skrót. Tak samo Mallory robi warianty umowy nieuczciwej.}
+  \say{Sztuczka znana od 1979 roku: Gideon Yuval, „How to Swindle Rabin”, Cryptologia 3(3), s. 187 do 191. Zamiast spacji można zmieniać synonimy, przecinki, entery. Każdy wariant czyta się tak samo, ale ma inny skrót. Tak samo Mallory robi warianty umowy nieuczciwej.}
 \end{frame}
 
 \samedot
@@ -728,7 +745,7 @@
       \draw[data] (1.6,-0.4) -- (t);
       \foreach \k in {0,...,4} \docnode{u\k}{{9.6+0.25*\k},{-0.18*\k}}{}{sViolet}
       \node[font=\small\bfseries, text=nInk] at (10.1,-1.75) {unfair variants, one by one};
-      \draw[data] (9.0,-0.4) -- node[above, font=\scriptsize] {digest in the table?} (t);
+      \draw[data] (9.0,-0.4) to node[above, font=\scriptsize] {digest in the table?} (t);
     \end{tikzpicture}
   \end{center}
   \vfill
@@ -742,6 +759,8 @@
   \vfill
   \taskgoal{Carol keeps only the first 32 bits of SHA-256. Find a fair and an unfair contract with the same 32 bits.}
   \taskready{\texttt{contracts.py}: the two contracts, \texttt{variant(lines, number)}, \texttt{fingerprint(data)}.}
+  \vfill
+  \probbox{Predict first}{How many unfair tries does Mallory need: about $2^{16}$ or $2^{32}$?}
   \vfill
   \opentask{Task3}{about 10 minutes}
   \vfill
@@ -784,7 +803,7 @@
 % ======================================================================
 
 \begin{frame}{MD5: what the birthday bound promised}
-  % CHECKED: hashcat 6.2.6 on RTX 4090 (gist Chick3nman 32e662a5): MD5 164.1 GH/s; python3: 2^64 / 164.1e9 / 3.156e7 = 3.6 years
+  % CHECKED: hashcat 6.2.6 on RTX 4090 (gist Chick3nman 32e662a5): MD5 164.1 GH/s; python3: 2^64 / 164.1e9 / 3.156e7 = 3.6 years; with 1000 cards 1.3 days
   \vfill
   \begin{center}
     \begin{tikzpicture}
@@ -797,7 +816,7 @@
   \vfill
   \begin{center}\small That is the \textbf{generic} attack: it treats MD5 as a black box.\\ A cryptanalyst looks inside instead.\end{center}
   \keymsg{By the birthday bound alone, MD5 would already be weak today.}
-  \say{MD5 opisano w RFC 1321 w 1992 roku. Atak ogólny (urodzinowy) to $2^{64}$ prób. Liczba z benchmarku hashcata (program do łamania skrótów) na karcie RTX 4090: 164,1 miliarda MD5 na sekundę. Tysiąc takich kart zrobiłby to w niecały dzień. Ale prawdziwy atak na MD5 był dużo lepszy: zaglądał do środka funkcji.}
+  \say{MD5 opisano w RFC 1321 w 1992 roku. Atak ogólny (urodzinowy) to $2^{64}$ prób. Liczba z benchmarku hashcata (program do łamania skrótów) na karcie RTX 4090: 164,1 miliarda MD5 na sekundę. Tysiąc takich kart zrobiłby to w nieco ponad dzień ($2^{64} / (1{,}641 \cdot 10^{11} \cdot 1000)$ s $\approx$ 1,3 dnia). Ale prawdziwy atak na MD5 był dużo lepszy: zaglądał do środka funkcji.}
 \end{frame}
 
 \samedot
@@ -921,8 +940,8 @@
       \begin{tikzpicture}
         \node[msgval, minimum width=2.4cm, font=\scriptsize] at (0,0.5) {same prefix};
         \node[msgval, minimum width=2.4cm, font=\scriptsize] at (0,-0.5) {same prefix};
-        \node[draw=AccentOrange, thick, fill=AccentOrange!15, minimum width=1.4cm, font=\scriptsize] at (1.95,0.5) {blocks A};
-        \node[draw=AccentOrange, thick, fill=AccentOrange!15, minimum width=1.4cm, font=\scriptsize] at (1.95,-0.5) {blocks B};
+        \node[draw=AccentOrange, thick, fill=nFill, text=nInk, minimum width=1.4cm, font=\scriptsize] at (1.95,0.5) {blocks A};
+        \node[draw=AccentOrange, thick, fill=nFill, text=nInk, minimum width=1.4cm, font=\scriptsize] at (1.95,-0.5) {blocks B};
         \node[msgval, minimum width=1.6cm, font=\scriptsize] at (3.6,0.5) {suffix};
         \node[msgval, minimum width=1.6cm, font=\scriptsize] at (3.6,-0.5) {suffix};
       \end{tikzpicture}\\[6pt]
@@ -933,8 +952,8 @@
       \begin{tikzpicture}
         \node[msgval, minimum width=2.4cm, font=\scriptsize] at (0,0.5) {Mallory's prefix 1};
         \node[attval, minimum width=2.4cm, font=\scriptsize] at (0,-0.5) {Mallory's prefix 2};
-        \node[draw=AccentOrange, thick, fill=AccentOrange!15, minimum width=1.4cm, font=\scriptsize] at (1.95,0.5) {blocks A};
-        \node[draw=AccentOrange, thick, fill=AccentOrange!15, minimum width=1.4cm, font=\scriptsize] at (1.95,-0.5) {blocks B};
+        \node[draw=AccentOrange, thick, fill=nFill, text=nInk, minimum width=1.4cm, font=\scriptsize] at (1.95,0.5) {blocks A};
+        \node[draw=AccentOrange, thick, fill=nFill, text=nInk, minimum width=1.4cm, font=\scriptsize] at (1.95,-0.5) {blocks B};
         \node[msgval, minimum width=1.6cm, font=\scriptsize] at (3.6,0.5) {suffix};
         \node[msgval, minimum width=1.6cm, font=\scriptsize] at (3.6,-0.5) {suffix};
       \end{tikzpicture}\\[6pt]
@@ -974,6 +993,35 @@
 \end{frame}
 
 \samedot
+\begin{frame}[fragile]{How one collision shows two contents}
+  % CHECKED: Task4/md5_a.bin byte 19 = 0x87, md5_b.bin byte 19 = 0x07; MD5(a + PAGE_1 + PAGE_2) = MD5(b + PAGE_1 + PAGE_2)
+  %   = 0497127355f1503dd06b6efcc72492ca (python3 hashlib, Task4/solution/real_collisions.py)
+  % CHECKED: Task4/sha1_a.bin, sha1_b.bin: a JPEG comment (ff fe) at byte 189 has the length 0x0173 in one file
+  %   and 0x017f in the other (byte 192 is the first byte that differs)
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \foreach \y/\f/\blk/\byte in {0.5/file A/block A/0x87, -0.5/file B/block B/0x07} {
+        \node[font=\small\bfseries, text=nInk, anchor=east] at (-0.15,\y) {\f};
+        \node[msgval, minimum width=1.8cm, minimum height=0.8cm, font=\scriptsize] at (0.95,\y) {same prefix};
+        \node[draw=AccentOrange, thick, fill=nFill, text=nInk, rounded corners=3pt, minimum width=2.1cm, minimum height=0.8cm, font=\scriptsize, align=center] at (3.05,\y) {\blk\\ byte 19 = \textbf{\byte}};
+        \node[msgval, minimum width=7.5cm, minimum height=0.8cm, font=\scriptsize, anchor=west] at (4.2,\y) {common suffix: \hl{the rule}, page 1 ``pay 100'', page 2 ``pay 1000''};
+      }
+      \draw[nLine, thick, decorate, decoration={brace, amplitude=5pt}] (0.05,1.05) -- (4.1,1.05) node[midway, above=5pt, font=\scriptsize, text=nInk] {the collision: one MD5 state after it};
+      \draw[nLine, thick, decorate, decoration={brace, amplitude=5pt}] (4.25,1.05) -- (11.7,1.05) node[midway, above=5pt, font=\scriptsize, text=nInk] {identical bytes: the state stays the same};
+    \end{tikzpicture}
+  \end{center}
+  \vspace{-4pt}
+\begin{lstlisting}[style=code, language=C]
+if (data[19] == 0x87)  show(page_1);     /* file A: "pay 100"  */
+else                   show(page_2);     /* file B: "pay 1000" */
+\end{lstlisting}
+  \vspace{2pt}
+  \begin{center}\small SHAttered does the same inside a PDF: the bytes that differ change a length field of a JPEG picture,\\ so the viewer skips over a different part of the file.\end{center}
+  \keymsg{Both files hold both pages; the colliding byte only flips a switch.}
+  \say{Odpowiedź na pytanie, które zwykle pada: jak dwa pliki różniące się kilkoma bajtami pokazują zupełnie inną treść? Kolizja sama w sobie to śmieci (losowo wyglądające bajty). Sens jest w części wspólnej: oba pliki zawierają obie treści i tę samą regułę, która patrzy na jeden bajt z bloku kolizji. Dzięki budowie Merkle-Damgård wspólna końcówka nie psuje kolizji, więc oba pliki mają ten sam skrót. W SHAttered różniące się bajty wpadają w komentarz obrazka JPEG: w jednym pliku jego długość to 0x0173, w drugim 0x017f, więc czytnik przeskakuje inny fragment i rysuje inny obrazek. Studenci napiszą taką przeglądarkę w zadaniu 4 (TODO 4), a w wykładzie 12 (zadanie 5) ten sam pomysł robi z jednego podpisu CA dwa certyfikaty.}
+\end{frame}
+
+\samedot
 \begin{frame}{SHA-1 is a Shambles, 2020}
   % CHECKED: sha-mbles.github.io: Leurent and Peyrin; chosen-prefix; 2^63.4; 900 GTX 1060 for about two months;
   %   about 75k USD then, 45k USD at current prices; PGP/GnuPG web of trust
@@ -993,14 +1041,14 @@
 
 \begin{frame}{Task 4: two real collisions}
   \vfill
-  \taskgoal{check Wang's MD5 pair and the start of the SHAttered PDFs; then add the same text to both files of each pair.}
+  \taskgoal{check Wang's MD5 pair and the start of the SHAttered PDFs; add the same text to both files; write a tiny viewer.}
   \taskready{\texttt{real\_collisions.py}, the files \texttt{md5\_a.bin}, \texttt{md5\_b.bin}, \texttt{sha1\_a.bin}, \texttt{sha1\_b.bin}.}
   \vfill
   \probbox{Predict first}{Does the MD5 pair also collide in SHA-1? Does it still collide after you add text?}
   \vfill
-  \opentask{Task4}{about 8 minutes}
+  \opentask{Task4}{about 12 minutes}
   \vfill
-  \say{Około 8 minut. Pliki sha1\_a.bin i sha1\_b.bin to pierwsze 320 bajtów dwóch plików SHAttered: po tych 320 bajtach stan SHA-1 jest już ten sam, więc reszta PDF-a nie jest potrzebna. Kod jest prosty; ważne są wnioski: każda para łamie tylko jedną funkcję, SHA-256 rozróżnia obie, a wspólny dopisek zachowuje kolizję.}
+  \say{Około 12 minut. Pliki sha1\_a.bin i sha1\_b.bin to pierwsze 320 bajtów dwóch plików SHAttered: po tych 320 bajtach stan SHA-1 jest już ten sam, więc reszta PDF-a nie jest potrzebna. Kod jest prosty; ważne są wnioski: każda para łamie tylko jedną funkcję, SHA-256 rozróżnia obie, a wspólny dopisek zachowuje kolizję. TODO 4 to przeglądarka ze slajdu How one collision shows two contents: bajt 19 wybiera stronę.}
 \end{frame}
 
 \samedot
@@ -1021,10 +1069,12 @@
     \end{tabular}
   \end{center}
   \vfill
-  \begin{center}\small SHA-256 gives different digests for every file.\\
-    \ok\ here means ``collides'': good news for Mallory.\end{center}
+  \begin{center}\small The viewer: \texttt{md5\_a.bin} + both pages shows \msg{``Alice pays Mallory 100 pounds.''},\\
+    \texttt{md5\_b.bin} + both pages shows \msg{``\ldots 1000 pounds.''}; MD5 of both: \dig{\texttt{04971273\ldots}}\\[4pt]
+    SHA-256 gives different digests for every file. \ok\ here means ``collides'': good news for Mallory.\end{center}
+  \curious{passwords/\#2}
   \keymsg{Each collision breaks one function; a common suffix keeps it.}
-  \say{Każda para łamie dokładnie tę funkcję, na którą była liczona; inne funkcje widzą różne pliki. Dopisek na końcu nie psuje kolizji (stan po kolizji jest wspólny, slajd One collision gives many). Pełne wartości skrótów są w przewodniku.}
+  \say{Każda para łamie dokładnie tę funkcję, na którą była liczona; inne funkcje widzą różne pliki. Dopisek na końcu nie psuje kolizji (stan po kolizji jest wspólny, slajd One collision gives many). Przeglądarka pokazuje dwie różne umowy przy tym samym MD5 (0497127355f1503dd06b6efcc72492ca). Pełne wartości skrótów są w przewodniku. Link For the curious: symulator liczy stan MD5 po każdym bloku obu plików Wanga; można dopisać dowolny tekst i patrzeć, jak stany zostają równe.}
 \end{frame}
 
 \begin{frame}{Why it matters: one digest, two documents}
@@ -1080,7 +1130,8 @@
 \samedot
 \begin{frame}{Flame, 2012}
   % CHECKED: CWI (ir.cwi.nl/pub/22243), M. Green 2012-06-05: a new variant of the chosen-prefix MD5 attack;
-  %   a Microsoft Terminal Server Licensing certificate; the malware could look like a Microsoft update
+  %   a Microsoft Terminal Server Licensing certificate; the malware could look like a Microsoft update;
+%   Microsoft Security Advisory 2718704 and US-CERT TA12-156A: three certificates revoked
   \vfill
   \begin{center}
     \begin{tikzpicture}[>=Stealth]
@@ -1095,7 +1146,7 @@
   \begin{center}\small A Microsoft licensing service still approved certificates using MD5.\\
     The attackers used a chosen-prefix collision of a kind researchers had never seen before.\end{center}
   \keymsg{Years after MD5 was broken, a forgotten MD5 service let malware pose as Windows updates.}
-  \say{Flame wykryto w maju 2012. Analiza CWI (Marc Stevens) pokazała nieznany wcześniej wariant ataku z wybranym prefiksem na MD5, więc ktoś miał własnych kryptoanalityków. Lekcja: nie wystarczy, że MD5 jest „złamany w teorii”; każda zapomniana usługa, która nadal go używa, jest furtką. Microsoft w pilnym komunikacie unieważnił dwa certyfikaty pośrednie tej usługi.}
+  \say{Flame wykryto w maju 2012. Analiza CWI (Marc Stevens) pokazała nieznany wcześniej wariant ataku z wybranym prefiksem na MD5, więc ktoś miał własnych kryptoanalityków. Lekcja: nie wystarczy, że MD5 jest „złamany w teorii”; każda zapomniana usługa, która nadal go używa, jest furtką. Microsoft w pilnym komunikacie (Security Advisory 2718704) unieważnił trzy certyfikaty: dwa razy Microsoft Enforced Licensing Intermediate PCA i Microsoft Enforced Licensing Registration Authority CA (SHA1).}
 \end{frame}
 
 \samedot
@@ -1195,7 +1246,7 @@
   \begin{center}
     \begin{tikzpicture}[>=Stealth]
       \personnode{al}{0,0}{sIndigo}{Alice}
-      \node[msgval, font=\small\ttfamily] (pw) at (3.4,0.6) {monkey123};
+      \node[msgval, font=\small\ttfamily] (pw) at (3.4,0.6) {sunflower8};
       \node[srvval, minimum width=2.6cm, minimum height=1.8cm, font=\small] (srv) at (7.6,0) {\Large\faServer\\ Bob's web shop};
       \draw[data] (al) -- node[below, font=\scriptsize] {user alice, password} (srv);
       \node[hw, minimum width=3.0cm, minimum height=1.5cm, font=\small] (db) at (11.6,0) {\Large\faDatabase\\ user database};
@@ -1227,7 +1278,7 @@
       \centering
       \begin{tikzpicture}
         \node[attval, text width=5.2cm, minimum height=2.8cm] {\Large\faDatabase\\[3pt]\textbf{LinkedIn}, 2012\\[3pt]\small
-          6.5 million, in 2016 \textbf{164 million} accounts\\ \textbf{SHA-1 without salt}: most cracked within days};
+          2012: 6.5 million digests leaked\\ 2016: \textbf{164 million} accounts\\ \textbf{SHA-1 without salt}: most cracked within days};
       \end{tikzpicture}
   \end{columns}
   \vfill
@@ -1236,13 +1287,44 @@
 \end{frame}
 
 \samedot
+\begin{frame}{Online and offline guessing}
+  \vfill
+  \begin{columns}[T,onlytextwidth]
+    \column{0.48\textwidth}
+      \centering
+      \begin{tikzpicture}[>=Stealth]
+        \node[font=\Huge, text=sPink] (m) at (0,0) {\faUserSecret};
+        \node[srvval, font=\small] (s) at (3.4,0) {\faServer\ login page};
+        \draw[data] (m) -- node[above, font=\scriptsize] {guess} (s);
+      \end{tikzpicture}\\[6pt]
+      \textbf{online}: through the login page\\[2pt]
+      \small the server sees every try: it can slow down or lock the account after a few failures
+    \column{0.48\textwidth}
+      \centering
+      \begin{tikzpicture}[>=Stealth]
+        \node[font=\Huge, text=sPink] (m) at (0,0) {\faUserSecret};
+        \node[hw, font=\small] (s) at (3.4,0) {\faDatabase\ stolen copy};
+        \draw[data] (m) -- node[above, font=\scriptsize] {billions} (s);
+      \end{tikzpicture}\\[6pt]
+      \textbf{offline}: on a stolen database\\[2pt]
+      \small nobody sees the tries: only the stored form protects
+  \end{columns}
+  \vfill
+  \begin{center}\small \hl{Today: offline}, on a stolen copy of the database.\end{center}
+  \vfill
+  \keymsg{Limits on login attempts stop online guessing; only good storage stops offline guessing.}
+  \say{Rozróżnienie, które porządkuje całą sekcję: wszystko, co dziś policzymy (słownik, sól, wolny skrót), dotyczy zgadywania offline, na skradzionej kopii bazy. Zgadywanie online przez stronę logowania zatrzymuje ograniczenie liczby prób; offline nikt atakującego nie ograniczy.}
+\end{frame}
+
+
+\samedot
 \begin{frame}{Idea 1: store the password}
   \vfill
   \begin{center}
     \begin{tikzpicture}
       \node[font=\small\bfseries, text=nInk] at (0,0.5) {user};
       \node[font=\small\bfseries, text=nInk] at (3.0,0.5) {password};
-      \foreach \u/\p [count=\k] in {alice/monkey123, bob/Liverpool1, carol/iloveyou} {
+      \foreach \u/\p [count=\k] in {alice/sunflower8, mike/hunter2, olivia/rosebud} {
         \node[hw, minimum width=2.0cm, font=\small] at (0,{-0.6*\k+0.5}) {\u};
         \node[msgval, minimum width=2.6cm, font=\small\ttfamily] at (3.0,{-0.6*\k+0.5}) {\p};
       }
@@ -1253,7 +1335,7 @@
   \vfill
   \probbox{Worse}{People reuse passwords: Alice's password from the shop also opens her e-mail and bank.}
   \keymsg{A leak of plain passwords hurts users far beyond one site.}
-  \say{Najprostsze i najgorsze rozwiązanie. Szyfrowanie bazy niewiele zmienia: serwer musi mieć klucz, żeby sprawdzać hasła, a wyciek często obejmuje też klucz. Ponowne użycie haseł sprawia, że wyciek z małego sklepu otwiera konta gdzie indziej (atakujący sprawdzają pary e-mail i hasło na innych serwisach).}
+  \say{Użytkownicy i hasła na tym i kolejnych slajdach są wymyślone i celowo inne niż w zadaniach 5 i 6. Najprostsze i najgorsze rozwiązanie. Szyfrowanie bazy niewiele zmienia: serwer musi mieć klucz, żeby sprawdzać hasła, a wyciek często obejmuje też klucz. Ponowne użycie haseł sprawia, że wyciek z małego sklepu otwiera konta gdzie indziej (atakujący sprawdzają pary e-mail i hasło na innych serwisach).}
 \end{frame}
 
 \samedot
@@ -1262,15 +1344,15 @@
   \begin{center}
     \begin{tikzpicture}[>=Stealth]
       \node[font=\small\bfseries, text=nInk, anchor=west] at (-1.2,1.3) {sign-up:};
-      \node[msgval, font=\small\ttfamily] (p1) at (1.2,0.6) {monkey123};
+      \node[msgval, font=\small\ttfamily] (p1) at (1.2,0.6) {sunflower8};
       \hashbox{h1}{4.2,0.6}{SHA-256}{2.2cm}
-      \node[digval, font=\small\ttfamily] (d1) at (7.6,0.6) {e4844392\ldots};
+      \node[digval, font=\small\ttfamily] (d1) at (7.6,0.6) {4725a727\ldots};
       \node[hw, font=\small] (db) at (11.0,0.6) {\faDatabase\ stored};
       \draw[data] (p1) -- (h1); \draw[data] (h1) -- (d1); \draw[data] (d1) -- (db);
       \node[font=\small\bfseries, text=nInk, anchor=west] at (-1.2,-0.5) {login:};
       \node[msgval, font=\small\ttfamily] (p2) at (1.2,-1.2) {typed text};
       \hashbox{h2}{4.2,-1.2}{SHA-256}{2.2cm}
-      \node[digval, font=\small\ttfamily] (d2) at (7.6,-1.2) {e4844392\ldots};
+      \node[digval, font=\small\ttfamily] (d2) at (7.6,-1.2) {4725a727\ldots};
       \node[circle, fill=aExec, text=white, font=\bfseries] (eq) at (11.0,-1.2) {$=$?};
       \draw[data] (p2) -- (h2); \draw[data] (h2) -- (d2); \draw[data] (d2) -- (eq);
       \draw[data] (db) -- (eq);
@@ -1279,7 +1361,7 @@
   \vfill
   \begin{center}\small Why it works: the same input always gives the same digest, and the digest cannot be reversed.\end{center}
   \keymsg{The server can check a password without keeping it.}
-  % CHECKED: python3: SHA-256("monkey123") = e48443929f57ec4c... (Task5/leaked_users.txt, alice)
+  % CHECKED: python3: SHA-256("sunflower8") = 4725a7272bfe14dd... (not in Task5/wordlist.txt)
   \say{Przy rejestracji serwer liczy skrót hasła i zapisuje tylko skrót. Przy logowaniu liczy skrót tego, co wpisano, i porównuje. Odporność na przeciwobraz z wykładu 6 mówi: ze skrótu nie da się odtworzyć hasła. Czy to wystarczy? Zapytać salę, co może zrobić Mallory z taką tabelą.}
 \end{frame}
 
@@ -1288,16 +1370,16 @@
   \begin{center}
     \begin{tikzpicture}[>=Stealth]
       \mallorynode{ma}{0,0}
-      \node[msgval, text width=2.3cm, font=\scriptsize\ttfamily, align=left] (list) at (2.8,0) {123456\\ password\\ qwerty\\ iloveyou\\ monkey123\\ \ldots};
+      \node[msgval, text width=2.0cm, font=\scriptsize\ttfamily, align=left] (list) at (2.6,0) {123456\\ password\\ hunter2\\ letmein\\ sunflower8\\ \ldots};
       \node[font=\scriptsize\bfseries, text=nInk, above=0.05cm of list] {list of guesses};
       \draw[data] (ma) -- (list);
       \hashbox{h}{5.9,0}{SHA-256}{2.2cm}
-      \draw[data] (list) -- node[above, font=\tiny] {one by one} (h);
+      \draw[data] (list.east) to node[above=2pt, font=\scriptsize, fill=white, inner sep=1pt] {one by one} (h.west);
       \node[digval, font=\scriptsize\ttfamily] (d) at (9.0,0) {digest of guess};
       \draw[data] (h) -- (d);
       \node[hw, font=\scriptsize, text width=2.7cm] (tb) at (12.3,0) {\faDatabase\ stolen table:\\ does any digest match?};
       \draw[data] (d) -- (tb);
-      \node[font=\small\bfseries, text=aExec] at (12.3,-1.25) {\ok\ alice: monkey123};
+      \node[font=\small\bfseries, text=aExec] at (12.3,-1.25) {\ok\ alice: sunflower8};
     \end{tikzpicture}
   \end{center}
   \vfill
@@ -1330,13 +1412,14 @@
 
 \samedot
 \begin{frame}{Same password, same digest}
-  % CHECKED: Task5/leaked_users.txt: carol and dave both e4ad93ca07acb8d9... = SHA-256("iloveyou")
+  % CHECKED: python3: SHA-256 of sunflower8 4725a7272bfe14dd, hunter2 f52fbd32b2b3b86f, rosebud 556f07d09850995f,
+  %   penguin42 fb747f920daa41d9, bluebird 052d99ea8f31a374 (a made-up table, none of these is in Task5/wordlist.txt)
   \vfill
   \begin{center}
     \begin{tikzpicture}
       \node[font=\small\bfseries, text=nInk] at (0,0.5) {user};
       \node[font=\small\bfseries, text=nInk] at (4.0,0.5) {stored SHA-256};
-      \foreach \u/\d/\hlt [count=\k] in {alice/e48443929f57ec4c\ldots/0, bob/9cdb4a45f1bba581\ldots/0, carol/e4ad93ca07acb8d9\ldots/1, dave/e4ad93ca07acb8d9\ldots/1, erin/48486e1514e84234\ldots/0} {
+      \foreach \u/\d/\hlt [count=\k] in {alice/4725a7272bfe14dd\ldots/0, mike/f52fbd32b2b3b86f\ldots/0, olivia/556f07d09850995f\ldots/1, rupert/556f07d09850995f\ldots/1, sybil/052d99ea8f31a374\ldots/0} {
         \node[hw, minimum width=2.0cm, font=\small] at (0,{-0.6*\k+0.5}) {\u};
         \ifnum\hlt=1
           \node[digval, minimum width=4.6cm, font=\small\ttfamily, line width=1.6pt, draw=AccentOrange] at (4.0,{-0.6*\k+0.5}) {\d};
@@ -1349,59 +1432,7 @@
   \end{center}
   \vfill
   \keymsg{Without salt, one guess tests every user at once, and equal passwords show.}
-  \say{Bez soli dwa takie same hasła dają ten sam skrót. Mallory widzi od razu, kto ma to samo hasło (zwykle bardzo popularne), a jedno zgadnięcie sprawdza wszystkich użytkowników jednocześnie. To dane z zadania 5, ale wynik zadania (jakie to hasło) nie jest tu pokazany.}
-\end{frame}
-
-\samedot
-\begin{frame}{Compute once, crack forever}
-  \vfill
-  \begin{center}
-    \begin{tikzpicture}[>=Stealth]
-      \node[msgval, text width=2.5cm, font=\scriptsize\ttfamily, align=left] (l) at (0,0) {123456\\ password\\ iloveyou\\ \ldots\\ 14 million more};
-      \hashbox{h}{3.4,0}{SHA-256}{2.2cm}
-      \draw[data] (l) -- (h);
-      \node[digval, text width=4.6cm, font=\scriptsize\ttfamily, align=left] (t) at (7.9,0) {8d969eef\ldots\ $\rightarrow$ 123456\\ 5e884898\ldots\ $\rightarrow$ password\\ e4ad93ca\ldots\ $\rightarrow$ iloveyou\\ \ldots};
-      \draw[data] (h) -- (t);
-      \node[font=\scriptsize\bfseries, text=nInk, above=0.05cm of t] {a lookup table, sorted by digest};
-      \node[font=\small, text=nInk, align=center] at (12.2,0) {\faDatabase\ \faDatabase\ \faDatabase\\ every unsalted\\ leak, ever};
-      \draw[data] (t) -- (11.0,0);
-    \end{tikzpicture}
-  \end{center}
-  \vfill
-  \begin{center}\small The work does not depend on the victim: hash the list \textbf{once}, then each stolen digest\\ is cracked by a single lookup, in any database that used plain SHA-256.\end{center}
-  \keymsg{Plain hashing lets the attacker do the work before the leak.}
-  % CHECKED: python3: SHA-256("123456") = 8d969eef6ecad3c2..., SHA-256("password") = 5e884898da280471...
-  \say{Tablica skrót → hasło policzona raz działa na każdą bazę bez soli, także te, które wyciekną w przyszłości. Takie gotowe tablice dla MD5 i SHA-1 można pobrać z sieci. Strony, które „odszyfrowują MD5”, to właśnie takie tablice.}
-\end{frame}
-
-\samedot
-\begin{frame}{Rainbow tables: the idea}
-  % CHECKED: en.wikipedia.org/wiki/Rainbow_table: Oechslin 2003, based on Hellman 1980; large salts make them useless
-  \vfill
-  \begin{center}
-    \begin{tikzpicture}[>=Stealth]
-      \node[msgval, font=\scriptsize\ttfamily, line width=1.6pt] (a) at (0,0) {sun12};
-      \node[digval, font=\scriptsize\ttfamily] (b) at (2.2,0) {3fa9\ldots};
-      \node[msgval, font=\scriptsize\ttfamily] (c) at (4.4,0) {kq7x};
-      \node[digval, font=\scriptsize\ttfamily] (d) at (6.6,0) {91c0\ldots};
-      \node[msgval, font=\scriptsize\ttfamily] (e) at (8.8,0) {mo3e};
-      \node[font=\small, text=nInk] (f) at (10.6,0) {\ldots};
-      \node[msgval, font=\scriptsize\ttfamily, line width=1.6pt] (g) at (12.4,0) {zz80};
-      \draw[data] (a) -- node[above, font=\tiny] {hash} (b);
-      \draw[data] (b) -- node[above, font=\tiny] {reduce} (c);
-      \draw[data] (c) -- node[above, font=\tiny] {hash} (d);
-      \draw[data] (d) -- node[above, font=\tiny] {reduce} (e);
-      \draw[data] (e) -- (f);
-      \draw[data] (f) -- (g);
-      \draw[AccentOrange, thick, decorate, decoration={brace, amplitude=6pt, mirror}] (-0.6,-0.45) -- (13.0,-0.45);
-      \node[font=\small, text=AccentOrange] at (6.2,-1.05) {store only the two ends of each chain};
-    \end{tikzpicture}
-  \end{center}
-  \vfill
-  \begin{center}\small \textbf{Reduce} turns a digest into some next candidate password. A chain of thousands of steps is stored as\\
-    two words; to look a digest up, the attacker rebuilds the chain from that point.\end{center}
-  \keymsg{Rainbow tables trade time for memory: a huge lookup table that fits on a disk.}
-  \say{Idea, bez szczegółów. Pełna tablica wszystkich haseł do 8 znaków nie zmieściłaby się na dysku. Łańcuch: hasło → skrót → „redukcja” (dowolna funkcja, która ze skrótu robi nowe hasło-kandydata) → skrót → ... Zapisujemy tylko początek i koniec. Żeby znaleźć hasło do skrótu, liczymy od niego dalej redukcje i skróty, aż trafimy na zapisany koniec, a potem odtwarzamy łańcuch od początku. Wymyślił to Philippe Oechslin w 2003 (na bazie pomysłu Hellmana z 1980). „Tęczowe”, bo w każdym kroku łańcucha używa się innej redukcji.}
+  \say{Bez soli dwa takie same hasła dają ten sam skrót. Mallory widzi od razu, kto ma to samo hasło (zwykle bardzo popularne), a jedno zgadnięcie sprawdza wszystkich użytkowników jednocześnie. Tabela jest wymyślona (inni użytkownicy i hasła niż w zadaniu 5), żeby nie zdradzić TODO 4 zadania 5.}
 \end{frame}
 
 \begin{frame}{Task 5: the leaked table without salt}
@@ -1416,13 +1447,14 @@
   \say{Około 10 minut. TODO 1 to logowanie (to, co robi serwer), TODO 2 i 3 to atak, TODO 4 szuka takich samych skrótów. Program kończy się w ułamku sekundy. Ważne do zauważenia: każde słowo z listy jest hashowane tylko raz, niezależnie od liczby użytkowników.}
 \end{frame}
 
+
 \samedot
 \begin{frame}{Task 5: what we saw}
-  % CHECKED: Task5/solution/crack_unsalted.py: 9 of 12 cracked with 3 529 SHA-256 computations; same digest: carol and dave
+  % CHECKED: Task5/solution/crack_unsalted.py: 9 of 12 cracked with 3 529 SHA-256 computations; same digest: chloe and dave
   \vfill
   \begin{center}
     \begin{tikzpicture}
-      \foreach \u/\p/\c [count=\k from 0] in {alice/monkey123/1, bob/Liverpool1/1, carol/iloveyou/1, dave/iloveyou/1, erin/?/0, frank/qwerty/1,
+      \foreach \u/\p/\c [count=\k from 0] in {alice/monkey123/1, bob/Liverpool1/1, chloe/iloveyou/1, dave/iloveyou/1, erin/?/0, frank/qwerty/1,
           grace/dragon2024/1, heidi/?/0, ivan/123456/1, judy/Summer2025/1, oscar/football!/1, peggy/?/0} {
         \pgfmathsetmacro{\x}{mod(\k,4)*3.4}
         \pgfmathsetmacro{\y}{-floor(\k/4)*0.75}
@@ -1436,9 +1468,87 @@
     \end{tikzpicture}
   \end{center}
   \vfill
-  \begin{center}\small \textbf{9 of 12} users cracked with \textbf{3\,529} SHA-256 computations (one per guess), in 0.04 s.\\ carol and dave share a digest, so they share a password.\end{center}
+  \begin{center}\small \textbf{9 of 12} users cracked with \textbf{3\,529} SHA-256 computations (one per guess), in 0.04 s.\\ chloe and dave share a digest, so they share a password.\end{center}
   \keymsg{Without salt, the cost of the attack does not grow with the number of users.}
   \say{Trzy hasła nie zostały złamane: nie było ich na liście (długie, losowe albo zdanie). To jedyna obrona w tej wersji bazy: hasło spoza listy. 3529 obliczeń to dokładnie długość listy: każde słowo raz, porównane ze wszystkimi 12 skrótami.}
+\end{frame}
+
+
+\begin{frame}{Compute once, crack forever}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \node[msgval, text width=2.5cm, font=\scriptsize\ttfamily, align=left] (l) at (0,0) {123456\\ password\\ letmein\\ \ldots\\ 14 million more};
+      \hashbox{h}{3.4,0}{SHA-256}{2.2cm}
+      \draw[data] (l) -- (h);
+      \node[digval, text width=4.6cm, font=\scriptsize\ttfamily, align=left] (t) at (7.9,0) {8d969eef\ldots\ $\rightarrow$ 123456\\ 5e884898\ldots\ $\rightarrow$ password\\ 1c8bfe8f\ldots\ $\rightarrow$ letmein\\ \ldots};
+      \draw[data] (h) -- (t);
+      \node[font=\scriptsize\bfseries, text=nInk, above=0.05cm of t] {a lookup table, sorted by digest};
+      \node[font=\small, text=nInk, align=center] at (12.2,0) {\faDatabase\ \faDatabase\ \faDatabase\\ every unsalted\\ leak, ever};
+      \draw[data] (t) -- (11.0,0);
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small The work does not depend on the victim: hash the list \textbf{once}, then each stolen digest\\ is cracked by a single lookup, in any database that used plain SHA-256.\end{center}
+  \keymsg{Plain hashing lets the attacker do the work before the leak.}
+  % CHECKED: python3: SHA-256("123456") = 8d969eef6ecad3c2..., SHA-256("password") = 5e884898da280471..., SHA-256("letmein") = 1c8bfe8f801d7974...
+  \say{Po zadaniu 5: Mallory policzyła tam 3529 skrótów dla jednej bazy. Tablica skrót → hasło policzona raz działa na każdą bazę bez soli, także te, które wyciekną w przyszłości. Takie gotowe tablice dla MD5 i SHA-1 można pobrać z sieci. Strony, które „odszyfrowują MD5”, to właśnie takie tablice.}
+\end{frame}
+
+\samedot
+\begin{frame}{Rainbow tables: build the chains}
+  % CHECKED: python3 (the same functions as passwords/#4): words = 3 lowercase letters (17 576), h = the first 16 bits of SHA-256,
+  %   R_j(d) = the word number (d + j) mod 17 576; chain from sun: h 2775, oyn, h 0706, crf, h 9e75, iah, h adba, nur
+  % CHECKED: en.wikipedia.org/wiki/Rainbow_table: Oechslin 2003, based on Hellman 1980; large salts make them useless
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \foreach \w/\d/\j [count=\k from 0] in {sun/2775/0, oyn/0706/1, crf/9e75/2, iah/adba/3} {
+        \node[msgval, font=\small\ttfamily, minimum width=1.1cm] (w\k) at ({2.9*\k},0) {\w};
+        \node[digval, font=\small\ttfamily, minimum width=1.1cm] (d\k) at ({2.9*\k+1.45},-1.3) {\d};
+        \draw[data] (w\k) to node[left, font=\tiny] {$h$} (d\k);
+      }
+      \node[msgval, font=\small\ttfamily, minimum width=1.1cm, line width=1.6pt] (w4) at (11.6,0) {nur};
+      \node[msgval, font=\small\ttfamily, minimum width=1.1cm, line width=1.6pt] at (0,0) {sun};
+      \foreach \k/\j in {0/0, 1/1, 2/2, 3/3} {
+        \pgfmathtruncatemacro{\n}{\k+1}
+        \draw[data] (d\k) to node[right, font=\tiny] {$R_\j$} (w\n);
+      }
+      \node[srvval, font=\small, text width=2.2cm, align=center] at (11.6,-1.4) {stored:\\ \textbf{sun} \ldots\ \textbf{nur}};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small A toy: passwords of 3 lowercase letters, $h$ = the first 16 bits of SHA-256.\\
+    $R_j$ (\textbf{reduce}, step $j$) turns a digest into some next password: word number $(\text{digest} + j) \bmod 17\,576$.\\
+    Mallory computes many such chains once, and keeps only the two ends of each.\end{center}
+  \keymsg{A chain of thousands of passwords is stored as two words.}
+  \say{Idea tablic tęczowych na jednym łańcuchu. Pełna tablica wszystkich haseł do 8 znaków nie zmieściłaby się na dysku, więc Mallory zapisuje tylko początki i końce łańcuchów. Łańcuch: hasło, skrót, redukcja (dowolna funkcja, która ze skrótu robi nowe hasło-kandydata), skrót, ... Tu zabawka: hasła z trzech małych liter (17 576 możliwości), skrót to pierwsze 16 bitów SHA-256, redukcja w kroku $j$ to numer słowa (skrót + $j$) mod 17 576. Prawdziwe łańcuchy mają tysiące kroków, a tablica miliony łańcuchów. „Tęczowe”, bo w każdym kroku łańcucha używa się innej redukcji ($R_0, R_1, \ldots$). Wymyślił to Philippe Oechslin w 2003, na bazie pomysłu Hellmana z 1980.}
+\end{frame}
+
+\samedot
+\begin{frame}{Rainbow tables: look a digest up}
+  % CHECKED: python3: R_3(9e75) = iai (no stored end); R_2(9e75) = iah, h(iah) = adba, R_3(adba) = nur (an end);
+  %   rebuilt from sun: sun, oyn, crf; h(crf) = 9e75
+  \vfill
+  \begin{center}
+    \small Stolen digest: \dig{\texttt{9e75}}. Where in a chain could it be? Try the last step first.\\[6pt]
+    \renewcommand{\arraystretch}{1.45}
+    \begin{tabular}{@{}cll@{}}
+      \toprule
+      \textbf{try} & \textbf{if 9e75 came from step\ldots} & \textbf{finish the chain from there}\\
+      \midrule
+      1 & step 3 & $R_3$(\dig{\texttt{9e75}}) = \texttt{iai}: no chain ends with \texttt{iai} \nok\\
+      2 & step 2 & $R_2$(\dig{\texttt{9e75}}) = \texttt{iah}, $h$ = \texttt{adba}, $R_3$ = \textbf{\texttt{nur}}: a stored end \ok\\
+      3 & rebuild & from \textbf{\texttt{sun}}: \texttt{sun}, \texttt{oyn}, \msg{\texttt{crf}}; and $h$(\texttt{crf}) = \dig{\texttt{9e75}} \ok\\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+  \vfill
+  \begin{center}\small A lookup costs a few chain lengths of work instead of a disk full of digests.\\
+    If the rebuilt chain does not contain the digest (a \textbf{false alarm}), Mallory goes on trying.\end{center}
+  \keymsg{Rainbow tables trade time for memory, and they work only without salt.}
+  \curious{passwords/\#4}
+  \say{Wyszukiwanie krok po kroku. Mallory nie wie, w którym miejscu łańcucha był skradziony skrót, więc zakłada po kolei: ostatni krok, przedostatni, ... Dla każdego założenia liczy łańcuch dalej do końca i sprawdza, czy koniec jest w tablicy. Gdy trafi, liczy łańcuch od zapisanego początku i znajduje hasło tuż przed skrótem. Fałszywy alarm: dwa łańcuchy mogą się zlać (ten sam skrót z różnych haseł), wtedy odbudowany łańcuch nie zawiera skrótu i trzeba szukać dalej. W symulatorze (link) można zbudować tablicę na 16-bitowym skrócie, zobaczyć fałszywe alarmy i sprawdzić, że sól robi z tablicy śmieci. Gotowe tablice dla MD5 i haseł do kilku znaków można było kiedyś pobrać z sieci.}
 \end{frame}
 
 \begin{frame}{Salt}
@@ -1454,7 +1564,7 @@
       \draw[data] (p) -- (h);
       \node[digval, font=\small\ttfamily] (d) at (7.0,0) {d1d5d3c7\ldots};
       \draw[data] (h) -- (d);
-      \node[hw, text width=4.4cm, align=left, font=\scriptsize] (row) at (11.4,0) {\faDatabase\ the row of carol:\\[2pt] carol : \salt{3460be31\ldots} : \dig{d1d5d3c7\ldots}};
+      \node[hw, text width=4.4cm, align=left, font=\scriptsize] (row) at (11.4,0) {\faDatabase\ the row of chloe:\\[2pt] chloe : \salt{3460be31\ldots} : \dig{d1d5d3c7\ldots}};
       \draw[data] (d) -- (row);
     \end{tikzpicture}
   \end{center}
@@ -1462,7 +1572,7 @@
   \bigdef{\textbf{Salt}: a random value, \textbf{different for every user}, stored next to the digest. It is \textbf{not secret}.\\
     The server stores $\text{SHA-256}(\text{salt} \,\|\, \text{password})$.}
   \vfill
-  % CHECKED: Task6/leaked_users.txt: carol salt 3460be31..., digest d1d5d3c7... = SHA-256(salt + "iloveyou")
+  % CHECKED: Task6/leaked_users.txt: chloe salt 3460be31..., digest d1d5d3c7... = SHA-256(salt + "iloveyou")
   \say{Sól to losowe bajty (tu 16), inne dla każdego użytkownika, zapisane jawnie w tym samym wierszu bazy. Serwer przy logowaniu bierze sól z wiersza, dokleja wpisane hasło i liczy skrót. Sól nie jest tajna i nie musi być: jej zadanie to sprawić, żeby każdy użytkownik miał „własną” funkcję skrótu. Kolor bursztynowy to sól, do końca wykładu.}
 \end{frame}
 
@@ -1474,7 +1584,7 @@
       \node[font=\small\bfseries, text=nInk] at (0,0.5) {user};
       \node[font=\small\bfseries, text=nInk] at (2.8,0.5) {salt};
       \node[font=\small\bfseries, text=nInk] at (6.2,0.5) {digest};
-      \foreach \u/\s/\d [count=\k] in {carol/3460be31\ldots/d1d5d3c7\ldots, dave/7c2999fd\ldots/04c4b03e\ldots} {
+      \foreach \u/\s/\d [count=\k] in {chloe/3460be31\ldots/d1d5d3c7\ldots, dave/7c2999fd\ldots/04c4b03e\ldots} {
         \node[hw, minimum width=1.6cm, font=\small] at (0,{-0.6*\k+0.5}) {\u};
         \node[saltval, minimum width=2.6cm, font=\small\ttfamily] at (2.8,{-0.6*\k+0.5}) {\s};
         \node[digval, minimum width=3.0cm, font=\small\ttfamily] at (6.2,{-0.6*\k+0.5}) {\d};
@@ -1490,7 +1600,7 @@
   \end{enumerate}
   \keymsg{Salt forces the attacker to start from zero, user by user.}
   % CHECKED: Task6/leaked_users.txt: dave salt 7c2999fd..., digest 04c4b03e...
-  \say{Carol i Dave mają to samo hasło co w poprzedniej bazie, ale teraz skróty są zupełnie różne. Gotowe tablice (także tęczowe) nie działają, bo musiałyby być policzone dla każdej możliwej soli. Atakujący nie może też pracować przed wyciekiem: soli nie zna, dopóki nie ukradnie bazy.}
+  \say{Chloe i Dave mają to samo hasło co w poprzedniej bazie, ale teraz skróty są zupełnie różne. Gotowe tablice (także tęczowe) nie działają, bo musiałyby być policzone dla każdej możliwej soli. Atakujący nie może też pracować przed wyciekiem: soli nie zna, dopóki nie ukradnie bazy.}
 \end{frame}
 
 \samedot
@@ -1545,24 +1655,38 @@
     \end{tikzpicture}
   \end{center}
   \vfill
-  \begin{center}\small The same \textbf{9 of 12} users fall; carol's and dave's digests no longer match.\\
+  \begin{center}\small The same \textbf{9 of 12} users fall; chloe's and dave's digests no longer match.\\
     Each cracked user stops the search early; the 3 strong passwords cost a full pass each.\end{center}
   \keymsg{Salt multiplied the work but saved no weak password.}
   \say{Złamanych tylu samo, bo słabe hasła są na początku listy. Pracy jest ponad trzy razy więcej; przy milionie użytkowników byłoby to milion razy więcej niż bez soli. Ale 11 795 skrótów SHA-256 to wciąż ułamek sekundy. Prawdziwy problem: SHA-256 jest za szybki.}
 \end{frame}
 
+\samedot
+\begin{frame}{See it: four ways to store a password}
+  \opensim{passwords/\#3}
+  \vfill
+  \begin{enumerate}\small\setlength{\itemsep}{6pt}
+    \item Tab \textbf{plain}, then \textbf{SHA-256}: press \textbf{attack}. Watch the work counter: one hash per guess, all users at once.
+    \item Tab \textbf{salt}: the same attack, user by user. The counter grows with the number of users.
+    \item Tab \textbf{bcrypt}: real bcrypt at cost 4 in the browser. Compare guesses per second with the SHA-256 tab.
+  \end{enumerate}
+  \vfill
+  \keymsg{The same guesses against four databases: only the work changes.}
+  \say{Pokaz na żywo, około 3 minuty, po zadaniach 5 i 6. Użytkownicy i hasła w symulatorze są inne niż w zadaniach. Warto zatrzymać się na liczniku pracy: w karcie SHA-256 równa się długości listy, w karcie z solą mnoży się przez liczbę użytkowników, w karcie bcrypt każde zgadnięcie trwa milisekundy. To zapowiedź następnego slajdu: sól nie wystarczy, bo SHA-256 jest za szybkie.}
+\end{frame}
+
 \begin{frame}{The real problem: hashes are fast}
   % CHECKED: hashcat 6.2.6, RTX 4090 (gist Chick3nman 32e662a5): MD5 164.1 GH/s, SHA-1 50.6 GH/s, SHA-256 21.98 GH/s,
-  %   bcrypt (32 iterations = cost 5) 184.0 kH/s; python3: 14 344 391 / 21.98e9 = 0.65 ms
+  %   bcrypt (32 iterations = cost 5) 184.0 kH/s (shown later, on "Why bcrypt is slow"); python3: 14e6 / 21.98e9 = 0.64 ms
   \vfill
   \begin{center}
     \begin{tikzpicture}[x=0.95cm]
       % log scale by hand: length = log10(guesses per second) - 4
       \foreach \e/\lbl in {0/$10^4$, 2/$10^6$, 4/$10^8$, 6/$10^{10}$, 8/$10^{12}$} {
-        \draw[nLight] (\e,0.5) -- (\e,-3.3);
-        \node[font=\tiny, text=gray] at (\e,-3.5) {\lbl};
+        \draw[nLight] (\e,0.5) -- (\e,-2.4);
+        \node[font=\tiny, text=gray] at (\e,-2.6) {\lbl};
       }
-      \foreach \y/\name/\h/\shown in {0/MD5/7.215/164 billion, -0.9/SHA-1/6.704/50 billion, -1.8/SHA-256/6.342/22 billion, -2.7/bcrypt (cost 5)/1.265/184\,000} {
+      \foreach \y/\name/\h/\shown in {0/MD5/7.215/164 billion, -0.9/SHA-1/6.704/50 billion, -1.8/SHA-256/6.342/22 billion} {
         \node[font=\small, text=nInk, anchor=east] at (-0.1,\y) {\name};
         \fill[nInk, bar] (0,\y-0.27) rectangle (\h,\y+0.27);
         \node[font=\small\bfseries, text=nInk, anchor=west] at (\h+0.1,\y) {\shown};
@@ -1571,9 +1695,9 @@
     \end{tikzpicture}
   \end{center}
   \vfill
-  \begin{center}\small At 22 billion per second, all 14 million RockYou passwords take \textbf{0.65 ms} per salted user.\end{center}
+  \begin{center}\small At 22 billion per second, a list of 14 million passwords takes \textbf{0.64 ms} per salted user.\end{center}
   \keymsg{Hashes were designed to be fast; for passwords, fast is the enemy.}
-  \say{Liczby z publicznego benchmarku hashcata (wersja 6.2.6, karta RTX 4090). Logarytmiczna skala: każda kreska to 100 razy więcej. Funkcje skrótu projektuje się, żeby były szybkie (pliki, sieci, Git). Dla haseł to wada: atakujący sprawdza miliardy kandydatów na sekundę. Ostatni pasek to bcrypt, za chwilę; w liczbach to około 120 tysięcy razy mniej prób na sekundę niż SHA-256.}
+  \say{Liczby z publicznego benchmarku hashcata (wersja 6.2.6, karta RTX 4090). Logarytmiczna skala: każda kreska to 100 razy więcej. Funkcje skrótu projektuje się, żeby były szybkie (pliki, sieci, Git). Dla haseł to wada: atakujący sprawdza miliardy kandydatów na sekundę. Tę samą miarę dla bcrypt pokażemy, gdy bcrypt będzie już znany (slajd Why bcrypt is slow). 14 milionów to zaokrąglona lista RockYou (14 344 391), ta sama liczba co w zadaniu 9.}
 \end{frame}
 
 \samedot
@@ -1608,7 +1732,7 @@
       \node[msgval, font=\small\ttfamily, minimum width=2.6cm] (p) at (0,1.0) {blue tulip 42};
       \node[font=\scriptsize, text=gray, anchor=east] at (-1.4,1.0) {password};
       \node[saltval, font=\small, minimum width=2.6cm] (s) at (0,0) {16 random bytes};
-      \node[font=\scriptsize, text=gray, anchor=east] at (-1.4,0) {salt};
+      \node[font=\scriptsize, text=gray, anchor=east, align=right] at (-1.4,0) {salt\\ (bcrypt picks it)};
       \node[hw, font=\small, minimum width=2.6cm] (c) at (0,-1.0) {cost = 12};
       \node[font=\scriptsize, text=gray, anchor=east] at (-1.4,-1.0) {work factor};
       \node[mech, minimum width=2.6cm, minimum height=2.6cm, font=\large\bfseries] (b) at (4.2,0) {\faCogs\\ bcrypt};
@@ -1644,7 +1768,8 @@
   \end{center}
   \vfill
   \begin{center}\small The characters are a base64 alphabet: \texttt{./A-Za-z0-9}, 6 bits each.\\
-    Everything the server needs to check a password later is in this one line.\end{center}
+    Everything the server needs to check a password later is in this one line.\\
+    This test vector uses \textbf{cost 4}, the lowest bcrypt allows, so that tests run fast; a server uses 10 to 12.\end{center}
   \keymsg{The salt and the cost travel inside the stored text.}
   \say{Przykład z oficjalnych wektorów testowych biblioteki bcrypt (projekt pyca/bcrypt), hasło Kk4DQuMMfZL9o. Serwer, żeby sprawdzić hasło, czyta z tej linijki wersję, koszt i sól, liczy bcrypt wpisanego hasła z tą samą solą i kosztem, i porównuje. Dlatego zmiana kosztu w przyszłości nie psuje starych haseł: każdy wiersz pamięta swój koszt.}
 \end{frame}
@@ -1709,7 +1834,7 @@
         \node[font=\tiny, text=gray, anchor=east] at (3.4,\v) {\lbl};
       }
       \foreach \c/\ms/\shown in {4/1.7/1.7 ms, 8/22/22 ms, 10/88/88 ms, 12/338/0.34 s} {
-        \fill[sBrown, bar] (\c-0.35,0) rectangle (\c+0.35,\ms);
+        \fill[nInk, bar] (\c-0.35,0) rectangle (\c+0.35,\ms);
         \node[font=\small, text=nInk] at (\c,-18) {\c};
         \node[font=\scriptsize\bfseries, text=nInk, above] at (\c,\ms) {\shown};
       }
@@ -1719,7 +1844,40 @@
   \vfill
   \begin{center}\small One bcrypt in C on a laptop \textcolor{gray}{(i5-8265U)}. Work $= 2^{\text{cost}}$: every $+2$ is 4 times slower.\end{center}
   \keymsg{The cost is a dial: turn it up as computers get faster.}
-  \say{Pomiar biblioteki w C (libxcrypt, ta sama, której używa Linux do haseł systemowych) na laptopie prowadzącego. Koszt 12 to około 0,3 s na zwykłym laptopie, czyli wyraźnie, ale do przyjęcia przy logowaniu. „Future-adaptable” w tytule pracy z 1999 oznacza właśnie to: co kilka lat zwiększa się koszt.}
+  \say{Pomiar biblioteki w C (libxcrypt, ta sama, której używa Linux do haseł systemowych) na laptopie autora. Koszt 12 to około 0,3 s na zwykłym laptopie, czyli wyraźnie, ale do przyjęcia przy logowaniu. „Future-adaptable” w tytule pracy z 1999 oznacza właśnie to: co kilka lat zwiększa się koszt.}
+\end{frame}
+
+\samedot
+\begin{frame}{Why bcrypt is slow, even on a graphics card}
+  % CHECKED: Task7/bcrypt_ready.py: one key setup = 9 + 4 * 128 = 521 Blowfish encryptions (18 + 1024 words of 32 bits);
+  %   bcrypt = 1 + 2 * 2^cost key setups + 64 * 3 encryptions: cost 5 = 65 * 521 + 192 = 34 057
+  % CHECKED: hashcat 6.2.6 on RTX 4090 (gist Chick3nman 32e662a5): SHA-256 21.98 GH/s, bcrypt (32 iterations = cost 5) 184.0 kH/s;
+  %   python3: 21.98e9 / 184.0e3 = 119 457
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[x=0.95cm]
+      \foreach \e/\lbl in {0/$10^4$, 2/$10^6$, 4/$10^8$, 6/$10^{10}$} {
+        \draw[nLight] (\e,0.5) -- (\e,-1.5);
+        \node[font=\tiny, text=gray] at (\e,-1.7) {\lbl};
+      }
+      \foreach \y/\name/\h/\shown in {0/SHA-256/6.342/22 billion, -0.9/bcrypt (cost 5)/1.265/184\,000} {
+        \node[font=\small, text=nInk, anchor=east] at (-0.1,\y) {\name};
+        \fill[nInk, bar] (0,\y-0.27) rectangle (\h,\y+0.27);
+        \node[font=\small\bfseries, text=nInk, anchor=west] at (\h+0.1,\y) {\shown};
+      }
+      \node[font=\scriptsize, text=gray, anchor=west] at (0,0.75) {guesses per second, one RTX 4090 (hashcat), log scale: about \textbf{120\,000 times} fewer};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{itemize}\small\setlength{\itemsep}{4pt}
+    \item One Blowfish key setup rewrites all 4\,KB of its tables with \textbf{521} Blowfish encryptions.
+    \item Cost 5: $1 + 2 \cdot 2^5 = 65$ key setups, about \textbf{34\,000} encryptions per guess. SHA-256 of a password: one block.
+    \item Every encryption reads the tables at addresses that depend on the data: thousands of graphics-card cores share little fast memory, so they wait.
+    \item Looping SHA-256 many times also works: that is PBKDF2 \textcolor{gray}{(later)}, but a graphics card runs it faster.
+  \end{itemize}
+  \vfill
+  \keymsg{bcrypt is slow by the amount of work and by the way it uses memory.}
+  \say{Skąd 120 tysięcy razy? Po pierwsze praca: tablice Blowfisha to 18 słów P i 4 razy 256 słów S, razem 1042 słowa po 32 bity, czyli około 4 KB; jedno ustawienie klucza nadpisuje je wszystkie, po dwa słowa na jedno szyfrowanie, więc 521 szyfrowań. bcrypt robi to $1 + 2 \cdot 2^{\text{cost}}$ razy (najpierw hasło z solą, potem na zmianę hasło i sól), przy koszcie 5 to 65 razy, około 34 tysięcy szyfrowań po 16 rund. SHA-256 krótkiego hasła to jeden blok, 64 rundy. Po drugie pamięć: każda runda Blowfisha czyta cztery słowa z tablic pod adresami zależnymi od danych, a karta graficzna ma tysiące rdzeni i mało szybkiej pamięci na rdzeń. Można też po prostu powtarzać SHA-256 wiele razy; tak działa PBKDF2 (slajd Other slow hashes), ale ono nie potrzebuje pamięci, więc karta graficzna liczy je relatywnie szybciej.}
 \end{frame}
 
 \begin{frame}{Task 8: what the cost costs}
@@ -1731,7 +1889,7 @@
   \vfill
   \opentask{Task8}{about 10 minutes}
   \vfill
-  \say{Około 10 minut, z czego około 10 sekund liczenia. Czysty Python jest wolny, więc liczby bezwzględne są inne niż w C, ale proporcje (podwajanie z każdym kosztem, przepaść między bcrypt a SHA-256) są prawdziwe.}
+  \say{Około 10 minut, z czego 10 do 30 sekund liczenia (zależnie od komputera; na zajętym komputerze liczba prób bcrypt na sekundę skacze). Czysty Python jest wolny, więc liczby bezwzględne są inne niż w C, ale proporcje (podwajanie z każdym kosztem, przepaść między bcrypt a SHA-256) są prawdziwe.}
 \end{frame}
 
 \samedot
@@ -1830,7 +1988,7 @@
     \column{0.5\textwidth}
       \begin{itemize}\small\setlength{\itemsep}{8pt}
         \item As high as the server can afford at its busiest hour.
-        \item OWASP: bcrypt cost \textbf{10 or more}.
+        \item OWASP (web security guidelines): bcrypt cost \textbf{10 or more}.
         \item Raise it every few years. At the next login, the server can re-hash the password with the new cost.
       \end{itemize}
     \column{0.46\textwidth}
@@ -1838,7 +1996,8 @@
   \end{columns}
   \vfill
   \keymsg{Pick the slowest cost your logins can bear, and raise it over time.}
-  \say{OWASP to organizacja publikująca zalecenia bezpieczeństwa aplikacji WWW; NIST mówi podobnie: koszt tak wysoki, jak praktycznie możliwe. Ponowne hashowanie: przy udanym logowaniu serwer zna hasło (właśnie je wpisano), więc może policzyć nowy bcrypt z wyższym kosztem i zapisać go. Limit 72 bajtów to cecha konstrukcji (klucz Blowfish); dla haseł z ludzkiej głowy zwykle nie ma znaczenia.}
+  \curious{passwords/\#5}
+  \say{OWASP to organizacja publikująca zalecenia bezpieczeństwa aplikacji WWW; NIST mówi podobnie: koszt tak wysoki, jak praktycznie możliwe. Ponowne hashowanie: przy udanym logowaniu serwer zna hasło (właśnie je wpisano), więc może policzyć nowy bcrypt z wyższym kosztem i zapisać go. Limit 72 bajtów to cecha konstrukcji (klucz Blowfish); dla haseł z ludzkiej głowy zwykle nie ma znaczenia. Link For the curious: pokrętło kosztu, czas logowania serwera i czas Mallory dla różnych haseł, na CPU i karcie graficznej, oraz tablice Blowfisha nadpisywane podczas jednego bcrypt.}
 \end{frame}
 
 \samedot
@@ -1853,7 +2012,7 @@
       \toprule
       \textbf{name} & \textbf{one line} & \textbf{in Python}\\
       \midrule
-      PBKDF2 & SHA-256 (with the password as a key) repeated many times; OWASP: 600\,000 times & \texttt{hashlib.pbkdf2\_hmac}\\
+      PBKDF2 & SHA-256 repeated many times with the salt; OWASP: 600\,000 times & \texttt{hashlib.pbkdf2\_hmac}\\
       scrypt (2009) & slow \textbf{and} needs a lot of memory & \texttt{hashlib.scrypt}\\
       Argon2id (2015) & winner of a public competition; memory and time both tunable; OWASP's first choice & extra library\\
       \bottomrule
@@ -1890,34 +2049,6 @@
 \end{frame}
 
 \samedot
-\begin{frame}{Online and offline guessing}
-  \vfill
-  \begin{columns}[T,onlytextwidth]
-    \column{0.48\textwidth}
-      \centering
-      \begin{tikzpicture}[>=Stealth]
-        \node[font=\Huge, text=sPink] (m) at (0,0) {\faUserSecret};
-        \node[srvval, font=\small] (s) at (3.4,0) {\faServer\ login page};
-        \draw[data] (m) -- node[above, font=\scriptsize] {guess} (s);
-      \end{tikzpicture}\\[6pt]
-      \textbf{online}: through the login page\\[2pt]
-      \small the server sees every try: it can slow down or lock the account after a few failures
-    \column{0.48\textwidth}
-      \centering
-      \begin{tikzpicture}[>=Stealth]
-        \node[font=\Huge, text=sPink] (m) at (0,0) {\faUserSecret};
-        \node[hw, font=\small] (s) at (3.4,0) {\faDatabase\ stolen copy};
-        \draw[data] (m) -- node[above, font=\scriptsize] {billions} (s);
-      \end{tikzpicture}\\[6pt]
-      \textbf{offline}: on a stolen database\\[2pt]
-      \small nobody sees the tries: only the stored form (salt, slow hash, pepper) protects
-  \end{columns}
-  \vfill
-  \keymsg{Limits on login attempts stop online guessing; only good storage stops offline guessing.}
-  \say{Rozróżnienie, które porządkuje całą sekcję: wszystko, co liczyliśmy (słownik, sól, bcrypt), dotyczy zgadywania offline, na skradzionej kopii bazy. Zgadywanie online przez stronę logowania zatrzymuje ograniczenie liczby prób; offline nikt atakującego nie ograniczy.}
-\end{frame}
-
-\samedot
 \begin{frame}{Storing passwords: good practice}
   % CHECKED: NIST SP 800-63B-4: salt at least 32 bits; check new passwords against a blocklist of compromised passwords
   \vfill
@@ -1929,7 +2060,7 @@
         \item let it make a new random salt for every password
         \item keep a pepper outside the database
         \item refuse passwords that appear in leak lists
-        \item limit login attempts per account
+        \item limit login attempts per account (online guessing)
       \end{itemize}
     \column{0.48\textwidth}
       \small\textbf{Do not}
@@ -1961,9 +2092,10 @@
     \end{tabular}
   \end{center}
   \vfill
-  \begin{center}\small With bcrypt at cost 12, cracking the LinkedIn table would have cost centuries of graphics-card time,\\ not days, except for the weakest passwords.\end{center}
+  \begin{center}\small With bcrypt at cost 12, cracking the LinkedIn table would have cost tens of thousands of years\\ of graphics-card time, not days, except for the weakest passwords.\end{center}
+  % CHECKED: python3: 164e6 users * 2.7 h (Task 9) = 4.43e8 h = 50 500 years on one RTX 4090
   \keymsg{Both famous leaks were made far worse by how the passwords were stored.}
-  \say{Powrót do dwóch historii z początku sekcji. Zdanie o „wiekach” wynika z rachunku z zadania 9 (milion użytkowników: około 310 lat na jednej karcie; LinkedIn miał ponad 100 razy więcej kont). Najsłabsze hasła i tak by padły: stąd lista zakazanych haseł.}
+  \say{Powrót do dwóch historii z początku sekcji. Liczba wynika z rachunku z zadania 9: 2,7 godziny na użytkownika razy 164 miliony kont to około 4,4 $\cdot 10^8$ godzin, czyli około 50 tysięcy lat na jednej karcie. Najsłabsze hasła i tak by padły: stąd lista zakazanych haseł.}
 \end{frame}
 
 
@@ -1979,7 +2111,7 @@
       \textbf{attack} & \textbf{why it works} & \textbf{defence}\\
       \midrule
       birthday collision & any pair: $2^{n/2}$, not $2^n$ & a long digest: 256 bits\\
-      structural collision & MD5, SHA-1 have shortcuts & SHA-256, SHA-3\\
+      MD5/SHA-1 attack & MD5, SHA-1 have shortcuts & SHA-256, SHA-3\\
       dictionary attack & people choose likely passwords & good passwords, leak lists\\
       ready tables & no salt: work done before the leak & a random salt per user\\
       fast guessing & hashes are designed to be fast & bcrypt, Argon2id, a cost\\

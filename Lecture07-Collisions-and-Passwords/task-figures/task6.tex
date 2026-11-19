@@ -7,7 +7,7 @@
   \node[font=\small\bfseries, text=nInk] at (0,0.6) {user};
   \node[font=\small\bfseries, text=sAmberText] at (2.9,0.6) {salt (public)};
   \node[font=\small\bfseries, text=nInk] at (6.5,0.6) {SHA-256(salt + password)};
-  \foreach \u/\s/\d [count=\k from 0] in {alice/a54dca182530bb1d/27b9f609667f414e, carol/3460be31201e69fe/d1d5d3c780e63250, dave/7c2999fdafe59325/04c4b03e1951548b} {
+  \foreach \u/\s/\d [count=\k from 0] in {alice/a54dca182530bb1d/27b9f609667f414e, chloe/3460be31201e69fe/d1d5d3c780e63250, dave/7c2999fdafe59325/04c4b03e1951548b} {
     \node[hw, minimum width=1.6cm, font=\small] at (0,{-0.6*\k}) {\u};
     \node[saltval, minimum width=3.4cm, font=\scriptsize\ttfamily] at (2.9,{-0.6*\k}) {\s\ldots};
     \node[digval, minimum width=3.6cm, font=\scriptsize\ttfamily] at (6.5,{-0.6*\k}) {\d\ldots};

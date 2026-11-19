@@ -1,34 +1,32 @@
-# Task 4: forge it
+# Task 4: textbook RSA
 
 ## The situation
 
-Alice's bank takes a payment order as one number, the amount in pounds, signed with textbook RSA: the bank accepts a signature `s` for the amount `m` when `s^e mod n == m`. Alice paid Mallory twice, 20 and 50 pounds, so Mallory has two orders that Alice signed. Mallory does not have Alice's private key `d`. She wants the bank to pay her 1000 pounds.
+Alice signs a short payment order for Bob with textbook RSA: the message as a number `m`, the signature `s = m^d mod n`. Her key is a real 2048-bit RSA key. Bob checks it with her public key `{e, n}`. Mallory then changes "10 pounds" into "90 pounds" and keeps Alice's signature.
 
-![Alice signed 20 pounds (signature 80a9b014e367...069ba6863a16) and 50 pounds (signature c95f1a1e8b14...5617ecb95454). Mallory computes sig_1 x sig_2 mod n and offers it for 1000 pounds: bank = ? She also takes any number, 123 456 789, as a signature: amount = ?, bank = ?. The bank accepts s if s^e mod n = amount.](figure.svg)
+![The message "Pay Bob 10 pounds. Alice" becomes the number m = ?; with Alice's private key d, n it becomes s = m^d mod n = ?; Bob has e, n and checks s^e mod n = m? and the same for "Pay Bob 90 pounds. Alice"; and s^e mod n as bytes = ?](figure.svg)
 
 ## Goal
 
-Without the private key, make the bank accept an order for 1000 pounds, and make one more valid signature from a number of your choice.
+Sign and verify with the two powers of RSA, see that a changed message fails, and see what is inside the signature.
 
 ## Ready for you
 
-- `bank_ready.py`: Alice's public key `n`, `e`; the two orders `amount_1`, `sig_1` and `amount_2`, `sig_2`; `short(x)` for printing.
-- `pow(x, e, n)` and the operators `*` and `%` on big integers.
+- `alice_key.py`: `n`, `e`, `d` of Alice's key (numbers with about 617 digits; Python integers have no size limit, unlike `int` in C), `number_to_bytes(x)` (the opposite of `int.from_bytes`) and `short(x)` for printing.
+- `int.from_bytes(data, "big")`: the bytes read as one big-endian number, as in Lecture 3.
+- `pow(m, d, n)`: m to the power d, mod n, fast (Lecture 3).
 
 ## Steps
 
-Write your code in place of the `None` after each `TODO` in `forge.py`:
+Write your code in place of the `None` after each `TODO` in `textbook_rsa.py`:
 
-1. Check both orders as the bank does: `pow(sig_1, e, n) == amount_1`, and the same for order 2.
-2. Multiply the two signatures modulo `n`, and check the result as a signature on `amount_1 * amount_2`.
-3. Take `any_sig = 123456789`, compute the amount it signs with the **public** key, and check it as the bank does.
+1. `m`: the message as a number.
+2. `s`: Alice's signature, `pow(m, d, n)`.
+3. `check`: Bob's check, `pow(s, e, n) == m`.
+4. `check_changed`: turn `changed` into a number and check it with the same `s`.
+5. `inside`: `pow(s, e, n)` turned back into bytes with `number_to_bytes`.
 
-<details>
-<summary>Hint for step 2</summary>
-
-The slide "Problem 2: signatures multiply": (m1^d)(m2^d) = (m1 m2)^d mod n.
-
-</details>
+Before step 5, predict: what will the bytes say?
 
 ## Expected output
 
@@ -36,23 +34,21 @@ The slide "Problem 2: signatures multiply": (m1^d)(m2^d) = (m1 m2)^d mod n.
 <summary>Check your answer</summary>
 
 ```
-order 1: 20 pounds, signature 80a9b014e367...069ba6863a16 (512 hex digits)
-order 2: 50 pounds, signature c95f1a1e8b14...5617ecb95454 (512 hex digits)
-the bank checks order 1: True  order 2: True
-forged signature: 13bf50ca7f3a...619b651031c3 (511 hex digits)
-the bank checks it on 1000 pounds: True
-any signature: 123456789  signs the amount 4383e8aad872...581a62c032b0 (512 hex digits)
-the bank checks it: True
+m = 50617920426f...20416c696365 (48 hex digits)  smaller than n: True
+s = 1ee3425e9a74...95e50c23a9ae (512 hex digits)
+Bob checks the message:         True
+Bob checks the changed message: False
+s^e mod n as bytes: b'Pay Bob 10 pounds. Alice'
 ```
 
-Two signatures and one multiplication give a valid signature on 1000 pounds. Any number is a valid signature of some amount, only Mallory cannot choose which.
+The signature has 512 hex digits, 256 bytes, as many as `n`, even for a 24-byte message. The public power gives back exactly the message Alice signed, so the changed message does not fit.
 
 </details>
 
 ## Run
 
 ```
-python3 forge.py
+python3 textbook_rsa.py
 ```
 
-About 9 minutes. Python 3 and the library `cryptography` (only `bank_ready.py` uses it, to read the PEM file).
+About 8 minutes. Python 3 and the library `cryptography` (only `alice_key.py` uses it, to read the PEM file).

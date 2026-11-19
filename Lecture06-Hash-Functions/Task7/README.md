@@ -4,7 +4,7 @@
 
 On Monday, before the match Coventry City against Leeds United, Alice, Mallory and Carol each want to prove later that they predicted the final score, without telling anybody now. Each publishes a **commitment**: Alice and Mallory publish SHA-256(r ‖ prediction), where r is 16 secret random bytes; Carol publishes only SHA-256(prediction). The match ends 2:1. On Saturday Alice and Mallory reveal r and their prediction, and both say "2:1". Bob checks them. Then he wonders whether he could have read Carol's prediction already on Monday.
 
-![Monday: Alice in indigo, Mallory and Carol each publish a brown commitment; Alice's and Mallory's are made from an amber secret r and a violet prediction, Carol's only from a prediction. Saturday: Alice and Mallory reveal r and "2:1". Bob in teal recomputes and asks "match? ?" for each. Bob also tries all scores 0:0 to 9:9 against Carol's commitment: "Carol predicted ?".](figure.svg)
+![Monday: Alice in indigo, Mallory in pink and Carol each publish a brown commitment; Alice's and Mallory's are made from an amber secret r and a violet prediction, Carol's only from a prediction. Saturday: Alice and Mallory reveal r and "2:1". Bob in teal recomputes and asks "match? ?" for each. Bob also tries all scores 0:0 to 9:9 against Carol's commitment: "Carol predicted ?".](figure.svg)
 
 ## Goal
 

@@ -2564,7 +2564,7 @@ def prga(S, n):
   \begin{center}\small The IV has 3 bytes: only $2^{24} = 16\,777\,216$ possible values.\\[3pt]
     With random IVs, how many packets until one repeats?\end{center}
   \vfill
-  \curious{rc4/\#4.3}
+  \curious{rc4/\#4.4}
   \keymsg{Repeated IV means repeated keystream.}
   \say{A powtórka IV to ponowne użycie keystreamu, czyli dokładnie ten sam błąd co wcześniej, tylko automatycznie. Wasza wartość w Task 4 też miała 3 bajty. Zapytać salę, ile pakietów trzeba, zanim IV się powtórzy: większość powie ,,miliony''. Za dwa slajdy pokażemy to w symulatorze.}
 \end{frame}
@@ -2610,7 +2610,7 @@ def prga(S, n):
 \samedot
 \begin{frame}{See it: two packets, one IV}
   \vfill
-  \opensim{rc4/\#4.3}
+  \opensim{rc4/\#4.4}
   \vfill
   \begin{enumerate}\small
     \item Two printer packets, encrypted with WEP. Press \textbf{the same IV as packet 1}.
@@ -2672,7 +2672,7 @@ def prga(S, n):
 \samedot
 \begin{frame}{See it: the key leaks}
   \vfill
-  \opensim{rc4/\#4.4}
+  \opensim{rc4/\#4.5}
   \vfill
   \begin{enumerate}\small
     \item One packet with the IV \texttt{03 FF 00}: Eve runs the first 3 loops of the KSA herself.

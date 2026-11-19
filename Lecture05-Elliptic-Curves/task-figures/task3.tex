@@ -1,39 +1,42 @@
-% Task 3: find k. Values from PROBLEMS in Task3/ecdlp.py.
-% CHECKED (python3, Task3/solution/ecdlp.py): the three k exist; they are the answer, so the figure does not show them
+% Task 3: all points from G. Values from Task3/ec_toy.py and the slides (2G from "Doubling G", 3G from Task 2).
+% CHECKED (python3, Task3/solution/ec_toy.py): G = (5, 1), 2G = (6, 3), 3G = (10, 6); how many points: not shown
 \documentclass[12pt,tikz,border=6pt]{standalone}
 \input{common}
 \begin{document}
 \pagecolor{white}
 \begin{tikzpicture}[>=Stealth]
-  % the idea: add G again and again until you hit T
-  \node[font=\normalsize\bfseries, text=nInk, anchor=west] at (-0.6,2.0) {Start at $G$, keep adding $G$ until you reach $T$. Then $T = kG$: which $k$?};
-  \foreach \lbl/\x/\i in {G/0/1, 2G/2.0/2, 3G/4.0/3, 4G/6.0/4} {
-    \node[role=rPub, minimum width=1.2cm, font=\small\bfseries] (n\i) at (\x,0.9) {$\lbl$};
-  }
-  \foreach \a/\b in {1/2, 2/3, 3/4} \draw[data] (n\a) -- node[above, font=\scriptsize\bfseries, text=rChg] {$+G$} (n\b);
-  \node[font=\large, text=nInk] (dots) at (7.6,0.9) {\ldots};
-  \draw[data] (n4) -- (dots);
-  \node[role=rPub, minimum width=1.2cm, font=\small\bfseries, draw=rChg, line width=1.6pt] (t) at (9.4,0.9) {$T$};
-  \draw[data] (dots) -- node[above, font=\scriptsize\bfseries, text=rChg] {$+G$} (t);
-  \node[unk, font=\small\bfseries] at (11.6,0.9) {$k = $ ?};
+  % the curve mod 17
+  \node[font=\normalsize\bfseries, text=nInk, anchor=west] at (-0.5,6.15) {$y^2 = x^3 + 2x + 2 \bmod 17$, \ $G = (5, 1)$};
+  \begin{scope}[x=0.32cm, y=0.32cm]
+    \gridbody
+    \draw[rChg, very thick, ->, shorten >=5pt, shorten <=5pt] (5,1) to[bend left=25] node[left, font=\scriptsize\bfseries] {$+G$} (6,3);
+    \draw[rChg, very thick, ->, shorten >=5pt, shorten <=5pt] (6,3) to[bend left=25] node[below right, font=\scriptsize\bfseries] {$+G$} (10,6);
+    \draw[rChg, very thick, ->, dashed, shorten <=5pt] (10,6) to[bend left=25] (12.6,10.4);
+    \node[unk, font=\scriptsize\bfseries, inner sep=3pt] at (13.3,11.4) {4G = ?};
+    \gmark{5,1}{$G$}{below right}
+    \gmark{6,3}{$2G$}{right}
+    \gmark{10,6}{$3G$}{below right}
+  \end{scope}
 
-  % the three problems
-  \node[font=\small\bfseries, text=nInk, anchor=west] at (-0.6,-0.35) {curve $y^2 = x^3 + ax + b \bmod p$};
-  \node[font=\small\bfseries, text=rPubText] at (6.4,-0.35) {$G$};
-  \node[font=\small\bfseries, text=rPubText] at (9.8,-0.35) {$T = kG$};
-  \foreach \y/\bits/\p/\a/\b/\G/\T/\w in {-1.05/16/50459/13422/27875/{(1710, 42410)}/{(49665, 28300)}/0.5,
-      -2.0/20/896107/808927/241789/{(119763, 855066)}/{(490971, 493613)}/1.0,
-      -2.95/24/9788083/4564841/5425030/{(7065671, 8730247)}/{(619167, 4946861)}/1.5} {
-    \node[hw, font=\scriptsize\ttfamily, anchor=west, text width=4.9cm, align=left] at (-0.6,\y)
-      {\textbf{\bits\ bits}\ \ p = \p\\ a = \a, \ b = \b};
-    \node[role=rPub, font=\scriptsize\ttfamily, minimum width=3.1cm] at (6.4,\y) {\G};
-    \node[role=rPub, font=\scriptsize\ttfamily, minimum width=3.1cm] at (9.8,\y) {\T};
-    \node[unk, font=\scriptsize\bfseries, inner sep=3pt] at (12.05,\y) {k = ?};
-    \node[text=nInk, font=\normalsize] at (13.05,\y) {\faStopwatch};
-    \node[unk, font=\scriptsize\bfseries, inner sep=3pt, anchor=west] at (13.35,\y) {? s};
-  }
-  \node[font=\scriptsize, text=gray, anchor=north west, align=left] at (-0.6,-3.55)
-    {\texttt{add(P, Q, a, p)} is ready. Each $p$ is 4 bits longer: how many times longer does the search take?};
-  \path (14.4,0) coordinate;
+  % add(P, Q): what is ready and what you write
+  \begin{scope}[shift={(8.0,0)}]
+    \node[font=\normalsize\bfseries, text=nInk, anchor=west] at (0,6.15) {\texttt{add(P, Q)} in \texttt{ec\_toy.py}};
+    \foreach \y/\case/\res/\st in {5.2/{$P$ is $O$}/{$Q$}/r, 4.45/{$Q$ is $O$}/{$P$}/r, 3.7/{$Q = -P$}/{$O$}/r,
+        2.75/{$P = Q$}/{slope $s = (3x_1^2 + a) / (2y_1)$}/t, 2.0/{$P \ne Q$}/{slope $s = (y_2 - y_1) / (x_2 - x_1)$}/t,
+        1.05/{then}/{$x_3$, $y_3$ from $s$}/t} {
+      \node[font=\small, text=nInk, anchor=west] at (0,\y) {\case};
+      \node[font=\small, text=nInk, anchor=west] at (1.6,\y) {$\rightarrow$\ \res};
+      \if\st r
+        \node[font=\scriptsize\bfseries, text=aExec, anchor=west] at (7.9,\y) {\faCheck\ ready};
+      \else
+        \node[unk, font=\scriptsize\bfseries, inner sep=2pt, anchor=west] at (7.9,\y) {TODO};
+      \fi
+    }
+    \draw[nLine, dashed] (0,3.25) -- (9.3,3.25);
+    \node[font=\scriptsize, text=gray, anchor=west] at (1.6,0.45) {``$/\,v \bmod p$'' means ``$\times$ \texttt{pow(v, -1, p)}''};
+    % the loop
+    \node[role=rPub, anchor=north west, text width=8.6cm, align=left, font=\small] at (0,-0.3)
+      {print $G$, $2G$, $3G$, \ldots\ until $O$\\[2pt]\textbf{how many points?} \hfill\tikz\node[unk, font=\scriptsize\bfseries, inner sep=2pt] {TODO};};
+  \end{scope}
 \end{tikzpicture}
 \end{document}

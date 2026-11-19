@@ -2,9 +2,9 @@
 
 ## The situation
 
-Alice's door lock shows a short check code next to her note `Alice: the door code is 0886`: only the first few bits of the SHA-256 digest of the note. Mallory sees the short code but not the note. To fool the lock she needs **any** input whose short code is the same: that is a preimage. Her only method is the generic one: try inputs `0`, `1`, `2`, ... and compare. You play Mallory for codes of 12, 16 and 20 bits, count the tries, and then work out how long the same attack would take on all 256 bits.
+Alice's door lock does not store her secret phrase `Alice: the door code is 0886`. It stores only a short code: the first k bits of the SHA-256 digest of the phrase. It opens for **any** phrase whose short code matches. Mallory has read the stored code from the lock, but she does not know the phrase. So she needs any input with the same short code: that is a preimage of the short hash. Her only method is the generic one: try the inputs `0`, `1`, `2`, ... and compare. You play Mallory for codes of 12, 16 and 20 bits, count the tries, and then work out how long the same attack would take on all 256 bits.
 
-![A violet note "Alice: the door code is 0886" goes into SHA-256; only the first k bits of the brown digest are kept, for k = 12, 16, 20. Mallory, in pink, feeds the inputs "0", "1", "2" and so on into the same SHA-256 and compares the first k bits with the target. A counter "tries = ?" and a clock "seconds = ?".](figure.svg)
+![Alice's secret phrase "Alice: the door code is 0886", in violet, goes into SHA-256; the door lock stores only the first k bits of the brown digest, for k = 12, 16, 20. Mallory, in pink, who has read the stored code but not the phrase, feeds the inputs "0", "1", "2" and so on into the same SHA-256 and compares the first k bits with the stored code: if they are equal, the lock opens. A counter "tries = ?" and a clock "seconds = ?".](figure.svg)
 
 ## Goal
 
@@ -13,14 +13,14 @@ Measure how many tries the generic attack needs for a k-bit digest, compare with
 ## Ready for you
 
 - `invert_short.py`:
-  - `NOTE`: Alice's note.
+  - `PHRASE`: Alice's secret phrase (you need it only to compute the stored code, as the lock did).
   - `short_hash(data, k)`: the first k bits of SHA-256(data), as a number.
   - the printing of TODO 3. Each part says `not done yet: TODO n` until its TODO is done.
 
 ## Steps
 
 1. In `invert(target, k)`: a loop over `i = 0, 1, 2, ...`. The input is `str(i).encode()`: the decimal digits of `i` as bytes, like `sprintf(buf, "%d", i)` in C. Add 1 to `tries`; when `short_hash(input, k) == target`, return `(tries, input)` (two values at once, like a small struct).
-2. For `k` in 12, 16, 20: `target = short_hash(NOTE, k)`, then `(tries, found) = invert(target, k)`. Measure the time: `t0 = time.perf_counter()` before, `time.perf_counter() - t0` after (seconds, like `clock_gettime` in C). Print one line per `k` in the format given in the TODO, and keep the tries and seconds of the last `k`.
+2. For `k` in 12, 16, 20: `target = short_hash(PHRASE, k)` (the code stored in the lock), then `(tries, found) = invert(target, k)`. Measure the time: `t0 = time.perf_counter()` before, `time.perf_counter() - t0` after (seconds, like `clock_gettime` in C). Print one line per `k` in the format given in the TODO, and keep the tries and seconds of the last `k`.
 3. Your speed: `rate = last_tries / last_seconds` hashes per second. All 256 bits need about 2^256 tries: `years = 2**256 / rate / (365 * 24 * 3600)`. (`**` is the power in Python; Python integers have no size limit.)
 
 Predict first: 12 bits need about 2^12 = 4096 tries. How many for 16 bits? For 20 bits?

@@ -17,5 +17,14 @@
     }
   }
   \node[hw, font=\small, text width=11.6cm, align=left, anchor=north west] at (-1.5,-4.6) {Then add the same text to the end of both files of each pair, \texttt{a + SUFFIX} and \texttt{b + SUFFIX}: are the digests still the same?};
+  \foreach \y/\f in {-6.3/md5\_a.bin, -7.3/md5\_b.bin} {
+    \node[msgval, font=\scriptsize\ttfamily, minimum width=2.4cm] (f) at (-0.3,\y) {\f};
+    \node[msgval, font=\scriptsize, minimum width=1.8cm, anchor=west] (p1) at (0.95,\y) {page 1: 100};
+    \node[msgval, font=\scriptsize, minimum width=1.8cm, anchor=west] (p2) at (2.85,\y) {page 2: 1000};
+    \node[mech, font=\scriptsize\bfseries] (v) at (7.6,\y) {\faEye\ viewer: \texttt{data[19] == 0x87}?};
+    \draw[data] (p2.east) -- (v.west);
+    \node[unk, font=\scriptsize, anchor=west] at (9.95,\y) {shows page ?};
+  }
+  \node[unk, font=\scriptsize] at (7.6,-8.15) {MD5 of both: same?};
 \end{tikzpicture}
 \end{document}

@@ -1,0 +1,45 @@
+% Task 1: ECDH as a black box. Alice and Bob make random key pairs with Task1/x25519_ready.py and compare the secrets.
+% CHECKED (python3, Task1/solution/ecdh.py): both secrets are equal and 32 bytes long; the keys are random,
+%   and the secret and its size are the results of the task, so the figure shows them as unknown.
+%   The 256 bytes: the 2048-bit group 14 of RFC 3526 in Lecture 4, Task 2 (2048 / 8 = 256)
+\documentclass[12pt,tikz,border=6pt]{standalone}
+\input{common}
+\begin{document}
+\pagecolor{white}
+\begin{tikzpicture}[>=Stealth]
+  \personnode{alice}{0,0}{rAli}{Alice}
+  \personnode{bob}{12,0}{rBob}{Bob}
+  % private keys
+  \node[unk, font=\small\bfseries, draw=rPriv, text=rPrivText, fill=rPrivBg, anchor=north, align=center] (pa) at (0,-1.3)
+    {\faKey\ private key\\[2pt] 32 random bytes = ?};
+  \node[unk, font=\small\bfseries, draw=rPriv, text=rPrivText, fill=rPrivBg, anchor=north, align=center] (pb) at (12,-1.3)
+    {\faKey\ private key\\[2pt] 32 random bytes = ?};
+  \node[font=\scriptsize\ttfamily, text=gray, anchor=north] at (pa.south) {secrets.token\_bytes(32)};
+  \node[font=\scriptsize\ttfamily, text=gray, anchor=north] at (pb.south) {secrets.token\_bytes(32)};
+  % public keys
+  \node[unk, font=\small\bfseries, draw=rPub, text=rPubText, fill=rPubBg] (qa) at (3.6,0.2) {public A = ?};
+  \node[unk, font=\small\bfseries, draw=rPub, text=rPubText, fill=rPubBg] (qb) at (8.4,0.2) {public B = ?};
+  \draw[data] (alice) -- node[above, font=\scriptsize\ttfamily, text=nInk] {public\_key} (qa);
+  \draw[data] (bob) -- node[above, font=\scriptsize\ttfamily, text=nInk] {public\_key} (qb);
+  \draw[data, rPub] (qa.north) to[out=30, in=150] node[above, font=\scriptsize, text=nInk, pos=0.75] {A to Bob} (bob.north west);
+  \draw[data, rPub] (qb.south) to[out=-150, in=-30] node[below, font=\scriptsize, text=nInk, pos=0.22] {B to Alice} (alice.south east);
+  % Eve
+  \node[person=rEve, minimum size=0.9cm, font=\normalsize] (eve) at (6,2.9) {\faUserSecret};
+  \node[font=\scriptsize\bfseries, text=rEve, anchor=west] at (6.5,2.85) {Eve sees A and B};
+  \draw[rEve, thick, dashed] (eve.south) -- (6,1.25);
+  % shared secrets
+  \node[unk, font=\small\bfseries, draw=rPriv, text=rPrivText, fill=rPrivBg, anchor=north] (sa) at (3.9,-2.75) {secret = ?};
+  \node[unk, font=\small\bfseries, draw=rPriv, text=rPrivText, fill=rPrivBg, anchor=north] (sb) at (8.1,-2.75) {secret = ?};
+  \draw[data] (pa.east) -| (sa.north);
+  \node[font=\scriptsize\ttfamily, text=nInk, anchor=south west] at ([xshift=0.1cm]pa.east) {x25519(private, B)};
+  \draw[data] (pb.west) -| (sb.north);
+  \node[font=\scriptsize\ttfamily, text=nInk, anchor=south east] at ([xshift=-0.1cm]pb.west) {x25519(private, A)};
+  \node[font=\large\bfseries, text=rChg] (eq) at (6,-3.05) {$=$ ?};
+  % the size: Lecture 4 against this task (the same scale: 256 bytes = 10 cm)
+  \node[font=\small\bfseries, text=nInk, anchor=west] at (1.0,-4.3) {how long is the shared secret?};
+  \fill[nInk, rounded corners=1.5pt] (1.0,-5.25) rectangle (11.0,-4.85);
+  \node[font=\scriptsize, text=white, anchor=west] at (1.1,-5.05) {Diffie-Hellman, Lecture 4: 256 bytes (2048 bits)};
+  \draw[rChg, thick, dashed, rounded corners=1.5pt] (1.0,-5.95) rectangle (3.0,-5.55);
+  \node[font=\scriptsize\bfseries, text=rChg, anchor=west] at (3.15,-5.75) {X25519: ? bytes};
+\end{tikzpicture}
+\end{document}

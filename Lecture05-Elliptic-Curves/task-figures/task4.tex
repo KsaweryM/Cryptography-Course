@@ -1,46 +1,39 @@
-% Task 4: ElGamal on a curve. Values from Task4/ec_elgamal.py: G = (5, 1), d = 5, Q = 5G = (9, 16), M = (10, 11), k = 6.
-% CHECKED (python3, Task4/ec_elgamal.py prints Q = (9, 16)); C1, C2 and the decrypted point are the results: not shown
+% Task 4: find k. Values from PROBLEMS in Task4/ecdlp.py.
+% CHECKED (python3, Task4/solution/ecdlp.py): the three k exist; they are the answer, so the figure does not show them
 \documentclass[12pt,tikz,border=6pt]{standalone}
 \input{common}
 \begin{document}
 \pagecolor{white}
 \begin{tikzpicture}[>=Stealth]
-  % the curve with the known points
-  \node[font=\normalsize\bfseries, text=nInk, anchor=west] at (-0.5,6.15) {$y^2 = x^3 + 2x + 2 \bmod 17$};
-  \begin{scope}[x=0.32cm, y=0.32cm]
-    \gridbody
-    \gmark{5,1}{$G$}{below right}
-    \gmark{9,16}{$Q$}{below right}
-    \gmark[nInk]{10,11}{$M$}{above left}
-  \end{scope}
+  % the idea: add G again and again until you hit T
+  \node[font=\normalsize\bfseries, text=nInk, anchor=west] at (-0.6,2.0) {Start at $G$, keep adding $G$ until you reach $T$. Then $T = kG$: which $k$?};
+  \foreach \lbl/\x/\i in {G/0/1, 2G/2.0/2, 3G/4.0/3, 4G/6.0/4} {
+    \node[role=rPub, minimum width=1.2cm, font=\small\bfseries] (n\i) at (\x,0.9) {$\lbl$};
+  }
+  \foreach \a/\b in {1/2, 2/3, 3/4} \draw[data] (n\a) -- node[above, font=\scriptsize\bfseries, text=rChg] {$+G$} (n\b);
+  \node[font=\large, text=nInk] (dots) at (7.6,0.9) {\ldots};
+  \draw[data] (n4) -- (dots);
+  \node[role=rPub, minimum width=1.2cm, font=\small\bfseries, draw=rChg, line width=1.6pt] (t) at (9.4,0.9) {$T$};
+  \draw[data] (dots) -- node[above, font=\scriptsize\bfseries, text=rChg] {$+G$} (t);
+  \node[unk, font=\small\bfseries] at (11.6,0.9) {$k = $ ?};
 
-  % the flow
-  \begin{scope}[shift={(7.6,0)}]
-    \personnode{alice}{0.6,4.9}{rAli}{Alice}
-    \personnode{bob}{8.6,4.9}{rBob}{Bob}
-    \node[role=rMsg, font=\small, anchor=north] (m) at (0.6,3.6) {message $M = (10, 11)$};
-    \node[role=rPriv, font=\small, anchor=north] (k) at (0.6,2.75) {random $k = 6$};
-    \node[role=rPriv, font=\small, anchor=north] (d) at (8.6,2.75) {private $d = 5$};
-    \node[role=rPub, font=\small, anchor=north] (q) at (8.6,3.6) {public $Q = 5G = (9, 16)$};
-    \draw[data, rPub] (q.west) -- node[above, font=\scriptsize, text=nInk] {$Q$ to Alice} (3.0,3.27);
-    % encrypt
-    \node[hwmain, font=\small\ttfamily, text width=3.6cm, anchor=north] (enc) at (0.6,1.6)
-      {encrypt(M, Q, k)\\ \normalfont\scriptsize $C_1 = kG$, \ $C_2 = M + kQ$};
-    \node[unk, font=\scriptsize\bfseries, anchor=west, inner sep=2pt] at (enc.east) {TODO 1};
-    \draw[data] (k.south) -- (enc.north);
-    % ciphertext
-    \node[unk, draw=rCip, text=rCip, fill=rCipBg, font=\small\bfseries, anchor=north] (c) at (4.6,0.0) {$C_1 = ?$, \ $C_2 = ?$};
-    \draw[data, rCip] (enc.south) |- (c.west);
-    % decrypt
-    \node[hwmain, font=\small\ttfamily, text width=4.1cm, anchor=north] (dec) at (8.6,1.6)
-      {decrypt(C1, C2, d)\\ \normalfont\scriptsize $M = C_2 - dC_1$};
-    \node[unk, font=\scriptsize\bfseries, anchor=east, inner sep=2pt] at (dec.west) {TODO 2};
-    \draw[data] (d.south) -- (dec.north);
-    \draw[data, rCip] (c.east) -| ([xshift=-1.2cm]dec.south);
-    \node[unk, font=\small\bfseries, draw=rMsg, text=nInk, fill=rMsgBg, anchor=north] (out) at (8.6,-1.2) {decrypted = ?};
-    \draw[data] (dec.south) -- (out.north);
-    \node[font=\scriptsize, text=gray, anchor=north west, align=left] at (-1.2,-1.3)
-      {ready: \texttt{add(P, Q)}, \texttt{mul(k, P)}, \texttt{neg(P)} (the point $-P$)};
-  \end{scope}
+  % the three problems
+  \node[font=\small\bfseries, text=nInk, anchor=west] at (-0.6,-0.35) {curve $y^2 = x^3 + ax + b \bmod p$};
+  \node[font=\small\bfseries, text=rPubText] at (6.4,-0.35) {$G$};
+  \node[font=\small\bfseries, text=rPubText] at (9.8,-0.35) {$T = kG$};
+  \foreach \y/\bits/\p/\a/\b/\G/\T/\w in {-1.05/16/50459/13422/27875/{(1710, 42410)}/{(49665, 28300)}/0.5,
+      -2.0/20/896107/808927/241789/{(119763, 855066)}/{(490971, 493613)}/1.0,
+      -2.95/24/9788083/4564841/5425030/{(7065671, 8730247)}/{(619167, 4946861)}/1.5} {
+    \node[hw, font=\scriptsize\ttfamily, anchor=west, text width=4.9cm, align=left] at (-0.6,\y)
+      {\textbf{\bits\ bits}\ \ p = \p\\ a = \a, \ b = \b};
+    \node[role=rPub, font=\scriptsize\ttfamily, minimum width=3.1cm] at (6.4,\y) {\G};
+    \node[role=rPub, font=\scriptsize\ttfamily, minimum width=3.1cm] at (9.8,\y) {\T};
+    \node[unk, font=\scriptsize\bfseries, inner sep=3pt] at (12.05,\y) {k = ?};
+    \node[text=nInk, font=\normalsize] at (13.05,\y) {\faStopwatch};
+    \node[unk, font=\scriptsize\bfseries, inner sep=3pt, anchor=west] at (13.35,\y) {? s};
+  }
+  \node[font=\scriptsize, text=gray, anchor=north west, align=left] at (-0.6,-3.55)
+    {\texttt{add(P, Q, a, p)} is ready. Each $p$ is 4 bits longer: how many times longer does the search take?};
+  \path (14.4,0) coordinate;
 \end{tikzpicture}
 \end{document}

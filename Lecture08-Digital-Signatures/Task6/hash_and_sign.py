@@ -23,7 +23,7 @@ s = None
 # TODO 3: Bob checks: he hashes the file he got himself and compares: pow(s, e, n) == hash_number(update)
 check = None
 
-# TODO 4: Mallory changes one byte: copy the file into a bytearray (like a uint8_t buffer in C),
+# TODO 4: Mallory flips one bit: copy the file into a bytearray (like a uint8_t buffer in C),
 #         flip the lowest bit of byte 50000 with ^= 1, then check s on bytes(changed) as in TODO 3.
 check_changed = None
 
@@ -35,7 +35,7 @@ lines = read_file("signed_orders.txt").decode().split("\n")
 sig_20 = int(lines[0], 16)
 sig_50 = int(lines[1], 16)
 
-# TODO 5: the trick of Task 4 against hash-and-sign: Mallory multiplies the two signatures,
+# TODO 5: the trick of Task 5 against hash-and-sign: Mallory multiplies the two signatures,
 #         forged = sig_20 * sig_50 % n, and the bank checks forged on order_1000, as in TODO 3.
 check_forged = None
 

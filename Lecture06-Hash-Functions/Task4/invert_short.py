@@ -1,8 +1,8 @@
 import hashlib
 import time
 
-# Alice's short code: only the first k bits of the SHA-256 digest of her note.
-NOTE = b"Alice: the door code is 0886"
+# Alice's door lock stores only the first k bits of the SHA-256 digest of her secret phrase.
+PHRASE = b"Alice: the door code is 0886"
 
 
 def short_hash(data, k):
@@ -22,7 +22,7 @@ def invert(target, k):
     return None
 
 
-# TODO 2: for k = 12, 16 and 20: target = short_hash(NOTE, k), then (tries, found) = invert(target, k);
+# TODO 2: for k = 12, 16 and 20: target = short_hash(PHRASE, k), then (tries, found) = invert(target, k);
 #         measure the time with t0 = time.perf_counter() before and time.perf_counter() - t0 after.
 #         Print one line per k:  print("k = %2d: %9d tries (2^k = %9d), %6.2f s, found %s" % (...))
 #         Keep the last tries and seconds: you need them in TODO 3.

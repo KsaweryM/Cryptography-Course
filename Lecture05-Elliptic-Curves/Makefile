@@ -31,7 +31,7 @@ $(SLIDES): main.tex $(TASKFILES)
 check: all
 	@echo "Overfull in the slides: $$(grep -c Overfull $(BUILD)/slides/main.log)"
 	@echo "Dashes in the text (should be none):"
-	@grep -nP '–|—|(?<![-(\w])--(?![-\w(])|---' main.tex | grep -vP '^\d+:\s*%|\)\s*--\s*\(|--\s*\+\+|\(\w*\)\s*--' || true
+	@grep -nP '–|—|(?<![-(\w])--(?![-\w(])|---' main.tex | grep -vP '^\d+:\s*%|\)\s*--\s*(\(|node|$$)|--\s*\+\+|\(\w*\)\s*--' || true
 
 rebuild:
 	$(MAKE) clean

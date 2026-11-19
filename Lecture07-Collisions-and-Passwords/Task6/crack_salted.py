@@ -32,7 +32,7 @@ def load_words(path):
 names, salts, digests = load_users("leaked_users.txt")
 words = load_words("wordlist.txt")
 print(f"{len(names)} users, {len(words)} guesses in the list")
-print(f"carol: salt {salts[2].hex()}  digest {digests[2][:16]}...")
+print(f"chloe: salt {salts[2].hex()}  digest {digests[2][:16]}...")
 print(f"dave:  salt {salts[3].hex()}  digest {digests[3][:16]}...")
 
 # TODO 1: the server's check at login, for user number u:

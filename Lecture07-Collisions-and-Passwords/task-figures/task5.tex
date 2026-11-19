@@ -6,7 +6,7 @@
 \begin{tikzpicture}[>=Stealth]
   \node[font=\small\bfseries, text=nInk] at (0,0.6) {user};
   \node[font=\small\bfseries, text=nInk] at (3.4,0.6) {stored: SHA-256(password)};
-  \foreach \u/\d [count=\k from 0] in {alice/e48443929f57ec4c, bob/9cdb4a45f1bba581, carol/e4ad93ca07acb8d9, dave/e4ad93ca07acb8d9, erin/48486e1514e84234, frank/65e84be33532fb78} {
+  \foreach \u/\d [count=\k from 0] in {alice/e48443929f57ec4c, bob/9cdb4a45f1bba581, chloe/e4ad93ca07acb8d9, erin/48486e1514e84234, frank/65e84be33532fb78, grace/75a4acb11c97f942} {
     \node[hw, minimum width=1.6cm, font=\small] at (0,{-0.55*\k}) {\u};
     \node[digval, minimum width=4.4cm, font=\small\ttfamily] at (3.4,{-0.55*\k}) {\d\ldots};
   }

@@ -2,20 +2,21 @@
 \input{common.tex}
 \begin{document}
 \begin{tikzpicture}[>=Stealth]
-\node[msg, font=\small] (f) at (0,0) {\faFile*[regular]\ update.bin\\100\,000 bytes};
-\node[hwmain] (h) at (3.0,0) {\faCogs\ SHA-256};
-\node[unk] (d) at (7.0,0) {hash as a number = ?};
-\node[apriv, font=\small] (k) at (10.6,1.2) {\faKey\ d, n};
-\node[unk] (s) at (10.6,0) {s = ?};
-\draw[data] (f) -- (h); \draw[data] (h) -- (d); \draw[data] (d) -- (s); \draw[data] (k) -- (s);
-\who{B}{0,-2.2}{sTeal}{\faUser}{Bob}
-\node[font=\small, text=nInk, anchor=west] at (1.4,-1.8) {checks the file:};
-\node[unk] at (9.4,-1.8) {?};
-\node[font=\small, text=nInk, anchor=west] at (1.4,-2.6) {checks the file with one bit of byte 50\,000 flipped:};
-\node[unk] at (9.4,-2.6) {?};
-\who{M}{0,-4.4}{sPink}{\faUserSecret}{Mallory}
-\node[mpub, font=\small, anchor=east] at (4.6,-4.0) {sig\_20 $\times$ sig\_50 mod n};
-\node[msg, font=\small, anchor=west] at (4.9,-4.0) {\textquotedblleft Pay Mallory 1000 pounds. Alice\textquotedblright{}};
-\node[unk] at (9.4,-4.8) {bank: ?};
+\who{A}{0,0}{sIndigo}{\faUser}{Alice}
+\node[msg, font=\small] (o1) at (3.0,0.6) {20 pounds};
+\node[asig, font=\scriptsize\ttfamily] (s1) at (6.4,0.6) {80a9b014e367\ldots 069ba6863a16};
+\node[msg, font=\small] (o2) at (3.0,-0.6) {50 pounds};
+\node[asig, font=\scriptsize\ttfamily] (s2) at (6.4,-0.6) {c95f1a1e8b14\ldots 5617ecb95454};
+\draw[data] (A) -- (o1.west); \draw[data] (A) -- (o2.west);
+\draw[data] (o1) -- (s1); \draw[data] (o2) -- (s2);
+\who{M}{0,-2.8}{sPink}{\faUserSecret}{Mallory}
+\node[mpriv, font=\small] (f) at (3.6,-2.6) {sig\_1 $\times$ sig\_2 mod n};
+\node[msg, font=\small] (o3) at (7.2,-2.6) {1000 pounds};
+\node[unk] at (9.4,-2.6) {bank: ?};
+\node[mpriv, font=\small] (r) at (3.6,-3.6) {any number: 123\,456\,789};
+\node[unk] (ra) at (7.2,-3.6) {amount = ?};
+\node[unk] at (9.4,-3.6) {bank: ?};
+\draw[data] (M) -- (f.west); \draw[data] (M) -- (r.west); \draw[data] (f) -- (o3); \draw[data] (r) -- (ra);
+\node[hw, font=\scriptsize] at (11.6,-0.9) {\faUniversity\ Alice's bank\\ accepts s if\\ s\textsuperscript{e} mod n = amount};
 \end{tikzpicture}
 \end{document}

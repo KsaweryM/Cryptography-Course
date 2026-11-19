@@ -10,7 +10,11 @@ DATA = bytes(50 * 1000 * 1000)     # 50 MB of zero bytes (the speed does not dep
 print("not done yet: TODO 1")
 
 # TODO 2: predict first: which one is the fastest, which the slowest?
-#         Then for every name: t0 = time.perf_counter(); hashlib.new(name, DATA).digest();
-#         seconds = time.perf_counter() - t0; speed in MB/s = 50 / seconds
-#         print("%-8s %7.0f MB/s" % (name, 50 / seconds))
+#         Then for every name: measure 3 times and keep the best (the shortest) time, because other programs
+#         on the laptop slow single runs down:
+#           best = 1000.0
+#           for run in range(3): t0 = time.perf_counter(); hashlib.new(name, DATA).digest();
+#                                seconds = time.perf_counter() - t0; if seconds < best: best = seconds
+#         speed in MB/s = 50 / best
+#         print("%-8s %7.0f MB/s" % (name, 50 / best))
 print("not done yet: TODO 2")

@@ -19,7 +19,7 @@ Print the digest size of five hash functions and measure their speed on 50 MB.
 ## Steps
 
 1. For each name: `h = hashlib.new(name)`, print the name and `8 * h.digest_size` bits.
-2. Predict first: which is the fastest, which the slowest? Then for each name: `t0 = time.perf_counter()`, `hashlib.new(name, DATA).digest()`, `seconds = time.perf_counter() - t0`, and print `50 / seconds` MB/s.
+2. Predict first: which is the fastest, which the slowest? Then for each name measure 3 times and keep the best (shortest) time: `best = 1000.0`, then 3 times `t0 = time.perf_counter()`, `hashlib.new(name, DATA).digest()`, `seconds = time.perf_counter() - t0`, and `if seconds < best: best = seconds`. Print `50 / best` MB/s. Other programs on your laptop slow single runs down; the best of 3 is closer to what the processor can do.
 
 ## Expected output
 
@@ -34,14 +34,14 @@ sha1      160 bits
 sha256    256 bits
 sha512    512 bits
 sha3_256  256 bits
-md5          435 MB/s
-sha1         612 MB/s
-sha256       236 MB/s
-sha512       329 MB/s
-sha3_256     261 MB/s
+md5          754 MB/s
+sha1        1064 MB/s
+sha256       499 MB/s
+sha512       701 MB/s
+sha3_256     384 MB/s
 ```
 
-(Intel Core i5-8265U laptop, Python 3.12 with OpenSSL 3.0.13, the best of 5 runs.) All of them hash hundreds of megabytes per second. SHA-256 is the slowest here, and SHA-512 is faster than SHA-256 on a 64-bit processor because it works on 64-bit words and processes 128 bytes per block. Processors with SHA instructions (many newer Intel, AMD and ARM chips) hash SHA-256 several times faster. The broken MD5 and SHA-1 are faster, but speed is no reason to use them.
+(Intel Core i5-8265U laptop without SHA instructions, Python 3.12 with OpenSSL 3.0.13, the best of 3 runs.) All of them hash hundreds of megabytes per second. On this laptop SHA-512 is faster than SHA-256, because it works on 64-bit words and processes 128 bytes per block. Processors with SHA instructions (AMD Zen, Intel Ice Lake and newer, Apple M) hash SHA-256 several times faster, and there SHA-256 may be the fastest of all, so both answers to "which is the fastest?" can be right. On Linux, `grep -o sha_ni /proc/cpuinfo` prints something if your processor has them. To compare with OpenSSL itself: `openssl speed -evp sha256`. The broken MD5 and SHA-1 are faster, but speed is no reason to use them.
 
 </details>
 

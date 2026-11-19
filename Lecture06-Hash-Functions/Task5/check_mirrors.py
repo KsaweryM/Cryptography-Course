@@ -5,7 +5,7 @@ MIRRORS = ["mirror-a", "mirror-b", "mirror-c"]
 
 
 def read_sums(path):
-    """The first digest in a SHA256SUMS file (a line: 64 hex digits, two spaces, the file name). Ready."""
+    """The first digest in a SHA256SUMS file (a line: 64 hex digits, two spaces or " *", the file name). Ready."""
     with open(path) as f:
         return f.readline().split()[0]
 

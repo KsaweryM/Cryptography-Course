@@ -1,32 +1,34 @@
-# Task 5: hash, then sign
+# Task 5: forge it
 
 ## The situation
 
-Alice signs a whole update file, 100 000 bytes, far more than the 256 bytes of `n`. So she uses hash-and-sign: she signs the SHA-256 of the file, read as a number. Bob checks the file he downloaded. Mallory flips one bit of it. Then Mallory tries the trick of Task 4 again: Alice hash-signed two orders, "Pay Mallory 20 pounds. Alice" and "Pay Mallory 50 pounds. Alice", and Mallory multiplies the two signatures.
+Alice's bank takes a payment order as one number, the amount in pounds, signed with textbook RSA: the bank accepts a signature `s` for the amount `m` when `s^e mod n == m`. Alice paid Mallory twice, 20 and 50 pounds, so Mallory has two orders that Alice signed. Mallory does not have Alice's private key `d`. She wants the bank to pay her 1000 pounds.
 
-![update.bin, 100 000 bytes, goes through SHA-256 to "hash as a number = ?", and with Alice's d, n to s = ?. Bob checks the file: ? and the file with one bit of byte 50 000 flipped: ?. Mallory offers sig_20 x sig_50 mod n for "Pay Mallory 1000 pounds. Alice": bank = ?](figure.svg)
+![Alice signed 20 pounds (signature 80a9b014e367...069ba6863a16) and 50 pounds (signature c95f1a1e8b14...5617ecb95454). Mallory computes sig_1 x sig_2 mod n and offers it for 1000 pounds: bank = ? She also takes any number, 123 456 789, as a signature: amount = ?, bank = ?. The bank accepts s if s^e mod n = amount.](figure.svg)
 
 ## Goal
 
-Sign a large file with one RSA signature, see that one changed bit fails, and see that multiplying signatures no longer forges anything.
+Without the private key, make the bank accept an order for 1000 pounds, and make one more valid signature from a number of your choice.
 
 ## Ready for you
 
-- `alice_key.py`: `n`, `e`, `d` and `short(x)`, as in Task 3.
-- `hash_and_sign.py`: `read_file(path)`, the file `update` (bytes), the three orders, and `sig_20`, `sig_50` read from `signed_orders.txt`.
-- `hashlib.sha256(data).digest()`: the 32-byte SHA-256 of `data`.
+- `bank_ready.py`: Alice's public key `n`, `e`; the two orders `amount_1`, `sig_1` and `amount_2`, `sig_2`; `short(x)` for printing.
+- `pow(x, e, n)` and the operators `*` and `%` on big integers.
 
 ## Steps
 
-Write your code in place of the `None` after each `TODO` in `hash_and_sign.py`:
+Write your code in place of the `None` after each `TODO` in `forge.py`:
 
-1. Finish `hash_number(data)`: the SHA-256 of `data` read as a big-endian number.
-2. `s`: Alice signs the hash of `update`: `pow(hash_number(update), d, n)`.
-3. `check`: Bob hashes the file himself and compares: `pow(s, e, n) == hash_number(update)`.
-4. `check_changed`: copy the file into a `bytearray` (a writable buffer, like `uint8_t buf[]` in C), flip the lowest bit of byte 50000 with `^= 1`, and check `s` on `bytes(changed)`.
-5. `check_forged`: `forged = sig_20 * sig_50 % n`, checked on `order_1000` as in step 3.
+1. Check both orders as the bank does: `pow(sig_1, e, n) == amount_1`, and the same for order 2.
+2. From `sig_1` and `sig_2` alone, make one signature that the bank accepts on `amount_1 * amount_2`, and check it.
+3. Take `any_sig = 123456789`, compute the amount it signs with the **public** key, and check it as the bank does.
 
-Before step 5, predict: will the bank accept 1000 pounds this time?
+<details>
+<summary>Hint for step 2</summary>
+
+Multiply the two signatures modulo `n`: `forged = sig_1 * sig_2 % n`. Why it works (slide "Problem 2: signatures multiply"): (m1^d)(m2^d) = (m1 m2)^d mod n.
+
+</details>
 
 ## Expected output
 
@@ -34,23 +36,23 @@ Before step 5, predict: will the bank accept 1000 pounds this time?
 <summary>Check your answer</summary>
 
 ```
-file: 100000 bytes, its hash as a number: 710fcd1df5b9...3416108c9faf (64 hex digits)
-s = bf0aa615a40e...f8609c05042f (512 hex digits)
-Bob checks the file:         True
-Bob checks the changed file: False
-the bank checks the forged 1000: False
+order 1: 20 pounds, signature 80a9b014e367...069ba6863a16 (512 hex digits)
+order 2: 50 pounds, signature c95f1a1e8b14...5617ecb95454 (512 hex digits)
+the bank checks order 1: True  order 2: True
+forged signature: 13bf50ca7f3a...619b651031c3 (511 hex digits)
+the bank checks it on 1000 pounds: True
+any signature: 123456789  signs the amount 4383e8aad872...581a62c032b0 (512 hex digits)
+the bank checks it: True
 ```
 
-One signature covers the whole file, and one changed bit gives a completely different hash. The product of two signatures signs the number H(order_20) x H(order_50) mod n, which is not the hash of any message Mallory can find.
+Two signatures and one multiplication give a valid signature on 1000 pounds. Any number is a valid signature of some amount, only Mallory cannot choose which.
 
 </details>
 
 ## Run
 
 ```
-python3 hash_and_sign.py
+python3 forge.py
 ```
 
-About 9 minutes. Python 3 and the library `cryptography` (only `alice_key.py` uses it).
-
-Want to see it move? The [signatures simulator, step 4](https://ksawerym.github.io/Cryptography-simulators/signatures/#4) shows the same tricks with and without the hash on the small key.
+About 9 minutes. Python 3 and the library `cryptography` (only `bank_ready.py` uses it, to read the PEM file).

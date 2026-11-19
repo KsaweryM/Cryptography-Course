@@ -1,2 +1,2 @@
-# victor, from the database of a shop that uses bcrypt
+# dave, from the database of a shop that uses bcrypt
 $2b$04$Bm9vfEMu3JI4IV.ybN/ip.o0s/IPxPkzhcVSMvbHjN0qqn0.Cm3Lu

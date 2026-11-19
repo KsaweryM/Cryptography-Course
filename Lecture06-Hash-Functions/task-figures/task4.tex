@@ -4,17 +4,22 @@
 \begin{document}
 \pagecolor{white}
 \begin{tikzpicture}[>=Stealth]
-  \node[msgval, font=\small\ttfamily] (n) at (0,1.6) {Alice: the door code is 0886};
-  \node[hwmain] (h) at (4.6,1.6) {\faCogs\ SHA-256};
-  \node[dgval, font=\small] (t) at (8.6,1.6) {first $k$ bits: the target};
-  \draw[data] (n) -- (h); \draw[data] (h) -- (t);
-  \node[font=\scriptsize, text=gray, anchor=north] at (t.south) {$k$ = 12, 16, 20};
-  \mallorynode{mal}{-2.4,-0.8}
-  \node[msgval, font=\small\ttfamily, align=left] (tries) at (0,-0.8) {"0", "1", "2", \ldots};
-  \node[hwmain] (h2) at (4.6,-0.8) {\faCogs\ SHA-256};
-  \node[dgval, font=\small] (c) at (8.6,-0.8) {first $k$ bits};
-  \draw[data] (tries) -- (h2); \draw[data] (h2) -- (c);
-  \draw[very thick, sBrown, <->] (t.south) ++(0,-0.4) -- node[right, font=\small, text=nInk] {equal?} (c.north);
-  \node[unk, align=center] at (12.0,0.4) {tries = ?\\ seconds = ?};
+  \personnode{alice}{-4.0,1.6}{sIndigo}{Alice}
+  \node[msgval, font=\small\ttfamily] (n) at (0.2,1.6) {Alice: the door code is 0886};
+  \node[font=\scriptsize, text=sViolet, anchor=south] at (n.north) {her secret phrase};
+  \node[hwmain] (h) at (5.0,1.6) {\faCogs\ SHA-256};
+  \node[hw, minimum width=3.6cm, minimum height=2.0cm] (lock) at (8.6,1.4) {};
+  \node[font=\small\bfseries, text=nInk, anchor=north] at (lock.north) {\faDoorClosed\ the door lock stores};
+  \node[dgval, font=\small] (t) at (8.6,1.2) {first $k$ bits};
+  \draw[data] (alice) -- (n); \draw[data] (n) -- (h); \draw[data] (h) -- (t);
+  \node[font=\scriptsize, text=gray, anchor=north] at (lock.south) {$k$ = 12, 16, 20};
+  \mallorynode{mal}{-4.0,-1.2}
+  \node[font=\scriptsize, text=sPinkText, align=center, anchor=north] at (mallbl.south) {has read the stored code,\\ not the phrase};
+  \node[msgval, font=\small\ttfamily, align=left] (tries) at (0.2,-1.2) {"0", "1", "2", \ldots};
+  \node[hwmain] (h2) at (5.0,-1.2) {\faCogs\ SHA-256};
+  \node[dgval, font=\small] (c) at (8.6,-1.2) {first $k$ bits};
+  \draw[data] (mal) -- (tries); \draw[data] (tries) -- (h2); \draw[data] (h2) -- (c);
+  \draw[very thick, sBrown, <->] (lock.south) ++(0,-0.4) -- node[right, font=\small, text=nInk] {equal? the lock opens} (c.north);
+  \node[unk, align=center] at (12.4,-1.2) {tries = ?\\ seconds = ?};
 \end{tikzpicture}
 \end{document}

@@ -4,7 +4,7 @@
 
 Bob's small web shop stored, for each user, `SHA-256(password)` in hex. The table has leaked: Mallory has `leaked_users.txt` with 12 users. She cannot reverse SHA-256, but she can guess: she has a list of 3 529 common passwords (`wordlist.txt`, made up for this course in the style of real lists).
 
-![Left: the leaked table, user and stored SHA-256(password): alice e48443929f57ec4c..., bob 9cdb4a45f1bba581..., carol e4ad93ca07acb8d9..., dave e4ad93ca07acb8d9..., erin 48486e1514e84234..., frank 65e84be33532fb78..., ... 12 users. Right: Mallory with wordlist.txt (123456, password, 123456789, ..., 3 529 guesses) going into SHA-256, compared with every user. Cracked: ? of 12. A note: TODO 1 first, the server's login check, alice types monkey123 and monkey124.](figure.svg)
+![Left: the leaked table, user and stored SHA-256(password): alice e48443929f57ec4c..., bob 9cdb4a45f1bba581..., chloe e4ad93ca07acb8d9..., erin 48486e1514e84234..., frank 65e84be33532fb78..., grace 75a4acb11c97f942..., ... 12 users. Right: Mallory with wordlist.txt (123456, password, 123456789, ..., 3 529 guesses) going into SHA-256, compared with every user. Cracked: ? of 12. A note: TODO 1 first, the server's login check, alice types monkey123 and monkey124.](figure.svg)
 
 ## Goal
 
@@ -37,7 +37,7 @@ alice types monkey123: True
 alice types monkey124: False
 ivan: 123456
 frank: qwerty
-carol: iloveyou
+chloe: iloveyou
 dave: iloveyou
 grace: dragon2024
 alice: monkey123
@@ -45,7 +45,7 @@ oscar: football!
 judy: Summer2025
 bob: Liverpool1
 cracked 9 of 12 users with 3529 SHA-256 computations
-same digest: carol and dave
+same digest: chloe and dave
 ```
 
 One computation per guess, however many users there are. erin, heidi and peggy survive only because their passwords are not in the list.

@@ -319,7 +319,7 @@
 
 \begin{frame}
   \titlepage
-  \say{Dzisiejsze pytanie: jak udowodnić, kto napisał wiadomość? Na wykładach 6 i 7 skrót mówił, czy dane się zmieniły. Dziś zobaczymy, że to za mało, i poznamy podpis cyfrowy. Cały wykład trwa około 4 godzin razem z 9 zadaniami (jedno na kartce). Zadania 2 do 9 potrzebują biblioteki cryptography (pip install cryptography), tej samej co w wykładach 9 do 12.}
+  \say{Dzisiejsze pytanie: jak udowodnić, kto napisał wiadomość? Na wykładach 6 i 7 skrót mówił, czy dane się zmieniły. Dziś zobaczymy, że to za mało, i poznamy podpis cyfrowy. Cały wykład trwa około 4 godzin razem z 9 zadaniami (zadanie 3 na kartce). Zadania 2 i 4 do 9 potrzebują biblioteki cryptography (pip install cryptography), tej samej co w wykładach 9 do 12.}
 \end{frame}
 
 \begin{frame}{Agenda For Today}
@@ -327,16 +327,16 @@
   \begin{center}
     \begin{tikzpicture}
       \foreach \ic/\t [count=\k from 0] in {
-          {\faUserSecret}/{See why a hash or a shared key cannot prove who wrote a message, and how a signature does.},
+          {\faUserSecret}/{See why a hash or a shared key cannot prove who wrote a message, what a signature gives, and when a MAC is enough.},
           {\faCogs}/{Sign with RSA by hand, forge such a signature without a hash, and fix it by hashing first.},
-          {\faBalanceScale}/{Compare signatures with MACs, break ECDSA when its random number repeats, and see where signatures are used.}} {
+          {\faBalanceScale}/{Sign on curves, break ECDSA when its random number repeats, and see where signatures are used and whose key it is.}} {
         \node[circle, fill=DeepBlue, text=white, minimum size=1.3cm, font=\LARGE] at (0,{-1.9*\k}) {\ic};
         \node[anchor=west, text width=12cm, font=\large, align=left, execute at begin node={\hyphenpenalty=10000 }] at (1.0,{-1.9*\k}) {\t};
       }
     \end{tikzpicture}
   \end{center}
   \vfill
-  \say{Trzy części: najpierw problem i pomysł podpisu (z gotowym podpisem Ed25519), potem zajrzymy do środka podpisu RSA i jego pułapek, na końcu porównanie z MAC, atak na ECDSA i zastosowania. Nazwy sekcji są na pasku u góry.}
+  \say{Trzy części: najpierw problem, pomysł podpisu (z gotowym podpisem Ed25519), co podpis daje i kiedy wystarczy MAC; potem zajrzymy do środka podpisu RSA i jego pułapek; na końcu podpisy na krzywych, atak na ECDSA, zastosowania i pytanie, czyj jest klucz. Nazwy sekcji są na pasku u góry.}
 \end{frame}
 
 % ======================================================================
@@ -444,9 +444,10 @@
     Mallory breaks into the server (or sits between Bob and it). She adds one line to the \msgw{update}\\
     and puts the \digw{SHA-256} of her file on the page. Bob's check passes.
   \end{center}
+  \curious{signatures/\#1}
   \keymsg{Anybody can compute a SHA-256, Mallory too: a digest says nothing about who made the file.}
   % CHECKED: python3 hashlib.sha256 of Task1/mallory_update.sh = b4d421a73b76fa85cff1735acc3396eff57390b3f512e36115c827a87aad982d
-  \say{To jest dokładnie przypadek z wykładu 6 (,,what a hash alone does not give''). Skrót nie ma żadnego sekretu: Mallory liczy go tak samo jak Alice. Prawdziwe przykłady włamań na serwer pobierania z podmianą pliku i sumy kontrolnej się zdarzały; szczegółów nie podajemy, chodzi o zasadę. Linia Mallory w zadaniu 1: curl ... | sh, czyli pobierz i uruchom program Mallory.}
+  \say{To jest dokładnie przypadek z wykładu 6 (,,what a hash alone does not give''). Skrót nie ma żadnego sekretu: Mallory liczy go tak samo jak Alice. Prawdziwe przykłady włamań na serwer pobierania z podmianą pliku i sumy kontrolnej się zdarzały; szczegółów nie podajemy, chodzi o zasadę. Linia Mallory w zadaniu 1: curl ... | sh, czyli pobierz i uruchom program Mallory. Symulator, krok 1: student sam stawia Mallory w różnych miejscach drogi (serwer, mirror, sieć) i wybiera sposób sprawdzania Boba; na razie tylko skrót ze strony, resztę poznamy dziś.}
 \end{frame}
 
 \begin{frame}{What Bob needs}
@@ -515,8 +516,49 @@
   \vfill
   \defbox{\textbf{MAC} (message authentication code): a tag computed from the message and a secret key that sender and receiver share.
     The receiver computes the tag again and compares. \textbf{HMAC-SHA256}: a MAC built from SHA-256, which mixes the key in twice.}
-  \probbox{Why not simply SHA-256(key $\|$ message)?}{SHA-256 works block after block (Lecture 6). From that digest alone, Mallory can continue the hash and get a valid tag for message $\|$ her extra bytes, without the key (\textbf{length extension}). HMAC is built so that this does not work.}
-  \say{Jeden slajd o MAC. HMAC (RFC 2104, 1997) liczy SHA-256 dwa razy: najpierw skrót z klucza (zmieszanego ze stałą) i wiadomości, potem skrót z klucza (zmieszanego z inną stałą) i tego pierwszego skrótu. Nie trzeba tego pamiętać; ważne, że w Pythonie jest to jedna funkcja: hmac.new(key, message, "sha256"). Znak $\|$ to sklejenie bajtów. Length extension: wynik SHA-256 to cały stan po ostatnim bloku (Merkle-Damgård z wykładu 6), więc Mallory może z niego ruszyć dalej i dopisać bloki; nie zna klucza, ale nie musi. Gdyby ktoś pytał: SHA-3 nie ma tego problemu. MAC jest wszędzie, gdzie obie strony mają wspólny klucz: po uzgodnieniu klucza w protokole przeglądarki (wykład 4), w ciasteczkach serwera, w tokenach API.}
+  \probbox{Why not simply SHA-256(key $\|$ message)?}{Because Mallory could then extend the message without the key: the next slide.}
+  % CHECKED: RFC 2104 (February 1997), rfc-editor.org/rfc/rfc2104: HMAC = H(K xor opad, H(K xor ipad, text)) (2026-11-18)
+  \say{Jeden slajd o MAC. HMAC (RFC 2104, luty 1997) liczy SHA-256 dwa razy: najpierw skrót z klucza (zmieszanego ze stałą) i wiadomości, potem skrót z klucza (zmieszanego z inną stałą) i tego pierwszego skrótu. Nie trzeba tego pamiętać; ważne, że w Pythonie jest to jedna funkcja: hmac.new(key, message, "sha256"). Znak $\|$ to sklejenie bajtów. MAC jest wszędzie, gdzie obie strony mają wspólny klucz: po uzgodnieniu klucza w protokole przeglądarki (wykład 4), w ciasteczkach serwera, w tokenach API. Dlaczego nie zwykłe SHA-256 z kluczem na początku: następny slajd (obiecany na wykładzie 6).}
+\end{frame}
+
+\samedot
+\begin{frame}{Length extension: why not SHA-256(key $\|$ message)}
+  % CHECKED: FIPS 180-4: SHA-256 pads to whole 64-byte blocks, the digest is the last 32-byte state;
+  %   python3 (scratchpad): a state set to SHA-256(key || m) and one more block gives SHA-256(key || m || pad || extra)
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth, x=1cm, y=1cm]
+      \node[mackey, font=\scriptsize, minimum width=1.0cm, minimum height=0.7cm] (k) at (0,1.0) {key};
+      \node[msg, font=\scriptsize, minimum width=2.0cm, minimum height=0.7cm, anchor=west] (m) at (k.east) {message};
+      \node[hw, font=\scriptsize, minimum width=1.2cm, minimum height=0.7cm, anchor=west, inner sep=2pt] (pd) at (m.east) {padding};
+      \node[msig, font=\scriptsize, minimum width=1.9cm, minimum height=0.7cm, anchor=west] (x) at ([xshift=0.9cm]pd.east) {Mallory's bytes};
+      \node[font=\scriptsize, text=gray, anchor=south] at ($(k.north west)!0.5!(pd.north east)$) {two blocks of 64 bytes};
+      \node[font=\scriptsize, text=sPinkText, anchor=south] at (x.north) {one more block};
+      % the chain of states
+      \node[hw, font=\scriptsize, minimum width=1.0cm] (iv) at (-1.4,-0.4) {start};
+      \node[hwmain, font=\scriptsize\bfseries, minimum width=0.9cm, minimum height=0.7cm] (f1) at (0.7,-0.4) {\faCogs};
+      \node[hw, font=\scriptsize, minimum width=1.0cm] (h1) at (2.3,-0.4) {state};
+      \node[hwmain, font=\scriptsize\bfseries, minimum width=0.9cm, minimum height=0.7cm] (f2) at (3.8,-0.4) {\faCogs};
+      \node[digest, font=\scriptsize, minimum width=1.4cm, minimum height=0.7cm] (t) at (5.6,-0.4) {tag};
+      \node[hwmain, font=\scriptsize\bfseries, minimum width=0.9cm, minimum height=0.7cm, draw=sPink, line width=1.2pt] (f3) at (7.6,-0.4) {\faCogs};
+      \node[msig, font=\scriptsize, minimum width=1.6cm, minimum height=0.7cm] (t2) at (9.6,-0.4) {new tag};
+      \draw[data] (iv) -- (f1); \draw[data] (f1) -- (h1); \draw[data] (h1) -- (f2); \draw[data] (f2) -- (t);
+      \draw[data, sPink] (t) -- (f3); \draw[data, sPink] (f3) -- (t2);
+      \draw[data] (1.0,0.65) -- (f1.north); \draw[data] (3.5,0.65) -- (f2.north);
+      \draw[data, sPink] (x.south) |- ++(0,-0.35) -| (f3.north);
+      \node[font=\scriptsize, text=gray, anchor=north] at (t.south) {the last state};
+      \node[font=\scriptsize, text=sPinkText, anchor=north, align=center] at (f3.south) {Mallory starts from the tag};
+      \node[font=\small, anchor=west, align=left] at (10.6,-0.4) {Bob: \ok};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small
+    SHA-256 works block after block (Lecture 6); its digest is simply the state after the last block.\\
+    Mallory loads the tag as the state and hashes one more block: the valid tag of key $\|$ message $\|$ padding $\|$ her bytes.
+  \end{center}
+  \curious{signatures/\#2}
+  \keymsg{HMAC hashes the inner digest once more with the key, so the published tag is not a state Mallory can continue.}
+  \say{Obietnica z wykładu 6 (Merkle-Damgård). SHA-256 dzieli wejście na bloki po 64 bajty, każdy blok zmienia 32-bajtowy stan, a wynik to po prostu stan po ostatnim bloku. Mallory ma tag, czyli cały stan. Ustawia go jako stan startowy i dorzuca swój blok: wychodzi tag dłuższej wiadomości, w której w środku są bajty dopełnienia (padding) pierwszej wiadomości, a na końcu jej bajty. Klucza nie zna i nie musi. Gdy Bob sprawdza, liczy SHA-256 od początku z kluczem i dostaje to samo. Dlaczego HMAC tego nie ma: jego tag to skrót zewnętrzny, z kluczem i skrótem wewnętrznym; Mallory może przedłużyć tylko ten zewnętrzny skrót, a to nie jest tag żadnej dłuższej wiadomości. Stan po wiadomości (skrót wewnętrzny) nigdy nie jest publikowany. SHA-3 nie ma tego problemu (inna budowa). Symulator, krok 2, pokazuje stany bajt w bajt.}
 \end{frame}
 
 \begin{frame}{Task 1: Mallory and the tag}
@@ -526,7 +568,7 @@
   \vfill
   \opentask{Task1}{about 10 minutes}
   \vfill
-  \say{Około 10 minut. Polecenia w README na GitHubie, tylko biblioteka standardowa. TODO 1: skrót pliku Mallory zgadza się ze stroną. TODO 2: tag (HMAC) pliku Alice się zgadza, pliku Mallory nie. TODO 3: Bob sam robi tag dla notatki ,,Alice owes Bob 500 pounds''. Przed TODO 3 zapytać: czy Carol, która dostanie klucz, odróżni notatkę od prawdziwej wiadomości Alice? Jeśli ktoś utknie: hmac.new(SHARED\_KEY, data, "sha256").digest() i hmac.compare\_digest(a, b).}
+  \say{Około 10 minut. Polecenia w README na GitHubie, tylko biblioteka standardowa. TODO 1: skrót pliku Mallory zgadza się ze stroną. TODO 2: tag (HMAC) pliku Alice się zgadza, pliku Mallory nie. TODO 3: Bob sam robi tag dla notatki ,,Alice owes Bob 500 pounds.''. Przed TODO 3 zapytać: czy Carol, która dostanie klucz, odróżni notatkę od prawdziwej wiadomości Alice? Jeśli ktoś utknie: hmac.new(SHARED\_KEY, data, "sha256").digest() i hmac.compare\_digest(a, b).}
 \end{frame}
 
 \samedot
@@ -542,7 +584,7 @@
       digest from the page & Mallory's update & \ok\ \texttt{True} \\
       tag with the shared key & Alice's update & \ok\ \texttt{True} \\
       tag with the shared key & Mallory's update & \nok\ \texttt{False} \\
-      tag with the shared key & Bob's note ``Alice owes Bob 500 pounds'' & \ok\ \texttt{True} \\
+      tag with the shared key & Bob's note ``Alice owes Bob 500 pounds.'' & \ok\ \texttt{True} \\
       \bottomrule
     \end{tabular}
   \end{center}
@@ -574,7 +616,7 @@
     so Carol cannot tell whether Alice or Bob made it.
   \end{center}
   \keymsg{With a shared key, the tag convinces Bob, but nobody else.}
-  \say{To jest pierwsza słabość MAC: nie da się nim przekonać osoby trzeciej. Bob wie, że to nie on zrobił tag (jeśli mówi prawdę), więc sam jest przekonany. Ale Carol, sędzia, nie ma jak odróżnić. Zaznaczyć: to nie zawsze wada. Wrócimy do tego w sekcji 3 (kiedy MAC jest lepszy).}
+  \say{To jest pierwsza słabość MAC: nie da się nim przekonać osoby trzeciej. Bob wie, że to nie on zrobił tag (jeśli mówi prawdę), więc sam jest przekonany. Ale Carol, sędzia, nie ma jak odróżnić. Zaznaczyć: to nie zawsze wada. Wrócimy do tego po zadaniu 2 (kiedy MAC jest lepszy).}
 \end{frame}
 
 \samedot
@@ -747,8 +789,8 @@
   \end{itemize}
   \vfill
   \keymsg{Ed25519: 32-byte keys, 64-byte signatures, no randomness needed.}
-  % CHECKED: RFC 8032 section 5.1.5 and 5.1.6: 32-byte private and public keys, 64-byte signature; Bernstein, Duif, Lange, Schwabe, Yang, "High-speed high-security signatures", CHES 2011
-  \say{Ed25519 to dziś jeden z najczęściej polecanych podpisów: SSH (klucze ssh-ed25519), podpisane commity w Git, Signal, wiele bibliotek. Na razie traktujemy go jako czarną skrzynkę; w sekcji 3 powiemy, czemu deterministyczność jest ważna. Rozmiary sprawdzone w RFC 8032 i w zadaniu 2.}
+  % CHECKED: RFC 8032 (January 2017) section 5.1.5 and 5.1.6: 32-byte private and public keys, 64-byte signature; Bernstein, Duif, Lange, Schwabe, Yang, "High-speed high-security signatures", CHES 2011 (review 2026-11-18)
+  \say{Ed25519 to dziś jeden z najczęściej polecanych podpisów: SSH (klucze ssh-ed25519), podpisane commity w Git, wiele nowych systemów i bibliotek. Na razie traktujemy go jako czarną skrzynkę; w sekcji 3 powiemy, czemu deterministyczność jest ważna. Rozmiary sprawdzone w RFC 8032 i w zadaniu 2.}
 \end{frame}
 
 \samedot
@@ -816,8 +858,8 @@ except InvalidSignature:
       \node[apriv, font=\small] at (0,-1.6) {\faKey\ private key};
       \node[asig, font=\small] (s) at (4.2,0) {\faStamp\ signature};
       \draw[data] (A.east) to node[above, font=\scriptsize] {only she can make it} (s.west);
-      \foreach \n/\x in {Bob/8.0, Carol/9.6, Dave/11.2} {
-        \node[circle, fill=nLine, text=white, minimum size=0.9cm, font=\normalsize] (p\n) at (\x,0) {\faUser};
+      \foreach \n/\x/\c in {Bob/8.0/sTeal, Carol/9.6/nInk, Dave/11.2/nInk} {
+        \node[circle, fill=\c, text=white, minimum size=0.9cm, font=\normalsize] (p\n) at (\x,0) {\faUser};
         \node[font=\scriptsize\bfseries, text=nInk, below=1pt of p\n] {\n};
         \node[apub, font=\tiny, inner sep=2pt] at (\x,-1.3) {\faKey\ public};
       }
@@ -828,509 +870,8 @@ except InvalidSignature:
   \bigdef{A message with a valid signature was written, or at least approved, by \textbf{whoever holds the private key}.
     Not Mallory, not Bob, not Carol. And anybody can check it, without any secret.}
   \vfill
-  \say{Pierwsza odpowiedź na główne pytanie wykładu. Podpis rozwiązuje oba problemy MAC: Bob nie umie podrobić podpisu Alice (nie ma jej klucza prywatnego), a sprawdzać mogą wszyscy, także sędzia Carol. ,,Or at least approved'': podpis mówi, że właściciel klucza zaakceptował te bajty, a nie, że je sam wymyślił. Dokładniejszą odpowiedź, z zastrzeżeniem o kluczu publicznym, damy na końcu. Teraz zajrzymy do środka sign i verify.}
+  \say{Pierwsza odpowiedź na główne pytanie wykładu. Podpis rozwiązuje oba problemy MAC: Bob nie umie podrobić podpisu Alice (nie ma jej klucza prywatnego), a sprawdzać mogą wszyscy, także sędzia Carol. ,,Or at least approved'': podpis mówi, że właściciel klucza zaakceptował te bajty, a nie, że je sam wymyślił. Dokładniejszą odpowiedź, z zastrzeżeniem o kluczu publicznym, damy na końcu. Teraz: co dokładnie podpis daje, czego nie daje i kiedy MAC wystarczy; potem zajrzymy do środka sign i verify.}
 \end{frame}
-
-% ======================================================================
-\section[RSA signatures inside]{RSA signatures inside}
-% ======================================================================
-
-\begin{frame}{Three ways to sign}
-  \vfill
-  \begin{center}
-    \begin{tikzpicture}
-      \foreach \x/\name/\yr/\base [count=\k] in {0/RSA/1977/{factoring\\(Lecture 3)}, 4.6/ECDSA/1992/{points on a curve\\(Lecture 5)}, 9.2/Ed25519/2011/{points on a curve\\(Lecture 5)}} {
-        \node[hw, minimum width=4.0cm, minimum height=2.6cm] (b\k) at (\x,0) {};
-        \node[font=\large\bfseries, text=nInk] at (\x,0.75) {\name};
-        \node[font=\small, text=gray] at (\x,0.25) {\yr};
-        \node[font=\small, text=nInk, align=center] at (\x,-0.55) {\base};
-      }
-      \draw[annot] (-2.1,-1.4) rectangle (2.1,1.4);
-      \node[font=\small\bfseries, text=AccentOrange] at (0,-1.75) {we open this one};
-    \end{tikzpicture}
-  \end{center}
-  \vfill
-  \begin{center}\small All three offer the same sign and verify. RSA is the simplest to open: we already know its keys.\end{center}
-  \keymsg{Inside RSA signatures: the same two powers as RSA encryption.}
-  % CHECKED: RSA: Rivest, Shamir, Adleman, MIT memo 1977, CACM 1978; ECDSA: proposed by Vanstone in 1992 (FIPS 186-5 history), Ed25519: Bernstein et al. 2011
-  \say{RSA podpisuje od początku: artykuł Rivesta, Shamira i Adlemana z 1977/1978 miał w tytule ,,digital signatures''. ECDSA zaproponował Scott Vanstone w 1992 roku, Ed25519 to rok 2011. ECDSA i Ed25519 zostaną w sekcji 3 czarnymi skrzynkami, poza jednym atakiem.}
-\end{frame}
-
-\begin{frame}{Recall: RSA}
-  \vfill
-  \begin{center}
-    \begin{tikzpicture}[>=Stealth]
-      \node[bpub, font=\Large, minimum width=4.2cm, minimum height=1.4cm] at (0,0) {\faLockOpen\ \{e, n\} = \{7, 187\}\\[2pt]\small public};
-      \node[bpriv, font=\Large, minimum width=4.2cm, minimum height=1.4cm] at (5.6,0) {\faKey\ \{d, n\} = \{23, 187\}\\[2pt]\small private};
-      \node[font=\large, text=nInk] at (0,-1.5) {encrypt: $C = P^{e} \bmod n$};
-      \node[font=\large, text=nInk] at (5.6,-1.5) {decrypt: $P = C^{d} \bmod n$};
-    \end{tikzpicture}
-  \end{center}
-  \vfill
-  \begin{center}\small
-    $n = 17 \times 11 = 187$, \quad $e \times d = 7 \times 23 = 161 = 160 + 1$:\\
-    one full circle of powers plus one step, so $(P^{e})^{d} = P$.
-  \end{center}
-  \keymsg{Two powers modulo n that undo each other.}
-  \say{Przypomnienie z wykładu 3, ten sam przykład z Stallingsa: p = 17, q = 11, phi = 160, e = 7, d = 23. Kluczowy fakt: e razy d = 161, czyli 1 więcej niż phi, więc potęga do e, a potem do d daje z powrotem P. Zapytać: czy kolejność potęg ma znaczenie? (Nie: e razy d = d razy e.)}
-\end{frame}
-
-\samedot
-\begin{frame}{The RSA signature}
-  \vfill
-  \begin{center}
-    \begin{tikzpicture}[>=Stealth]
-      \node[msg, font=\LARGE, minimum width=1.6cm] (m) at (0,0) {M};
-      \node[asig, font=\LARGE, minimum width=1.6cm] (s) at (6,0) {S};
-      \node[msg, font=\LARGE, minimum width=1.6cm] (m2) at (12,0) {M?};
-      \draw[data] (m) to node[above=6pt, apriv, font=\normalsize] {\faKey\ $S = M^{d} \bmod n$} (s);
-      \draw[data] (s) to node[above=6pt, apub, font=\normalsize] {\faKey\ $S^{e} \bmod n$} (m2);
-      \node[font=\scriptsize, text=nInk] at (3,-0.6) {sign with the private key};
-      \node[font=\scriptsize, text=nInk] at (9,-0.6) {verify with the public key};
-    \end{tikzpicture}
-  \end{center}
-  \vfill
-  \bigdef{\textbf{Sign}: $S = M^{d} \bmod n$. \qquad \textbf{Verify}: compute $S^{e} \bmod n$; \texttt{True} if it equals $M$.}
-  \vfill
-  \begin{center}\small Now the key belongs to Alice, the signer: the same numbers, Alice's colour.\end{center}
-  \keymsg{Signing is the private power; verifying is the public power and a comparison.}
-  \say{Te same dwie potęgi co przy szyfrowaniu, tylko w odwrotnej kolejności: najpierw prywatna, potem publiczna. M to wiadomość jako liczba mniejsza od n (jak P w wykładzie 3). Bob dostaje M i S, liczy S do e mod n i porównuje z M. Klucz z wykładu 3 należał do Boba; dziś podpisuje Alice, więc te same liczby są w jej kolorze. Uwaga na mit: ,,podpis to szyfrowanie kluczem prywatnym'' działa tylko dla podręcznikowego RSA; dla ECDSA i Ed25519 nie ma takiej analogii, więc lepiej mówić sign i verify.}
-\end{frame}
-
-\samedot
-\begin{frame}{Why the signature checks}
-  \vfill
-  \stepbox{1. What Bob computes}{$S^{e} = (M^{d})^{e} = M^{d \times e} \pmod n$}
-  \stepbox{2. The keys were made for this (Lecture 3)}{$d \times e = 23 \times 7 = 161 = 160 + 1$: one full circle of powers, plus one step.}
-  \stepbox{3. So the message comes back}{$M^{161} = M^{160} \times M = 1 \times M = M \pmod{187}$}
-  \vfill
-  \begin{columns}[t,onlytextwidth]
-    \column{0.48\textwidth}\plainbox{\ok\ Alice: she knows $d$, so she can make $S$.}
-    \column{0.48\textwidth}\plainbox{\nok\ Mallory: to make $S$ without $d$ she would have to undo a power modulo $n$, as hard as breaking RSA.}
-  \end{columns}
-  \keymsg{It works for the same reason RSA decryption works.}
-  \say{Dowód dokładnie jak na slajdzie Why does the message come back z wykładu 3, tylko z zamienioną kolejnością wykładników. Dlaczego Mallory nie podrobi: musiałaby znaleźć S takie, że S do 7 mod n = M, czyli pierwiastek siódmego stopnia modulo n. Bez d (czyli bez rozkładu n) nikt nie zna szybkiej metody. Zaraz zobaczymy jednak, że to ,,dla wybranego M''; Mallory ma sprytniejsze sposoby.}
-\end{frame}
-
-\samedot
-\begin{frame}{The example: 11 $\to$ 88 $\to$ 11}
-  \vfill
-  \begin{center}
-    \begin{tikzpicture}[>=Stealth]
-      \node[msg, font=\LARGE] (m) at (0,0) {11};
-      \node[asig, font=\LARGE] (s) at (5.5,0) {88};
-      \node[msg, font=\LARGE] (m2) at (11,0) {11};
-      \draw[data] (m) to node[above=6pt, apriv, font=\small] {\faKey\ \{23, 187\}} (s);
-      \draw[data] (s) to node[above=6pt, apub, font=\small] {\faKey\ \{7, 187\}} (m2);
-      \node[font=\normalsize, text=nInk] at (2.75,-0.9) {$S = 11^{23} \bmod 187 = \mathbf{88}$};
-      \node[font=\normalsize, text=nInk] at (8.25,-0.9) {$88^{7} \bmod 187 = \mathbf{11}$ \;\ok};
-      \node[font=\small\ttfamily, text=nInk] at (2.75,-1.6) {pow(11, 23, 187)};
-      \node[font=\small\ttfamily, text=nInk] at (8.25,-1.6) {pow(88, 7, 187)};
-    \end{tikzpicture}
-  \end{center}
-  \vfill
-  \begin{center}
-    Mallory changes the message to 12 and keeps $S = 88$:\quad $88^{7} \bmod 187 = 11 \neq 12$ \;\nok
-  \end{center}
-  \vfill
-  \curious{signatures/\#2}
-  \keymsg{The signature fits one message; change the message and verify fails.}
-  % CHECKED: python3: pow(11, 23, 187) = 88, pow(88, 7, 187) = 11
-  \say{Liczby sprawdzone w Pythonie. Ciekawostka: to są liczby z wykładu 3 w odwrotną stronę (tam 88 szyfrowało się do 11). Bob z podpisem 88 i zmienioną wiadomością 12 dostaje 11, więc odrzuca. W symulatorze (link na końcu sekcji) można przeklikać wszystkie M od 0 do 186.}
-\end{frame}
-
-\samedot
-\begin{frame}{Textbook RSA signatures}
-  \vfill
-  \bigdef{This bare formula, $S = M^{d} \bmod n$ with nothing added, is called a \textbf{textbook RSA signature}.}
-  \vfill
-  \begin{columns}[t,onlytextwidth]
-    \column{0.48\textwidth}\stepbox{A message as a number}{as in Lecture 3: the bytes read as one big-endian number, smaller than $n$.\\ \texttt{"Hi"} $\to$ \texttt{0x4869} = 18\,537}
-    \column{0.48\textwidth}\stepbox{A real key}{$n$ has 2048 bits (256 bytes): $d$, $S$ and $n$ are numbers with about 617 digits. \texttt{pow} handles them in a millisecond.}
-  \end{columns}
-  \vfill
-  \keymsg{Textbook RSA works; in the next section we will see why nobody uses it alone.}
-  % CHECKED: python3: int.from_bytes(b"Hi", "big") = 18537; 2**2048 has 617 digits
-  \say{Nazwa jak przy szyfrowaniu w wykładzie 3 (textbook RSA). Zadanie 3 robi to na prawdziwym kluczu 2048 bitów Alice: liczby mają 617 cyfr dziesiętnych (512 cyfr szesnastkowych), Python liczy na nich bez problemu. Po zadaniu zobaczymy trzy problemy podręcznikowego podpisu.}
-\end{frame}
-
-\begin{frame}{Task 3: textbook RSA}
-  \vfill
-  \taskgoal{sign ``Pay Bob 10 pounds. Alice'' with \texttt{pow}, check it, then check a changed copy.}
-  \taskready{\texttt{alice\_key.py}: Alice's 2048-bit key as the numbers \texttt{n}, \texttt{e}, \texttt{d}.}
-  \vfill
-  \opentask{Task3}{about 8 minutes}
-  \vfill
-  \say{Około 8 minut. Pięć krótkich TODO: wiadomość jako liczba (int.from\_bytes), podpis pow(m, d, n), sprawdzenie pow(s, e, n) == m, zmieniona wiadomość (90 zamiast 10 funtów), a w TODO 5 pytanie: co jest w środku podpisu? Przed TODO 5 zapytać salę, co wyjdzie z pow(s, e, n) zamienionego na bajty. Kto skończy wcześniej: niech zmieni wiadomość na dłuższą niż 256 bajtów i zobaczy, co się stanie (m nie jest mniejsze od n).}
-\end{frame}
-
-\samedot
-\begin{frame}{Task 3: what we saw}
-  % CHECKED: python3 Task3/solution/textbook_rsa.py, 2026-11-17
-  \vfill
-  \begin{center}
-    \renewcommand{\arraystretch}{1.4}
-    \begin{tabular}{@{}l l@{}}
-      \toprule
-      $m$ (the message as a number) & \texttt{50617920426f\ldots 20416c696365}, 48 hex digits \\
-      $s = m^{d} \bmod n$ & \texttt{1ee3425e9a74\ldots 95e50c23a9ae}, 512 hex digits \\
-      Bob checks the message & \ok\ \texttt{True} \\
-      Bob checks ``\ldots 90 pounds \ldots'' with the same $s$ & \nok\ \texttt{False} \\
-      $s^{e} \bmod n$ as bytes & \texttt{b'Pay Bob 10 pounds. Alice'} \\
-      \bottomrule
-    \end{tabular}
-  \end{center}
-  \vfill
-  \begin{center}\small The signature carries the message: $s^{e} \bmod n$ gives back exactly what Alice signed.\end{center}
-  \keymsg{The signature is as long as $n$ (256 bytes), even for a 24-byte message.}
-  \say{Wynik rozwiązania. 50617920 to bajty P, a, y, spacja w zapisie szesnastkowym: wiadomość jako liczba. Podpis ma 512 cyfr szesnastkowych, czyli 256 bajtów, tyle co n. TODO 5: z podpisu i klucza publicznego wychodzi oryginalna wiadomość, więc Bob widzi, co Alice naprawdę podpisała (10 funtów, nie 90). Klucz w pliku jest ten sam dla wszystkich, więc wszyscy mają ten sam podpis.}
-\end{frame}
-
-\begin{frame}{Problem 1: long messages}
-  % CHECKED: python3: ceil(10 000 000 / 255) = 39 216 pieces, x 256 bytes = 10 039 296 bytes; x 1.1 ms (Task 7, RSA-2048 sign) = 43 s
-  \vfill
-  \begin{center}
-    \begin{tikzpicture}
-      \node[msg, minimum width=11.5cm, minimum height=0.8cm, font=\small] (f) at (0,0) {\faFile*[regular]\ an update of 10 MB};
-      \foreach \i in {0,...,9} \node[msg, minimum width=0.95cm, minimum height=0.6cm, font=\tiny] at ({-5.3+1.05*\i},-1.3) {255 B};
-      \node[font=\small, text=nInk] at (5.4,-1.3) {\ldots};
-      \foreach \i in {0,...,9} \node[asig, minimum width=0.95cm, minimum height=0.6cm, font=\tiny] at ({-5.3+1.05*\i},-2.3) {256 B};
-      \node[font=\small, text=nInk] at (5.4,-2.3) {\ldots};
-      \node[font=\scriptsize, text=gray, anchor=west] at (6.0,-1.3) {39\,216 pieces};
-      \node[font=\scriptsize, text=gray, anchor=west] at (6.0,-2.3) {39\,216 signatures};
-    \end{tikzpicture}
-  \end{center}
-  \vfill
-  \begin{itemize}\small
-    \item $M$ must be smaller than $n$: at most 255 bytes per signature with a 2048-bit key.
-    \item 10 MB need \textbf{39\,216 signatures}: 10 MB of signatures and about 43 seconds of signing.
-    \item Each piece is signed alone: Mallory can \textbf{drop or reorder} pieces, and every signature still checks.
-  \end{itemize}
-  \keymsg{Textbook RSA signs only short numbers.}
-  \say{10 000 000 / 255 = 39 216 kawałków (w górę). Każdy podpis ma 256 bajtów, razem około 10 MB, tyle samo co plik. Czas: 1,1 ms na podpis RSA-2048 (pomiar z zadania 7 na i5-8265U) razy 39 216 = około 43 s. A najgorsze: kawałki są podpisane osobno, więc Mallory może wyrzucić kawałek ze środka albo zamienić kolejność, i każdy podpis nadal jest poprawny.}
-\end{frame}
-
-\samedot
-\begin{frame}{Problem 2: signatures multiply}
-  % CHECKED: python3: pow(2, 23, 187) = 162, pow(3, 23, 187) = 181, 162 * 181 % 187 = 150 = pow(6, 23, 187), pow(150, 7, 187) = 6
-  \vfill
-  \begin{center}
-    \begin{tikzpicture}[>=Stealth]
-      \node[msg, font=\Large] (m2) at (0,1) {2};
-      \node[asig, font=\Large] (s2) at (2.6,1) {162};
-      \node[msg, font=\Large] (m3) at (0,-0.4) {3};
-      \node[asig, font=\Large] (s3) at (2.6,-0.4) {181};
-      \draw[data] (m2) -- (s2); \draw[data] (m3) -- (s3);
-      \node[font=\scriptsize, text=gray] at (1.3,1.9) {signed by Alice};
-      \node[msg, font=\Large] (m6) at (9.4,0.3) {6};
-      \node[mpub, font=\Large] (s6) at (6.6,0.3) {150};
-      \draw[data] (s2.east) -- (5.9,0.45);
-      \draw[data] (s3.east) -- (5.9,0.15);
-      \node[font=\scriptsize, text=sPinkText, align=center] at (6.6,1.4) {Mallory: $162 \times 181 \bmod 187$};
-      \draw[data] (s6) to node[above, font=\scriptsize] {$150^{7} \bmod 187$} (m6);
-      \node[font=\Large] at (10.3,0.3) {\ok};
-    \end{tikzpicture}
-  \end{center}
-  \vfill
-  \bigdef{$M_1^{d} \times M_2^{d} = (M_1 \times M_2)^{d} \pmod n$: \;the product of two signatures is a signature of the product.}
-  \vfill
-  \keymsg{From two signed messages, Mallory makes a third signature without the private key.}
-  \say{Rachunek: S(2) = 2 do 23 mod 187 = 162, S(3) = 181. Mallory mnoży: 162 razy 181 mod 187 = 150. I rzeczywiście 150 do 7 mod 187 = 6, więc 150 to poprawny podpis wiadomości 6, której Alice nigdy nie podpisała. Dlaczego: potęgowanie zachowuje mnożenie, (ab) do d = a do d razy b do d. Podpis Mallory jest różowy: zrobiła go ona, choć przechodzi z kluczem Alice.}
-\end{frame}
-
-\samedot
-\begin{frame}{Problem 3: any number is a signature}
-  % CHECKED: python3: pow(100, 7, 187) = 144, pow(144, 23, 187) = 100
-  \vfill
-  \begin{center}
-    \begin{tikzpicture}[>=Stealth]
-      \mallory{0,0}
-      \node[mpub, font=\LARGE] (s) at (3.4,0) {100};
-      \node[font=\scriptsize, text=gray] at (3.4,0.75) {any number as $S$};
-      \node[msg, font=\LARGE] (m) at (8.6,0) {144};
-      \draw[data] (M.east) -- (s.west);
-      \draw[data] (s) to node[above, apub, font=\small] {\faKey\ $100^{7} \bmod 187$} (m);
-      \node[font=\scriptsize, text=gray] at (8.6,0.75) {the message it signs};
-      \node[font=\large, anchor=west] at (9.4,0) {\ok};
-    \end{tikzpicture}
-  \end{center}
-  \vfill
-  \begin{center}
-    Mallory goes backwards: she picks $S$ first, then computes $M = S^{e} \bmod n$ with the \textbf{public} key.\\[4pt]
-    The pair $(M, S) = (144, 100)$ verifies. She cannot choose $M$, but\\
-    if any number is a fine message (a random code, an amount), that is enough.
-  \end{center}
-  \keymsg{Textbook RSA lets anybody make valid pairs; only the choice of the message is hard.}
-  \say{Trzeci problem: Mallory nie wybiera wiadomości, tylko podpis. 100 do 7 mod 187 = 144, i para (144, 100) przechodzi sprawdzenie. Jeśli system przyjmuje dowolną liczbę (np. jednorazowy kod, losowy identyfikator, kwotę), to Mallory ma poprawnie podpisaną liczbę. Zadanie 4 robi oba triki na prawdziwym kluczu 2048 bitów.}
-\end{frame}
-
-\begin{frame}{Task 4: forge it}
-  \vfill
-  \taskgoal{as Mallory, without the private key, make Alice's bank accept an order for 1000 pounds.}
-  \taskready{\texttt{bank\_ready.py}: Alice's public key and two orders she signed for Mallory, 20 and 50 pounds.}
-  \vfill
-  \opentask{Task4}{about 9 minutes}
-  \vfill
-  \say{Około 9 minut. Bank Alice przyjmuje zlecenie jako liczbę (kwota w funtach) podpisaną podręcznikowym RSA. TODO 1: bank sprawdza dwa prawdziwe zlecenia. TODO 2: mnożenie podpisów, 20 razy 50 = 1000. TODO 3: dowolna liczba jako podpis. Jeśli ktoś utknie przy TODO 2: przypomnieć slajd Problem 2, ale na prawdziwym kluczu.}
-\end{frame}
-
-\samedot
-\begin{frame}{Task 4: what we saw}
-  % CHECKED: python3 Task4/solution/forge.py, 2026-11-17
-  \vfill
-  \begin{center}
-    \renewcommand{\arraystretch}{1.4}
-    \begin{tabular}{@{}l l c@{}}
-      \toprule
-      order 1, 20 pounds & signed by Alice & \ok\ \texttt{True} \\
-      order 2, 50 pounds & signed by Alice & \ok\ \texttt{True} \\
-      $s_1 \times s_2 \bmod n$ (\texttt{13bf50ca\ldots 1031c3}) & on \textbf{1000 pounds} & \ok\ \texttt{True} \\
-      any $s$: 123\,456\,789 & on \texttt{4383e8aa\ldots 62c032b0} & \ok\ \texttt{True} \\
-      \bottomrule
-    \end{tabular}
-  \end{center}
-  \vfill
-  \begin{center}\small Mallory never had $d$. Two signatures and one multiplication were enough.\end{center}
-  \keymsg{Textbook RSA signatures can be forged: we must not sign the message itself.}
-  \say{Wynik rozwiązania. Podpis na 1000 funtów: iloczyn podpisów mod n, bank mówi True. Losowe S = 123456789 podpisuje ogromną liczbę (512 cyfr szesnastkowych); bank też mówi True, choć kwota jest bez sensu. Zapytać: jak to naprawić? Podpowiedź: na początku wykładu mieliśmy coś, co z każdego pliku robi 32 bajty i czego nie da się odwrócić.}
-\end{frame}
-
-\begin{frame}{Hash first, then sign}
-  \vfill
-  \begin{center}
-    \begin{tikzpicture}[>=Stealth]
-      \node[msg, font=\small, minimum width=2.4cm, minimum height=1.6cm] (m) at (0,0) {\faFile*[regular]\\ message\\ any length};
-      \mech{h}{3.2,0}{SHA-256}{2.2cm}
-      \node[digest, font=\small, minimum width=2.0cm] (d) at (6.0,0) {digest\\32 bytes};
-      \node[hwmain, minimum width=2.4cm, minimum height=1.0cm, font=\small\bfseries] (r) at (9.0,0) {\faCogs\ $H^{d} \bmod n$};
-      \node[apriv, font=\small] (k) at (9.0,1.3) {\faKey\ private key};
-      \node[asig, font=\small, minimum height=0.9cm] (s) at (12.0,0) {\faStamp\ signature};
-      \draw[data] (m) -- (h); \draw[data] (h) -- (d); \draw[data] (d) -- (r); \draw[data] (k) -- (r); \draw[data] (r) -- (s);
-    \end{tikzpicture}
-  \end{center}
-  \vfill
-  \bigdef{\textbf{Hash-and-sign}: \;$S = H(M)^{d} \bmod n$. \quad Verify: $S^{e} \bmod n = H(M)$?\\[2pt]
-    \small Bob computes $H(M)$ himself from the message he received.}
-  \vfill
-  \keymsg{We sign the digest of the message, not the message.}
-  \say{Poprawka: zamiast M podpisujemy H(M), skrót wiadomości (SHA-256), czytany jako liczba. Bob dostaje wiadomość i podpis, liczy skrót sam i porównuje z S do e mod n. Tak robi każdy prawdziwy podpis, także ECDSA i Ed25519 (Ed25519 używa SHA-512 w środku). Dlatego na wykładzie 9 było napisane, że w środku liczy się skrót danych. Brązowy to skrót: ten sam kolor co na początku wykładu.}
-\end{frame}
-
-\samedot
-\begin{frame}{Bob checks a hash-and-sign signature}
-  \vfill
-  \begin{center}
-    \begin{tikzpicture}[>=Stealth]
-      \bob{-1.6,-0.6}
-      \node[msg, font=\small] (m) at (1.4,0.6) {\faFile*[regular]\ message he got};
-      \mech{h}{5.0,0.6}{SHA-256}{2.2cm}
-      \node[digest, font=\small] (d1) at (8.6,0.6) {$H(M)$};
-      \node[asig, font=\small] (s) at (1.4,-1.0) {\faStamp\ signature $S$};
-      \node[hwmain, minimum width=2.2cm, minimum height=1.0cm, font=\small\bfseries] (p) at (5.0,-1.0) {\faCogs\ $S^{e} \bmod n$};
-      \node[apub, font=\scriptsize] at (5.0,-1.95) {\faKey\ Alice's public key};
-      \node[digest, font=\small] (d2) at (8.6,-1.0) {a number};
-      \draw[data] (m) -- (h); \draw[data] (h) -- (d1);
-      \draw[data] (s) -- (p); \draw[data] (p) -- (d2);
-      \node[font=\Large, anchor=west] at (9.8,-0.2) {equal? \ok\,/\,\nok};
-    \end{tikzpicture}
-  \end{center}
-  \vfill
-  \begin{center}\small
-    Two independent ways to the same 32 bytes: from the message (anybody), and from the signature (only Alice could start it).\\
-    If they meet, the message is the one Alice signed.
-  \end{center}
-  \keymsg{Verify = hash the message yourself, undo the signature with the public key, compare.}
-  \say{Strona Boba. Bob nie dostaje skrótu od nikogo: liczy go sam z wiadomości, którą otrzymał. Z podpisu, potęgą publiczną, wychodzi liczba, którą Alice podpisała. Jeśli Mallory zmieniła wiadomość, skrót Boba będzie inny; jeśli zmieniła podpis, wyjdzie inna liczba. W zadaniu 5 TODO 3 to dokładnie ten rysunek.}
-\end{frame}
-
-\samedot
-\begin{frame}{Why the hash helps: any length}
-  \vfill
-  \begin{center}
-    \begin{tikzpicture}[>=Stealth]
-      \node[msg, minimum width=8cm, minimum height=0.8cm, font=\small] (f) at (0,0) {\faFile*[regular]\ an update of 10 MB};
-      \mech{h}{0,-1.4}{SHA-256}{2.2cm}
-      \node[digest, font=\small] (d) at (0,-2.6) {32 bytes};
-      \node[asig, font=\small] (s) at (4.0,-2.6) {\faStamp\ one signature, 256 bytes};
-      \draw[data] (f) -- (h); \draw[data] (h) -- (d); \draw[data] (d) -- (s);
-    \end{tikzpicture}
-  \end{center}
-  \vfill
-  \begin{columns}[t,onlytextwidth]
-    \column{0.32\textwidth}\stepbox{One signature}{instead of 39\,216: one power, about 1 ms.}
-    \column{0.32\textwidth}\stepbox{The whole file}{change, drop or move one byte and the digest is completely different.}
-    \column{0.32\textwidth}\stepbox{Always small}{a 32-byte digest is always smaller than $n$.}
-  \end{columns}
-  \keymsg{One digest covers the whole file, so one signature does too.}
-  \say{Problem 1 rozwiązany: skrót ma zawsze 32 bajty, niezależnie od rozmiaru pliku. Skrót 10 MB liczy się w ułamku sekundy (SHA-256 robi kilkaset MB na sekundę), a potęga jest jedna. Nie da się też usuwać ani przestawiać kawałków, bo podpis obejmuje skrót całości.}
-\end{frame}
-
-\samedot
-\begin{frame}{Why the hash helps: no forgeries}
-  \vfill
-  \begin{center}
-    \begin{tikzpicture}[>=Stealth]
-      \node[asig, font=\small] (s1) at (0,0.6) {$S_1$ on $H(M_1)$};
-      \node[asig, font=\small] (s2) at (0,-0.6) {$S_2$ on $H(M_2)$};
-      \node[mpub, font=\small] (s) at (4.0,0) {$S_1 \times S_2$};
-      \draw[data] (s1.east) -- (s.west); \draw[data] (s2.east) -- (s.west);
-      \node[digest, font=\small] (n) at (8.0,0) {the number $H(M_1) \times H(M_2) \bmod n$};
-      \draw[data] (s) to node[above, font=\scriptsize] {signs} (n);
-      \node[msg, font=\small, dashed] (q) at (8.0,-1.6) {a message $M$ with this digest?};
-      \draw[data, dashed] (n) -- (q);
-      \node[font=\small, text=aWrite, anchor=west] at (10.3,-1.6) {\nok\ one way};
-    \end{tikzpicture}
-  \end{center}
-  \vfill
-  \begin{center}\small
-    The multiplied or random signature still signs some \textbf{number}. To use it, Mallory needs a message\\
-    whose SHA-256 is exactly that number: she must run SHA-256 backwards (Lecture 6: one way).
-  \end{center}
-  \keymsg{After hashing, a forged number is useless: no message leads to it.}
-  \say{Problemy 2 i 3. Mnożenie nadal działa na liczbach, ale wynik podpisuje liczbę, która nie jest skrótem żadnej znanej wiadomości. Żeby ją wykorzystać, Mallory musiałaby znaleźć wiadomość o takim skrócie, czyli odwrócić SHA-256 (preimage, wykład 6): około $2^{256}$ prób. Losowe S tak samo. Zadanie 5 to sprawdza.}
-\end{frame}
-
-\begin{frame}{Task 5: hash, then sign}
-  \vfill
-  \taskgoal{sign a 100\,000-byte update with hash-and-sign; change one byte; try the multiplication trick again.}
-  \taskready{\texttt{alice\_key.py} (\texttt{n}, \texttt{e}, \texttt{d}); \texttt{update.bin}; two hash-signed orders in \texttt{signed\_orders.txt}.}
-  \vfill
-  \opentask{Task5}{about 9 minutes}
-  \vfill
-  \say{Około 9 minut. TODO 1: funkcja hash\_number (SHA-256 jako liczba). TODO 2 i 3: podpis i sprawdzenie. TODO 4: zmiana jednego bitu w bajcie 50 000 (bytearray, ^= 1). TODO 5: ten sam trik z mnożeniem co w zadaniu 4, tym razem na podpisach skrótów. Przed TODO 5 zapytać: czy bank przyjmie 1000 funtów?}
-\end{frame}
-
-\samedot
-\begin{frame}{Task 5: what we saw}
-  % CHECKED: python3 Task5/solution/hash_and_sign.py, 2026-11-17
-  \vfill
-  \begin{center}
-    \renewcommand{\arraystretch}{1.4}
-    \begin{tabular}{@{}l l@{}}
-      \toprule
-      the file, 100\,000 bytes & digest \texttt{710fcd1df5b9\ldots 3416108c9faf} \\
-      one signature, 256 bytes & \texttt{bf0aa615a40e\ldots f8609c05042f} \\
-      Bob checks the file & \ok\ \texttt{True} \\
-      Bob checks it with one bit of byte 50\,000 flipped & \nok\ \texttt{False} \\
-      the bank checks $s_{20} \times s_{50}$ on ``\ldots 1000 pounds'' & \nok\ \texttt{False} \\
-      \bottomrule
-    \end{tabular}
-  \end{center}
-  \vfill
-  \keymsg{Hash-and-sign: one signature for any file, and the multiplication trick is dead.}
-  \say{Wynik rozwiązania. Plik 100 000 bajtów, jeden podpis 256 bajtów. Jeden bit zmieniony: skrót zupełnie inny, więc False. Iloczyn podpisów nie pasuje do skrótu wiadomości o 1000 funtów, więc bank odrzuca. Zapytać: czy to znaczy, że podręcznikowe RSA na skrócie jest już idealne? Odpowiedź na następnym slajdzie.}
-\end{frame}
-
-\begin{frame}{In practice: RSA-PSS}
-  \vfill
-  \begin{center}
-    \begin{tikzpicture}[>=Stealth]
-      \node[digest, font=\small, minimum width=2.2cm] (d) at (0,0) {digest};
-      \node[font=\large] at (1.55,0) {+};
-      \node[hw, font=\small, minimum width=1.8cm] (s) at (3.0,0) {\faDice\ salt};
-      \node[font=\large] at (4.45,0) {+};
-      \node[hw, font=\small, minimum width=2.4cm] (p) at (6.1,0) {fixed structure};
-      \node[hwmain, font=\small\bfseries] (r) at (9.4,0) {\faCogs\ power $d$};
-      \draw[data] (p) -- (r);
-      \node[asig, font=\small] (sig) at (12.0,0) {\faStamp\ signature};
-      \draw[data] (r) -- (sig);
-    \end{tikzpicture}
-  \end{center}
-  \vfill
-  \bigdef{\textbf{RSA-PSS} does for signatures what OAEP does for encryption (Lecture 3):\\
-    random salt and a fixed structure around the digest before the power, so no number games work.}
-  \vfill
-  \begin{center}\small
-    The older \textbf{PKCS\#1 v1.5} padding (fixed, no salt) is still in most certificates today.
-    Never textbook RSA.
-  \end{center}
-  \keymsg{Real RSA signatures: hash, pad, then power.}
-  % CHECKED: RFC 8017 (PKCS #1 v2.2), section 8.1 RSASSA-PSS and 8.2 RSASSA-PKCS1-v1_5;
-  %   RFC 8446 section 4.2.3: rsa_pkcs1_* "refer solely to signatures which appear in certificates" (bugzilla.mozilla.org 1489997, 2026-11-17)
-  \say{Jedno zdanie, jak OAEP w wykładzie 3: PSS (Bellare i Rogaway, 1996) dodaje losową sól i stałą strukturę bajtów, zanim liczba pójdzie do potęgi. Dzięki soli ten sam plik podpisany dwa razy daje różne podpisy (zobaczymy w zadaniu 7). Starsze dopełnienie PKCS\#1 v1.5 jest deterministyczne i nadal bezpieczne do podpisów, i jest w większości certyfikatów. W TLS 1.3 (RFC 8446, punkt 4.2.3) serwer, który podpisuje RSA w trakcie łączenia, musi używać PSS; v1.5 zostało tylko dla podpisów w certyfikatach. W bibliotece cryptography: padding.PSS.}
-\end{frame}
-
-\samedot
-\begin{frame}[fragile]{RSA-PSS in Python}
-\begin{lstlisting}[style=py]
-from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.asymmetric import padding
-
-pss = padding.PSS(mgf=padding.MGF1(hashes.SHA256()), salt_length=32)
-
-signature = private_key.sign(data, pss, hashes.SHA256())   # 256 bytes
-public_key.verify(signature, data, pss, hashes.SHA256())   # exception if wrong
-\end{lstlisting}
-  \vfill
-  \begin{center}\small
-    The library hashes the data, adds the salt and the structure, and computes the power:\\
-    everything of this section in one call. Signed twice, the same data gives two different signatures.
-  \end{center}
-  \keymsg{In real code: the library and RSA-PSS, never your own \texttt{pow}.}
-  \say{To samo co pow z zadań 3 do 5, ale poprawnie: skrót, sól, struktura, potęga. MGF1 to sposób rozciągnięcia skrótu na długość n (nie trzeba pamiętać). Zadanie 7 używa właśnie tego podpisu jako RSA-2048. Pow w zadaniach był po to, żeby zobaczyć środek; w prawdziwym programie nigdy nie liczymy podpisu sami.}
-\end{frame}
-
-\begin{frame}{Recall: a collision}
-  \vfill
-  \begin{center}
-    \begin{tikzpicture}[>=Stealth]
-      \node[msg, font=\small, minimum width=2.8cm] (a) at (0,0.7) {document A};
-      \node[msg, font=\small, minimum width=2.8cm] (b) at (0,-0.7) {document B};
-      \mech{h}{3.8,0}{MD5}{1.8cm}
-      \node[digest, font=\small] (d) at (7.2,0) {the same digest};
-      \draw[data] (a.east) -- (h.west); \draw[data] (b.east) -- (h.west); \draw[data] (h) -- (d);
-    \end{tikzpicture}
-  \end{center}
-  \vfill
-  \begin{center}\small
-    Lecture 7: for MD5 and SHA-1, anyone can make two different inputs with the same digest,\\
-    even with a chosen beginning (chosen prefix). SHA-256 has no known collision.
-  \end{center}
-  \keymsg{A broken hash gives two inputs with one digest.}
-  \say{Przypomnienie z wykładu 7: kolizje MD5 (Wang 2004) i SHA-1 (SHAttered 2017, Shambles 2020, z wybranym prefiksem). SHA-256 trzyma się: najlepszy znany atak to nadal około $2^{128}$ prób (paradoks urodzin). Co to znaczy dla podpisu, który podpisuje tylko skrót?}
-\end{frame}
-
-\samedot
-\begin{frame}{A collision breaks the signature}
-  \vfill
-  \begin{center}
-    \begin{tikzpicture}[>=Stealth]
-      \node[msg, font=\small, text width=3.2cm] (a) at (0,0.9) {A: ``a website certificate''};
-      \node[msg, font=\small, text width=3.2cm, draw=sPink, line width=1.2pt] (b) at (0,-0.9) {B: ``Mallory is a CA''};
-      \node[digest, font=\small] (d) at (4.2,0) {the same MD5};
-      \draw[data] (a.east) -- (d.west); \draw[data] (b.east) -- (d.west);
-      \node[asig, font=\small] (s) at (8.0,0.9) {\faStamp\ signature on A};
-      \draw[data] (d.east) -- (s.west);
-      \node[font=\small, anchor=west, align=left] at (6.9,-0.7) {fits B too \ok\\[2pt]\scriptsize\textcolor{gray}{verify only sees the digest}};
-    \end{tikzpicture}
-  \end{center}
-  \vfill
-  \begin{center}\small
-    Mallory makes a harmless A and a harmful B with the same digest, gets A signed, then uses the signature with B.\\[4pt]
-    Real: a rogue certificate authority (2008), the Flame malware (2012), both with MD5 (Lecture 7).
-  \end{center}
-  \keymsg{A signature is only as strong as its hash: sign with SHA-256, never MD5 or SHA-1.}
-  \say{Podpis obejmuje tylko skrót, więc kolizja skrótu to fałszerstwo podpisu. Oba przypadki z wykładu 7: 2008 badacze zrobili fałszywy urząd certyfikacji (CA, pojęcie z wykładu 9; tu wystarczy: ktoś, kto podpisuje cudze klucze), 2012 Flame miał fałszywy podpis kodu Microsoftu. Dlatego przeglądarki od lat odrzucają podpisy z MD5 i SHA-1. Zadanie dokładnie o tym, na prawdziwym certyfikacie, jest w wykładzie 12 (Task 5); tu go nie powtarzamy.}
-\end{frame}
-
-\begin{frame}{See it: RSA signatures}
-  \begin{center}\small Textbook RSA on the key \{7, 187\} and \{23, 187\}, the forgeries, and the fix with a hash.\end{center}
-  \vfill
-  \opensim{signatures/\#2}
-  \vfill
-  \begin{enumerate}\small
-    \item Step 2: change $M$ and watch $S$ and $S^{e}$; all 187 messages come back.
-    \item Step 3: pick two signed messages and multiply; pick any $S$ and see the message it signs.
-    \item Step 4: the same tricks after SHA-256: the number they sign belongs to no message.
-  \end{enumerate}
-  \vfill
-  \keymsg{The forgeries work on numbers; the hash takes the numbers away from Mallory.}
-  \say{Pokaz na żywo, około 3 minut, można pominąć przy braku czasu. Liczby w symulatorze są te same co na slajdach: 11 -> 88, 2 i 3 -> 162 i 181 -> 150, S = 100 -> M = 144.}
-\end{frame}
-
-% ======================================================================
-\section[What signatures give]{What signatures give, and where}
-% ======================================================================
 
 \begin{frame}{Three guarantees}
   \vfill
@@ -1401,7 +942,7 @@ public_key.verify(signature, data, pss, hashes.SHA256())   # exception if wrong
     For both: sign, then encrypt (or use a protocol that does both, as the web does).
   \end{center}
   \keymsg{A signature is not encryption: the signed message stays readable.}
-  \say{Częsty błąd studentów: ,,podpisane, więc tajne''. Nie: podpis jest obok wiadomości, a wiadomość jest jawna (w podręcznikowym RSA z zadania 3 wręcz wyszła z podpisu). Jeśli trzeba obu, łączymy: podpis daje autentyczność, szyfrowanie tajność. W przeglądarce robi to protokół: podpis serwera przy uzgadnianiu klucza, potem szyfrowanie z tagiem.}
+  \say{Częsty błąd studentów: ,,podpisane, więc tajne''. Nie: podpis jest obok wiadomości, a wiadomość jest jawna (w podręcznikowym RSA z zadania 4 zobaczymy, że wręcz wychodzi z podpisu). Jeśli trzeba obu, łączymy: podpis daje autentyczność, szyfrowanie tajność. W przeglądarce robi to protokół: podpis serwera przy uzgadnianiu klucza, potem szyfrowanie z tagiem.}
 \end{frame}
 
 \samedot
@@ -1424,6 +965,7 @@ public_key.verify(signature, data, pss, hashes.SHA256())   # exception if wrong
     A copied signature stays valid forever: Mallory can send the same signed order again (a \textbf{replay}).\\[4pt]
     The fix is in the message: a date, a number used once, or a counter, signed together with the text.
   \end{center}
+  \curious{signatures/\#6}
   \keymsg{A signature says what was signed, not when or how many times.}
   \say{Atak powtórzenia (replay): Mallory nie zmienia ani bajtu, więc podpis przechodzi. Ochrona: w podpisanej treści musi być coś jednorazowego (numer zlecenia, data, liczba losowa od odbiorcy). Bank odrzuca zlecenie, którego numer już widział. W wykładzie 11 zobaczymy, że serwer podpisuje cały przebieg połączenia z liczbami losowymi obu stron, więc stary podpis nie pasuje do nowego połączenia.}
 \end{frame}
@@ -1448,7 +990,7 @@ public_key.verify(signature, data, pss, hashes.SHA256())   # exception if wrong
   \vfill
   \keymsg{A MAC is for two parties who share a key; a signature is for everybody else.}
   % CHECKED: HMAC-SHA256 tag 32 bytes (RFC 2104 with SHA-256); Ed25519 signature 64 bytes (RFC 8032); speed: Task 7 and hmac in python3
-  \say{Porównanie. Szybkość: HMAC to dwa skróty SHA-256, kilka mikrosekund dla krótkiej wiadomości; podpis Ed25519 około 0,1 ms, RSA-2048 ponad 1 ms (pomiar w zadaniu 7). Najważniejszy wiersz: przekonuje osobę trzecią.}
+  \say{Porównanie. Szybkość: HMAC to dwa skróty SHA-256, kilka mikrosekund dla krótkiej wiadomości; podpis Ed25519 około 0,1 ms, RSA-2048 ponad 1 ms (zmierzymy to w zadaniu 7). Najważniejszy wiersz: przekonuje osobę trzecią.}
 \end{frame}
 
 \samedot
@@ -1468,7 +1010,7 @@ public_key.verify(signature, data, pss, hashes.SHA256())   # exception if wrong
   \say{Ważne, żeby nie przedstawić MAC jako gorszego. W połączeniu przeglądarki dane po uzgodnieniu klucza są chronione tagiem (np. ChaCha20-Poly1305 z wykładu 2): podpis każdego pakietu byłby wolny i niepotrzebny, bo obie strony mają klucz. Ciasteczko: serwer sprawdza swoje własne dane, nikt trzeci nie musi. Deniability: komunikator Off-the-Record (Borisov, Goldberg, Brewer, 2004) celowo używa MAC, a klucze MAC po rozmowie publikuje, żeby nikt nie mógł potem udowodnić, kto co napisał; to cecha, nie wada.}
 \end{frame}
 
-\begin{frame}{Task 6: MAC or signature?}
+\begin{frame}{Task 3: MAC or signature?}
   \vfill
   \small
   For each situation, choose a MAC or a signature, and say why in one line.
@@ -1486,7 +1028,7 @@ public_key.verify(signature, data, pss, hashes.SHA256())   # exception if wrong
 \end{frame}
 
 \samedot
-\begin{frame}{Task 6: what we saw}
+\begin{frame}{Task 3: what we saw}
   \vfill
   \begin{center}
     \renewcommand{\arraystretch}{1.45}
@@ -1507,11 +1049,516 @@ public_key.verify(signature, data, pss, hashes.SHA256())   # exception if wrong
   \say{Odpowiedzi. W punkcie 2 podpis też zadziała, ale bez potrzeby jest wolniejszy; w punkcie 3 dodatkowo przyda się znacznik czasu. Jeśli ktoś wybrał inaczej i dobrze uzasadnił, to też jest dobra odpowiedź: liczy się uzasadnienie.}
 \end{frame}
 
+% ======================================================================
+\section[RSA signatures inside]{RSA signatures inside}
+% ======================================================================
+
+\begin{frame}{Three ways to sign}
+  \begin{center}\large What does \texttt{sign} do inside? We open RSA, whose keys we know.\end{center}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \foreach \x/\name/\yr/\base [count=\k] in {0/RSA/1977/{factoring\\(Lecture 3)}, 4.6/ECDSA/1992/{points on a curve\\(Lecture 5)}, 9.2/Ed25519/2011/{points on a curve\\(Lecture 5)}} {
+        \node[hw, minimum width=4.0cm, minimum height=2.6cm] (b\k) at (\x,0) {};
+        \node[font=\large\bfseries, text=nInk] at (\x,0.75) {\name};
+        \node[font=\small, text=gray] at (\x,0.25) {\yr};
+        \node[font=\small, text=nInk, align=center] at (\x,-0.55) {\base};
+      }
+      \draw[annot] (-2.1,-1.4) rectangle (2.1,1.4);
+      \node[font=\small\bfseries, text=AccentOrange] at (0,-1.75) {we open this one};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small All three offer the same sign and verify. RSA is the simplest to open: we already know its keys.\end{center}
+  \keymsg{Inside RSA signatures: the same two powers as RSA encryption.}
+  % CHECKED: RSA: Rivest, Shamir, Adleman, MIT memo 1977, CACM 1978; ECDSA: proposed by Vanstone in 1992
+  %   (Johnson, Menezes, Vanstone, "The Elliptic Curve Digital Signature Algorithm (ECDSA)", IJIS 1(1), 2001); Ed25519: Bernstein et al. 2011 (review 2026-11-18)
+  \say{Pytanie z poprzedniej części: co sign robi w środku? RSA podpisuje od początku: artykuł Rivesta, Shamira i Adlemana z 1977/1978 miał w tytule ,,digital signatures''. ECDSA zaproponował Scott Vanstone w 1992 roku, Ed25519 to rok 2011. ECDSA i Ed25519 zostaną w sekcji 3 czarnymi skrzynkami, poza jednym atakiem.}
+\end{frame}
+
+\begin{frame}{Recall: RSA}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \node[bpub, font=\Large, minimum width=4.2cm, minimum height=1.4cm] at (0,0) {\faLockOpen\ \{e, n\} = \{7, 187\}\\[2pt]\small public};
+      \node[bpriv, font=\Large, minimum width=4.2cm, minimum height=1.4cm] at (5.6,0) {\faKey\ \{d, n\} = \{23, 187\}\\[2pt]\small private};
+      \node[font=\large, text=nInk] at (0,-1.5) {encrypt: $C = P^{e} \bmod n$};
+      \node[font=\large, text=nInk] at (5.6,-1.5) {decrypt: $P = C^{d} \bmod n$};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small
+    $n = 17 \times 11 = 187$, \quad $e \times d = 7 \times 23 = 161 = 160 + 1$:\\
+    one full circle of powers plus one step, so $(P^{e})^{d} = P$.
+  \end{center}
+  \keymsg{Two powers modulo n that undo each other.}
+  \say{Przypomnienie z wykładu 3, ten sam przykład z Stallingsa: p = 17, q = 11, phi = 160, e = 7, d = 23. Kluczowy fakt: e razy d = 161, czyli 1 więcej niż phi, więc potęga do e, a potem do d daje z powrotem P. Zapytać: czy kolejność potęg ma znaczenie? (Nie: e razy d = d razy e.)}
+\end{frame}
+
+\samedot
+\begin{frame}{The RSA signature}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \node[msg, font=\LARGE, minimum width=1.6cm] (m) at (0,0) {M};
+      \node[asig, font=\LARGE, minimum width=1.6cm] (s) at (6,0) {S};
+      \node[msg, font=\LARGE, minimum width=1.6cm] (m2) at (12,0) {M?};
+      \draw[data] (m) to node[above=6pt, apriv, font=\normalsize] {\faKey\ $S = M^{d} \bmod n$} (s);
+      \draw[data] (s) to node[above=6pt, apub, font=\normalsize] {\faKey\ $S^{e} \bmod n$} (m2);
+      \node[font=\scriptsize, text=nInk] at (3,-0.6) {sign with the private key};
+      \node[font=\scriptsize, text=nInk] at (9,-0.6) {verify with the public key};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \bigdef{\textbf{Sign}: $S = M^{d} \bmod n$. \qquad \textbf{Verify}: compute $S^{e} \bmod n$; \texttt{True} if it equals $M$.}
+  \vfill
+  \begin{center}\small Now the key belongs to Alice, the signer: the same numbers, Alice's colour.\end{center}
+  \keymsg{Signing is the private power; verifying is the public power and a comparison.}
+  \say{Te same dwie potęgi co przy szyfrowaniu, tylko w odwrotnej kolejności: najpierw prywatna, potem publiczna. M to wiadomość jako liczba mniejsza od n (jak P w wykładzie 3). Bob dostaje M i S, liczy S do e mod n i porównuje z M. Klucz z wykładu 3 należał do Boba; dziś podpisuje Alice, więc te same liczby są w jej kolorze. Uwaga na mit: ,,podpis to szyfrowanie kluczem prywatnym'' działa tylko dla podręcznikowego RSA; dla ECDSA i Ed25519 nie ma takiej analogii, więc lepiej mówić sign i verify.}
+\end{frame}
+
+\samedot
+\begin{frame}{Why the signature checks}
+  \vfill
+  \stepbox{1. What Bob computes}{$S^{e} = (M^{d})^{e} = M^{d \times e} \pmod n$}
+  \stepbox{2. The keys were made for this (Lecture 3)}{$d \times e = 23 \times 7 = 161 = 160 + 1$: one full circle of powers, plus one step.}
+  \stepbox{3. So the message comes back}{$M^{161} = M \pmod{187}$ for every $M$ from 0 to 186, as in Lecture 3.}
+  \vfill
+  \begin{columns}[t,onlytextwidth]
+    \column{0.48\textwidth}\plainbox{\ok\ Alice: she knows $d$, so she can make $S$.}
+    \column{0.48\textwidth}\plainbox{\nok\ Mallory: to make $S$ without $d$ she would have to undo a power modulo $n$, as hard as breaking RSA.}
+  \end{columns}
+  \keymsg{It works for the same reason RSA decryption works.}
+  % CHECKED: python3: pow(M, 161, 187) == M for all M in 0..186; pow(17, 160, 187) = 34 (not 1), pow(17, 161, 187) = 17
+  \say{Dowód dokładnie jak na slajdzie Why does the message come back z wykładu 3, tylko z zamienioną kolejnością wykładników. Uwaga: piszemy od razu M do 161 = M, a nie M do 160 = 1. M do 160 = 1 tylko dla M bez wspólnego dzielnika z 187 (twierdzenie Eulera); dla wielokrotności 11 albo 17 nie (np. 17 do 160 mod 187 = 34), a mimo to M do 161 = M dla każdego M (wykład 3, zadanie 4: wracają wszystkie 187 wartości; uzasadnienie to chińskie twierdzenie o resztach, dowód pomijamy). Dlaczego Mallory nie podrobi: musiałaby znaleźć S takie, że S do 7 mod n = M, czyli pierwiastek siódmego stopnia modulo n. Bez d (czyli bez rozkładu n) nikt nie zna szybkiej metody. Zaraz zobaczymy jednak, że to ,,dla wybranego M''; Mallory ma sprytniejsze sposoby.}
+\end{frame}
+
+\samedot
+\begin{frame}{The example: 11 $\to$ 88 $\to$ 11}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \node[msg, font=\LARGE] (m) at (0,0) {11};
+      \node[asig, font=\LARGE] (s) at (5.5,0) {88};
+      \node[msg, font=\LARGE] (m2) at (11,0) {11};
+      \draw[data] (m) to node[above=6pt, apriv, font=\small] {\faKey\ \{23, 187\}} (s);
+      \draw[data] (s) to node[above=6pt, apub, font=\small] {\faKey\ \{7, 187\}} (m2);
+      \node[font=\normalsize, text=nInk] at (2.75,-0.9) {$S = 11^{23} \bmod 187 = \mathbf{88}$};
+      \node[font=\normalsize, text=nInk] at (8.25,-0.9) {$88^{7} \bmod 187 = \mathbf{11}$ \;\ok};
+      \node[font=\small\ttfamily, text=nInk] at (2.75,-1.6) {pow(11, 23, 187)};
+      \node[font=\small\ttfamily, text=nInk] at (8.25,-1.6) {pow(88, 7, 187)};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}
+    Mallory changes the message to 12 and keeps $S = 88$:\quad $88^{7} \bmod 187 = 11 \neq 12$ \;\nok
+  \end{center}
+  \vfill
+  \keymsg{The signature fits one message; change the message and verify fails.}
+  % CHECKED: python3: pow(11, 23, 187) = 88, pow(88, 7, 187) = 11
+  \say{Liczby sprawdzone w Pythonie. Ciekawostka: to są liczby z wykładu 3 w odwrotną stronę (tam 88 szyfrowało się do 11). Bob z podpisem 88 i zmienioną wiadomością 12 dostaje 11, więc odrzuca.}
+\end{frame}
+
+\samedot
+\begin{frame}{Textbook RSA signatures}
+  \vfill
+  \bigdef{This bare formula, $S = M^{d} \bmod n$ with nothing added, is called a \textbf{textbook RSA signature}.}
+  \vfill
+  \begin{columns}[t,onlytextwidth]
+    \column{0.48\textwidth}\stepbox{A message as a number}{as in Lecture 3: the bytes read as one big-endian number, smaller than $n$.\\ \texttt{"Hi"} $\to$ \texttt{0x4869} = 18\,537}
+    \column{0.48\textwidth}\stepbox{A real key}{$n$ has 2048 bits (256 bytes): $d$, $S$ and $n$ are numbers with about 617 digits. \texttt{pow} handles them in a few milliseconds.}
+  \end{columns}
+  \vfill
+  \keymsg{Textbook RSA works; after the task we will see why nobody uses it alone.}
+  % CHECKED: python3: int.from_bytes(b"Hi", "big") = 18537; 2**2048 has 617 digits
+  \say{Nazwa jak przy szyfrowaniu w wykładzie 3 (textbook RSA). Zadanie 4 robi to na prawdziwym kluczu 2048 bitów Alice: liczby mają 617 cyfr dziesiętnych (512 cyfr szesnastkowych), Python liczy na nich bez problemu. Po zadaniu zobaczymy trzy problemy podręcznikowego podpisu.}
+\end{frame}
+
+\begin{frame}{Task 4: textbook RSA}
+  \vfill
+  \taskgoal{sign ``Pay Bob 10 pounds. Alice'' with \texttt{pow}, check it, then check a changed copy.}
+  \taskready{\texttt{alice\_key.py}: Alice's 2048-bit key as the numbers \texttt{n}, \texttt{e}, \texttt{d}.}
+  \vfill
+  \opentask{Task4}{about 8 minutes}
+  \vfill
+  \say{Około 8 minut. Pięć krótkich TODO: wiadomość jako liczba (int.from\_bytes), podpis pow(m, d, n), sprawdzenie pow(s, e, n) == m, zmieniona wiadomość (90 zamiast 10 funtów), a w TODO 5 pytanie: co jest w środku podpisu? Przed TODO 5 zapytać salę, co wyjdzie z pow(s, e, n) zamienionego na bajty. Kto skończy wcześniej: niech zmieni wiadomość na dłuższą niż 256 bajtów i zobaczy, co się stanie (m nie jest mniejsze od n).}
+\end{frame}
+
+\samedot
+\begin{frame}{Task 4: what we saw}
+  % CHECKED: python3 Task4/solution/textbook_rsa.py, 2026-11-17
+  \vfill
+  \begin{center}
+    \renewcommand{\arraystretch}{1.4}
+    \begin{tabular}{@{}l l@{}}
+      \toprule
+      $m$ (the message as a number) & \texttt{50617920426f\ldots 20416c696365}, 48 hex digits \\
+      $s = m^{d} \bmod n$ & \texttt{1ee3425e9a74\ldots 95e50c23a9ae}, 512 hex digits \\
+      Bob checks the message & \ok\ \texttt{True} \\
+      Bob checks ``\ldots 90 pounds \ldots'' with the same $s$ & \nok\ \texttt{False} \\
+      $s^{e} \bmod n$ as bytes & \texttt{b'Pay Bob 10 pounds. Alice'} \\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+  \vfill
+  \begin{center}\small The signature carries the message: $s^{e} \bmod n$ gives back exactly what Alice signed.\end{center}
+  \keymsg{The signature is as long as $n$ (256 bytes), even for a 24-byte message.}
+  \say{Wynik rozwiązania. 50617920 to bajty P, a, y, spacja w zapisie szesnastkowym: wiadomość jako liczba. Podpis ma 512 cyfr szesnastkowych, czyli 256 bajtów, tyle co n. TODO 5: z podpisu i klucza publicznego wychodzi oryginalna wiadomość, więc Bob widzi, co Alice naprawdę podpisała (10 funtów, nie 90). Klucz w pliku jest ten sam dla wszystkich, więc wszyscy mają ten sam podpis.}
+\end{frame}
+
+\begin{frame}{Problem 1: long messages}
+  % CHECKED: python3: ceil(10 000 000 / 255) = 39 216 pieces, x 256 bytes = 10 039 296 bytes; x 1.1 ms (Task 7, RSA-2048 sign) = 43 s
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \node[msg, minimum width=11.5cm, minimum height=0.8cm, font=\small] (f) at (0,0) {\faFile*[regular]\ an update of 10 MB};
+      \foreach \i in {0,...,9} \node[msg, minimum width=0.95cm, minimum height=0.6cm, font=\tiny] at ({-5.3+1.05*\i},-1.3) {255 B};
+      \node[font=\small, text=nInk] at (5.4,-1.3) {\ldots};
+      \foreach \i in {0,...,9} \node[asig, minimum width=0.95cm, minimum height=0.6cm, font=\tiny] at ({-5.3+1.05*\i},-2.3) {256 B};
+      \node[font=\small, text=nInk] at (5.4,-2.3) {\ldots};
+      \node[font=\scriptsize, text=gray, anchor=west] at (6.0,-1.3) {39\,216 pieces};
+      \node[font=\scriptsize, text=gray, anchor=west] at (6.0,-2.3) {39\,216 signatures};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{itemize}\small
+    \item $M$ must be smaller than $n$: at most 255 bytes per signature with a 2048-bit key.
+    \item 10 MB need \textbf{39\,216 signatures}: 10 MB of signatures and about 43 seconds of signing.
+    \item Each piece is signed alone: Mallory can \textbf{drop or reorder} pieces, and every signature still checks.
+  \end{itemize}
+  \keymsg{Textbook RSA signs only short numbers.}
+  \say{10 000 000 / 255 = 39 216 kawałków (w górę). Każdy podpis ma 256 bajtów, razem około 10 MB, tyle samo co plik. Czas: 1,1 ms na podpis RSA-2048 (pomiar z zadania 7 na i5-8265U) razy 39 216 = około 43 s. A najgorsze: kawałki są podpisane osobno, więc Mallory może wyrzucić kawałek ze środka albo zamienić kolejność, i każdy podpis nadal jest poprawny.}
+\end{frame}
+
+\samedot
+\begin{frame}{Problem 2: signatures multiply}
+  % CHECKED: python3: pow(2, 23, 187) = 162, pow(3, 23, 187) = 181, 162 * 181 % 187 = 150 = pow(6, 23, 187), pow(150, 7, 187) = 6
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \node[msg, font=\Large] (m2) at (0,1) {2};
+      \node[asig, font=\Large] (s2) at (2.6,1) {162};
+      \node[msg, font=\Large] (m3) at (0,-0.4) {3};
+      \node[asig, font=\Large] (s3) at (2.6,-0.4) {181};
+      \draw[data] (m2) -- (s2); \draw[data] (m3) -- (s3);
+      \node[font=\scriptsize, text=gray] at (1.3,1.9) {signed by Alice};
+      \node[msg, font=\Large] (m6) at (9.4,0.3) {6};
+      \node[msig, font=\Large] (s6) at (6.6,0.3) {150};
+      \draw[data] (s2.east) -- (5.9,0.45);
+      \draw[data] (s3.east) -- (5.9,0.15);
+      \node[font=\scriptsize, text=sPinkText, align=center] at (6.6,1.4) {Mallory: $162 \times 181 \bmod 187$};
+      \draw[data] (s6) to node[above, font=\scriptsize] {$150^{7} \bmod 187$} (m6);
+      \node[font=\Large] at (10.3,0.3) {\ok};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \bigdef{$M_1^{d} \times M_2^{d} = (M_1 \times M_2)^{d} \pmod n$: \;the product of two signatures is a signature of the product.}
+  \vfill
+  \keymsg{From two signed messages, Mallory makes a third signature without the private key.}
+  \say{Rachunek: S(2) = 2 do 23 mod 187 = 162, S(3) = 181. Mallory mnoży: 162 razy 181 mod 187 = 150. I rzeczywiście 150 do 7 mod 187 = 6, więc 150 to poprawny podpis wiadomości 6, której Alice nigdy nie podpisała. Dlaczego: potęgowanie zachowuje mnożenie, (ab) do d = a do d razy b do d. Podpis Mallory jest różowy: zrobiła go ona, choć przechodzi z kluczem Alice.}
+\end{frame}
+
+\samedot
+\begin{frame}{Problem 3: any number is a signature}
+  % CHECKED: python3: pow(100, 7, 187) = 144, pow(144, 23, 187) = 100
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \mallory{0,0}
+      \node[msig, font=\LARGE] (s) at (3.4,0) {100};
+      \node[font=\scriptsize, text=gray] at (3.4,0.75) {any number as $S$};
+      \node[msg, font=\LARGE] (m) at (8.6,0) {144};
+      \draw[data] (M.east) -- (s.west);
+      \draw[data] (s) to node[above, apub, font=\small] {\faKey\ $100^{7} \bmod 187$} (m);
+      \node[font=\scriptsize, text=gray] at (8.6,0.75) {the message it signs};
+      \node[font=\large, anchor=west] at (9.4,0) {\ok};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}
+    Mallory goes backwards: she picks $S$ first, then computes $M = S^{e} \bmod n$ with the \textbf{public} key.\\[4pt]
+    The pair $(M, S) = (144, 100)$ verifies. She cannot choose $M$, but\\
+    if any number is a fine message (a random code, an amount), that is enough.
+  \end{center}
+  \keymsg{Textbook RSA lets anybody make valid pairs; only the choice of the message is hard.}
+  \say{Trzeci problem: Mallory nie wybiera wiadomości, tylko podpis. 100 do 7 mod 187 = 144, i para (144, 100) przechodzi sprawdzenie. Jeśli system przyjmuje dowolną liczbę (np. jednorazowy kod, losowy identyfikator, kwotę), to Mallory ma poprawnie podpisaną liczbę. Zadanie 5 robi oba triki na prawdziwym kluczu 2048 bitów.}
+\end{frame}
+
+\begin{frame}{Task 5: forge it}
+  \vfill
+  \taskgoal{as Mallory, without the private key, make Alice's bank accept an order for 1000 pounds.}
+  \taskready{\texttt{bank\_ready.py}: Alice's public key and two orders she signed for Mallory, 20 and 50 pounds.}
+  \vfill
+  \opentask{Task5}{about 9 minutes}
+  \vfill
+  \say{Około 9 minut. Bank Alice przyjmuje zlecenie jako liczbę (kwota w funtach) podpisaną podręcznikowym RSA. TODO 1: bank sprawdza dwa prawdziwe zlecenia. TODO 2: mnożenie podpisów, 20 razy 50 = 1000. TODO 3: dowolna liczba jako podpis. Jeśli ktoś utknie przy TODO 2: przypomnieć slajd Problem 2, ale na prawdziwym kluczu.}
+\end{frame}
+
+\samedot
+\begin{frame}{Task 5: what we saw}
+  % CHECKED: python3 Task5/solution/forge.py, 2026-11-17
+  \vfill
+  \begin{center}
+    \renewcommand{\arraystretch}{1.4}
+    \begin{tabular}{@{}l l c@{}}
+      \toprule
+      order 1, 20 pounds & signed by Alice & \ok\ \texttt{True} \\
+      order 2, 50 pounds & signed by Alice & \ok\ \texttt{True} \\
+      $s_1 \times s_2 \bmod n$ (\texttt{13bf50ca\ldots 1031c3}) & on \textbf{1000 pounds} & \ok\ \texttt{True} \\
+      any $s$: 123\,456\,789 & on \texttt{4383e8aa\ldots 62c032b0} & \ok\ \texttt{True} \\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+  \vfill
+  \begin{center}\small Mallory never had $d$. Two signatures and one multiplication were enough.\end{center}
+  \keymsg{Textbook RSA signatures can be forged: we must not sign the message itself.}
+  \say{Wynik rozwiązania. Podpis na 1000 funtów: iloczyn podpisów mod n, bank mówi True. Losowe S = 123456789 podpisuje ogromną liczbę (512 cyfr szesnastkowych); bank też mówi True, choć kwota jest bez sensu. Zapytać: jak to naprawić? Podpowiedź: na początku wykładu mieliśmy coś, co z każdego pliku robi 32 bajty i czego nie da się odwrócić.}
+\end{frame}
+
+\begin{frame}{Hash first, then sign}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \node[msg, font=\small, minimum width=2.4cm, minimum height=1.6cm] (m) at (0,0) {\faFile*[regular]\\ message\\ any length};
+      \mech{h}{3.2,0}{SHA-256}{2.2cm}
+      \node[digest, font=\small, minimum width=2.0cm] (d) at (6.0,0) {digest\\32 bytes};
+      \node[hwmain, minimum width=2.4cm, minimum height=1.0cm, font=\small\bfseries] (r) at (9.0,0) {\faCogs\ $H^{d} \bmod n$};
+      \node[apriv, font=\small] (k) at (9.0,1.3) {\faKey\ private key};
+      \node[asig, font=\small, minimum height=0.9cm] (s) at (12.0,0) {\faStamp\ signature};
+      \draw[data] (m) -- (h); \draw[data] (h) -- (d); \draw[data] (d) -- (r); \draw[data] (k) -- (r); \draw[data] (r) -- (s);
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \bigdef{\textbf{Hash-and-sign}: \;$S = H(M)^{d} \bmod n$. \quad Verify: $S^{e} \bmod n = H(M)$?\\[2pt]
+    \small Bob computes $H(M)$ himself from the message he received.}
+  \vfill
+  \keymsg{We sign the digest of the message, not the message.}
+  \say{Poprawka: zamiast M podpisujemy H(M), skrót wiadomości (SHA-256), czytany jako liczba. Bob dostaje wiadomość i podpis, liczy skrót sam i porównuje z S do e mod n. Tak robi każdy prawdziwy podpis, także ECDSA i Ed25519 (Ed25519 używa SHA-512 w środku). Dlatego na wykładzie 9 zobaczymy, że w środku podpisu certyfikatu liczy się skrót danych. Brązowy to skrót: ten sam kolor co na początku wykładu.}
+\end{frame}
+
+\samedot
+\begin{frame}{Bob checks a hash-and-sign signature}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \bob{-1.6,-0.6}
+      \node[msg, font=\small] (m) at (1.4,0.6) {\faFile*[regular]\ message he got};
+      \mech{h}{5.0,0.6}{SHA-256}{2.2cm}
+      \node[digest, font=\small] (d1) at (8.6,0.6) {$H(M)$};
+      \node[asig, font=\small] (s) at (1.4,-1.0) {\faStamp\ signature $S$};
+      \node[hwmain, minimum width=2.2cm, minimum height=1.0cm, font=\small\bfseries] (p) at (5.0,-1.0) {\faCogs\ $S^{e} \bmod n$};
+      \node[apub, font=\scriptsize] at (5.0,-1.95) {\faKey\ Alice's public key};
+      \node[digest, font=\small] (d2) at (8.6,-1.0) {a number};
+      \draw[data] (m) -- (h); \draw[data] (h) -- (d1);
+      \draw[data] (s) -- (p); \draw[data] (p) -- (d2);
+      \node[font=\Large, anchor=west] at (9.8,-0.2) {equal? \ok\,/\,\nok};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small
+    Two independent ways to the same 32 bytes: from the message (anybody), and from the signature (only Alice could start it).\\
+    If they meet, the message is the one Alice signed.
+  \end{center}
+  \keymsg{Verify = hash the message yourself, undo the signature with the public key, compare.}
+  \say{Strona Boba. Bob nie dostaje skrótu od nikogo: liczy go sam z wiadomości, którą otrzymał. Z podpisu, potęgą publiczną, wychodzi liczba, którą Alice podpisała. Jeśli Mallory zmieniła wiadomość, skrót Boba będzie inny; jeśli zmieniła podpis, wyjdzie inna liczba. W zadaniu 6 TODO 3 to dokładnie ten rysunek.}
+\end{frame}
+
+\samedot
+\begin{frame}{Why the hash helps: any length}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \node[msg, minimum width=8cm, minimum height=0.8cm, font=\small] (f) at (0,0) {\faFile*[regular]\ an update of 10 MB};
+      \mech{h}{0,-1.4}{SHA-256}{2.2cm}
+      \node[digest, font=\small] (d) at (0,-2.6) {32 bytes};
+      \node[asig, font=\small] (s) at (4.0,-2.6) {\faStamp\ one signature, 256 bytes};
+      \draw[data] (f) -- (h); \draw[data] (h) -- (d); \draw[data] (d) -- (s);
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{columns}[t,onlytextwidth]
+    \column{0.32\textwidth}\stepbox{One signature}{instead of 39\,216: one power, about 1 ms.}
+    \column{0.32\textwidth}\stepbox{The whole file}{change, drop or move one byte and the digest is completely different.}
+    \column{0.32\textwidth}\stepbox{Always small}{a 32-byte digest is always smaller than $n$.}
+  \end{columns}
+  \keymsg{One digest covers the whole file, so one signature does too.}
+  \say{Problem 1 rozwiązany: skrót ma zawsze 32 bajty, niezależnie od rozmiaru pliku. Skrót 10 MB liczy się w ułamku sekundy (SHA-256 robi kilkaset MB na sekundę), a potęga jest jedna. Nie da się też usuwać ani przestawiać kawałków, bo podpis obejmuje skrót całości.}
+\end{frame}
+
+\samedot
+\begin{frame}{Why the hash helps: no forgeries}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \node[asig, font=\small] (s1) at (0,0.6) {$S_1$ on $H(M_1)$};
+      \node[asig, font=\small] (s2) at (0,-0.6) {$S_2$ on $H(M_2)$};
+      \node[msig, font=\small] (s) at (4.0,0) {$S_1 \times S_2$};
+      \draw[data] (s1.east) -- (s.west); \draw[data] (s2.east) -- (s.west);
+      \node[digest, font=\small] (n) at (8.0,0) {the number $H(M_1) \times H(M_2) \bmod n$};
+      \draw[data] (s) to node[above, font=\scriptsize] {signs} (n);
+      \node[msg, font=\small, dashed] (q) at (8.0,-1.6) {a message $M$ with this digest?};
+      \draw[data, dashed] (n) -- (q);
+      \node[font=\small, text=aWrite, anchor=west] at (10.3,-1.6) {\nok\ one way};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small
+    The multiplied or random signature still signs some \textbf{number}. To use it, Mallory needs a message\\
+    whose SHA-256 is exactly that number: she must run SHA-256 backwards (Lecture 6: one way).
+  \end{center}
+  \keymsg{After hashing, a forged number is useless: no message leads to it.}
+  \say{Problemy 2 i 3. Mnożenie nadal działa na liczbach, ale wynik podpisuje liczbę, która nie jest skrótem żadnej znanej wiadomości. Żeby ją wykorzystać, Mallory musiałaby znaleźć wiadomość o takim skrócie, czyli odwrócić SHA-256 (preimage, wykład 6): około $2^{256}$ prób. Losowe S tak samo. Zadanie 6 to sprawdza.}
+\end{frame}
+
+\begin{frame}{Task 6: hash, then sign}
+  \vfill
+  \taskgoal{sign a 100\,000-byte update with hash-and-sign; change one byte; try the multiplication trick again.}
+  \taskready{\texttt{alice\_key.py} (\texttt{n}, \texttt{e}, \texttt{d}); \texttt{update.bin}; two hash-signed orders in \texttt{signed\_orders.txt}.}
+  \vfill
+  \opentask{Task6}{about 9 minutes}
+  \vfill
+  \say{Około 9 minut. TODO 1: funkcja hash\_number (SHA-256 jako liczba). TODO 2 i 3: podpis i sprawdzenie. TODO 4: zmiana jednego bitu w bajcie 50 000 (bytearray, ^= 1). TODO 5: ten sam trik z mnożeniem co w zadaniu 5, tym razem na podpisach skrótów. Przed TODO 5 zapytać: czy bank przyjmie 1000 funtów?}
+\end{frame}
+
+\samedot
+\begin{frame}{Task 6: what we saw}
+  % CHECKED: python3 Task6/solution/hash_and_sign.py, 2026-11-17
+  \vfill
+  \begin{center}
+    \renewcommand{\arraystretch}{1.4}
+    \begin{tabular}{@{}l l@{}}
+      \toprule
+      the file, 100\,000 bytes & digest \texttt{710fcd1df5b9\ldots 3416108c9faf} \\
+      one signature, 256 bytes & \texttt{bf0aa615a40e\ldots f8609c05042f} \\
+      Bob checks the file & \ok\ \texttt{True} \\
+      Bob checks it with one bit of byte 50\,000 flipped & \nok\ \texttt{False} \\
+      the bank checks $s_{20} \times s_{50}$ on ``\ldots 1000 pounds'' & \nok\ \texttt{False} \\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+  \vfill
+  \keymsg{Hash-and-sign: one signature for any file, and this multiplication trick no longer works.}
+  \say{Wynik rozwiązania. Plik 100 000 bajtów, jeden podpis 256 bajtów. Jeden bit zmieniony: skrót zupełnie inny, więc False. Iloczyn podpisów nie pasuje do skrótu wiadomości o 1000 funtów, więc bank odrzuca. Zapytać: czy to znaczy, że podręcznikowe RSA na skrócie jest już idealne? Odpowiedź na następnym slajdzie.}
+\end{frame}
+
+\begin{frame}{See it: can Mallory use a forged number?}
+  \begin{center}\small A forged signature still signs some number. Mallory needs an order whose hash is exactly that number.\end{center}
+  \vfill
+  \opensim{signatures/\#3}
+  \vfill
+  \begin{enumerate}\small
+    \item No hash: the number is the order itself, and the bank pays at once.
+    \item A hash cut to $t$ bits: Mallory tries one order after another; watch the number of tries grow like $2^{t}$.
+    \item From 8 to 32 bits, then the line goes on to 256 bits: the tries she would need.
+  \end{enumerate}
+  \vfill
+  \keymsg{Each bit of the hash doubles Mallory's work; at 256 bits she never finds an order.}
+  \say{Pokaz na żywo, około 3 minut, można pominąć. Skrót jest skrócony do t bitów tylko po to, żeby dało się go złamać na oczach sali: przy 16 bitach to kilkadziesiąt tysięcy prób, ułamek sekundy; przy 32 bitach kilka miliardów, za dużo na pokaz, więc symulator pokazuje przybliżenie z pomiaru. Każdy bit podwaja pracę; 256 bitów to $2^{256}$ prób, czyli odwrócenie SHA-256 (preimage z wykładu 6).}
+\end{frame}
+
+\begin{frame}{In practice: RSA-PSS}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \node[digest, font=\small, minimum width=2.2cm] (d) at (0,0) {digest};
+      \node[font=\large] at (1.55,0) {+};
+      \node[hw, font=\small, minimum width=1.8cm] (s) at (3.0,0) {\faDice\ salt};
+      \node[font=\large] at (4.45,0) {+};
+      \node[hw, font=\small, minimum width=2.4cm] (p) at (6.1,0) {fixed structure};
+      \node[hwmain, font=\small\bfseries] (r) at (9.4,0) {\faCogs\ power $d$};
+      \draw[data] (p) -- (r);
+      \node[asig, font=\small] (sig) at (12.0,0) {\faStamp\ signature};
+      \draw[data] (r) -- (sig);
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \bigdef{\textbf{RSA-PSS} does for signatures what OAEP does for encryption (Lecture 3):\\
+    random salt and a fixed structure around the digest before the power.}
+  \vfill
+  \begin{center}\small
+    A bare 32-byte digest is still a small number inside a 2048-bit $n$, and small numbers can be built from small factors.\\
+    The padding fills all of $n$ with a fixed structure plus the salt, so the signed number is no longer small.\\[4pt]
+    The older \textbf{PKCS\#1 v1.5} padding (fixed, no salt) is still in most certificates today. Never textbook RSA.
+  \end{center}
+  \keymsg{Real RSA signatures: hash, pad, then power.}
+  % CHECKED: RFC 8017 (PKCS #1 v2.2), section 8.1 RSASSA-PSS and 8.2 RSASSA-PKCS1-v1_5;
+  %   RFC 8446 section 4.2.3: rsa_pkcs1_* "refer solely to signatures which appear in certificates" (bugzilla.mozilla.org 1489997, 2026-11-17)
+  % CHECKED: Desmedt and Odlyzko (CRYPTO 1985) and Coron, Naccache, Stern (CRYPTO 1999): forgeries on RSA signatures of short or partly fixed numbers through their small factors
+  \say{Jedno zdanie, jak OAEP w wykładzie 3: PSS (Bellare i Rogaway, 1996) dodaje losową sól i stałą strukturę bajtów, zanim liczba pójdzie do potęgi. Dlaczego sam skrót nie wystarcza: 256-bitowy skrót to mała liczba w 2048-bitowym n. Mnożenie dwóch podpisów z zadania 6 nie działa, ale z wielu podpisów małych liczb da się składać podpisy innych liczb przez ich małe czynniki (atak Desmedta i Odlyzko, 1985); dopełnienie wypełnia całe n, więc podpisywana liczba nie jest już mała. Dzięki soli ten sam plik podpisany dwa razy daje różne podpisy (zobaczymy w zadaniu 7). Starsze dopełnienie PKCS\#1 v1.5 jest deterministyczne i nadal bezpieczne do podpisów, i jest w większości certyfikatów. W TLS 1.3 (RFC 8446, punkt 4.2.3) serwer, który podpisuje RSA w trakcie łączenia, musi używać PSS; v1.5 zostało tylko dla podpisów w certyfikatach. W bibliotece cryptography: padding.PSS.}
+\end{frame}
+
+\samedot
+\begin{frame}[fragile]{RSA-PSS in Python}
+\begin{lstlisting}[style=py]
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.asymmetric import padding
+
+pss = padding.PSS(mgf=padding.MGF1(hashes.SHA256()), salt_length=32)
+
+signature = private_key.sign(data, pss, hashes.SHA256())   # 256 bytes
+public_key.verify(signature, data, pss, hashes.SHA256())   # exception if wrong
+\end{lstlisting}
+  \vfill
+  \begin{center}\small
+    The library hashes the data, adds the salt and the structure, and computes the power:\\
+    everything of this section in one call. Signed twice, the same data gives two different signatures.
+  \end{center}
+  \keymsg{In real code: the library and RSA-PSS, never your own \texttt{pow}.}
+  \say{To samo co pow z zadań 4 do 6, ale poprawnie: skrót, sól, struktura, potęga. MGF1 to sposób rozciągnięcia skrótu na długość n (nie trzeba pamiętać). Zadanie 7 używa właśnie tego podpisu jako RSA-2048. Pow w zadaniach był po to, żeby zobaczyć środek; w prawdziwym programie nigdy nie liczymy podpisu sami.}
+\end{frame}
+
+\begin{frame}{Recall: a collision}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \node[msg, font=\small, minimum width=2.8cm] (a) at (0,0.7) {document A};
+      \node[msg, font=\small, minimum width=2.8cm] (b) at (0,-0.7) {document B};
+      \mech{h}{3.8,0}{MD5}{1.8cm}
+      \node[digest, font=\small] (d) at (7.2,0) {the same digest};
+      \draw[data] (a.east) -- (h.west); \draw[data] (b.east) -- (h.west); \draw[data] (h) -- (d);
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small
+    Lecture 7: for MD5 and SHA-1, anyone can make two different inputs with the same digest,\\
+    even with a chosen beginning (chosen prefix). SHA-256 has no known collision.
+  \end{center}
+  \keymsg{A broken hash gives two inputs with one digest.}
+  \say{Przypomnienie z wykładu 7: kolizje MD5 (Wang 2004) i SHA-1 (SHAttered 2017, Shambles 2020, z wybranym prefiksem). SHA-256 trzyma się: najlepszy znany atak to nadal około $2^{128}$ prób (paradoks urodzin). Co to znaczy dla podpisu, który podpisuje tylko skrót?}
+\end{frame}
+
+\samedot
+\begin{frame}{A collision breaks the signature}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \node[msg, font=\small, text width=3.2cm] (a) at (0,0.9) {A: a harmless document};
+      \node[msg, font=\small, text width=3.2cm, draw=sPink, line width=1.2pt] (b) at (0,-0.9) {B: a harmful document};
+      \node[digest, font=\small] (d) at (4.2,0) {the same MD5};
+      \draw[data] (a.east) -- (d.west); \draw[data] (b.east) -- (d.west);
+      \node[asig, font=\small] (s) at (8.0,0.9) {\faStamp\ signature on A};
+      \draw[data] (d.east) -- (s.west);
+      \node[font=\small, anchor=west, align=left] at (6.9,-0.7) {fits B too \ok\\[2pt]\scriptsize\textcolor{gray}{verify only sees the digest}};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small
+    Mallory makes a harmless A and a harmful B with the same digest, gets A signed, then uses the signature with B.\\[4pt]
+    Real: a rogue certificate authority (2008) and the Flame malware (2012), both with MD5 (Lecture 7).
+  \end{center}
+  \keymsg{A signature is only as strong as its hash: sign with SHA-256, never MD5 or SHA-1.}
+  \say{Podpis obejmuje tylko skrót, więc kolizja skrótu to fałszerstwo podpisu. Oba przypadki z wykładu 7: 2008 badacze zrobili fałszywy urząd certyfikacji (CA, wykład 7; dokładnie na wykładzie 9; tu wystarczy: ktoś, kto podpisuje cudze klucze; dokument A był zwykłym certyfikatem strony, B certyfikatem nowego CA), 2012 Flame miał fałszywy podpis kodu Microsoftu. Dlatego przeglądarki od lat odrzucają podpisy z MD5 i SHA-1. Zadanie dokładnie o tym, na prawdziwym certyfikacie, jest w wykładzie 12 (Task 5); tu go nie powtarzamy.}
+\end{frame}
+
+% ======================================================================
+\section[Signatures in practice]{Signatures on curves and in practice}
+% ======================================================================
+
 \begin{frame}{Signatures on curves}
   \vfill
   \begin{center}
     \begin{tikzpicture}
-      \foreach \x/\name/\curve/\used [count=\k] in {0/ECDSA/{the curve P-256}/{TLS, Bitcoin, passports,\\the PlayStation 3}, 7/Ed25519/{Curve25519 (Lecture 5)}/{SSH, Signal, Git,\\many new systems}} {
+      \foreach \x/\name/\curve/\used [count=\k] in {0/ECDSA/{the curve P-256}/{TLS, Bitcoin, passports,\\the PlayStation 3}, 7/Ed25519/{Curve25519 (Lecture 5)}/{SSH, Git,\\many new systems}} {
         \node[hw, minimum width=6.2cm, minimum height=3.0cm] (b\k) at (\x,0) {};
         \node[font=\large\bfseries, text=nInk] at (\x,0.9) {\name};
         \node[font=\small, text=nInk] at (\x,0.3) {\curve};
@@ -1526,7 +1573,7 @@ public_key.verify(signature, data, pss, hashes.SHA256())   # exception if wrong
   \end{center}
   \keymsg{On curves: short keys, short signatures, the same interface.}
   % CHECKED: FIPS 186-5 (2023) specifies RSA, ECDSA and EdDSA (csrc.nist.gov/Projects/digital-signatures, 2026-11-17)
-  \say{ECDSA to wersja podpisu ElGamala/DSA na krzywej; standard NIST (FIPS 186, od 2000 roku; FIPS 186-5 z 2023 dodał też EdDSA, czyli Ed25519). Przykłady użycia: certyfikaty i TLS (bardzo często ECDSA P-256), Bitcoin (ECDSA na krzywej secp256k1), paszporty biometryczne, konsola PS3 (za chwilę). Ed25519: klucze SSH, Signal, podpisy commitów. Matematyki w środku nie omawiamy, poza jednym wzorem potrzebnym do ataku.}
+  \say{ECDSA to wersja podpisu ElGamala/DSA na krzywej; standard NIST (FIPS 186, od 2000 roku; FIPS 186-5 z 2023 dodał też EdDSA, czyli Ed25519). Przykłady użycia: certyfikaty i TLS (bardzo często ECDSA P-256), Bitcoin (ECDSA na krzywej secp256k1), paszporty biometryczne, konsola PS3 (za chwilę). Ed25519: klucze SSH, podpisy commitów, wiele nowych systemów (Signal używa pokrewnego XEdDSA, nie samego Ed25519). Matematyki w środku nie omawiamy, poza jednym wzorem potrzebnym do ataku.}
 \end{frame}
 
 \samedot
@@ -1574,7 +1621,7 @@ public_key.verify(signature, data, pss, hashes.SHA256())   # exception if wrong
     so a bad generator cannot hurt it. The same idea for ECDSA: deterministic $k$, RFC 6979 (2013).
   \end{center}
   \keymsg{Deterministic $k$: secret, different for every message, never from a random generator.}
-  % CHECKED: RFC 8032 section 5.1.6 (r = SHA-512(prefix || M), prefix from the hash of the private key); RFC 6979 (August 2013)
+  % CHECKED: RFC 8032 section 5.1.6 (r = SHA-512(prefix || M), prefix from the hash of the private key); RFC 6979 (August 2013, T. Pornin; review 2026-11-18)
   \say{Dlatego Ed25519 jest deterministyczny (zadanie 2: ten sam podpis dwa razy). k jest tajne, bo zależy od klucza prywatnego, i różne dla różnych wiadomości, bo zależy od wiadomości. Te same wiadomości dają to samo k, ale wtedy też ten sam podpis, więc nic nie wycieka. RFC 6979 to ta sama sztuczka dla ECDSA.}
 \end{frame}
 
@@ -1585,13 +1632,14 @@ public_key.verify(signature, data, pss, hashes.SHA256())   # exception if wrong
   \vfill
   \opentask{Task7}{about 8 minutes}
   \vfill
-  \say{Około 8 minut. Jedna pętla po trzech nazwach. TODO 1: rozmiary. TODO 2: dwa podpisy tej samej wiadomości: równe? oba poprawne? TODO 3: czas 200 podpisów i 200 sprawdzeń (time.perf\_counter). Przed TODO 2 zapytać: który da dwa takie same podpisy? RSA-2048 w module to RSA-PSS (z solą). Przy braku czasu pominąć TODO 3 i pokazać pomiar z następnego slajdu.}
+  \say{Około 8 minut. Jedna pętla po trzech nazwach. TODO 1: rozmiary. TODO 2: dwa podpisy tej samej wiadomości: równe? oba poprawne? TODO 3: czas 200 podpisów i 200 sprawdzeń (time.perf\_counter). Przed TODO 2 zapytać: który da dwa takie same podpisy? RSA-2048 w module to RSA-PSS (z solą). Przy braku czasu pominąć TODO 3 i pokazać pomiar z następnego slajdu. Na obciążonym komputerze czasy rosną nawet 10 razy: przed pomiarem zamknąć inne programy.}
 \end{frame}
 
 \samedot
 \begin{frame}{Task 7: what we saw}
   % CHECKED: python3 Task7/solution/three_schemes.py, 2026-11-17, Intel Core i5-8265U, OpenSSL 3.0.13, cryptography 41.0.7
-  %   (three runs; times vary by about 20%; the first run is shown)
+  %   (three runs; times vary by about 20%; the first run is shown); re-run 2026-11-18 (three runs): RSA sign / ECDSA sign = 14.6 to 15.3,
+  %   RSA sign / Ed25519 sign = 12.7 to 12.9; keys 256 / 33 = 7.8, signatures 256 / 64 = 4
   \vfill
   \begin{center}
     \renewcommand{\arraystretch}{1.5}
@@ -1607,7 +1655,7 @@ public_key.verify(signature, data, pss, hashes.SHA256())   # exception if wrong
   \end{center}
   \vfill
   \begin{center}\small Measured on a laptop (Intel Core i5-8265U, OpenSSL 3.0.13). All signatures were valid.\end{center}
-  \keymsg{Curves: 8 times smaller keys and signatures, and signing 15 times faster than RSA.}
+  \keymsg{Curves: keys 8 times smaller, signatures 4 times smaller, signing 13 to 15 times faster than RSA.}
   \say{Wynik pierwszego uruchomienia; u studentów liczby będą inne, proporcje podobne. Klucz ECDSA 33 bajty: punkt w postaci skróconej (x i jeden bit y). Podpis ECDSA tu to r i s po 32 bajty; w formacie DER (np. w certyfikacie) ma około 70 do 72 bajtów. RSA weryfikuje bardzo szybko (małe e = 65537), ale podpisuje wolno (duże d). Dlatego serwery, które podpisują przy każdym połączeniu, coraz częściej mają klucze ECDSA.}
 \end{frame}
 
@@ -1636,16 +1684,15 @@ public_key.verify(signature, data, pss, hashes.SHA256())   # exception if wrong
 \samedot
 \begin{frame}{Inside ECDSA: r and s}
   \vfill
-  \stepbox{1. A point from k}{$R = k\,G$ \quad and \quad $r$ = the $x$ of $R$, mod $q$ \hfill \textcolor{gray}{(G and its order $q$: Lecture 5)}}
+  \stepbox{1. A point from k}{$R = k\,G$ \quad and \quad $r$ = the $x$ of $R$, mod $q$ \hfill \textcolor{gray}{($G$ and its order: $n$ in Lecture 5; here $q$, because $n$ is the RSA modulus)}}
   \stepbox{2. Mix in the digest and the private key}{$s = (z + r\,d) \,/\, k \pmod q$ \hfill \textcolor{gray}{($z$ = the digest as a number, $d$ = the private key)}}
   \stepbox{3. The signature}{$(r, s)$. Verify uses only $Q = d\,G$, never $d$ or $k$.}
   \vfill
   \begin{center}\small
     One equation, two unknowns $k$ and $d$: as long as $k$ is secret and new, $s$ hides $d$.
   \end{center}
-  \curious{signatures/\#5}
   \keymsg{$s$ hides the private key $d$ behind the secret $k$.}
-  \say{Tylko tyle wzorów, ile trzeba do ataku. G: punkt startowy, q: rząd G (wykład 5, slajd The order of G: po q krokach wracamy do O), wszystkie liczby bierzemy mod q. Dzielenie mod q to mnożenie przez odwrotność, jak w wykładzie 3. Jak verify sprawdza bez d: liczy punkt z G i Q i porównuje jego x z r; szczegóły w symulatorze, krok 5. Dlaczego bezpieczne: dla jednego podpisu jest jedno równanie i dwie niewiadome (k i d), a k nie da się wyciągnąć z R (problem ECDLP z wykładu 5).}
+  \say{Tylko tyle wzorów, ile trzeba do ataku. G: punkt startowy, q: rząd G (w wykładzie 5 ta liczba nazywała się n, tam n = 19; tu q, bo n to już moduł RSA; po q krokach wracamy do O), wszystkie liczby bierzemy mod q. Dzielenie mod q to mnożenie przez odwrotność, jak w wykładzie 3. Jak verify sprawdza bez d: za dwa slajdy (Why verify works). Dlaczego bezpieczne: dla jednego podpisu jest jedno równanie i dwie niewiadome (k i d), a k nie da się wyciągnąć z R (problem ECDLP z wykładu 5).}
 \end{frame}
 
 \samedot
@@ -1659,7 +1706,7 @@ public_key.verify(signature, data, pss, hashes.SHA256())   # exception if wrong
       \modgrid[0.2]{\gmark[nInk]{5,1}{$G$}{below right}\gmark[sIndigo]{0,6}{$Q$}{right}\gmark[AccentOrange]{7,11}{$kG$}{above right}}
     \column{0.52\textwidth}
       \small
-      Curve of Lecture 5: $y^2 = x^3 + 2x + 2 \bmod 17$, $G = (5, 1)$, $q = 19$.\\[6pt]
+      Curve of Lecture 5: $y^2 = x^3 + 2x + 2 \bmod 17$, $G = (5, 1)$, $q = 19$ ($n = 19$ there).\\[6pt]
       Alice: $d = 7$, \;$Q = 7G = (0, 6)$.\\[6pt]
       \textbf{Signature 1}, $z_1 = 5$, \;$k = 10$:\\
       \quad $10G = (7, 11)$, so $r = 7$\\
@@ -1670,6 +1717,28 @@ public_key.verify(signature, data, pss, hashes.SHA256())   # exception if wrong
   \vfill
   \keymsg{The same $k$ gives the same $r$: anybody can see that $k$ repeated.}
   \say{Malutki przykład na krzywej z wykładu 5 (19 punktów razem z O). Hashe z1 = 5 i z2 = 11 to zabawkowe liczby mod 19 zamiast prawdziwego SHA-256. Rachunek: 5 + 49 = 54 = 16 mod 19; odwrotność 10 mod 19 to 2 (10 razy 2 = 20 = 1), więc s1 = 16 razy 2 = 32 = 13. Drugi: 11 + 49 = 60 = 3 mod 19, razy 2 = 6. Oba podpisy przechodzą sprawdzenie (policzone w Pythonie). Najważniejsze: r jest w obu takie samo, więc każdy widzi, że k się powtórzyło.}
+\end{frame}
+
+\samedot
+\begin{frame}{Why verify works}
+  % CHECKED: python3 (scratchpad l8/toy.py): s1 = 13, pow(13, -1, 19) = 3, u1 = 5 * 3 = 15, u2 = 7 * 3 = 21 = 2 mod 19;
+  %   15G + 2Q = 15G + 14G = 29G = 10G = (7, 11), x = 7 = r
+  \vfill
+  \begin{columns}[c,onlytextwidth]
+    \column{0.40\textwidth}
+      \centering
+      \modgrid[0.2]{\gmark[nInk]{5,1}{$G$}{below right}\gmark[sIndigo]{0,6}{$Q$}{right}\gmark[sTeal]{7,11}{$u_1 G + u_2 Q$}{above}}
+    \column{0.58\textwidth}
+      \stepbox{1. Bob computes two numbers from the signature}{$u_1 = z / s$, \quad $u_2 = r / s \pmod q$}
+      \stepbox{2. One point from $G$ and the public key $Q = d\,G$}{$u_1 G + u_2 Q = \dfrac{z + r\,d}{s}\, G = k\,G = R$}
+      \stepbox{3. Compare}{the $x$ of that point $= r$? \;\ok\ valid}
+      \small Our curve, signature 1: \;$1/13 = 3$, \;$u_1 = 5 \times 3 = 15$, \;$u_2 = 7 \times 3 = 21 = 2$\\
+      $15G + 2Q = 15G + 14G = 29G = 10G = (7, 11)$: \;$x = 7 = r$ \;\ok
+  \end{columns}
+  \vfill
+  \curious{signatures/\#4}
+  \keymsg{Bob rebuilds the point $R$ from $G$ and $Q$ alone: he never needs $d$ or $k$.}
+  \say{Brakujący krok: dlaczego sprawdzenie działa. Z definicji s = (z + r d)/k, więc (z + r d)/s = k. Bob nie zna ani d, ani k, ale zna Q = d G, więc (z/s) G + (r/s) Q = ((z + r d)/s) G = k G = R. Jeśli x tego punktu równa się r, podpis pasuje. Na naszej krzywej: odwrotność 13 mod 19 to 3 (13 razy 3 = 39 = 2 razy 19 + 1); u1 = 15, u2 = 21 mod 19 = 2. 2Q = 2 razy 7G = 14G, razem 29G, a 29 mod 19 = 10, więc wychodzi 10G = (7, 11), x = 7 = r. Jeśli Mallory zmieni z albo s, u1 i u2 się zmienią i punkt wyląduje gdzie indziej: pokazuje to symulator, krok 4.}
 \end{frame}
 
 \samedot
@@ -1699,7 +1768,7 @@ public_key.verify(signature, data, pss, hashes.SHA256())   # exception if wrong
   \begin{center}\small Mallory now has Alice's private key: she can sign anything as Alice.\end{center}
   \keymsg{A repeated $k$ in ECDSA gives away the private key, from two public signatures.}
   % CHECKED: python3: 125 % 19 = 11, pow(7, -1, 19) = 11, 11 * 11 % 19 = 7
-  \say{Jedno równanie, jedna niewiadoma d. 125 mod 19 = 11 (125 = 6 razy 19 + 11), razy odwrotność 7, czyli 11: 121 mod 19 = 7. Zgadza się z kluczem Alice. To jest gorsze niż w ElGamalu: tam wyciekała jedna wiadomość, tu cały klucz prywatny, czyli wszystkie przyszłe podpisy. Symulator, krok 5, liczy ten atak krok po kroku (pokażemy po zadaniu 8).}
+  \say{Jedno równanie, jedna niewiadoma d. 125 mod 19 = 11 (125 = 6 razy 19 + 11), razy odwrotność 7, czyli 11: 121 mod 19 = 7. Zgadza się z kluczem Alice. To jest gorsze niż w ElGamalu: tam wyciekała jedna wiadomość, tu cały klucz prywatny, czyli wszystkie przyszłe podpisy. Symulator, krok 5, liczy ten atak krok po kroku dla różnych sposobów wyboru k (pokażemy po zadaniu 8).}
 \end{frame}
 
 \begin{frame}{Sony PlayStation 3, 2010}
@@ -1717,8 +1786,10 @@ public_key.verify(signature, data, pss, hashes.SHA256())   # exception if wrong
   \end{columns}
   \vfill
   \keymsg{A strong curve and a correct formula, broken by one number that did not change.}
-  % CHECKED: fail0verflow, "Console Hacking 2010", 27C3, Berlin, 29 December 2010 (exophase.com/20540, siliconangle.com/?p=35925, games.slashdot.org 2010-12-29; 2026-11-17)
-  \say{Prawdziwa historia: na kongresie 27C3 w Berlinie (grudzień 2010) grupa fail0verflow pokazała, że Sony w podpisach programów dla PS3 używało stałego k. Z dwóch podpisanych plików wyliczyli klucz prywatny; kilka dni później klucz został opublikowany w internecie. Kryptografia była poprawna, implementacja nie. Sony nie mogło zmienić klucza w milionach konsol, które już były u ludzi.}
+  % CHECKED: fail0verflow, "Console Hacking 2010", 27C3, Berlin, 29 December 2010: the primary talk slides
+  %   fahrplan.events.ccc.de/congress/2010/Fahrplan/attachments/1780_27c3_console_hacking_2010.pdf (review 2026-11-18);
+  %   the key itself was published by George Hotz (geohot) in early January 2011
+  \say{Prawdziwa historia: na kongresie 27C3 w Berlinie (grudzień 2010) grupa fail0verflow pokazała, że Sony w podpisach programów dla PS3 używało stałego k. Z dwóch podpisanych plików wyliczyli klucz prywatny, ale go nie opublikowali; kilka dni później (początek stycznia 2011) inny haker, George Hotz (geohot), opublikował klucz w internecie. Kryptografia była poprawna, implementacja nie. Sony nie mogło zmienić klucza w milionach konsol, które już były u ludzi.}
 \end{frame}
 
 \begin{frame}{Task 8: the same k twice}
@@ -1728,7 +1799,7 @@ public_key.verify(signature, data, pss, hashes.SHA256())   # exception if wrong
   \vfill
   \opentask{Task8}{about 12 minutes}
   \vfill
-  \say{Około 12 minut. Prawdziwa krzywa P-256 i SHA-256, liczby po 77 cyfr. Najważniejsze są TODO 2 i 3: dwa wzory ze slajdów step 1 i step 2, z dzieleniem jako pow(x, -1, q). TODO 4 sprawdza, czy public\_key(d) == Q. TODO 5: podpis programu Mallory odzyskanym kluczem, konsola mówi True. Typowy błąd: zapomnieć o \% q albo podzielić zwykłym /. Symulatora z atakiem nie otwierać przed zadaniem.}
+  \say{Około 12 minut. Prawdziwa krzywa P-256 i SHA-256, liczby po 77 cyfr. TODO 1: najpierw spojrzeć, czy r1 == r2 (tak sprawdza się, że atak w ogóle ma sens). Najważniejsze są TODO 3 i 4: dwa wzory ze slajdów step 1 i step 2, z dzieleniem jako pow(x, -1, q); w pliku startowym wzorów nie ma, są w zwiniętej podpowiedzi w README. TODO 5 sprawdza, czy public\_key(d) == Q. TODO 6: podpis programu Mallory odzyskanym kluczem, konsola mówi True. Typowy błąd: zapomnieć o \% q albo podzielić zwykłym /. Symulatora z politykami k nie otwierać przed zadaniem.}
 \end{frame}
 
 \samedot
@@ -1750,7 +1821,7 @@ public_key.verify(signature, data, pss, hashes.SHA256())   # exception if wrong
   \vfill
   \begin{center}\small Two formulas and two inverses mod $q$: the private key of the console maker.\end{center}
   \keymsg{Mallory signs as Alice Games, and every console believes her.}
-  \say{Wynik rozwiązania. k = (z1 - z2) razy odwrotność (s1 - s2) mod q, d = (s1 razy k - z1) razy odwrotność r mod q. Całość działa w ułamku sekundy. Konsola sprawdza podpis programu Mallory kluczem publicznym Alice Games i mówi True, bo to jest prawdziwy podpis zrobiony prawdziwym kluczem prywatnym.}
+  \say{Wynik rozwiązania. Najpierw r1 = r2, więc k się powtórzyło. k = (z1 - z2) razy odwrotność (s1 - s2) mod q, d = (s1 razy k - z1) razy odwrotność r mod q. Całość działa w ułamku sekundy. Konsola sprawdza podpis programu Mallory kluczem publicznym Alice Games i mówi True, bo to jest prawdziwy podpis zrobiony prawdziwym kluczem prywatnym.}
 \end{frame}
 
 \begin{frame}{The rule for k}
@@ -1794,19 +1865,20 @@ public_key.verify(signature, data, pss, hashes.SHA256())   # exception if wrong
   \say{Można pominąć. 11 sierpnia 2013 bitcoin.org ogłosił, że portfele bitcoin na Androidzie są zagrożone: systemowy generator SecureRandom miał błąd i czasem dawał to samo k. Ponieważ wszystkie transakcje są publiczne, wystarczyło przeszukać łańcuch bloków w poszukiwaniu dwóch podpisów z tym samym r i policzyć klucz, jak w zadaniu 8. Poprawione portfele czytały losowość bezpośrednio z /dev/urandom.}
 \end{frame}
 
-\begin{frame}{See it: ECDSA with a repeated k}
-  \begin{center}\small ECDSA on the small curve of Lecture 5, with $q = 19$: sign, verify, and the attack.\end{center}
+\begin{frame}{See it: four ways to choose k}
+  \begin{center}\small ECDSA on the small curve of Lecture 5, with $q = 19$: two signatures by Alice, and what Mallory gets from them.\end{center}
   \vfill
   \opensim{signatures/\#5}
   \vfill
   \begin{enumerate}\small
-    \item Step 5.1: choose $d$, $k$ and $z$; watch $R = kG$, $r$ and $s$; verify draws the point it checks.
-    \item Step 5.2: sign two messages with the same $k$; the two $r$ are equal.
-    \item Press ``recover'': $k$ and then $d$ appear, step by step, as on the slides.
+    \item $k$ random: the two $r$ differ, the equations have too many unknowns, nothing leaks.
+    \item $k$ repeated: the same $r$; $k$ and then $d$ appear, step by step, as in Task 8.
+    \item $k_2 = k_1 + 1$: the $r$ differ, yet the same subtraction gives $d$ once Mallory knows the relation.
+    \item $k$ from the key and the message: the same message gives the same signature, nothing new leaks.
   \end{enumerate}
   \vfill
-  \keymsg{The same $r$ twice is a public alarm: the private key can be computed.}
-  \say{Pokaz na żywo, około 3 minut. Domyślne liczby to przykład ze slajdów: d = 7, k = 10, z = 5 i 11, podpisy (7, 13) i (7, 6).}
+  \keymsg{Not only a repeated $k$: any known relation between two $k$ gives the private key away.}
+  \say{Pokaz na żywo, około 3 minut, można pominąć przy braku czasu. Domyślne liczby to przykład ze slajdów: d = 7, z = 5 i 11; przy powtórzonym k = 10 podpisy (7, 13) i (7, 6). Przypadek k2 = k1 + 1 to najprostszy przykład ,,związku'' między k: dwa równania, dwie niewiadome (k1 i d), więc znów da się rozwiązać. Deterministyczne k (pomysł RFC 6979 i Ed25519): ta sama wiadomość daje ten sam podpis, więc nie ma dwóch różnych równań z tym samym k.}
 \end{frame}
 
 \begin{frame}{Where signatures are used}
@@ -1855,8 +1927,9 @@ public_key.verify(signature, data, pss, hashes.SHA256())   # exception if wrong
     \item Windows checks the signature of programs and drivers.
   \end{itemize}
   \keymsg{The public key is built in at installation, so a changed server cannot change it.}
-  % CHECKED: Debian SecureApt: InRelease / Release.gpg signed with OpenPGP, Release lists SHA-256 of the package lists (wiki.debian.org/SecureApt);
-  %   Android: "Android requires that all APKs be digitally signed ... before they are installed or updated" (source.android.com/docs/security/features/apksigning)
+  % CHECKED: Debian: InRelease / Release.gpg signed with OpenPGP, Release lists SHA-256 of the package lists (wiki.debian.org/DebianRepository/Format);
+  %   Android: all apps must be signed "...before they are installed on a device or updated"
+  %   (developer.android.com/studio/publish/app-signing); review 2026-11-18
   \say{To jest dokładnie problem z początku wykładu, rozwiązany. Debian i Ubuntu: plik InRelease (lista pakietów z ich skrótami SHA-256) jest podpisany, a apt ma klucze publiczne dystrybucji zainstalowane razem z systemem. Pakiety sprawdza się skrótami z podpisanej listy, więc jeden podpis chroni tysiące plików. Android: każda aplikacja musi być podpisana, a aktualizacja tym samym kluczem co wersja zainstalowana. Windows: Authenticode, podpisy programów i sterowników.}
 \end{frame}
 
@@ -1900,30 +1973,8 @@ public_key.verify(signature, data, pss, hashes.SHA256())   # exception if wrong
   \vfill
   \keymsg{Non-repudiation in practice: a signature that a court accepts.}
   % CHECKED: Regulation (EU) No 910/2014 (eIDAS), Article 25(2): "A qualified electronic signature shall have the equivalent legal effect of a handwritten signature"
+  %   (legislation.gov.uk/eur/2014/910/article/25; not changed by Regulation (EU) 2024/1183; review 2026-11-18)
   \say{Podpis kwalifikowany: klucz prywatny w certyfikowanym urządzeniu (karta, zdalny moduł), a klucz publiczny poświadczony przez zaufanego dostawcę. W Polsce to np. podpis kwalifikowany na karcie albo w chmurze; profil zaufany to inny mechanizm. Szczegóły prawne pomijamy, ważne jest, że niezaprzeczalność z tego wykładu działa w sądzie.}
-\end{frame}
-
-\samedot
-\begin{frame}{Recall: the man in the middle}
-  \vfill
-  \begin{center}
-    \begin{tikzpicture}[>=Stealth]
-      \alice{0,0}
-      \mallory{5,0}
-      \bob{10,0}
-      \draw[data] (A.east) to node[above, font=\scriptsize] {$A$} (M.west);
-      \draw[data] (M.east) to node[above, font=\scriptsize] {$g^{m}$ instead of $A$} (B.west);
-      \draw[data] ([yshift=-8pt]B.west) to node[below, font=\scriptsize] {$B$} ([yshift=-8pt]M.east);
-      \draw[data] ([yshift=-8pt]M.west) to node[below, font=\scriptsize] {$g^{m}$ instead of $B$} ([yshift=-8pt]A.east);
-    \end{tikzpicture}
-  \end{center}
-  \vfill
-  \begin{center}\small
-    Lecture 4: Mallory replaced both Diffie-Hellman values and shared one key with Alice and another with Bob.\\
-    The fix promised there: Bob seals $B$ with his long-term private key.
-  \end{center}
-  \keymsg{Diffie-Hellman alone cannot tell who sent a value; a signature can.}
-  \say{Przypomnienie ataku z wykładu 4 (zadanie z PIN-em). Pieczęć z tamtego wykładu to dzisiejszy podpis: Bob podpisuje B swoim długoterminowym kluczem prywatnym, a Alice sprawdza go jego kluczem publicznym. Mallory nie umie podpisać g do m jako Bob.}
 \end{frame}
 
 \samedot
@@ -1931,19 +1982,27 @@ public_key.verify(signature, data, pss, hashes.SHA256())   # exception if wrong
   \vfill
   \begin{center}
     \begin{tikzpicture}[>=Stealth]
-      \node[hw, font=\small, minimum width=3.0cm, minimum height=1.2cm] (b) at (0,0) {\faGlobe\ browser};
-      \node[hw, font=\small, minimum width=3.0cm, minimum height=1.2cm] (s) at (9,0) {\faServer\ server};
+      \alice{0,0}
+      \mallory{4.2,0}
+      \bob{8.4,0}
+      \draw[data] (A.east) to node[above, font=\scriptsize] {$A$} (M.west);
+      \draw[data] (M.east) to node[above, font=\scriptsize] {$g^{m}$ instead of $A$} (B.west);
+      \node[font=\scriptsize, text=gray, anchor=west, align=left] at (9.4,0) {Lecture 4: Mallory replaced\\both Diffie-Hellman values};
+    \end{tikzpicture}\\[10pt]
+    \begin{tikzpicture}[>=Stealth]
+      \node[hw, font=\small, minimum width=3.0cm, minimum height=1.0cm] (b) at (0,0) {\faGlobe\ browser};
+      \node[hw, font=\small, minimum width=3.0cm, minimum height=1.0cm] (s) at (8.4,0) {\faServer\ server};
       \draw[data, <->] (b) to node[above, font=\scriptsize] {key exchange (Lecture 4)} (s);
-      \node[asig, font=\scriptsize, text width=4.2cm, align=center] at (4.5,-1.1) {\faStamp\ the server signs the exchange with its private key};
+      \node[asig, font=\scriptsize, text width=4.2cm, align=center] at (4.2,-0.85) {\faStamp\ the server signs the exchange with its private key};
     \end{tikzpicture}
   \end{center}
   \vfill
   \begin{center}\small
-    This is the seal of Lecture 4: the server signs its part of the key exchange,\\
+    This is the seal promised in Lecture 4: the server signs its part of the key exchange,\\
     so Mallory in the middle cannot replace it. Details of the protocol: Lecture 11.
   \end{center}
   \keymsg{On the web, a signature stops the man in the middle.}
-  \say{TLS 1.3, protokół za kłódką w przeglądarce: serwer podpisuje cały przebieg uzgadniania klucza (wiadomość CertificateVerify, wykład 11). Bez tego wraca atak man in the middle z wykładu 4. Ale przeglądarka musi wiedzieć, że klucz publiczny naprawdę należy do tej strony. To jest pytanie na ostatnie slajdy.}
+  \say{Przypomnienie ataku z wykładu 4 (zadanie z PIN-em): Mallory podmieniła obie wartości Diffiego-Hellmana i miała jeden klucz z Alice, drugi z Bobem. Pieczęć z tamtego wykładu to dzisiejszy podpis. TLS 1.3, protokół za kłódką w przeglądarce: serwer podpisuje cały przebieg uzgadniania klucza (wiadomość CertificateVerify, wykład 11). Mallory nie umie podpisać swojej wartości jako serwer. Ale przeglądarka musi wiedzieć, że klucz publiczny naprawdę należy do tej strony. To jest pytanie na ostatnie slajdy.}
 \end{frame}
 
 \begin{frame}{Whose public key is it?}
@@ -2002,6 +2061,21 @@ public_key.verify(signature, data, pss, hashes.SHA256())   # exception if wrong
   \say{Wynik rozwiązania. Z kluczem z serwera oba serwery przechodzą, więc sprawdzenie nic nie daje. Wbudowany klucz zatrzymuje Mallory. Ale wbudować klucz da się tylko, gdy znamy go z góry (aktualizacje jednej aplikacji). Przeglądarka łączy się z milionami stron: nie może mieć wbudowanych kluczy wszystkich.}
 \end{frame}
 
+\begin{frame}{See it: where is Mallory?}
+  \begin{center}\small Alice's update travels to Bob: put Mallory somewhere on the way and choose how Bob checks.\end{center}
+  \vfill
+  \opensim{signatures/\#1}
+  \vfill
+  \begin{enumerate}\small
+    \item Mallory on the server, on a mirror or in the network; Bob checks a digest, a tag or a signature.
+    \item Mallory as one of the users who hold the MAC key: the tag no longer helps.
+    \item Open the last case: Bob takes the public key from the server, as in Task 9.
+  \end{enumerate}
+  \vfill
+  \keymsg{Every check is only as good as the place its key or digest comes from.}
+  \say{Pokaz na żywo, około 3 minut, można pominąć. Ten sam krok studenci mogli otworzyć z linku na początku wykładu; przypadek ,,klucz z serwera'' był tam zablokowany przyciskiem, bo to odpowiedź na zadanie 9. Teraz go odblokować: tabela pokazuje w jednym miejscu, które sprawdzenie zatrzymuje Mallory w którym miejscu.}
+\end{frame}
+
 \begin{frame}{A trusted party signs the key}
   \vfill
   \begin{center}
@@ -2017,6 +2091,25 @@ public_key.verify(signature, data, pss, hashes.SHA256())   # exception if wrong
   \bigdef{A signed statement ``this public key belongs to this name'' is a \textbf{certificate}. Lecture 9.}
   \vfill
   \say{Most do wykładów 9 do 12 (PKI). Ten sam podpis z dzisiejszego wykładu, tylko podpisuje się klucz z nazwą. Zaufana strona to urząd certyfikacji (CA); jego klucz jest w systemie albo przeglądarce. Tu tylko idea; budowa certyfikatu X.509 i sprawdzanie na wykładzie 9.}
+\end{frame}
+
+\begin{frame}{Good to know: quantum computers}
+  \vfill
+  \begin{columns}[c,onlytextwidth]
+    \column{0.3\textwidth}
+      \centering
+      \begin{tikzpicture}
+        \node[circle, fill=sPink, text=white, font=\fontsize{36}{38}\selectfont, minimum size=2.2cm] {\faAtom};
+      \end{tikzpicture}
+    \column{0.68\textwidth}
+      \probbox{Shor's algorithm}{on a big quantum computer would break RSA, ECDSA and Ed25519: all three.}
+      \stepbox{The new standard}{ML-DSA (FIPS 204, 13 August 2024): a signature based on lattices, not on factoring or curves.}
+      \plainbox{NIST plan (IR 8547): RSA, ECDSA and EdDSA deprecated after 2030, disallowed after 2035.}
+  \end{columns}
+  \vfill
+  % CHECKED: FIPS 204, 13 August 2024 (Federal Register 2024-17956); ML-DSA-44: public key 1312 B, signature 2420 B, private key 2560 B (FIPS 204);
+  %   NIST IR 8547 final (27 October 2026, csrc.nist.gov/pubs/ir/8547/final): ECDSA, EdDSA, RSA deprecated after 2030, disallowed after 2035 (review 2026-11-18)
+  \say{Można pominąć. Dla porównania: klucz publiczny ML-DSA-44 ma 1312 bajtów, podpis 2420 bajtów, czyli dużo więcej niż Ed25519, ale interfejs jest ten sam: sign i verify. Takiego komputera kwantowego jeszcze nie ma. Plan NIST jest ten sam co w wykładach 3 i 5.}
 \end{frame}
 
 \begin{frame}{Who wrote this message?}
@@ -2038,24 +2131,6 @@ public_key.verify(signature, data, pss, hashes.SHA256())   # exception if wrong
     That this key is Alice's we must know another way: a built-in key, or a certificate.}
   \vfill
   \say{Pełna odpowiedź na pytanie wykładu, z zastrzeżeniem z zadania 9. Tabela zestawia trzy narzędzia z dzisiejszego dnia: skrót (nic o autorze), MAC (jedna z dwóch osób, przekonuje tylko je), podpis (właściciel klucza, przekonuje każdego). Ostatnie zdanie to most do wykładu 9.}
-\end{frame}
-
-\begin{frame}{Good to know: quantum computers}
-  \vfill
-  \begin{columns}[c,onlytextwidth]
-    \column{0.3\textwidth}
-      \centering
-      \begin{tikzpicture}
-        \node[circle, fill=sPink, text=white, font=\fontsize{36}{38}\selectfont, minimum size=2.2cm] {\faAtom};
-      \end{tikzpicture}
-    \column{0.68\textwidth}
-      \probbox{Shor's algorithm}{on a big quantum computer would break RSA, ECDSA and Ed25519: all three.}
-      \stepbox{The new standard}{ML-DSA (FIPS 204, August 2024): a signature based on lattices, not on factoring or curves.}
-      \plainbox{NIST plan (IR 8547): RSA, ECDSA and EdDSA deprecated after 2030, disallowed after 2035.}
-  \end{columns}
-  \vfill
-  % CHECKED: FIPS 204 effective August 2024 (Federal Register 2024-17956); NIST IR 8547 (as in Lecture 5): ECDSA, EdDSA, RSA deprecated after 2030, disallowed after 2035
-  \say{Można pominąć. Dla porównania: klucz publiczny ML-DSA-44 ma 1312 bajtów, podpis 2420 bajtów, czyli dużo więcej niż Ed25519, ale interfejs jest ten sam: sign i verify. Takiego komputera kwantowego jeszcze nie ma. Plan NIST jest ten sam co w wykładach 3 i 5.}
 \end{frame}
 
 \end{document}

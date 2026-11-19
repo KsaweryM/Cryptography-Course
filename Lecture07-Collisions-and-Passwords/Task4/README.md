@@ -4,15 +4,16 @@
 
 In 2004 Xiaoyun Wang, Dengguo Feng, Xuejia Lai and Hongbo Yu published two different 128-byte messages with the same MD5 digest. In 2017 researchers from CWI Amsterdam and Google (SHAttered) published two different PDF files with the same SHA-1 digest. You have both pairs: `md5_a.bin` and `md5_b.bin` (Wang's messages) and `sha1_a.bin` and `sha1_b.bin` (the first 320 bytes of the two SHAttered PDFs, downloaded from shattered.io on 2026-11-17; after these 320 bytes the inner state of SHA-1 is already the same, so the rest of the PDF is not needed).
 
-![Two pairs of files: md5_a.bin and md5_b.bin, 128 bytes, Wang, Feng, Lai, Yu (2004); sha1_a.bin and sha1_b.bin, 320 bytes, the start of the SHAttered PDFs (2017). For each file the MD5, SHA-1 and SHA-256 digests are question marks, with "same?" under each pair. Then: add the same text to the end of both files of each pair: are the digests still the same?](figure.svg)
+![Two pairs of files: md5_a.bin and md5_b.bin, 128 bytes, Wang, Feng, Lai, Yu (2004); sha1_a.bin and sha1_b.bin, 320 bytes, the start of the SHAttered PDFs (2017). For each file the MD5, SHA-1 and SHA-256 digests are question marks, with "same?" under each pair. Then: add the same text to the end of both files of each pair: are the digests still the same? Last: a viewer reads byte 19 of md5_a.bin + page 1 + page 2 and of md5_b.bin + page 1 + page 2; which page does it show for each file, and is the MD5 still the same?](figure.svg)
 
 ## Goal
 
-Check which hash function each pair breaks, and whether the collision survives when the same text is added to the end of both files.
+Check which hash function each pair breaks, and whether the collision survives when the same text is added to the end of both files. Then write a tiny viewer that shows a different page for each file of Wang's pair, while both files keep the same MD5.
 
 ## Ready for you
 
-- `real_collisions.py`: `load_file(path)`, the list of the two pairs, `SUFFIX` (the text to add), and the loop over the pairs.
+- `real_collisions.py`: `load_file(path)`, the list of the two pairs, `SUFFIX` (the text to add), and the loop over the pairs; for part 2, `PAGE_1` and `PAGE_2` (31 bytes each) and the lines that build the two files and print what the viewer shows.
+- `data[128:128 + 31]` is a slice: the 31 bytes from offset 128, like `memcpy(out, data + 128, 31)` in C.
 - `hashlib.md5(data).hexdigest()`, `hashlib.sha1(data).hexdigest()`, `hashlib.sha256(data).hexdigest()` return a digest as hex text. `a + SUFFIX` joins two byte strings, like `memcpy` of both into one buffer in C.
 
 Before you run it, predict: does the MD5 pair also collide in SHA-1? Does it still collide after you add text?
@@ -24,6 +25,7 @@ Write your code in `real_collisions.py`, in place of the `TODO` comments:
 1. In `count_different`, count the positions `i` where `a[i] != b[i]`: an index loop over `range(len(a))`, as in C. Return the count.
 2. Print the MD5, the SHA-1 and the SHA-256 of `a` and of `b`, one line each.
 3. Add `SUFFIX` to the end of both (`a + SUFFIX`, `b + SUFFIX`) and print their MD5 and SHA-1 again.
+4. In `show(data)`, write the viewer: if `data[19] == 0x87`, return page 1, `data[128:128 + 31]`; otherwise return page 2, `data[159:159 + 31]`. This is the rule a real file format can hide in the part that both files share.
 
 ## Expected output
 
@@ -49,9 +51,13 @@ sha1_a.bin and sha1_b.bin: 320 bytes each, 62 bytes differ
   ...
   with the suffix: SHA-1 a: 61d5e3914c69b226129d601cebadb818fafc8edd
   with the suffix: SHA-1 b: 61d5e3914c69b226129d601cebadb818fafc8edd
+viewer on md5_a.bin + both pages: Alice pays Mallory 100 pounds.
+viewer on md5_b.bin + both pages: Alice pays Mallory 1000 pounds.
+  MD5 a: 0497127355f1503dd06b6efcc72492ca
+  MD5 b: 0497127355f1503dd06b6efcc72492ca
 ```
 
-Each pair breaks only the function it was computed for; SHA-256 tells all four files apart. A common suffix keeps the collision, because after the colliding blocks both files have the same inner state, and the rest of the input is processed the same way.
+Each pair breaks only the function it was computed for; SHA-256 tells all four files apart. A common suffix keeps the collision, because after the colliding blocks both files have the same inner state, and the rest of the input is processed the same way. The viewer shows that the meaning of a colliding file can sit in the part both files share: both files hold both pages, and the one byte that differs picks the page.
 
 </details>
 
@@ -61,4 +67,4 @@ Each pair breaks only the function it was computed for; SHA-256 tells all four f
 python3 real_collisions.py
 ```
 
-About 8 minutes. Python 3.8 or newer, no extra libraries.
+About 12 minutes. Python 3.8 or newer, no extra libraries.

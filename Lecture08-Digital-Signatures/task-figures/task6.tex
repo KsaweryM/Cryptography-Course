@@ -1,0 +1,21 @@
+\documentclass[tikz,border=8pt]{standalone}
+\input{common.tex}
+\begin{document}
+\begin{tikzpicture}[>=Stealth]
+\node[msg, font=\small] (f) at (0,0) {\faFile*[regular]\ update.bin\\100\,000 bytes};
+\node[hwmain] (h) at (3.0,0) {\faCogs\ SHA-256};
+\node[unk] (d) at (7.0,0) {hash as a number = ?};
+\node[apriv, font=\small] (k) at (10.6,1.2) {\faKey\ d, n};
+\node[unk] (s) at (10.6,0) {s = ?};
+\draw[data] (f) -- (h); \draw[data] (h) -- (d); \draw[data] (d) -- (s); \draw[data] (k) -- (s);
+\who{B}{0,-2.2}{sTeal}{\faUser}{Bob}
+\node[font=\small, text=nInk, anchor=west] at (1.4,-1.8) {checks the file:};
+\node[unk] at (9.4,-1.8) {?};
+\node[font=\small, text=nInk, anchor=west] at (1.4,-2.6) {checks the file with one bit of byte 50\,000 flipped:};
+\node[unk] at (9.4,-2.6) {?};
+\who{M}{0,-4.4}{sPink}{\faUserSecret}{Mallory}
+\node[mpriv, font=\small, anchor=east] at (4.6,-4.0) {sig\_20 $\times$ sig\_50 mod n};
+\node[msg, font=\small, anchor=west] at (4.9,-4.0) {\textquotedblleft Pay Mallory 1000 pounds. Alice\textquotedblright{}};
+\node[unk] at (9.4,-4.8) {bank: ?};
+\end{tikzpicture}
+\end{document}

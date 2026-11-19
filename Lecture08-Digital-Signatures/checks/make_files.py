@@ -4,7 +4,7 @@
 
 The keys are fixed: Ed25519 and ECDSA keys come from fixed labels, the RSA key is made once and then kept in
 checks/alice_rsa_private.pem. So a second run gives the same files. If you delete that PEM file, the RSA numbers
-change, and the README files, the slides and the lecturer's guide must be updated (Tasks 3, 4, 5, 7).
+change, and the README files, the slides and the lecturer's guide must be updated (Tasks 4, 5, 6, 7).
 At the end the script prints the constants that the starter files contain (Task 1, 8, 9).
 """
 import hashlib
@@ -81,31 +81,31 @@ write("Task2/alice_public.pem", pem_public(alice_ed.public_key()))
 write("Task2/mallory_private.pem", pem_private(mallory_ed))
 copy("signing.py", "Task2")
 
-# ---------- Task 3 and Task 5: Alice's RSA key ----------
-for t in ("Task3", "Task5"):
+# ---------- Task 4 and Task 6: Alice's RSA key ----------
+for t in ("Task4", "Task6"):
     write(t + "/alice_rsa_private.pem", pem_private(alice_rsa))
     copy("alice_key.py", t)
 
-# ---------- Task 4: Alice's public key and two orders signed with textbook RSA ----------
-write("Task4/alice_rsa_public.pem", pem_public(alice_rsa.public_key()))
+# ---------- Task 5: Alice's public key and two orders signed with textbook RSA ----------
+write("Task5/alice_rsa_public.pem", pem_public(alice_rsa.public_key()))
 orders = ""
 for amount in (20, 50):
     orders += str(amount) + " " + format(pow(amount, D, N), "x") + "\n"
-write("Task4/orders.txt", orders)
-copy("bank_ready.py", "Task4")
+write("Task5/orders.txt", orders)
+copy("bank_ready.py", "Task5")
 
-# ---------- Task 5: a 100 000-byte update file ----------
+# ---------- Task 6: a 100 000-byte update file ----------
 block = bytearray()
 counter = 0
 while len(block) < 100000:
     block += hashlib.sha256(b"lecture 8: update.bin " + str(counter).encode()).digest()
     counter += 1
-write("Task5/update.bin", bytes(block[:100000]))
+write("Task6/update.bin", bytes(block[:100000]))
 signed = ""
 for text in ("Pay Mallory 20 pounds. Alice", "Pay Mallory 50 pounds. Alice"):
     h = int.from_bytes(hashlib.sha256(text.encode()).digest(), "big")
     signed += format(pow(h, D, N), "x") + "\n"
-write("Task5/signed_orders.txt", signed)
+write("Task6/signed_orders.txt", signed)
 
 # ---------- Task 7: three keys of Alice ----------
 write("Task7/alice_rsa_private.pem", pem_private(alice_rsa))

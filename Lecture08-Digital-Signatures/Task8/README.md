@@ -22,14 +22,15 @@ The two formulas of ECDSA you need (slides "Inside ECDSA" and "The same k twice"
 
 Write your code in place of the `None` after each `TODO` in `recover_key.py`:
 
-1. `z1`, `z2`: the hashes of `game_1` and `game_2` as numbers.
-2. `k`: subtract the two equations for `s`; `r d` disappears. Solve for `k`, mod `q`.
-3. `d`: put `k` into the equation of the first signature and solve for `d`, mod `q`.
-4. `d_matches`: is `public_key(d) == Q`?
-5. `mallory_valid`: sign `mallory_game` with `d` (`r, s = sign(d, mallory_game)`) and check it with `verify(Q, ...)`.
+1. `same_r`: before any attack, look at the two signatures: is `r1 == r2`? Equal `r` means the same `k`.
+2. `z1`, `z2`: the hashes of `game_1` and `game_2` as numbers.
+3. `k`: subtract the two equations for `s`; `r d` disappears. Solve for `k`, mod `q`.
+4. `d`: put `k` into the equation of the first signature and solve for `d`, mod `q`.
+5. `d_matches`: is `public_key(d) == Q`?
+6. `mallory_valid`: sign `mallory_game` with `d` (`r, s = sign(d, mallory_game)`) and check it with `verify(Q, ...)`.
 
 <details>
-<summary>Hint for steps 2 and 3</summary>
+<summary>Hint for steps 3 and 4</summary>
 
 k = (z1 - z2) / (s1 - s2) mod q, and d = (s1 k - z1) / r1 mod q. Write each division as a multiplication by `pow(..., -1, q)` and end with `% q`.
 
@@ -43,6 +44,7 @@ k = (z1 - z2) / (s1 - s2) mod q, and d = (s1 k - z1) / r1 mod q. Write each divi
 ```
 signature of game 1 valid: True
 signature of game 2 valid: True
+r1 == r2: True
 z1 = 0xca3b4660cf2082827b96167343c32b9ea99a7fba27515b3dc9c1d234b3cefd2
 z2 = 0xab62eabbe775ef323b410fd4fef32b791aeaf80f9a13bcaef0555a2e71036a46
 k  = 0xccfc9b5a4810d39278af4285a63e384b21ceca0ae4346ae10a22902e518abbc0
@@ -63,4 +65,4 @@ python3 recover_key.py
 
 About 12 minutes. Python 3 and the library `cryptography` (used by `ecdsa_ready.py` for `sign` and `verify`).
 
-Want to see it move? The [signatures simulator, step 5](https://ksawerym.github.io/Cryptography-simulators/signatures/#5) does the same attack step by step on the small curve of Lecture 5. Open it after the task.
+Want to see it move? The [signatures simulator, step 5](https://ksawerym.github.io/Cryptography-simulators/signatures/#5) signs twice on the small curve of Lecture 5 with four ways of choosing k (random, repeated, k + 1, from the key and the message) and shows what Mallory can compute from each. Open it after the task.

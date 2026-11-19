@@ -13,7 +13,7 @@ Compute the SHA-256 of each downloaded file, reading it in pieces, and find out 
 ## Ready for you
 
 - `check_mirrors.py`:
-  - `read_sums(path)`: the digest from a `SHA256SUMS` file (64 hex digits, two spaces, the file name).
+  - `read_sums(path)`: the digest from a `SHA256SUMS` file (64 hex digits, then two spaces or a space and a star `*`: both forms exist; then the file name).
   - `published`: the digest from Alice's website, `website/SHA256SUMS`.
 - `website/SHA256SUMS`, and `mirror-a/`, `mirror-b/`, `mirror-c/`, each with the file and its own `SHA256SUMS`.
 

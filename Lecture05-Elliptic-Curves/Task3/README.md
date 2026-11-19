@@ -1,54 +1,71 @@
-# Task 3: find k
+# Task 3: all points from G
 
 ## The situation
 
-Eve has a public point T = kG and wants the secret number k. On a real curve that is the ECDLP, and nobody can do it. Here the curves are small: p has only 16, 20 and 24 bits. So Eve can try the simplest attack there is: start at G and keep adding G until she reaches T. How long does it take, and how does the time grow when p gets longer?
+The small curve from the slides is y^2 = x^3 + 2x + 2 mod 17, with the point G = (5, 1). On the slides you doubled G and got 2G = (6, 3); in Task 2 you added G + 2G on paper. Now Python does the arithmetic: write the point addition once, then add G again and again and watch where it goes. Sooner or later you reach O, the point at infinity.
 
-![Top: G, 2G, 3G, 4G, ..., T in violet boxes joined by arrows labelled +G; T is outlined in orange and next to it "k = ?". Below, one row per curve y^2 = x^3 + ax + b mod p. 16 bits: p = 50459, a = 13422, b = 27875, G = (1710, 42410), T = (49665, 28300). 20 bits: p = 896107, a = 808927, b = 241789, G = (119763, 855066), T = (490971, 493613). 24 bits: p = 9788083, a = 4564841, b = 5425030, G = (7065671, 8730247), T = (619167, 4946861). Each row ends with "k = ?" and a stopwatch with "? s". Under it: add(P, Q, a, p) is ready. Each p is 4 bits longer: how many times longer does the search take?](figure.svg)
+![The curve y^2 = x^3 + 2x + 2 mod 17 as a 17 by 17 grid of grey dots with the points of the curve in dark ink. G = (5, 1), 2G = (6, 3) and 3G = (10, 6) are marked in violet, joined by arrows labelled +G; a dashed arrow goes on to "4G = ?". Next to it, the cases of add(P, Q): P is O gives Q, Q is O gives P, Q = -P gives O, all three ready; P = Q with the slope (3x1^2 + a) / (2y1), P not equal to Q with the slope (y2 - y1) / (x2 - x1), then x3 and y3 from s, marked TODO. Below: print G, 2G, 3G, ... until O, how many points? TODO.](figure.svg)
 
 ## Goal
 
-Find k on all three curves and see how the time grows with the size of p.
+Finish the point addition, then list G, 2G, 3G, ... until you reach O. How many points do you get?
 
 ## Ready for you
 
-- `ecdlp.py`: `add(P, Q, a, p)` adds two points of the curve (`None` is O).
-- `PROBLEMS`: the three curves, each with `p`, `a`, `b`, the base point `G` and the public point `T`.
-- `BITS`: the number of bits of each p.
-- The loop at the end goes over the curves by index, like `for (i = 0; i < 3; i++)` in C: `range(len(PROBLEMS))` gives 0, 1, 2, and `PROBLEMS[i][0]` is the p of curve i. It calls `find_k(p, a, G, T)` and prints the bits of p, your k and the time. Until you write `find_k`, it prints `not done yet`.
-
-Before you run it, predict: each p is 4 bits longer. How many times longer will the search take?
+- `ec_toy.py`: the curve (`a`, `b`, `p`), the point `G` and `O = None`, the point at infinity.
+- In `add(P, Q)`: the cases P + O, O + Q and P + (-P) = O. A point is a tuple `(x, y)`: `P[0]` is x, `P[1]` is y.
 
 ## Steps
 
-Write your code in place of the `TODO` in `find_k` in `ecdlp.py`:
+Write your code in place of the `TODO` comments in `ec_toy.py`. Each `print("not done yet: ...")` line is there only so that the unchanged file says what is missing: delete it when you do its TODO (with TODO 3 also the line `add(G, G)` above it: it only calls `add()` once so that the unchanged file reports TODO 1 and 2 too).
 
-1. Start with `R = G` and `k = 1`. While `R != T`: add G, `R = add(R, G, a, p)`, and count, `k = k + 1`. Then return `k`.
-   - `R != T` compares two tuples element by element, like comparing two structs field by field in C: the points differ if x or y differs.
+1. The slope `s`. For doubling (`P == Q`): `s = (3 * x1 * x1 + a) / (2 * y1) mod p`; otherwise `s = (y2 - y1) / (x2 - x1) mod p`.
+   - Python has no `/` modulo p: "`/ v mod p`" means "`* pow(v, -1, p)`", the modular inverse (Python 3.8 or newer). Then `% p`.
+   - Write the square as `x1 * x1`. In Python `^` is XOR, as in C, not a power.
+2. `x3 = s * s - x1 - x2 mod p` and `y3 = s * (x1 - x3) - y1 mod p`, then `return (x3, y3)`.
+   - Python's `%` never gives a negative result: `-7 % 17` is `10`, not `-7` as in C.
+3. Print G, 2G, 3G, ...: start with `k = 1` and `R = G`. While `R is not O`: `print(f"{k}G = {R}")`, then `R = add(R, G)` and `k = k + 1`. After the loop, print the last line, the point at infinity: `print(f"{k}G = O")`.
+   - `f"{k}G = {R}"` is like `printf("%dG = (%d, %d)\n", k, x, y)` in C: the values in `{}` are put into the text.
 
 ## Expected output
 
-Three lines, one per curve: the bits of p, the k you found and the time. Your times will differ from the ones below (they depend on the computer), but the proportions will be similar; the last curve takes about 15 to 20 seconds.
+One line per point, in exactly this format: `1G = (5, 1)`, `2G = (6, 3)`, `3G = (10, 6)` (the values from the slides and Task 2), and so on; the last line is `<k>G = O`, the point at infinity. Count the lines before O.
 
 <details>
 <summary>Check your answer</summary>
 
 ```
-16 bits: k = 37100   0.042 s
-20 bits: k = 826876   1.201 s
-24 bits: k = 8762309   15.601 s
+1G = (5, 1)
+2G = (6, 3)
+3G = (10, 6)
+4G = (3, 1)
+5G = (9, 16)
+6G = (16, 13)
+7G = (0, 6)
+8G = (13, 7)
+9G = (7, 6)
+10G = (7, 11)
+11G = (13, 10)
+12G = (0, 11)
+13G = (16, 4)
+14G = (9, 1)
+15G = (3, 16)
+16G = (10, 11)
+17G = (6, 14)
+18G = (5, 16)
+19G = O
 ```
 
-The k values must be exactly these. The time grows with k, the number of additions: here each 4 more bits made the search about 29 and 13 times longer (k itself grew about 22 and 11 times). For 256 bits it would be about 2^255 additions.
+18 different points, then O: G visits every dot of the curve. 18G = (5, 16) is -G, so 19G = G + (-G) = O.
 
 </details>
 
 ## Run
 
 ```
-python3 ecdlp.py
+python3 ec_toy.py
 ```
 
-About 6 minutes. Python 3.8 or newer, no extra libraries.
+About 10 minutes. Python 3.8 or newer, no extra libraries.
 
-Want to see it move? In the [elliptic-curves simulator, step 1](https://ksawerym.github.io/Cryptography-simulators/elliptic-curves/#1.3), Eve runs the same attack on the curve mod 17.
+Want to see it move? In the [elliptic-curves simulator, step 4](https://ksawerym.github.io/Cryptography-simulators/elliptic-curves/#4.3), "Multiples of G" adds G step by step, and [step 5](https://ksawerym.github.io/Cryptography-simulators/elliptic-curves/#5) shows one addition number by number.

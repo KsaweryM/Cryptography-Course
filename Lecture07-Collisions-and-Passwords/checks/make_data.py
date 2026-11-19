@@ -86,7 +86,7 @@ write("Task5/wordlist.txt", text)
 write("Task6/wordlist.txt", text)
 
 # ---------------- the users of Tasks 5 and 6 ----------------
-USERS = [("alice", "monkey123"), ("bob", "Liverpool1"), ("carol", "iloveyou"), ("dave", "iloveyou"),
+USERS = [("alice", "monkey123"), ("bob", "Liverpool1"), ("chloe", "iloveyou"), ("dave", "iloveyou"),
          ("erin", "Tr0ub4dor&3"), ("frank", "qwerty"), ("grace", "dragon2024"),
          ("heidi", "correct horse battery staple"), ("ivan", "123456"), ("judy", "Summer2025"),
          ("oscar", "football!"), ("peggy", "kx7#Qm2v!pL9")]
@@ -112,5 +112,5 @@ TOP20 = TOP[:20]
 salt_text = bcrypt_ready._b64_encode(bytes(rng.randrange(256) for _ in range(16)))
 stored = bcrypt_ready.bcrypt_with_salt("sunshine", 4, salt_text)
 assert "sunshine" in TOP20
-write("Task8/stolen_bcrypt.txt", ("# victor, from the database of a shop that uses bcrypt\n" + stored + "\n").encode())
+write("Task8/stolen_bcrypt.txt", ("# dave, from the database of a shop that uses bcrypt\n" + stored + "\n").encode())
 write("Task8/top20.txt", ("\n".join(TOP20) + "\n").encode())

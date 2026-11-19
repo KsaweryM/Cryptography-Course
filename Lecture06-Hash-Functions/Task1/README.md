@@ -4,7 +4,7 @@
 
 Alice sent Bob an invoice, `invoice.txt`. Before they use digests to check files, Bob wants to see the black box at work: what goes in, what comes out, and how long the output is. He also wants to be sure that his Python computes SHA-256 exactly as the standard says, so he first checks the test value printed in the standard FIPS 180-4 by NIST: the digest of the three letters `abc`.
 
-![Four inputs in violet on the left: "abc" (3 bytes), "Hello, Bob!" (11 bytes), the empty input (0 bytes), the file invoice.txt, and one million zero bytes. Each goes into a dark box SHA-256. On the right, a brown box for each digest, "32 bytes = ?". Next to "abc", the value from FIPS 180-4, ba7816bf...f20015ad, and the question "the same?".](figure.svg)
+![Five inputs in violet on the left: "abc" (3 bytes), "Hello, Bob!" (11 bytes), the empty input (0 bytes), the file invoice.txt, and one million zero bytes. Each goes into a dark box SHA-256. On the right, a brown box for each digest, "32 bytes = ?". Next to "abc", the value from FIPS 180-4, ba7816bf...f20015ad, and the question "the same?".](figure.svg)
 
 ## Goal
 

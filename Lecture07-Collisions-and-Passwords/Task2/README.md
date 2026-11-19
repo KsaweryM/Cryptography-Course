@@ -50,4 +50,4 @@ The prediction is where the chance reaches 50%, so a real search ends a bit earl
 python3 find_collision.py
 ```
 
-About 10 minutes. Python 3.8 or newer, no extra libraries; the program runs about 3 seconds.
+About 10 minutes. Python 3.8 or newer, no extra libraries; the program runs a few seconds.

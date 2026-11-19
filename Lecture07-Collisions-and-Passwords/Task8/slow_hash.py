@@ -1,6 +1,6 @@
 # Task 8: what the cost costs.
 # Part 1: how the time of one bcrypt grows with the cost.
-# Part 2: Mallory stole Victor's bcrypt text (cost 4) and tries the 20 most common passwords.
+# Part 2: Mallory stole Dave's bcrypt text (cost 4) and tries the 20 most common passwords.
 import hashlib
 import time
 from bcrypt_ready import hash_password, check_password

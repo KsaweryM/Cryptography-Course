@@ -2,7 +2,7 @@
 
 ## The situation
 
-bcrypt has a **cost**: one bcrypt does 2^cost rounds of its slow key setup, so every +1 should double the time. Part 1: measure it. Part 2: Mallory has stolen Victor's bcrypt text (cost 4, `stolen_bcrypt.txt`) from a shop's database and tries the 20 most common passwords (`top20.txt`). How fast can she guess, compared with plain SHA-256?
+bcrypt has a **cost**: one bcrypt does 2^cost rounds of its slow key setup, so every +1 should double the time. Part 1: measure it. Part 2: Mallory has stolen Dave's bcrypt text (cost 4, `stolen_bcrypt.txt`) from a shop's database and tries the 20 most common passwords (`top20.txt`). How fast can she guess, compared with plain SHA-256?
 
 ![Part 1: four boxes cost 4, cost 5, cost 6, cost 7, each with a stopwatch and "? s". Part 2: Mallory with top20.txt (123456, password, ...) going into check_password together with the stolen text $2b$04$Bm9vfEMu3JI4IV.ybN/ip.o0s/IPx...; found after ? tries, bcrypt: ? guesses/s, SHA-256: ? guesses/s.](figure.svg)
 
@@ -28,7 +28,7 @@ Write your code in `slow_hash.py`, in place of the `TODO` comments:
 
 ## Expected output
 
-Your times will differ (they depend on the computer), but the doubling and the gap between bcrypt and SHA-256 will be similar. The whole program runs about 10 seconds.
+Your times will differ (they depend on the computer), but the doubling and the gap between bcrypt and SHA-256 will be similar. The whole program runs 10 to 30 seconds, depending on the computer.
 
 <details>
 <summary>Check your answer</summary>

@@ -10,8 +10,8 @@ print("order 2:", amount_2, "pounds, signature", short(sig_2))
 check_1 = None
 check_2 = None
 
-# TODO 2: Mallory multiplies the two signatures: forged = sig_1 * sig_2 % n.
-#         The bank checks forged as a signature on the amount amount_1 * amount_2.
+# TODO 2: from sig_1 and sig_2 alone, Mallory makes forged, a signature on the amount amount_1 * amount_2
+#         (README, step 2). check_forged: the bank checks forged on amount_1 * amount_2.
 forged = None
 check_forged = None
 

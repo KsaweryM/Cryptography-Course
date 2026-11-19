@@ -5,7 +5,7 @@
 \pagecolor{white}
 \begin{tikzpicture}[>=Stealth]
   \node[font=\small\bfseries, text=nInk] at (3.5,2.6) {Monday: three commitments};
-  \foreach \n/\y/\c/\r in {Alice/1.6/sIndigo/1, Mallory/0.6/sPink/1, Carol/-0.4/sViolet/0} {
+  \foreach \n/\y/\c/\r in {Alice/1.6/sIndigo/1, Mallory/0.6/sPink/1, Carol/-0.4/nInk/0} {
     \node[font=\small\bfseries, text=\c, anchor=east] at (-0.3,\y) {\n};
     \ifnum\r=1 \node[secval, font=\scriptsize, anchor=west] (r\n) at (0,\y) {$r$, 16 bytes}; \node[msgval, font=\scriptsize, anchor=west] at (1.9,\y) {prediction};
     \else \node[msgval, font=\scriptsize, anchor=west] at (1.9,\y) {prediction}; \fi
