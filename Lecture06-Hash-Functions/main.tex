@@ -474,6 +474,7 @@
   \end{center}
   \vfill
   \begin{center}\small And it is fast: hundreds of megabytes per second on a laptop \textcolor{gray}{(Task 10 measures it)}.\end{center}
+  \curious{hash/\#1}
   \keymsg{The digest has the same size for every input, even an empty one.}
   \say{Trzy prawdziwe skróty. Nawet puste wejście ma skrót: e3b0c442...; ten napis warto rozpoznawać, bo w logach często oznacza ,,plik był pusty''. Szybkość: setki MB/s w Pythonie na laptopie; dokładne liczby zmierzymy w zadaniu 10 na końcu dnia. Szybkość jest ważna, bo skróty liczy się dla gigabajtów danych (kopie zapasowe, Git, pobrane pliki).}
 \end{frame}
@@ -678,7 +679,7 @@ print(len(d), h)
   \begin{center}\small Type a message, click any of its bits, and watch which of the 256 digest bits change.\\[3pt]
     Then let it run non-stop: thousands of random pairs build the same bell around 128.\end{center}
   \vfill
-  \opensim{hash/\#1}
+  \opensim{hash/\#2}
   \vfill
   \say{Pokaz na żywo, ok. 3 minuty, można pominąć przy braku czasu. Krok 1 symulatora: wpisać ,,Pay Bob 100 GBP'', kliknąć bit o wartości 8 w znaku 1 (wychodzi 9): na siatce 256 bitów skrótu czerwone pola to bity zmienione, licznik pokazuje 128. Kliknąć kilka innych bitów wiadomości: za każdym razem około połowy, w innych miejscach. Potem przycisk non-stop: histogram tysięcy losowych par, ten sam dzwon wokół 128 co w zadaniu 2.}
 \end{frame}
@@ -1004,7 +1005,7 @@ print(len(d), h)
     All 256 bits: $2^{256} / 480\,000$ per second $\approx$ \textbf{$7.6 \times 10^{63}$ years}.\end{center}
   \vfill
   \keymsg{Each 4 more bits multiply the work by 16; 256 bits are out of reach.}
-  \curious{hash/\#5}
+  \curious{hash/\#6}
   \say{Wyniki z rozwiązania, laptop z Intel Core i5-8265U, Python 3.12. Liczby prób blisko $2^k$ (dla jednego celu to los; średnio $2^k$; frazę Alice autor wybrał tak, żeby wyniki były typowe). Każde 4 bity więcej: 16 razy więcej prób i czasu. Dla 256 bitów wychodzi liczba lat z 64 cyframi; wiek Wszechświata to ok. $1{,}4 \cdot 10^{10}$ lat.}
 \end{frame}
 
@@ -1906,7 +1907,7 @@ print(h.hexdigest())
   \end{center}
   \vfill
   \keymsg{update() keeps 32 bytes of state and at most 63 waiting bytes: constant memory for any file size.}
-  \curious{hash/\#3}
+  \curious{hash/\#4}
   \say{Połączenie z zadaniem 5: obiekt hashlib trzyma stan i niepełny blok. update() dokłada bajty i każdy pełny 64-bajtowy blok od razu przepuszcza przez f. hexdigest() dopisuje dopełnienie i liczy ostatnie f. Dlatego pamięć jest stała, a wynik nie zależy od tego, jak pokroimy dane. Teraz złożymy SHA-256 sami z gotowej funkcji f.}
 \end{frame}
 
@@ -1965,7 +1966,7 @@ print(h.hexdigest())
     where the block count jumps, and where \texttt{80}, the zeros and the length land.\\[3pt]
     Then follow the state from block to block, up to the digest.\end{center}
   \vfill
-  \opensim{hash/\#2}
+  \opensim{hash/\#3}
   \vfill
   \say{Pokaz na żywo, ok. 3 minuty, można pominąć. Krok 2 symulatora: suwak długości wiadomości; przy 55 i 56 bajtach (i 119, 120) widać skok liczby bloków: bajt 0x80 i 8 bajtów długości przestają się mieścić. Potem karta z łańcuchem: IV, po jednym f na blok, stan po każdym bloku (te same 26988411 i 8c166dba co w zadaniu 9 dla wiadomości 79-bajtowej), ostatni stan to skrót.}
 \end{frame}
@@ -2113,7 +2114,7 @@ h = g; g = f; f = e; e = d + t1;  d = c; c = b; b = a; a = t1 + t2;
   \vfill
   \begin{center}\small ``abc'' with one bit flipped: after 4 rounds 80 bits differ, after about 7 rounds half of the state.\end{center}
   \keymsg{A few rounds spread one bit over the whole state; the other rounds are the safety margin.}
-  \curious{hash/\#4}
+  \curious{hash/\#5}
   \say{Eksperyment: blok abc i ten sam blok z jednym zmienionym bitem; liczymy, ile z 256 bitów stanu się różni po każdej rundzie. Po rundzie 1: 3 bity, po 4: 80, po ok. 7 rundach połowa, i dalej już tylko wahania wokół 128. To jest lawina z zadania 2, widziana od środka. Po co 64 rundy, skoro 7 wystarcza do wymieszania? Ataki są znacznie sprytniejsze niż liczenie bitów; najlepsze znane ataki na SHA-256 dotyczą wersji skróconych do kilkudziesięciu rund, więc reszta to zapas bezpieczeństwa.}
 \end{frame}
 

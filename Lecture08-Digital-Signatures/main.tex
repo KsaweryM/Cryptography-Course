@@ -444,10 +444,9 @@
     Mallory breaks into the server (or sits between Bob and it). She adds one line to the \msgw{update}\\
     and puts the \digw{SHA-256} of her file on the page. Bob's check passes.
   \end{center}
-  \curious{signatures/\#1}
   \keymsg{Anybody can compute a SHA-256, Mallory too: a digest says nothing about who made the file.}
   % CHECKED: python3 hashlib.sha256 of Task1/mallory_update.sh = b4d421a73b76fa85cff1735acc3396eff57390b3f512e36115c827a87aad982d
-  \say{To jest dokładnie przypadek z wykładu 6 (,,what a hash alone does not give''). Skrót nie ma żadnego sekretu: Mallory liczy go tak samo jak Alice. Prawdziwe przykłady włamań na serwer pobierania z podmianą pliku i sumy kontrolnej się zdarzały; szczegółów nie podajemy, chodzi o zasadę. Linia Mallory w zadaniu 1: curl ... | sh, czyli pobierz i uruchom program Mallory. Symulator, krok 1: student sam stawia Mallory w różnych miejscach drogi (serwer, mirror, sieć) i wybiera sposób sprawdzania Boba; na razie tylko skrót ze strony, resztę poznamy dziś.}
+  \say{To jest dokładnie przypadek z wykładu 6 (,,what a hash alone does not give''). Skrót nie ma żadnego sekretu: Mallory liczy go tak samo jak Alice. Prawdziwe przykłady włamań na serwer pobierania z podmianą pliku i sumy kontrolnej się zdarzały; szczegółów nie podajemy, chodzi o zasadę. Linia Mallory w zadaniu 1: curl ... | sh, czyli pobierz i uruchom program Mallory.}
 \end{frame}
 
 \begin{frame}{What Bob needs}
@@ -556,9 +555,8 @@
     SHA-256 works block after block (Lecture 6); its digest is simply the state after the last block.\\
     Mallory loads the tag as the state and hashes one more block: the valid tag of key $\|$ message $\|$ padding $\|$ her bytes.
   \end{center}
-  \curious{signatures/\#2}
   \keymsg{HMAC hashes the inner digest once more with the key, so the published tag is not a state Mallory can continue.}
-  \say{Obietnica z wykładu 6 (Merkle-Damgård). SHA-256 dzieli wejście na bloki po 64 bajty, każdy blok zmienia 32-bajtowy stan, a wynik to po prostu stan po ostatnim bloku. Mallory ma tag, czyli cały stan. Ustawia go jako stan startowy i dorzuca swój blok: wychodzi tag dłuższej wiadomości, w której w środku są bajty dopełnienia (padding) pierwszej wiadomości, a na końcu jej bajty. Klucza nie zna i nie musi. Gdy Bob sprawdza, liczy SHA-256 od początku z kluczem i dostaje to samo. Dlaczego HMAC tego nie ma: jego tag to skrót zewnętrzny, z kluczem i skrótem wewnętrznym; Mallory może przedłużyć tylko ten zewnętrzny skrót, a to nie jest tag żadnej dłuższej wiadomości. Stan po wiadomości (skrót wewnętrzny) nigdy nie jest publikowany. SHA-3 nie ma tego problemu (inna budowa). Symulator, krok 2, pokazuje stany bajt w bajt.}
+  \say{Obietnica z wykładu 6 (Merkle-Damgård). SHA-256 dzieli wejście na bloki po 64 bajty, każdy blok zmienia 32-bajtowy stan, a wynik to po prostu stan po ostatnim bloku. Mallory ma tag, czyli cały stan. Ustawia go jako stan startowy i dorzuca swój blok: wychodzi tag dłuższej wiadomości, w której w środku są bajty dopełnienia (padding) pierwszej wiadomości, a na końcu jej bajty. Klucza nie zna i nie musi. Gdy Bob sprawdza, liczy SHA-256 od początku z kluczem i dostaje to samo. Dlaczego HMAC tego nie ma: jego tag to skrót zewnętrzny, z kluczem i skrótem wewnętrznym; Mallory może przedłużyć tylko ten zewnętrzny skrót, a to nie jest tag żadnej dłuższej wiadomości. Stan po wiadomości (skrót wewnętrzny) nigdy nie jest publikowany. SHA-3 nie ma tego problemu (inna budowa).}
 \end{frame}
 
 \begin{frame}{Task 1: Mallory and the tag}
@@ -965,7 +963,6 @@ except InvalidSignature:
     A copied signature stays valid forever: Mallory can send the same signed order again (a \textbf{replay}).\\[4pt]
     The fix is in the message: a date, a number used once, or a counter, signed together with the text.
   \end{center}
-  \curious{signatures/\#6}
   \keymsg{A signature says what was signed, not when or how many times.}
   \say{Atak powtórzenia (replay): Mallory nie zmienia ani bajtu, więc podpis przechodzi. Ochrona: w podpisanej treści musi być coś jednorazowego (numer zlecenia, data, liczba losowa od odbiorcy). Bank odrzuca zlecenie, którego numer już widział. W wykładzie 11 zobaczymy, że serwer podpisuje cały przebieg połączenia z liczbami losowymi obu stron, więc stary podpis nie pasuje do nowego połączenia.}
 \end{frame}
@@ -1441,21 +1438,6 @@ except InvalidSignature:
   \say{Wynik rozwiązania. Plik 100 000 bajtów, jeden podpis 256 bajtów. Jeden bit zmieniony: skrót zupełnie inny, więc False. Iloczyn podpisów nie pasuje do skrótu wiadomości o 1000 funtów, więc bank odrzuca. Zapytać: czy to znaczy, że podręcznikowe RSA na skrócie jest już idealne? Odpowiedź na następnym slajdzie.}
 \end{frame}
 
-\begin{frame}{See it: can Mallory use a forged number?}
-  \begin{center}\small A forged signature still signs some number. Mallory needs an order whose hash is exactly that number.\end{center}
-  \vfill
-  \opensim{signatures/\#3}
-  \vfill
-  \begin{enumerate}\small
-    \item No hash: the number is the order itself, and the bank pays at once.
-    \item A hash cut to $t$ bits: Mallory tries one order after another; watch the number of tries grow like $2^{t}$.
-    \item From 8 to 32 bits, then the line goes on to 256 bits: the tries she would need.
-  \end{enumerate}
-  \vfill
-  \keymsg{Each bit of the hash doubles Mallory's work; at 256 bits she never finds an order.}
-  \say{Pokaz na żywo, około 3 minut, można pominąć. Skrót jest skrócony do t bitów tylko po to, żeby dało się go złamać na oczach sali: przy 16 bitach to kilkadziesiąt tysięcy prób, ułamek sekundy; przy 32 bitach kilka miliardów, za dużo na pokaz, więc symulator pokazuje przybliżenie z pomiaru. Każdy bit podwaja pracę; 256 bitów to $2^{256}$ prób, czyli odwrócenie SHA-256 (preimage z wykładu 6).}
-\end{frame}
-
 \begin{frame}{In practice: RSA-PSS}
   \vfill
   \begin{center}
@@ -1736,9 +1718,8 @@ public_key.verify(signature, data, pss, hashes.SHA256())   # exception if wrong
       $15G + 2Q = 15G + 14G = 29G = 10G = (7, 11)$: \;$x = 7 = r$ \;\ok
   \end{columns}
   \vfill
-  \curious{signatures/\#4}
   \keymsg{Bob rebuilds the point $R$ from $G$ and $Q$ alone: he never needs $d$ or $k$.}
-  \say{Brakujący krok: dlaczego sprawdzenie działa. Z definicji s = (z + r d)/k, więc (z + r d)/s = k. Bob nie zna ani d, ani k, ale zna Q = d G, więc (z/s) G + (r/s) Q = ((z + r d)/s) G = k G = R. Jeśli x tego punktu równa się r, podpis pasuje. Na naszej krzywej: odwrotność 13 mod 19 to 3 (13 razy 3 = 39 = 2 razy 19 + 1); u1 = 15, u2 = 21 mod 19 = 2. 2Q = 2 razy 7G = 14G, razem 29G, a 29 mod 19 = 10, więc wychodzi 10G = (7, 11), x = 7 = r. Jeśli Mallory zmieni z albo s, u1 i u2 się zmienią i punkt wyląduje gdzie indziej: pokazuje to symulator, krok 4.}
+  \say{Brakujący krok: dlaczego sprawdzenie działa. Z definicji s = (z + r d)/k, więc (z + r d)/s = k. Bob nie zna ani d, ani k, ale zna Q = d G, więc (z/s) G + (r/s) Q = ((z + r d)/s) G = k G = R. Jeśli x tego punktu równa się r, podpis pasuje. Na naszej krzywej: odwrotność 13 mod 19 to 3 (13 razy 3 = 39 = 2 razy 19 + 1); u1 = 15, u2 = 21 mod 19 = 2. 2Q = 2 razy 7G = 14G, razem 29G, a 29 mod 19 = 10, więc wychodzi 10G = (7, 11), x = 7 = r. Jeśli Mallory zmieni z albo s, u1 i u2 się zmienią i punkt wyląduje gdzie indziej.}
 \end{frame}
 
 \samedot
@@ -1768,7 +1749,7 @@ public_key.verify(signature, data, pss, hashes.SHA256())   # exception if wrong
   \begin{center}\small Mallory now has Alice's private key: she can sign anything as Alice.\end{center}
   \keymsg{A repeated $k$ in ECDSA gives away the private key, from two public signatures.}
   % CHECKED: python3: 125 % 19 = 11, pow(7, -1, 19) = 11, 11 * 11 % 19 = 7
-  \say{Jedno równanie, jedna niewiadoma d. 125 mod 19 = 11 (125 = 6 razy 19 + 11), razy odwrotność 7, czyli 11: 121 mod 19 = 7. Zgadza się z kluczem Alice. To jest gorsze niż w ElGamalu: tam wyciekała jedna wiadomość, tu cały klucz prywatny, czyli wszystkie przyszłe podpisy. Symulator, krok 5, liczy ten atak krok po kroku dla różnych sposobów wyboru k (pokażemy po zadaniu 8).}
+  \say{Jedno równanie, jedna niewiadoma d. 125 mod 19 = 11 (125 = 6 razy 19 + 11), razy odwrotność 7, czyli 11: 121 mod 19 = 7. Zgadza się z kluczem Alice. To jest gorsze niż w ElGamalu: tam wyciekała jedna wiadomość, tu cały klucz prywatny, czyli wszystkie przyszłe podpisy.}
 \end{frame}
 
 \begin{frame}{Sony PlayStation 3, 2010}
@@ -1799,7 +1780,7 @@ public_key.verify(signature, data, pss, hashes.SHA256())   # exception if wrong
   \vfill
   \opentask{Task8}{about 12 minutes}
   \vfill
-  \say{Około 12 minut. Prawdziwa krzywa P-256 i SHA-256, liczby po 77 cyfr. TODO 1: najpierw spojrzeć, czy r1 == r2 (tak sprawdza się, że atak w ogóle ma sens). Najważniejsze są TODO 3 i 4: dwa wzory ze slajdów step 1 i step 2, z dzieleniem jako pow(x, -1, q); w pliku startowym wzorów nie ma, są w zwiniętej podpowiedzi w README. TODO 5 sprawdza, czy public\_key(d) == Q. TODO 6: podpis programu Mallory odzyskanym kluczem, konsola mówi True. Typowy błąd: zapomnieć o \% q albo podzielić zwykłym /. Symulatora z politykami k nie otwierać przed zadaniem.}
+  \say{Około 12 minut. Prawdziwa krzywa P-256 i SHA-256, liczby po 77 cyfr. TODO 1: najpierw spojrzeć, czy r1 == r2 (tak sprawdza się, że atak w ogóle ma sens). Najważniejsze są TODO 3 i 4: dwa wzory ze slajdów step 1 i step 2, z dzieleniem jako pow(x, -1, q); w pliku startowym wzorów nie ma, są w zwiniętej podpowiedzi w README. TODO 5 sprawdza, czy public\_key(d) == Q. TODO 6: podpis programu Mallory odzyskanym kluczem, konsola mówi True. Typowy błąd: zapomnieć o \% q albo podzielić zwykłym /.}
 \end{frame}
 
 \samedot
@@ -1863,22 +1844,6 @@ public_key.verify(signature, data, pss, hashes.SHA256())   # exception if wrong
   \keymsg{The PlayStation attack, three years later, with real money.}
   % CHECKED: bitcoin.org/en/alert/2013-08-11-android (via mailing list of M. Hearn), The Register 2013-08-12, Symantec blog 2013-08 (2026-11-17)
   \say{Można pominąć. 11 sierpnia 2013 bitcoin.org ogłosił, że portfele bitcoin na Androidzie są zagrożone: systemowy generator SecureRandom miał błąd i czasem dawał to samo k. Ponieważ wszystkie transakcje są publiczne, wystarczyło przeszukać łańcuch bloków w poszukiwaniu dwóch podpisów z tym samym r i policzyć klucz, jak w zadaniu 8. Poprawione portfele czytały losowość bezpośrednio z /dev/urandom.}
-\end{frame}
-
-\begin{frame}{See it: four ways to choose k}
-  \begin{center}\small ECDSA on the small curve of Lecture 5, with $q = 19$: two signatures by Alice, and what Mallory gets from them.\end{center}
-  \vfill
-  \opensim{signatures/\#5}
-  \vfill
-  \begin{enumerate}\small
-    \item $k$ random: the two $r$ differ, the equations have too many unknowns, nothing leaks.
-    \item $k$ repeated: the same $r$; $k$ and then $d$ appear, step by step, as in Task 8.
-    \item $k_2 = k_1 + 1$: the $r$ differ, yet the same subtraction gives $d$ once Mallory knows the relation.
-    \item $k$ from the key and the message: the same message gives the same signature, nothing new leaks.
-  \end{enumerate}
-  \vfill
-  \keymsg{Not only a repeated $k$: any known relation between two $k$ gives the private key away.}
-  \say{Pokaz na żywo, około 3 minut, można pominąć przy braku czasu. Domyślne liczby to przykład ze slajdów: d = 7, z = 5 i 11; przy powtórzonym k = 10 podpisy (7, 13) i (7, 6). Przypadek k2 = k1 + 1 to najprostszy przykład ,,związku'' między k: dwa równania, dwie niewiadome (k1 i d), więc znów da się rozwiązać. Deterministyczne k (pomysł RFC 6979 i Ed25519): ta sama wiadomość daje ten sam podpis, więc nie ma dwóch różnych równań z tym samym k.}
 \end{frame}
 
 \begin{frame}{Where signatures are used}
@@ -2059,21 +2024,6 @@ public_key.verify(signature, data, pss, hashes.SHA256())   # exception if wrong
   \begin{center}\small The check is only as good as the way Dave got the public key.\end{center}
   \keymsg{We still need to know, safely, which public key is Alice's.}
   \say{Wynik rozwiązania. Z kluczem z serwera oba serwery przechodzą, więc sprawdzenie nic nie daje. Wbudowany klucz zatrzymuje Mallory. Ale wbudować klucz da się tylko, gdy znamy go z góry (aktualizacje jednej aplikacji). Przeglądarka łączy się z milionami stron: nie może mieć wbudowanych kluczy wszystkich.}
-\end{frame}
-
-\begin{frame}{See it: where is Mallory?}
-  \begin{center}\small Alice's update travels to Bob: put Mallory somewhere on the way and choose how Bob checks.\end{center}
-  \vfill
-  \opensim{signatures/\#1}
-  \vfill
-  \begin{enumerate}\small
-    \item Mallory on the server, on a mirror or in the network; Bob checks a digest, a tag or a signature.
-    \item Mallory as one of the users who hold the MAC key: the tag no longer helps.
-    \item Open the last case: Bob takes the public key from the server, as in Task 9.
-  \end{enumerate}
-  \vfill
-  \keymsg{Every check is only as good as the place its key or digest comes from.}
-  \say{Pokaz na żywo, około 3 minut, można pominąć. Ten sam krok studenci mogli otworzyć z linku na początku wykładu; przypadek ,,klucz z serwera'' był tam zablokowany przyciskiem, bo to odpowiedź na zadanie 9. Teraz go odblokować: tabela pokazuje w jednym miejscu, które sprawdzenie zatrzymuje Mallory w którym miejscu.}
 \end{frame}
 
 \begin{frame}{A trusted party signs the key}
