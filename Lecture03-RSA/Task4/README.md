@@ -36,6 +36,8 @@ wrong:   []
 
 The list is empty: RSA works for every P from 0 to n - 1, also for P = 17 (17 -> 85 -> 17) and the other multiples of 17 and 11.
 
+After you finish: in [Why decryption works](https://ksawerym.github.io/Cryptography-simulators/rsa/#3), the same 187 values with the reason (Euler's theorem), and why the multiples of 17 and 11 work too.
+
 </details>
 
 ## Run
@@ -45,5 +47,3 @@ python3 always.py
 ```
 
 About 4 minutes. Python 3, no extra libraries.
-
-Want to see it move? In [Why decryption works](https://ksawerym.github.io/Cryptography-simulators/rsa/#3), the same 187 values with the reason (Euler's theorem), and why the multiples of 17 and 11 work too.

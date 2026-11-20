@@ -1,10 +1,12 @@
-# Task 3: what verify=False lets in
+# Task 3: four servers, two clients
 
 ## The situation
 
 Bob's program talks to `shop.alice.example` over TLS. In testing the certificate check failed once, so somebody wrote `verify=False` and forgot it. Now Mallory is in the network. Four servers on your own computer (127.0.0.1) all answer "Welcome to Alice's shop": only one of them is the real shop.
 
-![A laptop running client.py, which wants shop.alice.example and trusts Trusty CA. Four arrows with question marks go to four servers. Port 8443, the real shop: subject shop.alice.example, issuer Trusty CA, valid until 2027-03-20. Port 8444, Mallory: subject shop.alice.example, issuer itself (self-signed). Port 8445, Mallory: subject mallory.example, issuer Trusty CA. Port 8446, an old copy: subject shop.alice.example, issuer Trusty CA, valid until 2025-08-20. All four answer "Welcome to Alice's shop. Please log in." Which ones does a client with verify=False talk to? Which ones does a correct client refuse, and why?](figure.svg)
+![A laptop running client.py, which wants shop.alice.example and trusts Trusty CA. Four arrows with question marks go to four servers. Port 8443, the real shop: subject shop.alice.example, issuer Trusty CA, valid until 2045-09-01. Port 8444, Mallory: subject shop.alice.example, issuer itself (self-signed). Port 8445, Mallory: subject mallory.example, issuer Trusty CA. Port 8446, an old copy: subject shop.alice.example, issuer Trusty CA, valid until 2025-08-20. All four answer "Welcome to Alice's shop. Please log in." Which ones does a client with verify=False talk to? Which ones does a correct client refuse, and why?](figure.svg)
+
+The certificates of the task were made on 2026-11-19. The three that should work are valid until 2045-09-01, so the task keeps working for years; a real public certificate lives at most 200 days (2026), and fewer later. The expired copy really expired on 2025-08-20.
 
 ## Goal
 
@@ -24,6 +26,8 @@ Write your code in place of the `TODO` comments in `client.py`:
 2. For every port in `PORTS`, print the port and `fetch(broken, port)`.
 3. The correct client: `good = ssl.create_default_context(cafile="certs/trusty-ca.pem")`. It checks the chain, the dates and the name.
 4. For every port, `try:` to print `fetch(good, port)`; `except ssl.SSLCertVerificationError as e:` print `refused:` and `e.verify_message`.
+
+Each half of the file ends with a line that prints `not done yet: ...`; delete it when you have done those steps.
 
 ## Expected output
 

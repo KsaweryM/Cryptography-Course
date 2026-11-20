@@ -24,6 +24,8 @@ Write your code in place of the `TODO` comments in `client.py`, in `log_in(cert_
 2. If `cert_and_key` is not `None`, give the context our certificate and private key: `context.load_cert_chain(cert_and_key[0], cert_and_key[1])`.
 3. Connect: `sock = socket.create_connection(("127.0.0.1", port))`, then `tls = context.wrap_socket(sock, server_hostname="bob.example")`, read the answer `tls.recv(100)` and return it as text (`.decode()`). On `ssl.SSLError` return `"rejected: " + e.reason`.
 
+Until you write the code, every line says `not done yet: TODO 1`.
+
 Hint: in TLS 1.3 the client sends its certificate at the end of the handshake, so `wrap_socket` may succeed and the rejection arrives only when you read. Put both `wrap_socket` and `recv` inside the same `try`.
 
 ## Expected output

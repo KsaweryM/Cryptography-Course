@@ -15,12 +15,16 @@ def signed_content(th):
 
 def signature_ok(signature, content):
     """True if signature over content was made with the private key of BOB_CERT."""
-    # TODO 2: BOB_CERT.public_key().verify(signature, content, ec.ECDSA(hashes.SHA256()))
-    #         returns nothing if the signature is good and raises InvalidSignature if not
+    # TODO 2: verify with the public key of BOB_CERT (public_key().verify, ECDSA with SHA-256).
+    #         verify returns nothing if the signature is good and raises InvalidSignature if not
     return False
 
 
 content = signed_content(transcript_hash)
+if len(content) == 0:
+    print("not done yet: TODO 1")
 print("signed content: %d bytes" % len(content))
 print("bytes 64 to 97:", content[64:98])
 # TODO 3: for every message in MESSAGES, print who sent it and "signature OK" or "signature BAD"
+#         (in place of the line below)
+print("not done yet: TODO 3")

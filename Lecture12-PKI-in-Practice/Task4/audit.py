@@ -23,6 +23,9 @@ for i in range(len(certs)):
     # TODO 3: if hash_name(cert) is in WEAK_HASHES: print "  WEAK HASH".
 
     # TODO 4: if the key is RSA with fewer than MIN_RSA_BITS bits: print "  WEAK KEY".
-    #         Count every problem in `problems`.
+    #         Count every problem in `problems` (add 1 in TODO 2, 3 and 4 for every rule broken).
 
-print(problems, "problems in", len(certs), "certificates")
+    print("  not done yet: TODO 1 to 4")    # delete this line when TODO 1 to 4 are done
+
+# TODO 5: print the count: print(problems, "problems in", len(certs), "certificates")
+print("not done yet: TODO 5")    # delete this line when TODO 5 is done

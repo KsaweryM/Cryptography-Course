@@ -40,6 +40,8 @@ PIN: 4821    found in 0.40 s
 
 Textbook RSA always gives the same ciphertext for the same message, and there are only 10 000 PINs: Eve encrypts every one of them and compares with C. A bigger key does not help.
 
+After you finish: in [Textbook RSA is not enough, part 3](https://ksawerym.github.io/Cryptography-simulators/rsa/#5.3), Eve guesses and checks on a small key and on the 2048-bit key of this task.
+
 </details>
 
 ## Run
@@ -49,5 +51,3 @@ python3 pin.py
 ```
 
 About 7 minutes. Python 3, no extra libraries.
-
-Want to see it move? In [Textbook RSA is not enough](https://ksawerym.github.io/Cryptography-simulators/rsa/#5), Eve guesses and checks on a small key and on the 2048-bit key of this task, and a short message with e = 3 falls even faster.

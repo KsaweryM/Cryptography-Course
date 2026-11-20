@@ -49,5 +49,3 @@ python3 updater.py
 ```
 
 About 7 minutes. Python 3 and the library `cryptography`.
-
-Want to see it move? The [signatures simulator, step 1](https://ksawerym.github.io/Cryptography-simulators/signatures/#1) puts Mallory on the server, a mirror or the network and lets Bob check a digest, a tag or a signature; its last case is this task. Open it after the task.

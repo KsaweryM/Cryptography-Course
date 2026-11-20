@@ -23,3 +23,5 @@ for i in range(len(log)):
     #         Then check CAA: if CAA_ID[issuer_cn(cert)] is in ALLOWED print
     #         "  CAA allowed this CA: ask it who ordered the certificate",
     #         else print "  this CA broke CAA: report it and ask the browsers to look at it".
+
+    print("  not done yet: TODO 1 to 3", names)    # delete this line when TODO 1 to 3 are done

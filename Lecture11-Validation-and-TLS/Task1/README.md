@@ -26,7 +26,11 @@ Write your code in place of the `TODO` comments in `connect.py`:
 
 Hints:
 
-- A Python function reports an error by raising an exception, not by returning an error code:
+- A Python function reports an error by raising an exception, not by returning an error code: put `wrap_socket` inside `try:` and catch the error with `except ssl.SSLCertVerificationError as e:`.
+- `"%-16s" % label` works like `printf("%-16s", label)` in C.
+
+<details>
+<summary>Hint: the whole try block</summary>
 
 ```python
 try:
@@ -38,7 +42,9 @@ except ssl.SSLCertVerificationError as e:
     sock.close()
 ```
 
-- `"%-16s" % label` works like `printf("%-16s", label)` in C.
+</details>
+
+Until you write the code, every line says `not done yet: TODO 1`.
 
 ## Expected output
 
@@ -59,6 +65,8 @@ no_intermediate  REJECTED: unable to get local issuer certificate
 `unknown_ca` and `no_intermediate` give the same message: in both cases the validator could not build a path to a root in the trust store. In the first case there is no such path; in the second the server forgot to send a certificate.
 
 </details>
+
+The certificates of this task come from the **Trusty CA**, a private test CA, so they may live two years (to 2028), and the task works during the whole course. A public certificate issued today may live at most 200 days (Lecture 10).
 
 ## Run
 

@@ -105,7 +105,23 @@ def task1():
     m = a.replace(b"installer", b"installer + a little extra", 1)
     ups.append({"file": "photoedit-2.1-setup-mirror.exe", "data": m.hex(), "signature": sa.hex(),
                 "timestamp": stamp(sa, d(2024, 6, 12, 10, 15))})
+    # Mallory stole the key in summer 2024 and signed her own "hotfix"; the TSA stamped it honestly
+    g = b"PhotoEdit 2.2 hotfix\n" + bytes(range(32, 96))
+    sg = sign(g)
+    ups.append({"file": "photoedit-2.2-hotfix.exe", "data": g.hex(), "signature": sg.hex(),
+                "timestamp": stamp(sg, d(2024, 10, 15, 9, 30))})
     write(os.path.join(t, "updates.json"), json.dumps(ups, indent=2) + "\n")
+    # Alice reports the theft; Trusty Code CA revokes her certificate and writes since when the key
+    # is not to be trusted (the invalidity date, RFC 5280 section 5.3.2)
+    entry = (x509.RevokedCertificateBuilder().serial_number(publisher.serial_number)
+             .revocation_date(d(2024, 9, 3, 12, 0))
+             .add_extension(x509.CRLReason(x509.ReasonFlags.key_compromise), critical=False)
+             .add_extension(x509.InvalidityDate(datetime.datetime(2024, 9, 1)), critical=False)
+             .build())
+    crl = (x509.CertificateRevocationListBuilder().issuer_name(ca_name)
+           .last_update(d(2024, 9, 3, 12, 0)).next_update(d(2034, 9, 3))
+           .add_revoked_certificate(entry).sign(ca_key, hashes.SHA256()))
+    write(os.path.join(t, "code-ca.crl"), crl.public_bytes(serialization.Encoding.PEM))
 
 
 # ---------------------------------------------------------------- Task 2: a key file
@@ -115,19 +131,21 @@ def task2():
 
 
 # ---------------------------------------------------------------- Task 3: four TLS servers
+# The three "good" certificates are valid until 2045-09-01 (a real public one lives at most 200 days),
+# so that the task does not break on the day they would expire. Only the expired copy has a real end date.
 def task3():
     c = os.path.join(L9, "Task3", "certs")
     ca_key = ec.generate_private_key(ec.SECP256R1())
     ca = make_cert(name("Trusty CA", "Trusty CA"), name("Trusty CA", "Trusty CA"), ca_key.public_key(), ca_key,
-                   d(2025, 1, 1), d(2035, 1, 1), ca=True)
+                   d(2025, 1, 1), d(2046, 1, 1), ca=True)
     write(os.path.join(c, "trusty-ca.pem"), pem(ca))
     srv = [ec.generate_private_key(ec.SECP256R1()) for _ in range(4)]
     shop = make_cert(name("shop.alice.example"), ca.subject, srv[0].public_key(), ca_key,
-                     d(2026, 9, 1), d(2027, 3, 20), dns=["shop.alice.example"], eku=[ExtendedKeyUsageOID.SERVER_AUTH])
+                     d(2026, 9, 1), d(2045, 9, 1), dns=["shop.alice.example"], eku=[ExtendedKeyUsageOID.SERVER_AUTH])
     selfsigned = make_cert(name("shop.alice.example"), name("shop.alice.example"), srv[1].public_key(), srv[1],
-                           d(2026, 9, 1), d(2027, 3, 20), dns=["shop.alice.example"])
+                           d(2026, 9, 1), d(2045, 9, 1), dns=["shop.alice.example"])
     own = make_cert(name("mallory.example"), ca.subject, srv[2].public_key(), ca_key,
-                    d(2026, 9, 1), d(2027, 3, 20), dns=["mallory.example"], eku=[ExtendedKeyUsageOID.SERVER_AUTH])
+                    d(2026, 9, 1), d(2045, 9, 1), dns=["mallory.example"], eku=[ExtendedKeyUsageOID.SERVER_AUTH])
     expired = make_cert(name("shop.alice.example"), ca.subject, srv[3].public_key(), ca_key,
                         d(2025, 2, 1), d(2025, 8, 20), dns=["shop.alice.example"], eku=[ExtendedKeyUsageOID.SERVER_AUTH])
     names = ["shop", "mallory-selfsigned", "mallory-own-name", "shop-expired"]
@@ -190,8 +208,8 @@ def task5():
     a = bytes.fromhex(COLL_A) + SUFFIX
     b = bytes.fromhex(COLL_B) + SUFFIX
     assert hashlib.md5(a).digest() == hashlib.md5(b).digest()
-    write(os.path.join(t, "request_a.bin"), a)
-    write(os.path.join(t, "request_b.bin"), b)
+    write(os.path.join(t, "tbs_a.bin"), a)
+    write(os.path.join(t, "tbs_b.bin"), b)
     key = rsa.generate_private_key(65537, 2048)
     write(os.path.join(t, "trusty-ca-public.pem"), key.public_key().public_bytes(
         serialization.Encoding.PEM, serialization.PublicFormat.SubjectPublicKeyInfo))

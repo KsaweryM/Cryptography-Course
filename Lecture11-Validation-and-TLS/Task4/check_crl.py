@@ -8,12 +8,12 @@ LISTS = ["crl.pem", "old_crl.pem", "fake_crl.pem"]
 
 def list_is_good(crl):
     """Returns "OK", or why this CRL must not be used."""
-    # TODO 1: the signature. crl.is_signature_valid(ca.public_key()) is True only if the CA signed it.
-    #         If not, return "bad signature"
+    # TODO 1: the signature. Use crl.is_signature_valid with the CA's public key.
+    #         If the CA did not sign the list, return "bad signature"
     # TODO 2: the freshness. If next_update(crl) is before NOW,
     #         return "too old (next update was %s)" % next_update(crl).date()
-    return "OK"
-
+    #         Both checks passed: return "OK" in place of the line below
+    return "not done yet: TODO 1"
 
 for k in range(len(LISTS)):
     crl = load_crl(LISTS[k])
@@ -24,8 +24,7 @@ for k in range(len(LISTS)):
     print("%-13s list OK (next update %s)" % (LISTS[k], next_update(crl).date()))
     for i in range(len(certs)):
         cert = certs[i]
-        # TODO 3: look the serial number up in the list:
-        #         entry = crl.get_revoked_certificate_by_serial_number(cert.serial_number)
-        #         entry is None: print "not revoked";
-        #         else print "REVOKED on", revoked_on(entry), "reason:", reason_of(entry)
-        print("    %-14s serial %#x  TODO" % (name_of(cert), cert.serial_number))
+        # TODO 3: look the serial number up in the list (crl.get_revoked_certificate_by_serial_number).
+        #         Not found: print "not revoked";
+        #         found: print "REVOKED on", revoked_on(entry), "reason:", reason_of(entry)
+        print("    %-14s serial %#x  not done yet: TODO 3" % (name_of(cert), cert.serial_number))

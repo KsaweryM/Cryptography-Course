@@ -26,7 +26,7 @@ Write your code in place of the `TODO` comment in `factor.py`:
 
 ## Expected output
 
-Four lines: each number, its two factors and the time. The last number takes several seconds. Your times will be different, but each line should take roughly 16 times longer than the one before.
+Four lines: each number, its two factors and the time. The last number takes several seconds. Your times will be different from the ones below.
 
 <details>
 <summary>Check your answer</summary>
@@ -38,7 +38,9 @@ Four lines: each number, its two factors and the time. The last number takes sev
 55 bits: 32013612409104631 = 162019679 x 197590889   10.113 s
 ```
 
-8 more bits in n make each factor about 4 bits longer, so there are about 2⁴ = 16 times more divisors to try. A 2048-bit n has factors of 1024 bits: trial division would never finish.
+8 more bits in n make each factor about 4 bits longer, so there are about 2⁴ = 16 times more divisors to try. A 2048-bit n has factors of 1024 bits: trial division would never finish. Your times will be different, but each line takes roughly 16 times longer than the one before.
+
+After you finish: in [How long for a bigger n?](https://ksawerym.github.io/Cryptography-simulators/rsa/#4.2), your browser makes a random n = p × q of the size you pick and factors it by trial division: make n bigger and watch the time grow.
 
 </details>
 
@@ -49,5 +51,3 @@ python3 factor.py
 ```
 
 About 7 minutes. Python 3, no extra libraries.
-
-Want to see it move? In [How long for a bigger n?](https://ksawerym.github.io/Cryptography-simulators/rsa/#4.2), your browser makes a random n = p × q of the size you pick and factors it by trial division: make n bigger and watch the time grow.

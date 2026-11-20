@@ -64,5 +64,3 @@ python3 recover_key.py
 ```
 
 About 12 minutes. Python 3 and the library `cryptography` (used by `ecdsa_ready.py` for `sign` and `verify`).
-
-Want to see it move? The [signatures simulator, step 5](https://ksawerym.github.io/Cryptography-simulators/signatures/#5) signs twice on the small curve of Lecture 5 with four ways of choosing k (random, repeated, k + 1, from the key and the message) and shows what Mallory can compute from each. Open it after the task.

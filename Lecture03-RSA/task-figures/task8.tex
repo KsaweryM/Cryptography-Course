@@ -1,0 +1,25 @@
+% Task 8: two routers. Values from Task8/routers.py (checks/make_task_keys.py).
+% CHECKED (python3): n1 starts 17711018021637, n2 starts 16742917297534 (617 digits each), C starts 12999080852746.
+%   The shared factor p and the message are the answer: question marks.
+\documentclass[12pt,tikz,border=6pt]{standalone}
+\input{common}
+\begin{document}
+\pagecolor{white}
+\begin{tikzpicture}[>=Stealth]
+  \foreach \x/\k/\nv in {0/1/17711018021637, 8.2/2/16742917297534} {
+    \node[draw=nInk, thick, fill=nFill, rounded corners=4pt, minimum width=2.2cm, minimum height=0.9cm] (r\k) at (\x,0) {};
+    \node[text=nInk, font=\Large] at (\x,0) {\faWifi};
+    \node[pname, anchor=north] at ([yshift=-2pt]r\k.south) {router \k};
+    \node[pubv, anchor=west, align=left, font=\scriptsize] at ([xshift=0.3cm]r\k.east)
+      {\faLockOpen\ public key \k\quad\public\\ \ttfamily e = 65537\\ \ttfamily n\k\ = \nv\dots\\ \rmfamily 2048 bits};
+  }
+  % the weak random generator gave both the same p
+  \node[secv, font=\scriptsize] (gen) at (4.1,2.4) {\faDice\ weak random generator: the same\ \textbf{p}\ twice?\\ \secret};
+  \draw[data, dashed] (gen) -- (r1.north);
+  \draw[data, dashed] (gen) -- (r2.north);
+  % what Eve does
+  \eve{1.2,-3.0}
+  \node[ctv, font=\scriptsize, anchor=west] at (2.4,-2.4) {\faEnvelope\ C to router 1 = \ttfamily 12999080852746\dots};
+  \node[unkv, font=\scriptsize, anchor=west, align=left] at (2.4,-3.5) {gcd(n1, n2) = \textbf{?}\quad then q, phi, d\quad and the message = \textbf{?}};
+\end{tikzpicture}
+\end{document}

@@ -19,5 +19,5 @@ for i in range(len(servers)):
     #         if it works, print the name of the server, "OK" and tls.version(), then tls.close()
     # TODO 3: if the certificate is rejected, wrap_socket raises ssl.SSLCertVerificationError.
     #         Catch it and print the name of the server and e.verify_message, then sock.close()
-    print("%-16s TODO" % label)
+    print("%-16s not done yet: TODO %d" % (label, 1 if context is None else 2))
     sock.close()

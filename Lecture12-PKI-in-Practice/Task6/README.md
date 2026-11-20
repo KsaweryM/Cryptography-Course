@@ -8,6 +8,8 @@ Alice owns the domain `alice-shop.example`. Every publicly trusted certificate i
 
 ![A list of nine CT log entries, oldest first, each with a question mark: 2026-10-02 Green CA bob-bakery.example, www.bob-bakery.example; 2026-10-05 Trusty CA alice-shop.example, www.alice-shop.example; 2026-10-09 Green CA carol.example; 2026-10-14 Trusty CA api.alice-shop.example; 2026-10-21 Green CA alice-shop.example.mallory.example; 2026-10-25 Trusty CA dave.example, mail.dave.example; 2026-11-02 Shady CA alice-shop.example, www.alice-shop.example; 2026-11-06 Trusty CA login.alice-shop.example; 2026-11-09 Shady CA bob.example. Alice owns alice-shop.example. Her my_orders.txt has the SHA-256 fingerprints 606599e5fee40972... and 4e74d58c752088e8...; her caa.txt is the DNS record CAA 0 issue "trusty-ca.example". Which entries are for Alice's domain? Which of those did she not order? Which CA broke her CAA record?](figure.svg)
 
+Alice's CAA record has been in her DNS since September 2026, before all the certificates in this piece of the log. A CA checks CAA only at the moment it issues, so this matters: a certificate issued before the record existed broke nothing.
+
 ## Goal
 
 Find the certificates for Alice's domain that she did not order, and say for each one whether the CA broke her CAA record.
@@ -24,6 +26,8 @@ Write your code in place of the `TODO` comments in `ct_watch.py`, inside the loo
 1. Is the certificate for Alice's domain? Yes if one of its names is `DOMAIN` or ends with `"." + DOMAIN` (`name.endswith(...)`). Careful: `alice-shop.example.mallory.example` is Mallory's domain, not Alice's. If not, `continue`.
 2. `fp = cert.fingerprint(hashes.SHA256()).hex()`. If `fp in orders`, print `mine:` with the names and the date, then `continue`.
 3. Otherwise print `UNKNOWN:` with the names, the CA and the date. If `CAA_ID[issuer_cn(cert)] in ALLOWED`, the CA was allowed: ask it who ordered the certificate. If not, the CA broke CAA: report it.
+
+The starter prints `not done yet: TODO 1 to 3` for every certificate; delete that line when the three steps are done.
 
 ## Expected output
 
@@ -42,7 +46,7 @@ UNKNOWN: ['login.alice-shop.example'] from Trusty CA issued 2026-11-06
   CAA allowed this CA: ask it who ordered the certificate
 ```
 
-CAA cannot stop a CA that ignores it, and it cannot stop the allowed CA from being fooled. The log makes both cases visible within days, instead of months as with DigiNotar in 2011. Real logs are read by monitors such as crt.sh, which can e-mail you when a new certificate for your domain appears.
+CAA cannot stop a CA that ignores it, and it cannot stop the allowed CA from being fooled. The log makes both cases visible within days, instead of months as with DigiNotar in 2011. Real logs are read by monitors such as crt.sh, which can e-mail you when a new certificate for your domain appears. One trap in real logs: a CA first logs a **precertificate** (the same fields with a poison extension), whose fingerprint differs from the final certificate. On crt.sh you see both, so compare names, serial numbers and keys before you raise an alarm about a fingerprint you do not know.
 
 </details>
 

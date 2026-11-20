@@ -31,11 +31,14 @@ Write your code in place of the `TODO` comments in `check_chain.py`. `check()` r
 3. **The name.** First write `name_matches(pattern, host)`: equal names (ignore case with `.lower()`), or a wildcard `*.bob.example` that covers exactly one more label (`www.bob.example` yes, `bob.example` no, `a.b.bob.example` no). Then `host` must match at least one of `dns_names(chain[0])`.
 4. **Basic Constraints.** Every certificate except the leaf must be a CA: `is_ca(chain[i])`.
 5. **Extended Key Usage.** `"serverAuth"` must be in `key_purposes(chain[0])`.
+6. **All passed.** At the end of `check()`, return `"OK"` in place of the line `return "not done yet: TODO 1"`.
 
 Hints:
 
 - `for i in range(n - 1):` runs `i = 0, 1, ..., n - 2`, like `for (i = 0; i < n - 1; i++)` in C.
 - Useful string functions: `s.startswith("*.")`, `s.endswith(rest)`, `s[1:]` (everything after the first character), `"." in s`.
+
+Until you write the checks, every line says `not done yet: TODO 1`.
 
 ## Expected output
 
@@ -56,6 +59,8 @@ case6.pem  2 certificates  check 5: the leaf is for ['clientAuth'], not for a se
 OpenSSL agrees (`openssl verify -purpose sslserver -verify_hostname bob.example`): errors 10 (expired), 62 (hostname mismatch), 79 (invalid CA certificate), 7 (signature failure) and 26 (unsuitable purpose). In case 4 every signature, date and name is fine: Mallory used her real leaf as a CA, and only Basic Constraints stops her. In case 5 she made her own "Trusty Issuing CA 1" with the right name, but she cannot make the root's signature.
 
 </details>
+
+The Trusty CA is a private test CA, so its certificates may live two years; a public certificate issued today may live at most 200 days (Lecture 10).
 
 ## Run
 

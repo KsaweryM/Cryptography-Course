@@ -1,8 +1,9 @@
-% Task 1: five signed files, one certificate that expired, timestamps. Values from Task1/updates.json.
+% Task 1: six signed files, one certificate that expired and was revoked, timestamps. Values from Task1/updates.json.
 % CHECKED (python3, Task1/solution/check_updates.py, 2026-11-15):
 %   publisher.pem: CN = Alice Software Ltd, issuer Trusty Code CA, 2024-01-01 to 2025-01-01, EKU Code Signing
 %   2.1 setup: TSA time 2024-06-12; 2.2: no timestamp; 2.3: TSA time 2025-03-02;
-%   2.4: the token says 2024-05-20 (edited by Mallory, the TSA signed 2025-05-20); 2.1 mirror: data changed
+%   2.4: the token says 2024-05-20 (edited by Mallory, the TSA signed 2025-05-20); 2.1 mirror: data changed;
+%   2.2 hotfix: TSA time 2024-10-15; code-ca.crl: invalidity date 2024-09-01 (revoked 2024-09-03)
 \documentclass[12pt,tikz,border=6pt]{standalone}
 \input{common}
 \begin{document}
@@ -21,10 +22,13 @@
   \draw[sViolet, thick, rounded corners=2pt] (0,0.35) rectangle (12,0.95);
   \node[font=\small, text=nInk] at (6,0.65) {\faCertificate\ Alice's certificate is valid};
   \node[font=\scriptsize, text=nInk, anchor=south] at (6,0.98) {Alice Software Ltd, code signing, 2024-01-01 to 2025-01-01};
-  \draw[sViolet, thick, dashed] (12,0.35) -- (12,-8.0);
-  \node[font=\scriptsize\bfseries, text=sViolet, anchor=north, fill=white, inner sep=1pt] at (12,-8.0) {expired};
+  \draw[sViolet, thick, dashed] (12,0.35) -- (12,-9.5);
+  \node[font=\scriptsize\bfseries, text=sViolet, anchor=north, fill=white, inner sep=1pt] at (12,-9.5) {expired};
+  % ---------- revoked: the key is not trusted since 2024-09-01 ----------
+  \draw[aWrite, thick, dashed] (8,0.3) -- (8,-9.5);
+  \node[font=\scriptsize\bfseries, text=aWrite, anchor=north east, fill=white, inner sep=1pt] at (8.2,-9.5) {revoked: the key was stolen, not trusted since 2024-09-01};
   % ---------- today ----------
-  \draw[AccentOrange, very thick, dashed] (34.5,1.4) -- (34.5,-8.0);
+  \draw[AccentOrange, very thick, dashed] (34.5,1.4) -- (34.5,-9.5);
   \node[font=\small\bfseries, text=AccentOrange, anchor=south] at (34.5,1.4) {today: Bob installs};
   % ---------- the five files ----------
   \foreach \k/\f/\m/\what in {
@@ -32,7 +36,8 @@
       2/photoedit-2.2-update.exe/-1/{no timestamp},
       3/photoedit-2.3-update.exe/14.0/{TSA stamp 2025-03-02},
       4/photoedit-2.4-update.exe/4.6/{stamp says 2024-05-20},
-      5/photoedit-2.1-setup-mirror.exe/5.4/{TSA stamp 2024-06-12}} {
+      5/photoedit-2.1-setup-mirror.exe/5.4/{TSA stamp 2024-06-12},
+      6/photoedit-2.2-hotfix.exe/9.5/{TSA stamp 2024-10-15}} {
     \pgfmathsetmacro{\y}{-1.45*\k}
     \node[font=\small\ttfamily, text=nInk, anchor=east] at (-0.6,\y) {\faFile*[regular]\ \f};
     \ifdim \m pt < 0pt
@@ -49,8 +54,8 @@
   \node[font=\scriptsize, text=sPinkText, anchor=north east] at (-0.6,-6.05) {Mallory edited the time in the token};
   \node[font=\scriptsize, text=sPinkText, anchor=north east] at (-0.6,-7.5) {a mirror site: same signature, changed bytes};
   % ---------- legend ----------
-  \node[note, anchor=west, align=left] at (-14,-9.0)
+  \node[note, anchor=west, align=left] at (-14,-10.5)
     {\textcolor{sBrown}{\faStamp}\ the Time-Stamping Authority signed: ``this signature existed at this time''.\\
-     Accept or reject each file today? Check the signature, the timestamp and the date.};
+     Accept or reject each file today? Check the signature, the timestamp, the date and the revocation.};
 \end{tikzpicture}
 \end{document}

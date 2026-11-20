@@ -23,11 +23,27 @@ Decide whether Bob's and Carol's certificates are revoked, using only lists that
 
 Write your code in place of the `TODO` comments in `check_crl.py`:
 
-1. In `list_is_good`: if `crl.is_signature_valid(ca.public_key())` is not `True`, return `"bad signature"`.
-2. In `list_is_good`: if `next_update(crl)` is before `NOW`, return `"too old (next update was %s)" % next_update(crl).date()`.
-3. In the loop: `entry = crl.get_revoked_certificate_by_serial_number(cert.serial_number)`. If `entry is None`, print `not revoked`; otherwise print `REVOKED on`, `revoked_on(entry)` and `reason:` `reason_of(entry)`.
+1. In `list_is_good`: check the list's signature with `crl.is_signature_valid` and the CA's public key. If the CA did not sign it, return `"bad signature"`.
+2. In `list_is_good`: if `next_update(crl)` is before `NOW`, return `"too old (next update was %s)" % next_update(crl).date()`. When both checks pass, return `"OK"` in place of the line `return "not done yet: TODO 1"`.
+3. In the loop: look the certificate's serial number up with `crl.get_revoked_certificate_by_serial_number`. If there is no entry, print `not revoked`; otherwise print `REVOKED on`, `revoked_on(entry)` and `reason:` `reason_of(entry)`.
 
-Hint: `is None` is how Python compares with `None`, like comparing a pointer with `NULL` in C.
+Until you write the code, every list is rejected with `not done yet: TODO 1`.
+
+<details>
+<summary>Hint: the calls of steps 1 and 3</summary>
+
+```python
+if crl.is_signature_valid(ca.public_key()) is not True:
+    return "bad signature"
+...
+entry = crl.get_revoked_certificate_by_serial_number(cert.serial_number)
+if entry is None:
+    ...
+```
+
+`is None` is how Python compares with `None`, like comparing a pointer with `NULL` in C.
+
+</details>
 
 ## Expected output
 
@@ -44,7 +60,7 @@ old_crl.pem   REJECT the list: too old (next update was 2026-10-08)
 fake_crl.pem  REJECT the list: bad signature
 ```
 
-Without steps 1 and 2, the old list and the fake list would both say that Carol is fine: neither lists her serial number. Real lists live a few days (the list of Google's CA WE1: about 10 days); `crl.pem` lasts until the end of 2027 only so that this task works during the whole course.
+Without steps 1 and 2, the old list and the fake list would both say that Carol is fine: neither lists her serial number. Real lists live a few days (the list of Google's CA WE1: about 10 days); `crl.pem` lasts until the end of 2027 only so that this task works during the whole course. For the same reason the certificates of this private test CA live two years; a public certificate issued today may live at most 200 days (Lecture 10).
 
 </details>
 

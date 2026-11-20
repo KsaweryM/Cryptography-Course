@@ -29,7 +29,7 @@ Python integers have no size limit, so 40-digit numbers need no special type (un
 
 ## Expected output
 
-Four lines. n has 40 digits; d and C look like random 40-digit numbers; P must be the original message. With `e = 3` (step 6) the program stops with an error.
+Four lines. n has 40 digits; d and C look like random 40-digit numbers; P must be the original message. For step 6, note what Python says.
 
 <details>
 <summary>Check your answer</summary>

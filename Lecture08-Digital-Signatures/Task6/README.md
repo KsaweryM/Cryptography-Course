@@ -52,5 +52,3 @@ python3 hash_and_sign.py
 ```
 
 About 9 minutes. Python 3 and the library `cryptography` (only `alice_key.py` uses it).
-
-Want to see it move? The [signatures simulator, step 3](https://ksawerym.github.io/Cryptography-simulators/signatures/#3) lets Mallory search for an order whose hash fits a forged number, with the hash cut to 8 to 32 bits, and shows how the work grows to 256 bits. Open it after the task.

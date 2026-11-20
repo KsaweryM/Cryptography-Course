@@ -42,7 +42,8 @@ def check(chain, store, host):
     # TODO 5: Extended Key Usage. "serverAuth" must be in key_purposes(chain[0]),
     #         else return "check 5: the leaf is for %s, not for a server" % key_purposes(chain[0])
 
-    return "OK"
+    # TODO 6: every check passed: return "OK" in place of the line below
+    return "not done yet: TODO 1"
 
 
 store = load_store()

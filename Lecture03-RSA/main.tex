@@ -307,13 +307,35 @@
     \foreach \i in {0,...,4} \node[person=nInk, minimum size=0.7cm, font=\normalsize] at (P\i) {\faUser};
   \end{tikzpicture}}
 
+\begin{frame}{Problem 2: a key for every pair}
+  \begin{center}\small Alice also talks to Carol, Dave and others. Each conversation must stay private.\end{center}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \foreach \i/\n in {0/Alice, 1/Bob, 2/Carol, 3/Dave, 4/Eve?} \coordinate (Q\i) at ({90+72*\i}:1.7);
+      \foreach \j in {1,2,3} \draw[sAmber, very thick] (Q0) -- (Q\j);
+      \foreach \j/\lb in {1/{K\textsubscript{AB}}, 2/{K\textsubscript{AC}}, 3/{K\textsubscript{AD}}}
+        \node[symkey, inner sep=1.5pt, font=\tiny] at ($(Q0)!0.55!(Q\j)$) {\faKey\ \lb};
+      \node[person=sIndigo, minimum size=0.75cm, font=\normalsize] at (Q0) {\faUser};
+      \node[pname, above=2pt] at (Q0) {Alice};
+      \foreach \i/\n in {1/Bob, 2/Carol, 3/Dave} {
+        \node[person=nInk, minimum size=0.75cm, font=\normalsize] (pp\i) at (Q\i) {\faUser};
+        \node[pname, below=1pt of pp\i] {\n};
+      }
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \keymsg{Every pair of people needs its own key: nobody else may read their messages.}
+  \say{Gdyby Alice miała jeden klucz dla wszystkich, Carol mogłaby czytać jej rozmowy z Bobem. Więc każda para osób potrzebuje własnego klucza. Ile ich będzie? Zadanie 1.}
+\end{frame}
+
 \samedot
 \begin{frame}{Task 1: how many keys?}
   \begin{columns}[c,onlytextwidth]
     \column{0.4\textwidth}
       \begin{center}\fivegraph{0}\end{center}
     \column{0.6\textwidth}
-      Every pair of people needs its own key: nobody else may read their messages.\\[0.4cm]
+      Every pair of people needs its own key.\\[0.4cm]
       How many keys do we need for
       \begin{itemize}
         \item 5 people?
@@ -353,7 +375,8 @@
   \say{Liczby sprawdzone. Dla firmy z 10 000 pracowników prawie 50 milionów kluczy.}
 \end{frame}
 
-\begin{frame}{Problem 2: keeping track of keys}
+\samedot
+\begin{frame}{Problem 2, continued: keeping track of keys}
   \begin{center}\small Each person stores a key for every partner.\end{center}
   \vfill
   \begin{center}
@@ -490,6 +513,7 @@
     \fi
     \ifnum#1>4
       \node[mech, font=\scriptsize\bfseries] (dec) at (10.6,0) {decrypt};
+      \draw[data, very thick] (6.0,0) -- (dec.west);
       \draw[data] (pr.south) |- ([yshift=0.6cm]dec.north) -- (dec.north);
       \node[msg] (m2) at (12.2,-1.25) {message};
       \draw[data] (dec) -- (m2);
@@ -589,7 +613,8 @@
     \end{tikzpicture}
   \end{center}
   \vfill
-  \begin{center}\small Why: every RSA operation is a power of a 617-digit number; ChaCha20 only adds, rotates and XORs 32-bit words.\\[3pt]
+  \begin{center}\small Why: RSA computes with 617-digit numbers (section 5); ChaCha20 only adds, rotates and XORs 32-bit words.\\
+    Decrypting is slower than encrypting: the private key holds a much bigger number than the public one.\\[3pt]
     A 1 GB file piece by piece with RSA: encrypting takes \textbf{about a minute}, decrypting \textbf{more than half an hour}.\\
     \footnotesize\textcolor{gray}{measured with OpenSSL on a laptop (Intel Core i5-8265U)}\end{center}
   \vfill
@@ -617,7 +642,7 @@
       \bigenvelope{big}{4.2,0.25}{4.4cm}{2.3cm}{sViolet}
       \node[font=\small\bfseries, text=nInk, fill=sViolet!12, inner sep=2pt] at (4.2,-0.35) {\faFile*\ the data};
       \node[font=\scriptsize, text=nInk, fill=sViolet!12, inner sep=1pt] at (4.2,-0.75) {1 GB, any size};
-      \node[symkey, font=\small] (kb) at (4.2,1.7) {\faLock\ locked with \faKey\ K\ \textcolor{gray}{\scriptsize ChaCha20, fast}};
+      \node[symkey, font=\small] (kb) at (4.2,1.7) {\faLock\ locked with \faKey\ K\ \textcolor{gray}{\scriptsize ChaCha20-Poly1305, fast}};
       % the small envelope: K, locked with Bob's public key
       \bigenvelope{small}{4.2,-1.95}{2.4cm}{1.2cm}{sTeal}
       \node[symkey, font=\scriptsize, inner sep=2pt] at (4.2,-2.15) {\faKey\ K, 32 bytes};
@@ -633,9 +658,9 @@
     \end{tikzpicture}
   \end{center}
   \vfill
-  \curious{rsa/\#5.5}
+  \curious{rsa/\#5.1}
   \keymsg{Public-key crypto moves the key, symmetric crypto moves the data.\quad \ok\ Both problems of a shared key are solved.}
-  \say{Tak działa prawie każde zastosowanie kryptografii asymetrycznej: ona tylko przenosi klucz, resztę robi szybki szyfr symetryczny. Oba problemy wspólnego klucza są rozwiązane: klucz publiczny może podróżować jawnie, a każda osoba ma jedną parę kluczy. Co się dzieje, gdy wycieknie klucz prywatny, zobaczymy na końcu wykładu. Klucz K, losowany na jedną rozmowę, to klucz sesji. W symulatorze z linku (karta szyfrowania hybrydowego w kroku 5) ta sama koperta z prawdziwymi rozmiarami w bajtach.}
+  \say{Tak działa prawie każde zastosowanie kryptografii asymetrycznej: ona tylko przenosi klucz, resztę robi szybki szyfr symetryczny. Oba problemy wspólnego klucza są rozwiązane: klucz publiczny może podróżować jawnie, a każda osoba ma jedną parę kluczy. Co się dzieje, gdy wycieknie klucz prywatny, zobaczymy na końcu wykładu. Klucz K, losowany na jedną rozmowę, to klucz sesji. Duża koperta to ChaCha20-Poly1305 z wykładu 2: szyfruje i dodaje znacznik (tag), więc Bob zauważy każdą zmianę danych. W symulatorze z linku (krok 5, część 1, bez ataków) ta sama koperta z prawdziwymi rozmiarami w bajtach.}
 \end{frame}
 
 
@@ -665,21 +690,21 @@
     unless you know a secret (the \textbf{trapdoor}).}
   \vfill
   \begin{center}
-    \begin{tikzpicture}[>=Stealth, scale=1.5, transform shape]
-      \foreach \x/\c in {0/sAmber, 1.5/sTeal} {
-        \draw[nInk, thick, fill=\c!70] (\x-0.45,0.6) -- (\x-0.35,-0.5) -- (\x+0.35,-0.5) -- (\x+0.45,0.6);
-        \draw[nInk, thick] (\x-0.45,0.6) -- (\x+0.45,0.6);
-      }
-      \draw[nInk, thick, fill=sAmber!50!sTeal!70] (5.4,0.8) -- (5.5,-0.6) -- (6.6,-0.6) -- (6.7,0.8);
-      \draw[nInk, thick] (5.4,0.8) -- (6.7,0.8);
-      \draw[data] (2.3,0.25) -- node[above, font=\small, text=nInk] {mixing: easy} (4.9,0.25);
-      \draw[data] (4.9,-0.35) -- node[below, font=\small, text=nInk] {separating: hard} (2.3,-0.35);
-      \node[font=\Large, text=aWrite] at (3.6,-0.35) {\faTimes};
+    \begin{tikzpicture}[>=Stealth]
+      % closing: anyone; opening without the key: hard; opening with the key (the trapdoor): easy
+      \node[text=sTeal, font=\fontsize{34}{36}\selectfont] (o) at (0,0) {\faLockOpen};
+      \node[text=sTeal, font=\fontsize{34}{36}\selectfont] (c) at (6,0) {\faLock};
+      \draw[data] (1.0,0.55) -- node[above, font=\small, text=nInk] {closing: easy, for anyone} (5.0,0.55);
+      \draw[data] (5.0,-0.25) -- node[below, font=\small, text=nInk] {opening without the key: hard} (1.0,-0.25);
+      \node[font=\Large, text=aWrite] at (3.0,-0.25) {\faTimes};
+      \node[privkey, font=\small] (k) at (9.6,0) {\faKey\ the trapdoor};
+      \draw[data] (k.west) -- (6.8,0);
+      \node[font=\small, text=nInk, align=center] at (9.6,-0.9) {opening with the key:\\ easy \ok};
     \end{tikzpicture}
   \end{center}
   \vfill
   \keymsg{Encrypting with the public key is the one-way function; the private key is the trapdoor that goes back.}
-  \say{Klucz publiczny pozwala liczyć w przód, klucz prywatny to furtka, która pozwala cofnąć. Na rysunku nie ma furtki: farb nie da się rozdzielić nikomu. W RSA funkcją jednokierunkową jest szyfrowanie P\textsuperscript{e} mod n, furtką klucz prywatny d, a d chroni trudność rozkładu n na czynniki (następne slajdy i sekcja 5).}
+  \say{Klucz publiczny pozwala liczyć w przód, klucz prywatny to furtka, która pozwala cofnąć. Kłódkę z początku wykładu zamknie każdy, otworzyć bez klucza jest trudno, a z kluczem łatwo: klucz to furtka. W RSA funkcją jednokierunkową jest szyfrowanie P\textsuperscript{e} mod n, furtką klucz prywatny d, a d chroni trudność rozkładu n na czynniki (następne slajdy i sekcja 5).}
 \end{frame}
 
 \samedot
@@ -703,7 +728,8 @@
   \begin{center}
     {\LARGE\ttfamily 1\,381\,619\,747 = \textcolor{AccentOrange}{?} $\times$ \textcolor{AccentOrange}{?}}\\[0.8cm]
     The simple way: try every divisor 2, 3, 5, 7, \dots\ until one fits.\\[0.4cm]
-    Breaking a number into primes is called \textbf{factoring}.
+    Breaking a number into primes is called \textbf{factoring}.\\[0.3cm]
+    \small Hard is a belief, not a proof: nobody knows a fast method, and nobody has proved that none exists.
   \end{center}
   \vfill
   \keymsg{Multiplying is easy. Going back is hard.}
@@ -887,9 +913,23 @@
       {\Large $3^4 \bmod 7 = 81 \bmod 7 = \textbf{4}$}\\[0.4cm]
       \stepbox{powers of 3 mod 7}{3, 2, 6, 4, 5, 1, 3, 2, \dots\quad a circle of $6 = 7 - 1$ steps}
       \stepbox{in Python}{\texttt{pow(3, 4, 7)}\quad even for numbers with 600 digits}
-      \stepbox{Why mod n?}{Without mod, $88^{7}$ could be undone with an ordinary 7th root. Mod n wraps around, so the root no longer works; it also keeps the numbers below n.}
   \end{columns}
-  \say{Na rysunku kolejne potęgi 3 idą po okręgu: każda strzałka to mnożenie przez 3 mod 7. 3\textsuperscript{4} mod 7 = 4 jest zaznaczone; po 6 = 7 - 1 krokach wracamy do 1, a potem znowu 3. Długość tego okręgu wróci w RSA jako phi (sekcja 5). Trzeci argument pow to n. Python nie liczy wtedy całej ogromnej potęgi, tylko od razu reszty, dlatego to działa dla liczb 2048-bitowych. Po co modulo: 88\textsuperscript{7} bez modulo to zwykła liczba i pierwiastek siódmego stopnia od razu daje 88; reszta z dzielenia zawija wynik i pierwiastek przestaje działać.}
+  \say{Na rysunku kolejne potęgi 3 idą po okręgu: każda strzałka to mnożenie przez 3 mod 7. 3\textsuperscript{4} mod 7 = 4 jest zaznaczone; po 6 = 7 - 1 krokach wracamy do 1, a potem znowu 3. Długość tego okręgu wróci w RSA jako phi (sekcja 5). Trzeci argument pow to n. Python nie liczy wtedy całej ogromnej potęgi, tylko od razu reszty, dlatego to działa dla liczb 2048-bitowych.}
+\end{frame}
+
+% CHECKED: python3: 88**7 = 40867559636992 (14 digits), round(40867559636992 ** (1/7)) = 88; orders of P mod 187: 2, 4, 5, 8, 10, 16, 20, 40, 80; pow(2, 40, 187) = 1; pow(88, 7, 187) = 11
+\samedot
+\begin{frame}{Why powers modulo n?}
+  \vfill
+  \begin{columns}[T,onlytextwidth]
+    \column{0.48\textwidth}
+      \stepbox{Without mod}{$88^{7} = 40\,867\,559\,636\,992$\\[2pt] an ordinary 7th root gives 88 back at once \nok}
+    \column{0.48\textwidth}
+      \stepbox{With mod 187}{$88^{7} \bmod 187 = 11$\\[2pt] the 7th root of 11 is not 88: the wrap-around hides it \ok}
+  \end{columns}
+  \vfill
+  \keymsg{Mod n wraps the power around, so the ordinary root no longer works; it also keeps the numbers below n.}
+  \say{Po co modulo: 88\textsuperscript{7} bez modulo to zwykła 14-cyfrowa liczba i pierwiastek siódmego stopnia od razu daje 88. Reszta z dzielenia zawija wynik i pierwiastek przestaje działać. Do tego liczby nie rosną: zostają mniejsze od n.}
 \end{frame}
 
 \begin{frame}{Greatest common divisor}
@@ -969,9 +1009,9 @@
 \newcommand{\keynote}[1]{\ifcase#1\or
   Why two primes and not one: step 3 shows it.\or
   \or
-  phi = the length of the circle of powers (section 4) for n = p $\times$ q; it is used in step 5.\\
+  After phi steps every power mod n is back at 1 (each circle's length divides phi); used in step 5.\\
   With one prime n, phi = n - 1 would be public, and anyone could compute d. With p $\times$ q, phi needs the factors.\or
-  gcd(e, phi) = 1 so that d exists (step 5).\quad In practice e = 65537.\or
+  gcd(e, phi) = 1 so that d exists (step 5).\\ In practice e = 65537: fast (only two 1 bits) and not too small (e = 3 is risky).\or
   In practice e = 65537.\fi}
 \newcommand{\keyframe}[2]{%
 \begin{frame}{Making the keys, step #1}
@@ -984,9 +1024,9 @@
 \samedot
 \keyframe{2}{Żeby wrócić od n do p i q, trzeba rozłożyć n: to trudny problem z sekcji 3.}
 \samedot
-\keyframe{3}{Phi to funkcja Eulera: ile liczb mniejszych od n jest względnie pierwszych z n. Z p i q liczymy ją od razu; bez nich trzeba by rozłożyć n. Szara linia: jak 6 = 7 - 1 kroków dla potęg 3 mod 7, po phi krokach potęgi modulo n wracają do 1 (dokładniej: długość każdego okręgu dzieli phi). Do tego wrócimy na slajdzie Why does the message come back.}
+\keyframe{3}{Phi to funkcja Eulera: ile liczb mniejszych od n jest względnie pierwszych z n. Z p i q liczymy ją od razu; bez nich trzeba by rozłożyć n. Szara linia: jak 6 = 7 - 1 kroków dla potęg 3 mod 7, po phi krokach potęgi modulo n wracają do 1. Uwaga: dla n = p razy q żaden okrąg nie ma długości phi; długość każdego okręgu dzieli phi (dla 187 okręgi mają długości 2, 4, 5, 8, 10, 16, 20, 40 i 80, a 80 = lcm(16, 10)). Standardy (FIPS 186-5) i biblioteki liczą d modulo tej najdłuższej długości, lambda = lcm(p - 1, q - 1); działa i jedno, i drugie. Do tego wrócimy na slajdzie Why does the message come back.}
 \samedot
-\keyframe{4}{gcd(e, phi) = 1 jest potrzebne, bo tylko wtedy istnieje odwrotność d (krok 5, slajd o odwrotności modulo). W praktyce prawie zawsze e = 65537: liczba pierwsza z tylko dwiema jedynkami w zapisie binarnym, więc szyfrowanie jest szybkie. Tego e używa zadanie 5. Uwaga: e = 3 nie ma odwrotności dla liczb pierwszych z zadania 5 (gcd(3, phi) = 3); zadanie każe to sprawdzić.}
+\keyframe{4}{gcd(e, phi) = 1 jest potrzebne, bo tylko wtedy istnieje odwrotność d (krok 5, slajd o odwrotności modulo). W praktyce prawie zawsze e = 65537: liczba pierwsza z tylko dwiema jedynkami w zapisie binarnym, więc szyfrowanie jest szybkie. Nie e = 3, bo bez dopełnienia krótka wiadomość daje P\textsuperscript{3} mniejsze od n i Eve liczy zwykły pierwiastek (zobaczymy to przy dopełnieniu). Tego e używa zadanie 5. Uwaga: e = 3 nie ma odwrotności dla liczb pierwszych z zadania 5 (gcd(3, phi) = 3); zadanie każe to sprawdzić.}
 \samedot
 \keyframe{5}{To jest wynik z sekcji 4: odwrotność e modulo phi. Bez phi nie da się policzyć d, a bez p i q nie da się policzyć phi.}
 
@@ -1008,29 +1048,29 @@
   \say{Klucz publiczny i prywatny mają to samo n. Różnią się tylko wykładnikiem. W symulatorze z linku te pięć kroków dla własnych liczb pierwszych, z gotowym przykładem 17, 11, e = 7.}
 \end{frame}
 
-\begin{frame}{What Eve would need}
-  \begin{center}\small Eve has the public key \{7, 187\} and a ciphertext C. She has two ways to try.\end{center}
+
+% CHECKED: python3 3.12, i5-8265U, checks/make_task_keys.py is_probable_prime (Miller-Rabin, 40 rounds), random.Random(1):
+%          40 random 1024-bit primes, on average 354 odd candidates each (median 243), 0.58 s each;
+%          1024 x ln 2 = 709.8, so among odd numbers about 1 in 355 is prime (prime number theorem)
+\begin{frame}{Good to know: where do p and q come from?}
   \vfill
   \begin{center}
-    \begin{tikzpicture}[>=Stealth]
-      \eve{0,0}
-      % way (a): undo the power directly
-      \node[hw, anchor=west, minimum width=4.6cm, minimum height=1.0cm] (a) at (1.4,0.95) {\textbf{(a)} undo $C = P^{e} \bmod n$ directly};
-      \node[font=\small, text=aWrite, anchor=west] at ([xshift=4pt]a.east) {\nok\ no known way};
-      % way (b): get d, which needs phi, which needs p and q
-      \node[hw, anchor=west, minimum height=1.0cm] (b) at (1.4,-0.95) {\textbf{(b)} get d};
-      \node[hw, minimum height=1.0cm, right=0.7cm of b] (phi) {needs phi};
-      \node[hw, minimum height=1.0cm, right=0.7cm of phi] (pq) {needs p and q};
-      \node[hw, minimum height=1.0cm, right=0.7cm of pq, draw=AccentOrange, line width=1.2pt] (fac) {= factoring n};
-      \draw[data] (b) -- (phi); \draw[data] (phi) -- (pq); \draw[data] (pq) -- (fac);
-      \node[font=\scriptsize, text=aWrite, below=2pt of fac] {\nok\ hard (section 3)};
-      \draw[data] (E) -- (a.west); \draw[data] (E) -- (b.west);
-    \end{tikzpicture}
+    \begin{tikzpicture}
+      \foreach \i/\m in {0/\nok, 1/\nok, 2/\nok, 3/\nok, 5/\ok} {
+        \node[hw, minimum width=1.7cm, minimum height=0.9cm, font=\scriptsize\ttfamily] (c\i) at ({2.2*\i},0) {1011\dots 01\\[-1pt]\rmfamily 1024 bits};
+        \node[font=\large] at ({2.2*\i},-0.85) {\m};
+      }
+      \node[font=\Large, text=nInk] at (8.8,0) {\dots};
+      \node[font=\scriptsize, text=nInk, align=center] at (5.5,1.05) {a random odd number, then a primality test (Miller-Rabin); if it fails, the next random one};
+    \end{tikzpicture}\\[0.5cm]
+    About 1 odd 1024-bit number in 355 is prime: a few hundred tries, under a second.\\[3pt]
+    Testing a number is fast; only \textbf{factoring} a product is hard.\\[3pt]
+    \small p and q must be random, independent and different. Weak randomness breaks the key (section 6).
   \end{center}
   \vfill
-  \curious{rsa/\#4}
-  \keymsg{RSA: the one-way function is $P^{e} \bmod n$, the trapdoor is d, and d is protected by the factoring of n.}
-  \say{Droga (a): nikt nie zna sposobu, żeby odwrócić potęgę modulo n bez d (poza zgadywaniem P, co zobaczymy w zadaniu 6). Droga (b): d to odwrotność e modulo phi, phi = (p - 1)(q - 1), więc potrzebne są p i q, czyli rozkład n, a to trudny problem z sekcji 3. W symulatorze z linku Eve rozkłada małe n w przeglądarce, potem liczy phi, d i czyta wiadomość; jest też oszacowanie czasu dla 2048 bitów.}
+  \keymsg{Finding a big prime is easy: guess and test.}
+  \say{Można pominąć, ale ktoś zwykle pyta: czy znalezienie liczby pierwszej z 309 cyframi nie jest tak trudne jak faktoryzacja? Nie. Według twierdzenia o liczbach pierwszych co mniej więcej 710. liczba w okolicy 2\textsuperscript{1024} jest pierwsza (ln 2\textsuperscript{1024} = 710), wśród nieparzystych co 355. Test Millera-Rabina mówi, czy liczba jest pierwsza, nie szukając dzielników; jest probabilistyczny, ale po kilkudziesięciu rundach prawdopodobieństwo błędu jest pomijalne. Mój pomiar w Pythonie: średnio 354 próby i 0,58 s na jedną 1024-bitową liczbę pierwszą. p i q nie mogą być też zbyt blisko siebie (wtedy łatwo rozłożyć n metodą Fermata). Symulator z linku losuje liczby pierwsze w przeglądarce.}
+  \curious{rsa/\#2.4}
 \end{frame}
 
 \begin{frame}{Encrypt and decrypt}
@@ -1085,9 +1125,9 @@
 \samedot
 \begin{frame}{Why does the message come back?}
   \vfill
-  \stepbox{1. Powers go round in a circle, as the powers of 3 mod 7 in section 4}{For every P that shares no factor with n:\quad
+  \stepbox{1. After phi steps, every power is back at 1 (as the powers of 3 mod 7 in section 4)}{For every P that shares no factor with n:\quad
     $P^{\,\text{phi}} \bmod n = 1$ \qquad e.g.\ $2^{160} \bmod 187 = 1$ \hfill\textcolor{gray}{(Euler)}}
-  \stepbox{2. d was chosen for this}{$e \times d = 7 \times 23 = 161 = 160 + 1$:\quad one full circle, plus one step.}
+  \stepbox{2. d was chosen for this}{$e \times d = 7 \times 23 = 161 = 160 + 1$:\quad whole circles, plus one step.}
   \stepbox{3. So decrypting undoes encrypting}{$(P^{7})^{23} = P^{161} = P^{160} \times P = 1 \times P = P \pmod{187}$}
   \vfill
   \begin{center}
@@ -1100,8 +1140,8 @@
     \end{tikzpicture}
   \end{center}
   \vfill
-  \keymsg{d makes $e \times d$ one more than a full circle (mod phi), so the message comes back.}
-  \say{To jest cała intuicja, bez dowodu. Phi to długość okręgu: po phi krokach potęgi wracają do 1 (twierdzenie Eulera). Dlatego d to odwrotność e modulo phi: e razy d to 1 plus pełne okręgi (ogólnie 1 + k razy phi, tu k = 1). Twierdzenie Eulera mówi tylko o P, które nie mają wspólnego dzielnika z n. Nasze 88 = 8 razy 11 akurat ma wspólny dzielnik 11, a mimo to wróciło; czy działa zawsze, sprawdzi zadanie 4. Nie zdradzać odpowiedzi.}
+  \keymsg{d makes $e \times d$ one more than a multiple of phi, so the message comes back.}
+  \say{To jest cała intuicja, bez dowodu. Po phi krokach potęgi wracają do 1 (twierdzenie Eulera). Okrąg samego 2 jest krótszy: 2\textsuperscript{40} mod 187 = 1, a 40 dzieli 160, więc po 160 krokach to cztery pełne okręgi. Najdłuższy okrąg mod 187 ma 80 kroków (lambda = lcm(16, 10)). Dlatego d to odwrotność e modulo phi: e razy d to 1 plus pełne okręgi (ogólnie 1 + k razy phi, tu k = 1). Twierdzenie Eulera mówi tylko o P, które nie mają wspólnego dzielnika z n. Nasze 88 = 8 razy 11 akurat ma wspólny dzielnik 11, a mimo to wróciło; czy działa zawsze, sprawdzi zadanie 4. Nie zdradzać odpowiedzi.}
 \end{frame}
 
 \begin{frame}{Task 4: does it always work?}
@@ -1166,7 +1206,7 @@
   \end{center}
   \vfill
   \curious{math/fast-exponentiation/}
-  \say{Można pominąć. Liczenie potęgi przez ciągłe mnożenie wymagałoby d - 1 mnożeń, dla 2048-bitowego d to około 2\textsuperscript{2048}. Square-and-multiply podnosi do kwadratu przy każdym bicie wykładnika i mnoży tylko przy bitach 1, czyli najwyżej 2 razy 2048 mnożeń; tak robi pow w Pythonie. Gdyby ktoś pytał: jeśli czas zależy od bitów klucza, atakujący może je odczytać z pomiaru czasu (atak bocznym kanałem); drabina Montgomery'ego robi tę samą pracę przy każdym bicie. Wszystko jest w symulatorze z linku.}
+  \say{Można pominąć. Liczenie potęgi przez ciągłe mnożenie wymagałoby d - 1 mnożeń, dla 2048-bitowego d to około 2\textsuperscript{2048}. Square-and-multiply podnosi do kwadratu przy każdym bicie wykładnika i mnoży tylko przy bitach 1, czyli najwyżej 2 razy 2048 mnożeń; pow w Pythonie używa odmiany tej metody (z oknem kilku bitów naraz). Gdyby ktoś pytał: jeśli czas zależy od bitów klucza, atakujący może je odczytać z pomiaru czasu (atak bocznym kanałem); drabina Montgomery'ego robi tę samą pracę przy każdym bicie. Wszystko jest w symulatorze z linku.}
 \end{frame}
 
 \begin{frame}{Task 5: your own RSA}
@@ -1198,6 +1238,31 @@
   \say{Sprawdzone. e razy d mod phi = 1, więc P wraca. Dla e = 3: phi tych liczb dzieli się przez 3, więc odwrotności nie ma i pow zgłasza ValueError. Dlatego krok 4 wymaga gcd(e, phi) = 1.}
 \end{frame}
 
+\begin{frame}{What Eve would need}
+  \begin{center}\small Eve has the public key \{7, 187\} and a ciphertext C. She has two ways to try.\end{center}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \eve{0,0}
+      % way (a): undo the power directly
+      \node[hw, anchor=west, minimum width=4.6cm, minimum height=1.0cm] (a) at (1.4,0.95) {\textbf{(a)} undo $C = P^{e} \bmod n$ directly};
+      \node[font=\small, text=aWrite, anchor=west] at ([xshift=4pt]a.east) {\nok\ no known way};
+      % way (b): get d, which needs phi, which needs p and q
+      \node[hw, anchor=west, minimum height=1.0cm] (b) at (1.4,-0.95) {\textbf{(b)} get d};
+      \node[hw, minimum height=1.0cm, right=0.7cm of b] (phi) {needs phi};
+      \node[hw, minimum height=1.0cm, right=0.7cm of phi] (pq) {needs p and q};
+      \node[hw, minimum height=1.0cm, right=0.7cm of pq, draw=AccentOrange, line width=1.2pt] (fac) {= factoring n};
+      \draw[data] (b) -- (phi); \draw[data] (phi) -- (pq); \draw[data] (pq) -- (fac);
+      \node[font=\scriptsize, text=aWrite, below=2pt of fac] {\nok\ hard (section 3)};
+      \draw[data] (E) -- (a.west); \draw[data] (E) -- (b.west);
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \curious{rsa/\#4}
+  \keymsg{RSA: the one-way function is $P^{e} \bmod n$, the trapdoor is d, and d is protected by the factoring of n.}
+  \say{Droga (a): nikt nie zna sposobu, żeby odwrócić potęgę modulo n bez d (poza zgadywaniem P, co zobaczymy w zadaniu 6). Droga (b): d to odwrotność e modulo phi, phi = (p - 1)(q - 1), więc potrzebne są p i q, czyli rozkład n, a to trudny problem z sekcji 3. W symulatorze z linku Eve rozkłada małe n w przeglądarce, potem liczy phi, d i czyta wiadomość; jest też oszacowanie czasu dla 2048 bitów.}
+\end{frame}
+
 \begin{frame}{Task 6: guess the PIN}
   \vfill
   \taskgoal{find a PIN encrypted with textbook RSA, without the private key.}
@@ -1221,9 +1286,56 @@
     \end{minipage}
   \end{center}
   \vfill
-  \curious{rsa/\#5}
+  \curious{rsa/\#5.3}
   \keymsg{Textbook RSA: the same message always gives the same ciphertext.}
-  \say{Sprawdzone. Eve szyfruje każdy możliwy PIN kluczem publicznym i porównuje z C. Wszystkie 10 000 PIN-ów to około 0,9 s. Ta sama słabość dotyczy każdej wiadomości z małej liczby możliwości: tak, nie, kwota przelewu. W symulatorze z linku ten sam atak na klucz z Task 6, a do tego e = 3 z krótką wiadomością i szyfrowanie hybrydowe.}
+  \say{Sprawdzone. Eve szyfruje każdy możliwy PIN kluczem publicznym i porównuje z C. Wszystkie 10 000 PIN-ów to około 0,9 s. Ta sama słabość dotyczy każdej wiadomości z małej liczby możliwości: tak, nie, kwota przelewu. Nazwa tej własności: szyfr, w którym ta sama wiadomość daje zawsze ten sam szyfrogram, nie jest bezpieczny semantycznie (IND-CPA); każdy deterministyczny szyfr z kluczem publicznym ma tę wadę. W symulatorze z linku (krok 5, część 3) ten sam atak na małym kluczu i na kluczu z zadania 6.}
+\end{frame}
+
+% CHECKED: Task7/solution/double.py, python3 3.12: the bank reads 100, 200, 10000 (keys from checks/make_task_keys.py)
+\begin{frame}{Mallory changes the amount}
+  \begin{center}\small Alice sends her bank \texttt{transfer 100 to Bob}, the amount encrypted with textbook RSA.\\
+    Mallory cannot read C. But she can change it on the way.\end{center}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \node[ctx, font=\normalsize] (c) at (0,0) {$C = 100^{e}$};
+      \node[ctx, font=\normalsize] (c2) at (6,0) {$C \times 2^{e} = (2 \times 100)^{e}$};
+      \node[msg, font=\normalsize] (p2) at (11.6,0) {200};
+      \draw[data] (c) -- node[above, font=\scriptsize, text=sPinkText] {Mallory: $\times\, 2^{e} \bmod n$} node[below, font=\scriptsize, text=nInk] {only the public key} (c2);
+      \draw[data] (c2) -- node[above, privkey, font=\scriptsize] {\faKey\ the bank decrypts} (p2);
+    \end{tikzpicture}\\[0.6cm]
+    $(2^{e}) \times (P^{e}) = (2 \times P)^{e} \pmod{n}$: multiplying ciphertexts multiplies the messages.
+  \end{center}
+  \vfill
+  \keymsg{Textbook RSA does not stop Mallory from changing a message she cannot read.}
+  \say{Druga wada RSA podręcznikowego, obok determinizmu: podatność na modyfikację (ang. malleability). Mallory, która zmienia wiadomości, nie zna d ani kwoty, a mimo to bank odczyta dwa razy więcej. Wzór to zwykłe prawo potęg: iloczyn potęg o tym samym wykładniku to potęga iloczynu, także modulo n. Ta sama własność wróci w wykładzie 8 przy podpisach (fałszowanie przez mnożenie) i za chwilę w ataku Bleichenbachera.}
+\end{frame}
+
+\samedot
+\begin{frame}{Task 7: double the transfer}
+  \vfill
+  \taskgoal{without the private key, make the bank read 2 times, then 100 times Alice's amount.}
+  \taskready{the bank's public key (2048 bits), Alice's ciphertext, and the bank in \texttt{bank.py}.}
+  \vfill
+  \opentask{Task7}{about 5 minutes}
+  \vfill
+  \say{Około 5 minut. Najpierw zapytać: jeśli Mallory pomnoży 617-cyfrowe C przez cokolwiek, czy bank nie odczyta śmieci? Większość powie, że śmieci. bank.py udaje bank: odszyfrowuje kluczem prywatnym, którego Mallory nie widzi. Wzór jest na poprzednim slajdzie.}
+\end{frame}
+
+\samedot
+\begin{frame}{Task 7: what we saw}
+  \vfill
+  \begin{center}
+    \begin{minipage}{0.62\textwidth}
+      \stepbox{The output}{\ttfamily the bank reads Alice's C: 100\\ the bank reads C2:\ \ \ \ \ \ 200\\ the bank reads C100:\ \ \ \ 10000}
+      \vspace{0.2cm}
+      \probbox{Why it works}{$C \times s^{e} \bmod n$ is the ciphertext of $s \times P$; the bank cannot tell it from a real one.}
+    \end{minipage}
+  \end{center}
+  \vfill
+  \curious{rsa/\#5.6}
+  \keymsg{Mallory chose what the bank reads, without d and without reading the amount.}
+  \say{Sprawdzone, dokładnie to wypisuje rozwiązanie. Dopełnienie (następny slajd) psuje tę sztuczkę: pomnożony szyfrogram nie ma już poprawnej struktury dopełnienia i bank go odrzuca. Ale uwaga: to, czy bank odrzuca i czy zdradza, że odrzucił, okaże się bardzo ważne. W symulatorze z linku (krok 5, część 6) to samo na innym kluczu i z własnym mnożnikiem.}
 \end{frame}
 
 % CHECKED: textbook C starts with 7332072385 (Task6/pin.py, pow(4821, 65537, n)).
@@ -1255,12 +1367,188 @@
   \end{center}
   \vfill
   \keymsg{Never use textbook RSA alone.}
-  \say{Liczby po prawej są prawdziwe: ta sama liczba 4821 (2 bajty, 0x12 0xD5) zaszyfrowana trzy razy RSA-OAEP (biblioteka cryptography, SHA-256) kluczem banku z zadania 6. Uwaga: rsa\_ready.py z zadania 2 to też było RSA podręcznikowe, bez dopełnienia. Dopełnienie to dodatkowe losowe bajty wymieszane z wiadomością w określony sposób, tak że całość ma prawie tyle bajtów co n. Szczegółów OAEP nie omawiamy; wystarczy wiedzieć, że każda biblioteka robi to za nas. Atak z zadania 6 przestaje działać: Eve nie zna losowych bajtów, więc jej szyfrogramy nigdy nie pasują.}
+  \say{Liczby po prawej są prawdziwe: ta sama liczba 4821 (2 bajty, 0x12 0xD5) zaszyfrowana trzy razy RSA-OAEP (biblioteka cryptography, SHA-256) kluczem banku z zadania 6. Uwaga: rsa\_ready.py z zadania 2 to też było RSA podręcznikowe, bez dopełnienia. Dopełnienie to dodatkowe losowe bajty wymieszane z wiadomością w określony sposób, tak że całość ma prawie tyle bajtów co n. Atak z zadania 6 przestaje działać: Eve nie zna losowych bajtów, więc jej szyfrogramy nigdy nie pasują. Atak z zadania 7 też: dopełnienie ma stałą strukturę, którą odbiorca sprawdza po odszyfrowaniu, a pomnożony szyfrogram tej struktury nie ma. Jak wygląda ta struktura, pokazuje slajd o dwóch dopełnieniach.}
+\end{frame}
+
+% CHECKED: rsa simulator, step 5 part 4 (self-test): the fixed 2048-bit key with e = 3; "PIN 4821" = 8 bytes = 63 bits,
+%          P^3 has 189 bits < 2048, so C = P^3 and the integer cube root gives P; up to 85 bytes the attack works with this n
+\samedot
+\begin{frame}{Padding also makes P big}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \draw[nLine, thick] (0,0) -- (12,0);
+      \foreach \x/\t in {0/0, 12/n} \node[font=\scriptsize, text=gray, below] at (\x,-0.1) {\t};
+      \fill[sViolet] (0,0.15) rectangle (0.08,0.5);
+      \node[font=\scriptsize, text=nInk, anchor=west, align=left] at (0.2,0.85) {short P: \texttt{"PIN 4821"}, 63 bits\\ $P^{3}$: 189 bits, still far below n (2048 bits)};
+      \fill[sViolet!60] (0,-0.9) rectangle (11.85,-0.55);
+      \node[font=\scriptsize, text=white] at (5.9,-0.72) {padded P: almost as big as n};
+    \end{tikzpicture}\\[0.5cm]
+    With $e = 3$ and a short P: $P^{3} < n$, so the mod does nothing.\\
+    $C = P^{3}$ exactly, and Eve takes the ordinary cube root: \textbf{no key needed}.
+  \end{center}
+  \vfill
+  \curious{rsa/\#5.4}
+  \keymsg{Padding fills P up to the size of n, so the power always wraps around.}
+  \say{Drugi powód dopełnienia. Przy e = 3 krótka wiadomość bez dopełnienia ma P\textsuperscript{3} mniejsze od n, reszta z dzielenia nic nie zmienia i zwykły pierwiastek sześcienny daje P. Gdyby ta sama wiadomość poszła do trzech osób z e = 3, Eve złożyłaby ją chińskim twierdzeniem o resztach (atak Håstada), nawet gdy P\textsuperscript{3} jest większe od każdego n z osobna. Dopełnione P ma prawie tyle bitów co n, więc potęga zawsze się zawija. To też powód, dla którego w praktyce bierze się e = 65537. Symulator z linku liczy ten pierwiastek dla dowolnego krótkiego tekstu.}
+\end{frame}
+
+% source: PKCS #1 v1.5 encryption padding EM = 0x00 || 0x02 || PS (at least 8 random non-zero bytes) || 0x00 || M,
+%         and OAEP EM = 0x00 || maskedSeed || maskedDB (RFC 8017, sections 7.2.1 and 7.1.1); 256 bytes for RSA-2048,
+%         OAEP with SHA-256: seed 32 bytes, at most 256 - 2 x 32 - 2 = 190 bytes of message
+\begin{frame}{Two paddings: PKCS\#1 v1.5 and OAEP}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      % PKCS#1 v1.5
+      \node[font=\small\bfseries, text=nInk, anchor=west] at (0,1.55) {PKCS\#1 v1.5 (1993, still everywhere)};
+      \node[draw=nInk, thick, fill=nFill, minimum width=0.7cm, minimum height=0.6cm, font=\scriptsize\ttfamily, anchor=west] (a0) at (0,0.95) {00};
+      \node[draw=nInk, thick, fill=nFill, minimum width=0.7cm, minimum height=0.6cm, font=\scriptsize\ttfamily, right=0pt of a0] (a1) {02};
+      \node[draw=nLine, thick, fill=white, minimum width=6.6cm, minimum height=0.6cm, font=\scriptsize, right=0pt of a1] (a2) {random non-zero bytes \faDice};
+      \node[draw=nInk, thick, fill=nFill, minimum width=0.7cm, minimum height=0.6cm, font=\scriptsize\ttfamily, right=0pt of a2] (a3) {00};
+      \node[draw=sViolet, thick, fill=sViolet!15, minimum width=2.8cm, minimum height=0.6cm, font=\scriptsize, right=0pt of a3] (a4) {message};
+      \draw[AccentOrange, thick, decorate, decoration={brace, amplitude=4pt, mirror}] (a0.south west) -- (a1.south east)
+        node[midway, below=5pt, font=\scriptsize, text=AccentOrange, align=center] {Bob checks:\\ starts with 00 02?};
+      % OAEP
+      \node[font=\small\bfseries, text=nInk, anchor=west] at (0,-1.0) {OAEP (1994, RSA-OAEP)};
+      \node[draw=nInk, thick, fill=nFill, minimum width=0.7cm, minimum height=0.6cm, font=\scriptsize\ttfamily, anchor=west] (b0) at (0,-1.6) {00};
+      \node[draw=nLine, thick, fill=white, minimum width=2.6cm, minimum height=0.6cm, font=\scriptsize, right=0pt of b0] (b1) {masked seed \faDice};
+      \node[draw=nLine, thick, fill=sViolet!8, minimum width=8.2cm, minimum height=0.6cm, font=\scriptsize, right=0pt of b1] (b2) {masked: hash of a label, zeros, 01, message};
+      \draw[AccentOrange, thick, decorate, decoration={brace, amplitude=4pt, mirror}] (b1.south west) -- (b2.south east)
+        node[midway, below=5pt, font=\scriptsize, text=AccentOrange] {mixed with hashes: every byte depends on the random seed; Bob checks the hash and the 01};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \curious{rsa/\#5.7}
+  \keymsg{Both paddings have a fixed structure that Bob checks after decrypting; he rejects a ciphertext without it.}
+  \say{Obie mają 256 bajtów dla RSA-2048, czyli dopełnione P jest prawie tak duże jak n. PKCS\#1 v1.5 (RFC 8017, sekcja 7.2) jest prosty: 00 02, co najmniej 8 losowych niezerowych bajtów, bajt 00 i wiadomość. OAEP (Bellare i Rogaway, 1994) miesza losowe ziarno z wiadomością funkcją skrótu (wykład 6), tak że żadna część nie zostaje stała; przy SHA-256 wiadomość ma najwyżej 190 bajtów. Najważniejsze: po odszyfrowaniu Bob sprawdza strukturę i odrzuca szyfrogram, który jej nie ma. To chroni przed sztuczką z zadania 7. Ale samo sprawdzenie staje się furtką, jeśli Bob mówi na zewnątrz, czy struktura była poprawna: następny slajd.}
+\end{frame}
+
+% source: D. Bleichenbacher, "Chosen ciphertext attacks against protocols based on the RSA encryption standard PKCS #1",
+%         CRYPTO 1998: about 2^20 (roughly a million) chosen ciphertexts for a 1024-bit key
+\samedot
+\begin{frame}{When Bob says ``bad padding''}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \eve[Mallory]{0,0}
+      \node[person=sTeal] (S) at (10,0) {\faServer}; \node[pname, below=1pt of S] {Bob's server};
+      \draw[data] (0.8,0.35) -- node[above, ctx, font=\scriptsize] {$C \times s^{e} \bmod n$, a new $s$ each time} (9.2,0.35);
+      \draw[data] (9.2,-0.35) -- node[below, font=\scriptsize, text=nInk] {``good padding'' / ``bad padding''} (0.8,-0.35);
+      % the interval of possible P shrinks with every "good"
+      \foreach \y/\w in {-1.6/9.0, -2.0/5.0, -2.4/2.2, -2.8/0.6} {
+        \fill[sViolet!35] ({5-\w/2},{\y-0.12}) rectangle ({5+\w/2},{\y+0.12});
+      }
+      \node[font=\scriptsize, text=nInk, anchor=west, align=left] at (9.8,-2.2) {possible P:\\ smaller and smaller};
+    \end{tikzpicture}\\[0.4cm]
+    Each answer says something about $s \times P$: whether it starts with 00 02.\\
+    With enough answers only one P is left: no d, no factoring, just questions.
+  \end{center}
+  \vfill
+  \keymsg{A server that tells whether the padding was good gives away the message, one answer at a time.}
+  \say{To intuicja ataku Bleichenbachera (1998), bez szczegółów. Mallory nagrała szyfrogram C. Mnoży go przez s\textsuperscript{e} (sztuczka z zadania 7) i wysyła serwerowi. Serwer odszyfrowuje s razy P i odpowiada, czy dopełnienie jest poprawne. Odpowiedź tak mówi, że s razy P mod n zaczyna się od 00 02, czyli leży w wąskim przedziale; z wielu takich odpowiedzi zostaje tylko jedno P. Dla klucza 1024-bitowego potrzeba było około miliona zapytań: dużo dla człowieka, mało dla komputera, a nieporównanie mniej niż faktoryzacja. Taka odpowiedź serwera nazywa się wyrocznią dopełnienia (padding oracle). Nie musi być komunikatem: wystarczy inny czas odpowiedzi.}
+\end{frame}
+
+% source: ROBOT, Böck, Somorovsky, Young, Dec 2017, USENIX Security 2018 (https://robotattack.org): vulnerable TLS servers
+%         of large vendors and sites, among them Facebook and PayPal; Marvin, H. Kario (Red Hat), 2023,
+%         "Everlasting ROBOT: the Marvin Attack" (https://eprint.iacr.org/2023/1442): the same oracle from timing;
+%         TLS 1.3, RFC 8446 (Aug 2018), section 1.2: static RSA key transport removed
+\samedot
+\begin{frame}{Good to know: the oracle keeps coming back}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \draw[nLine, very thick] (0,0) -- (12,0);
+      \foreach \x/\y/\t in {0.8/1998/{Bleichenbacher:\\ the attack on\\ PKCS\#1 v1.5},
+                            5.0/2017/{ROBOT: the same attack\\ on TLS servers of large\\ sites (Facebook, PayPal)},
+                            8.0/2018/{TLS 1.3 drops\\ RSA key transport},
+                            11.2/2023/{Marvin: the same\\ oracle from small\\ timing differences}} {
+        \fill[DeepBlue] (\x,0) circle (3pt);
+        \node[font=\small\bfseries, text=DeepBlue, above] at (\x,0.1) {\y};
+        \node[font=\scriptsize, text=nInk, below, align=center] at (\x,-0.15) {\t};
+      }
+    \end{tikzpicture}\\[0.6cm]
+    Use OAEP for RSA encryption, and treat a bad padding exactly like a good one.\\
+    Better still: do not encrypt with RSA at all; agree on the key in another way (next lecture).
+  \end{center}
+  \vfill
+  \keymsg{Twenty-five years of the same mistake: the safest RSA encryption is none.}
+  \say{Można pominąć. Po 1998 roku TLS łatał wyrocznię kolejnymi obejściami, a w 2017 roku ROBOT (Return Of Bleichenbacher's Oracle Threat, Böck, Somorovsky i Young) znalazł ją znowu w serwerach dużych producentów i serwisów; badacze podpisali wiadomość kluczem serwera Facebooka. W 2023 roku Hubert Kario (Red Hat) pokazał atak Marvin: ta sama wyrocznia z różnic czasu, w wielu bibliotekach. To jeden z powodów, dla których TLS 1.3 usunął przesyłanie klucza przez RSA. Dziś zalecenie brzmi: OAEP, a najlepiej ustalać klucz inną metodą (Diffie-Hellman, następny wykład).}
 \end{frame}
 
 % ======================================================================
 \section[RSA in the real world]{RSA in the real world}
 % ======================================================================
+
+% source: Heninger, Durumeric, Wustrow, Halderman, "Mining Your Ps and Qs", USENIX Security 2012 (https://factorable.net):
+%         RSA private keys of about 0.50% of TLS hosts (66 540 hosts in total) from shared prime factors, mostly network devices;
+%         Lenstra et al., "Ron was wrong, Whit is right", 2012, the same finding
+\begin{frame}{Weak randomness: two keys, one p}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \foreach \x/\k in {0/1, 7/2} {
+        \node[draw=nInk, thick, fill=nFill, rounded corners=4pt, minimum width=2.0cm, minimum height=0.9cm] (r\k) at (\x,0) {\faWifi};
+        \node[pname, below=1pt of r\k] {router \k};
+        \node[pubkey, right=0.2cm of r\k] {$n_{\k} = p \times q_{\k}$};
+      }
+      \node[symkey, font=\scriptsize] (g) at (4.5,1.6) {\faDice\ just switched on: almost no randomness};
+      \draw[data, dashed] (g) -- (r1.north); \draw[data, dashed] (g) -- (r2.north);
+    \end{tikzpicture}\\[0.5cm]
+    If two keys share a prime, $\gcd(n_1, n_2) = p$: Euclid's algorithm, no factoring.\\[3pt]
+    \small In 2012 researchers collected millions of public keys from the internet\\ and broke tens of thousands this way, mostly keys of routers and firewalls.
+  \end{center}
+  \vfill
+  \keymsg{RSA is as strong as the random numbers that made p and q.}
+  \say{Na slajdzie What Eve would need jedyną drogą była faktoryzacja. W praktyce RSA padało częściej przez złe klucze. Urządzenia sieciowe tworzą klucz zaraz po pierwszym włączeniu, kiedy generator losowy ma jeszcze mało entropii; wiele z nich wylosowało to samo p. Heninger i in. (Mining Your Ps and Qs, 2012) policzyli gcd par z milionów kluczy i odzyskali klucze prywatne około 0,5 procent serwerów TLS (ponad 66 000), głównie routerów, firewalli i urządzeń VPN. Równolegle to samo znalazł zespół Lenstry. gcd dwóch 617-cyfrowych liczb to około 1200 dzieleń.}
+\end{frame}
+
+\samedot
+\begin{frame}{Task 8: two routers}
+  \vfill
+  \taskgoal{read a message to router 1 without factoring anything.}
+  \taskready{the public keys of two routers (2048 bits each) and the ciphertext, in \texttt{routers.py}.}
+  \vfill
+  \opentask{Task8}{about 6 minutes}
+  \vfill
+  \say{Około 6 minut. Najpierw zapytać: ile potrwa gcd dwóch 617-cyfrowych liczb? Kroki w README prowadzą przez gcd, q, phi, d i odszyfrowanie, czyli wszystko z sekcji 4 i 5.}
+\end{frame}
+
+% CHECKED: Task8/solution/routers.py, python3 3.12, i5-8265U: "router 1 reads: router 1 admin password: blue-otter-42",
+%          all of it 24 to 27 ms (5 runs); math.gcd(n1, n2) alone 14 us (timeit); p has 309 digits
+\samedot
+\begin{frame}{Task 8: what we saw}
+  \vfill
+  \begin{center}
+    \begin{minipage}{0.7\textwidth}
+      \stepbox{The output}{\ttfamily\small p = 16870771331706619329 ... 309 digits\\ p * q == n1: True\\ router 1 reads: router 1 admin password: blue-otter-42\\ all of it took 24.7 ms}
+      \stepbox{The time}{gcd alone: about 14 microseconds. Almost all of it is the one power with d.}
+    \end{minipage}
+  \end{center}
+  \vfill
+  \keymsg{One gcd broke two 2048-bit keys that nobody could factor.}
+  \say{Sprawdzone, czasy z mojego laptopa. Klucz routera 2 pada tak samo: n2 // p. Dlatego generator liczb losowych do kluczy musi być kryptograficzny i mieć dość entropii.}
+\end{frame}
+
+% source: Nemec, Sys, Svenda, Klinec, Matyas, "The Return of Coppersmith's Attack" (ROCA), ACM CCS 2017, CVE-2017-15361
+%         (https://crocs.fi.muni.cz/public/papers/rsa_ccs17); Estonia suspended the certificates of about 760 000 ID cards
+%         worst case 2048 bits: about 140.8 CPU-years (paper, Table 1); 1024 bits: about 97 CPU-days (to confirm, facts agent)
+\samedot
+\begin{frame}{Good to know: primes with a pattern (ROCA, 2017)}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \node[text=DeepBlue, font=\fontsize{36}{38}\selectfont] at (0,0) {\faIdCard};
+      \node[anchor=west, text width=9.5cm, font=\small, text=nInk] at (1.4,0)
+        {A chip library made its primes in a special form, to make them faster to find.\\[3pt]
+         The form made $n$ much easier to factor: a 2048-bit key in about 140 years of one processor core (spread over many machines), not billions of years.\\[3pt]
+         Hit: smart cards, TPM chips, and the national ID cards of Estonia (about 760\,000).};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \keymsg{p and q must be plain random primes; a shortcut in making them can open the key.}
+  \say{Można pominąć. ROCA (Return of Coppersmith's Attack, Nemec i in., CCS 2017) w bibliotece RSALib firmy Infineon: liczby pierwsze miały szczególną postać, co pozwalało rozłożyć n metodą Coppersmitha. Estonia zawiesiła certyfikaty około 760 000 dowodów osobistych i wymieniła klucze. Morał jak przy routerach: wszystko zależy od tego, jak powstały p i q.}
+\end{frame}
 
 \begin{frame}{How long should the key be?}
   \vfill
@@ -1315,9 +1603,9 @@
     \column{0.32\textwidth}\stepbox{\faUsers\ how many}{a shared key opens one pair; this key opens all of them}
   \end{columns}
   \vfill
-  \curious{rsa/\#5.7}
-  \keymsg{RSA alone does not protect the past. The fix: keys that live for one session (forward secrecy).}
-  \say{Wyciek długo żyjącego klucza to nie jest problem wspólnego klucza, tylko każdego klucza, który żyje długo. Para kluczy tego nie naprawia, a nawet poszerza szkody: wspólny klucz otwiera rozmowy jednej pary, a klucz prywatny otwiera wiadomości wszystkich, którzy piszą do tej osoby. Eve mogła nagrywać latami i czekać na kradzież. Rozwiązanie to klucze sesji, które znikają po rozmowie: forward secrecy.}
+  \curious{rsa/\#5.8}
+  \keymsg{RSA alone does not protect the past. The fix: a new key pair per session, then thrown away (forward secrecy, next lecture).}
+  \say{Wyciek długo żyjącego klucza to nie jest problem wspólnego klucza, tylko każdego klucza, który żyje długo. Para kluczy tego nie naprawia, a nawet poszerza szkody: wspólny klucz otwiera rozmowy jednej pary, a klucz prywatny otwiera wiadomości wszystkich, którzy piszą do tej osoby. Eve mogła nagrywać latami i czekać na kradzież. Klucz sesji K z szyfrowania hybrydowego żyje jedną rozmowę, ale jest zamknięty długo żyjącym kluczem Boba, więc to nie wystarcza. Rozwiązanie: nowa para kluczy na każdą rozmowę, wyrzucana zaraz po niej; wtedy kradzież nic nie daje (forward secrecy, następny wykład).}
 \end{frame}
 
 \begin{frame}{Where RSA lives}
@@ -1340,8 +1628,8 @@
       \node[anchor=west, font=\small\bfseries, text=nInk] at (8.6,1.0) {encrypted e-mail};
       \node[anchor=west, font=\scriptsize, text=nInk, align=left] at (8.6,0.45) {OpenPGP and S/MIME: RSA locks\\ the key of each message};
       \node[text=gray, font=\huge] at (7.9,-0.95) {\faGlobe};
-      \node[anchor=west, font=\small\bfseries, text=nInk] at (8.6,-0.7) {websites, until 2018};
-      \node[anchor=west, font=\scriptsize, text=nInk, align=left] at (8.6,-1.25) {the browser sent the session key with RSA;\\ removed in 2018, because of the leak (previous slide)};
+      \node[anchor=west, font=\small\bfseries, text=nInk] at (8.6,-0.7) {websites: old TLS 1.2 only};
+      \node[anchor=west, font=\scriptsize, text=nInk, align=left] at (8.6,-1.3) {the browser sent the session key with RSA;\\ not allowed in TLS 1.3 (2018): the leak\\ (previous slide) and the padding oracle};
     \end{tikzpicture}
   \end{center}
   \vfill
@@ -1349,9 +1637,11 @@
   % source: TLS 1.3 (RFC 8446, Aug 2018) has no RSA key transport: "Static RSA and Diffie-Hellman cipher suites have been
   %         removed; all public-key based key exchange mechanisms now provide forward secrecy" (RFC 8446, section 1.2);
   %         RFC 9846 (July 2026) obsoletes RFC 8446 and keeps this. RSA stays for authentication (rsa_pss_* signature schemes).
+% CHECKED: local/audyt/fakty.md (2026-11-19): TLS 1.2 kept RSA key transport; Java disabled TLS_RSA by default only in 2024
+%          (https://mail.openjdk.org/pipermail/security-dev/2024-November/042878.html); draft-ietf-tls-deprecate-obsolete-kex
   % source: OpenPGP RFC 9580 (RSA still allowed for encryption keys); S/MIME 4.0 RFC 8551 with RSA key transport (RFC 8017).
   % source: SSH: RFC 8332 (rsa-sha2-256/512 user and host keys); IPsec IKEv2: RFC 7296 (RSA authentication).
-  \say{Uczciwie: dziś RSA głównie potwierdza, kim jest serwer albo osoba; omówimy to później w kursie (podpis cyfrowy w wykładzie 8, certyfikaty w wykładach 9 do 12). Gdy przeglądarka łączy się ze stroną, serwer pokazuje klucz publiczny RSA i udowadnia, że ma pasujący klucz prywatny. Klucz sesji ustala się dziś inną metodą: standard z 2018 roku (RFC 8446, w 2026 zastąpiony przez RFC 9846) usunął przesyłanie klucza przez RSA, bo nie chroni przeszłości (poprzedni slajd: wyciek klucza prywatnego). Szyfrowanie RSA nadal żyje w poczcie: OpenPGP i S/MIME zamykają RSA klucz każdej wiadomości, czyli dokładnie szyfrowanie hybrydowe z tego wykładu. SSH i VPN używają kluczy RSA do logowania i do potwierdzenia, kim są obie strony.}
+  \say{Uczciwie: dziś RSA głównie potwierdza, kim jest serwer albo osoba; omówimy to później w kursie (podpis cyfrowy w wykładzie 8, certyfikaty w wykładach 9 do 12). Gdy przeglądarka łączy się ze stroną, serwer pokazuje klucz publiczny RSA i udowadnia, że ma pasujący klucz prywatny. Klucz sesji ustala się dziś inną metodą: TLS 1.3 z 2018 roku (RFC 8446, w 2026 zastąpiony przez RFC 9846) nie pozwala przesyłać klucza przez RSA, bo nie chroni przeszłości (poprzedni slajd) i bo dopełnienie PKCS\#1 v1.5 dawało wyrocznię Bleichenbachera. Starsze połączenia TLS 1.2 nadal mogły tak robić; na przykład Java wyłączyła te zestawy domyślnie dopiero w 2024 roku, a IETF wycofuje je osobnym dokumentem. Domyślnym typem klucza w OpenSSH (ssh-keygen) jest dziś Ed25519, ale klucze RSA nadal są w powszechnym użyciu. Szyfrowanie RSA nadal żyje w poczcie: OpenPGP i S/MIME zamykają RSA klucz każdej wiadomości, czyli dokładnie szyfrowanie hybrydowe z tego wykładu. SSH i VPN używają kluczy RSA do logowania i do potwierdzenia, kim są obie strony.}
 \end{frame}
 
 \begin{frame}{Good to know: GCHQ was first}
@@ -1387,26 +1677,32 @@
       }
     \end{tikzpicture}\\[0.6cm]
     Shor's algorithm could factor large numbers fast on a big quantum computer.\\
-    No such computer exists yet, but NIST plans to move away from RSA after 2030.
+    No such computer exists yet, but NIST plans to move away from RSA after 2030.\\
+    For carrying a key, its successor is ML-KEM (FIPS 203, 2024).
   \end{center}
   \vfill
-  % source: NIST IR 8547 (final): RSA and ECDSA deprecated after 2030, disallowed after 2035
-  \say{Można pominąć. Plan NIST IR 8547: RSA przestarzałe po 2030, zakazane po 2035. Zastępują je nowe algorytmy odporne na komputery kwantowe.}
+  % source: NIST IR 8547 (final, October 2026, https://csrc.nist.gov/pubs/ir/8547/final), Tables 2 and 4, sections 4.1.1 and 4.1.2:
+  %         RSA, ECDSA and EdDSA of every key size deprecated after 2030, disallowed after 2035 (checked by the Lecture 8 agent)
+  % source: FIPS 203, ML-KEM, 13 Aug 2024 (https://csrc.nist.gov/pubs/fips/203/final)
+  \say{Można pominąć. Plan NIST IR 8547: RSA przestarzałe po 2030, zakazane po 2035. Zastępują je nowe algorytmy odporne na komputery kwantowe: do przenoszenia klucza ML-KEM (FIPS 203, sierpień 2024). Wersja końcowa NIST IR 8547 (październik 2026): RSA, ECDSA i EdDSA każdej długości klucza są przestarzałe (deprecated) po 2030 i zakazane (disallowed) po 2035, zarówno do podpisów, jak i do ustalania kluczy.}
 \end{frame}
 
-\begin{frame}{Summary}
+\begin{frame}{Next: a key that is never sent}
   \vfill
-  \begin{enumerate}
-    \setlength{\itemsep}{6pt}
-    \item A shared key brings two problems: sharing it and too many keys.
-    \item A key pair solves sharing; in practice it moves a symmetric key (hybrid encryption).
-    \item RSA is safe because factoring is hard; DH, ElGamal and ECC use the discrete logarithm.
-    \item The private key d is the inverse of e modulo phi: \texttt{pow(e, -1, phi)}.
-    \item RSA encrypts with one power mod n; real RSA adds random padding (OAEP).
-    \item A leaked private key opens the past: forward secrecy fixes it.
-  \end{enumerate}
+  \begin{center}
+    \begin{tikzpicture}
+      \alice{0,0}
+      \bob{10,0}
+      \draw[net] (0.8,0) -- (9.2,0);
+      \node[symkey, font=\normalsize] at (0,1.3) {\faKey\ K};
+      \node[symkey, font=\normalsize] at (10,1.3) {\faKey\ K};
+      \node[font=\Huge\bfseries, text=AccentOrange] at (5,0.9) {?};
+      \eve{5,-1.7}
+    \end{tikzpicture}\\[0.6cm]
+    {\large Can Alice and Bob agree on a key without ever sending it,\\ even in a locked envelope?}
+  \end{center}
   \vfill
-  \say{Po jednym zdaniu na każdy cel wykładu. W następnym wykładzie: jak ustalić klucz bez wysyłania go.}
+  \say{Pytanie przejściowe do wykładu 4 (Diffie-Hellman). RSA przenosi klucz w kopercie; wyciek klucza prywatnego otwiera stare koperty, a sprawdzanie dopełnienia dawało wyrocznię. Czy da się ustalić wspólny klucz tak, żeby w kanale nigdy go nie było? Nie odpowiadać, zostawić na następny raz.}
 \end{frame}
 
 \end{document}

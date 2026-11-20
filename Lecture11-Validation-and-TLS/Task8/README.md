@@ -20,10 +20,26 @@ Compute certificate pins and key pins, and find which of the renewed certificate
 
 Write your code in place of the `TODO` comments in `pins.py`:
 
-1. `cert_pin(cert)`: take the DER bytes of the whole certificate, `cert.public_bytes(serialization.Encoding.DER)`, hash them with SHA-256 and encode the 32 bytes in base64: `base64.b64encode(hashlib.sha256(der).digest()).decode()`.
-2. `spki_pin(cert)`: the same, but only for the public key (the SubjectPublicKeyInfo):
-   `cert.public_key().public_bytes(serialization.Encoding.DER, serialization.PublicFormat.SubjectPublicKeyInfo)`.
+1. `cert_pin(cert)`: take the DER bytes of the whole certificate (`cert.public_bytes`), hash them with SHA-256 (`hashlib.sha256`) and encode the 32 bytes in base64 (`base64.b64encode`), as text.
+2. `spki_pin(cert)`: the same, but only for the public key, in the SubjectPublicKeyInfo format (`cert.public_key().public_bytes`).
 3. In the loop: compare `cert_pin(cert)` with `APP_CERT_PIN`, and `spki_pin(cert)` with each pin in `APP_SPKI_PINS` (use an index loop). Print the file name and `match` or `NO` for each kind of pin.
+
+Until you write the code, the program prints `not done yet: TODO 1`, `TODO 2` and `TODO 3`.
+
+<details>
+<summary>Hint: the calls of steps 1 and 2</summary>
+
+```python
+der = cert.public_bytes(serialization.Encoding.DER)
+pin = base64.b64encode(hashlib.sha256(der).digest()).decode()
+
+der = cert.public_key().public_bytes(serialization.Encoding.DER,
+                                     serialization.PublicFormat.SubjectPublicKeyInfo)
+```
+
+`.decode()` turns the bytes of base64 into a Python string, like reading a `char` buffer as text in C.
+
+</details>
 
 **Predict first:** which of the three renewals pass the certificate pin? Which pass a key pin?
 
@@ -54,6 +70,8 @@ openssl x509 -in certs/api_2026.pem -pubkey -noout | openssl pkey -pubin -outfor
 It prints `/Bbx1A2gOvArfgXexc8HhPf+aZ1GbF9+OPlh0/gtaFQ=`.
 
 </details>
+
+The certificates of `api.bob.example` come from the **Trusty CA**, a private test CA, so they may live a year; a public certificate issued today may live at most 200 days (Lecture 10), so a real app sees a renewal even more often.
 
 ## Run
 

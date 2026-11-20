@@ -1,0 +1,31 @@
+% Task 7: double the transfer. Values from Task7/double.py (checks/make_task_keys.py).
+% CHECKED (python3): n has 617 digits (2048 bits), starts 18811042465118; C has 617 digits, starts 18726317804580; the bank reads 100.
+%   The answers (what the bank reads for C2 and C100) are question marks.
+\documentclass[12pt,tikz,border=6pt]{standalone}
+\input{common}
+\newcommand{\mallory}[1]{\node[person=sPink] (M) at (#1) {\faUserNinja}; \node[pname, below=1pt of M] {Mallory};}
+\begin{document}
+\pagecolor{white}
+\begin{tikzpicture}[>=Stealth]
+  \alice{0,0}
+  \node[msgv, font=\ttfamily\normalsize, anchor=north] (amt) at (0,-1.2) {transfer 100 to Bob};
+  \node[mech] (enc) at (3.6,0) {C = amount$^{e}$ mod n};
+  \draw[data] (A) -- (enc);
+  \node[pubv, anchor=south, align=left, font=\scriptsize] (pub) at (3.6,1.0)
+    {\faLockOpen\ \textbf{the bank's public key} (e, n)\quad\public\\ \ttfamily e = 65537\\ \ttfamily n = 18811042465118\dots\ \rmfamily(2048 bits)};
+  \draw[data] (pub) -- (enc);
+  \draw[net] (5.9,0) -- (14.0,0);
+  \node[ctv, font=\scriptsize] (c) at (8.0,0) {\faEnvelope\ C = \ttfamily 18726317804580\dots};
+  % Mallory changes C on the way
+  \mallory{10.6,-2.4}
+  \node[unkv, font=\scriptsize] (c2) at (11.8,0) {C2 = C $\times$ \textbf{?}\ mod n};
+  \draw[-{Stealth}, very thick, sPink] (M.north) -- (c2.south);
+  \node[font=\scriptsize, text=sPinkText, anchor=west, align=left] at (11.4,-2.3) {no private key,\\ only the public key};
+  % the bank
+  \node[font=\Huge, text=sTeal] (bank) at (14.9,0.1) {\faUniversity};
+  \node[pname, anchor=north] at (bank.south) {the bank};
+  \draw[-{Stealth}, very thick, rCt] (c2.east) -- (14.0,0);
+  \node[secv, font=\scriptsize] at (14.9,1.6) {\faKey\ private key d\\ \secret};
+  \node[unkv, font=\scriptsize] at (14.9,-1.6) {bank\_decrypt(C2)\\ = \textbf{?}};
+\end{tikzpicture}
+\end{document}

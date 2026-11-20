@@ -48,7 +48,7 @@ Ed25519
   sign: 0.081 ms   verify: 0.206 ms
 ```
 
-Measured on an Intel Core i5-8265U with OpenSSL 3.0.13. RSA-PSS adds a random salt and ECDSA a random k, so their signatures differ every time; Ed25519 computes its k from the key and the message, so it is deterministic. Public keys on curves are about 8 times smaller than RSA keys and signatures 4 times smaller; signing on curves is 13 to 15 times faster, but RSA verifies faster.
+Measured on an Intel Core i5-8265U with OpenSSL 3.0.13. RSA-PSS adds a random salt and ECDSA a random k, so their signatures differ every time; Ed25519 computes its k from the key and the message, so it is deterministic. Public keys on curves are about 8 times smaller than RSA keys and signatures 4 times smaller; signing on curves is 13 to 15 times faster, but RSA verifies faster. A fair comparison needs the same security level: RSA-2048 gives 112 bits, P-256 and Ed25519 give 128 bits (Lecture 5). At 128 bits RSA needs 3072 bits: 384-byte keys and signatures (about 12 and 6 times larger than P-256), and signing about 3 times slower than RSA-2048 on the same laptop.
 
 </details>
 

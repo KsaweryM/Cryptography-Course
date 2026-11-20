@@ -12,10 +12,15 @@
 #                                              None if the token was changed or not made by this TSA
 #   valid_from(cert), valid_until(cert)     -> the validity period of cert (datetimes in UTC)
 #   NOW                                     -> the current date and time (UTC)
+#   load_crl(path)                          -> the revocation list (CRL) of Trusty Code CA
+#   revoked_since(crl, cert)                -> None if cert is not revoked; otherwise the time since when
+#                                              its key must not be trusted (a datetime in UTC)
 #
 # Simplified: a real timestamp (RFC 3161) is a signed ASN.1 structure; here the TSA signs
 # SHA-256(signature) followed by the time as text. The idea is the same.
-# The certificates were already checked against Trusty Code CA (the chain is fine).
+# The certificates and the CRL were already checked against Trusty Code CA (the chain is fine).
+# revoked_since gives the "invalidity date" of the CRL entry (RFC 5280, 5.3.2): the day the key was
+# known to be compromised, which can be earlier than the day the CA revoked the certificate.
 import datetime
 import hashlib
 import json
@@ -77,3 +82,20 @@ def valid_until(cert):
     if hasattr(cert, "not_valid_after_utc"):
         return cert.not_valid_after_utc
     return _utc(cert.not_valid_after)
+
+
+def load_crl(path):
+    with open(path, "rb") as f:
+        return x509.load_pem_x509_crl(f.read())
+
+
+def revoked_since(crl, cert):
+    entry = crl.get_revoked_certificate_by_serial_number(cert.serial_number)
+    if entry is None:
+        return None
+    try:
+        return _utc(entry.extensions.get_extension_for_class(x509.InvalidityDate).value.invalidity_date)
+    except x509.ExtensionNotFound:
+        if hasattr(entry, "revocation_date_utc"):
+            return entry.revocation_date_utc
+        return _utc(entry.revocation_date)

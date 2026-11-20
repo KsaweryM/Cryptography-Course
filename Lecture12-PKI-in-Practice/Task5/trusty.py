@@ -1,10 +1,10 @@
-# Ready helper for Task 5: Trusty CA's public key and what a request says. Treat it as a black box.
+# Ready helper for Task 5: Trusty CA's public key and what a to-be-signed part says. Treat it as a black box.
 #
 #   load_file(path)                         -> the bytes of a file
 #   CA_PUBLIC_KEY                           -> Trusty CA's RSA public key (from trusty-ca-public.pem)
 #   verify(data, signature, hash_name)      -> True / False: is this Trusty CA's signature over data?
 #                                              hash_name is "md5" or "sha256": the hash the CA used
-#   what_it_says(data)                      -> the sentence that a program reading this request shows
+#   what_it_says(data)                      -> the sentence that a program reading this tbsCertificate shows
 #
 # Simplified: a real certificate keeps the strange collision bytes inside the public key field,
 # where nobody reads them. Here one byte of those bytes (byte 19) chooses which sentence is shown.

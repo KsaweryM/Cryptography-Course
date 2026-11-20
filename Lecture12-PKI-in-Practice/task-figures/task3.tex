@@ -1,6 +1,6 @@
 % Task 3: four servers that all say "shop.alice.example". Certificates from Task3/certs/.
 % CHECKED (openssl x509 -noout -subject -issuer -enddate, 2026-11-15):
-%   shop.pem: CN shop.alice.example, issuer Trusty CA, until 2027-03-20
+%   shop.pem: CN shop.alice.example, issuer Trusty CA, until 2045-09-01 (regenerated 2026-11-19 with a long validity, see task-data)
 %   mallory-selfsigned.pem: CN shop.alice.example, issuer shop.alice.example (itself)
 %   mallory-own-name.pem: CN mallory.example, issuer Trusty CA
 %   shop-expired.pem: CN shop.alice.example, issuer Trusty CA, until 2025-08-20
@@ -15,9 +15,9 @@
   \node[actorlight=sTeal, font=\scriptsize, below=0.15cm of pcl] {trusts: Trusty CA};
   % ---------- the servers ----------
   \foreach \k/\port/\who/\col/\cn/\iss/\until/\style in {
-      0/8443/the real shop/sIndigo/shop.alice.example/Trusty CA/2027-03-20/cert,
-      1/8444/Mallory/sPink/shop.alice.example/itself (self-signed)/2027-03-20/fakecert,
-      2/8445/Mallory/sPink/mallory.example/Trusty CA/2027-03-20/fakecert,
+      0/8443/the real shop/sIndigo/shop.alice.example/Trusty CA/2045-09-01/cert,
+      1/8444/Mallory/sPink/shop.alice.example/itself (self-signed)/2045-09-01/fakecert,
+      2/8445/Mallory/sPink/mallory.example/Trusty CA/2045-09-01/fakecert,
       3/8446/an old copy/sIndigo/shop.alice.example/Trusty CA/2025-08-20/cert} {
     \pgfmathsetmacro{\y}{3.0-2.0*\k}
     \node[hwmain, minimum width=1.3cm, minimum height=1.45cm, font=\scriptsize] (s\k) at (6.2,\y) {\faServer\\ \port};

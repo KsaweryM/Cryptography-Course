@@ -27,6 +27,8 @@ Write your code in place of the `TODO` comments in `protect_key.py`:
 3. Play Mallory: load `server-locked.key` with `password=None`, then with `b"123456"`. Each try raises an exception; catch it with `try: ... except (TypeError, ValueError) as e:` and print `type(e).__name__` and `e`. Then load it with `PASSPHRASE`.
 4. `os.chmod("server-locked.key", 0o600)` and print the new mode.
 
+Each TODO is followed by a line that prints `not done yet: TODO n`; delete it when you have done that step.
+
 Hints: `data.split(b"\n")[0]` is the first line of `data`; `open(name, "wb").write(data)` writes bytes to a file.
 
 ## Expected output
@@ -50,7 +52,7 @@ password PASSPHRASE : loaded, RSA 2048 bits
 server-locked.key mode:   0o600
 ```
 
-The first mode depends on your system (`0o644` on most Linux machines). On Windows, `chmod` can only make a file read-only, so the last line shows `0o666` or `0o444`: there the access rules (ACLs) do this job. The passphrase still has to live somewhere when the server starts; that is why big sites keep keys in hardware (HSM).
+The first mode depends on your system (`0o644` on most Linux machines). On Windows, `chmod` can only make a file read-only, so the last line shows `0o666` or `0o444`: there the access rules (ACLs) do this job. One more step in real life: delete the plain `server.key` (and its copies in backups), otherwise Mallory simply copies that one; here we keep it so that you can run the task again. The passphrase still has to live somewhere when the server starts; that is why big sites keep keys in hardware (HSM).
 
 </details>
 

@@ -2,7 +2,11 @@
 
 The responder runs inside this program (no network): responder.ask(request) takes the bytes of an
 OCSP request and returns the bytes of a signed OCSP response, as a real responder does over HTTP.
-When responder.blocked is True, Mallory drops the request and ask() raises ConnectionError.
+responder.mallory says what Mallory, who sits between Alice and the responder, does with the request:
+    None        nothing: the request reaches the responder
+    "blocks"    she drops it: ask() raises ConnectionError
+    "replays"   she drops it and sends back an answer she recorded on 5 November 2026, before Carol's
+                certificate was revoked: "good", really signed by the CA, but valid only until 12 November
 """
 import datetime
 import os
@@ -27,6 +31,17 @@ def name_of(cert):
     return cert.subject.get_attributes_for_oid(NameOID.COMMON_NAME)[0].value
 
 
+# the time now, in UTC, without a time zone (the same form as next_update_of)
+NOW = datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
+
+
+def next_update_of(response):
+    """Next Update of an OCSP answer, in UTC: after this time the answer is too old to use."""
+    if hasattr(response, "next_update_utc"):
+        return response.next_update_utc.replace(tzinfo=None)
+    return response.next_update
+
+
 def response_signed_by(response, issuer):
     """True if the OCSP response was signed with the private key of issuer."""
     try:
@@ -46,11 +61,20 @@ class Responder:
             self.key = serialization.load_pem_private_key(f.read(), None)
         self.known = [load_cert("bob.pem"), load_cert("carol.pem")]
         self.revoked = {0x1002: datetime.datetime(2026, 11, 10, 9, 30)}
-        self.blocked = False
+        self.mallory = None
+        # the answer about Carol that Mallory recorded on 5 November 2026, before the revocation
+        builder = ocsp.OCSPResponseBuilder()
+        builder = builder.add_response(self.known[1], self.ca, hashes.SHA1(), ocsp.OCSPCertStatus.GOOD,
+                                       datetime.datetime(2026, 11, 5, 9, 0), datetime.datetime(2026, 11, 12, 9, 0),
+                                       None, None)
+        builder = builder.responder_id(ocsp.OCSPResponderEncoding.HASH, self.ca)
+        self.recorded = builder.sign(self.key, hashes.SHA256()).public_bytes(serialization.Encoding.DER)
 
     def ask(self, request_bytes):
-        if self.blocked:
+        if self.mallory == "blocks":
             raise ConnectionError("no answer from the OCSP responder")
+        if self.mallory == "replays":
+            return self.recorded
         request = ocsp.load_der_ocsp_request(request_bytes)
         now = datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None, microsecond=0)
         builder = ocsp.OCSPResponseBuilder()

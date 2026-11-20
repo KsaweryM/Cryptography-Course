@@ -19,7 +19,8 @@ def log_in(cert_and_key):
     #         tls = context.wrap_socket(sock, server_hostname="bob.example") and read the answer: tls.recv(100).
     #         Return the answer as text (.decode()). In TLS 1.3 a rejected client often learns it only
     #         when it reads, so put both calls inside try, and on ssl.SSLError return "rejected: " + e.reason
-    return "TODO"
+    #         (in place of the line below)
+    return "not done yet: TODO 1"
 
 
 for i in range(len(CLIENTS)):

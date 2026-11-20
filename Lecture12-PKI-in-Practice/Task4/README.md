@@ -22,7 +22,10 @@ Write your code in place of the `TODO` comments in `audit.py`, inside the loop:
 1. `days_left = (expires(cert) - TODAY).days`: subtracting two dates gives a time difference, and `.days` is its number of whole days. Print it.
 2. If `days_left < 0`: print `EXPIRED`; else if `days_left < RENEW_DAYS`: print `RENEW NOW`. (`elif` is C's `else if`.)
 3. If `hash_name(cert) in WEAK_HASHES`: print `WEAK HASH`. (`x in list` is a loop that looks for `x`.)
-4. If the key is `"RSA"` and has fewer than `MIN_RSA_BITS` bits: print `WEAK KEY`. Add 1 to `problems` for every rule broken.
+4. If the key is `"RSA"` and has fewer than `MIN_RSA_BITS` bits: print `WEAK KEY`. Add 1 to `problems` for every rule broken (in steps 2, 3 and 4).
+5. After the loop, print the count: `print(problems, "problems in", len(certs), "certificates")`.
+
+The starter prints `not done yet: ...` lines; delete each one when you have done its steps.
 
 ## Expected output
 
@@ -57,7 +60,7 @@ www.pem        www.carol-corp.example       EC        256 sha256  from Trusty CA
 6 problems in 8 certificates
 ```
 
-Six problems in five certificates. The camera and the intranet are self-signed (issuer = subject) and valid for years: long life and weak algorithms often come together on old devices. The key size rule is only for RSA: an EC key of 256 bits is as strong as RSA with about 3072 bits.
+Six problems in five certificates. The camera and the intranet are self-signed (issuer = subject) and valid for years: long life and weak algorithms often come together on old devices. Which problem matters most? On the self-signed camera and intranet, the weak hash of the self-signature opens nothing, because nobody checks a self-signature: the real problems are that no CA vouches for them (every client must be told to trust them one by one) and, on the intranet, the 1024-bit RSA key. The fix is a new key and a certificate from Carol's internal CA. The key size rule is only for RSA: an EC key of 256 bits is as strong as RSA with about 3072 bits.
 
 </details>
 
