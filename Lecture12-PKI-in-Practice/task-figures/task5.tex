@@ -1,7 +1,7 @@
-% Task 5: two tbsCertificates with the same MD5. Values from Task5/ (python3 hashlib, 2026-11-15).
-% CHECKED: tbs_a.bin and tbs_b.bin are 308 bytes, differ in bytes 19, 45, 59, 83, 109, 123
-%   (87/07, 71/f1, f2/72, b4/34, a8/28, 2b/ab); MD5 of both 7e58325ffced260e7cf07eb336bf0907;
-%   SHA-256 99cfc680... and 748ac700...; the first 128 bytes are the MD5 collision of Wang et al. (2004)
+% Task 5: two tbsCertificates with the same MD5. Values from Task5/ (python3 hashlib, 2026-11-26).
+% CHECKED: tbs_a.bin and tbs_b.bin are 306 bytes, differ in bytes 19, 45, 59, 83, 109, 123
+%   (87/07, 71/f1, f2/72, b4/34, a8/28, 2b/ab); MD5 of both c1ce19ef2bff14e3d0a24b79426459cb;
+%   SHA-256 f8a5fde5... and 646d9bfc...; the first 128 bytes are the MD5 collision of Wang et al. (2004)
 \documentclass[12pt,tikz,border=6pt]{standalone}
 \input{common}
 \begin{document}
@@ -9,11 +9,11 @@
 \begin{tikzpicture}[>=Stealth]
   % ---------- the two tbsCertificates ----------
   \foreach \x/\nm/\col/\txt/\bytes in {
-      0/a/sIndigo/{shop.alice.example is a website.\\It may NOT sign certificates.}/{87,71,f2,b4,a8,2b},
+      0/a/sTeal/{shop.bob.example is a website.\\It may NOT sign certificates.}/{87,71,f2,b4,a8,2b},
       9.4/b/sPink/{Mallory is a CA. She may sign\\certificates for any website.}/{07,f1,72,34,28,ab}} {
     \node[draw=nLine, thick, fill=white, minimum width=7.6cm, minimum height=4.4cm, rounded corners=2pt] (p) at (\x,0) {};
     \node[font=\small\bfseries, text=nInk, anchor=north west] at ([shift={(0.15,-0.1)}]p.north west)
-      {\faFile*[regular]\ \texttt{tbs\_\nm.bin}\quad\normalfont\scriptsize 308 bytes};
+      {\faFile*[regular]\ \texttt{tbs\_\nm.bin}\quad\normalfont\scriptsize 306 bytes};
     \node[font=\scriptsize, text=gray, anchor=north west] at ([shift={(0.15,-0.62)}]p.north west)
       {bytes 0 to 127: strange bytes, the 6 that differ:};
     \foreach \v [count=\j from 0] in \bytes {
@@ -25,8 +25,8 @@
     \node[actorlight=\col, font=\small, text width=6.8cm] at (\x,-1.4) {\txt};
   }
   % ---------- the hashes ----------
-  \node[hw, font=\small\ttfamily, minimum width=7.6cm] (h1) at (0,-3.2) {MD5 7e58\ldots0907\quad SHA-256 99cf\ldots};
-  \node[hw, font=\small\ttfamily, minimum width=7.6cm] (h2) at (9.4,-3.2) {MD5 7e58\ldots0907\quad SHA-256 748a\ldots};
+  \node[hw, font=\small\ttfamily, minimum width=7.6cm] (h1) at (0,-3.2) {MD5 c1ce\ldots59cb\quad SHA-256 f8a5\ldots};
+  \node[hw, font=\small\ttfamily, minimum width=7.6cm] (h2) at (9.4,-3.2) {MD5 c1ce\ldots59cb\quad SHA-256 646d\ldots};
   \draw[data] (0,-2.2) -- (h1.north);
   \draw[data] (9.4,-2.2) -- (h2.north);
   

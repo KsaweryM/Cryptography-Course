@@ -17,7 +17,7 @@ Decrypt the message from RFC 8439 with one call to ChaCha20.
 
 ## Steps
 
-Write your code in place of the `TODO` comments in `use_chacha.py`:
+Write your code in place of the `TODO` comments in `use_chacha.py`. Until TODO 1 is done, the file prints `not done yet: TODO 1`.
 
 1. Decrypt the ciphertext with counter 1: `plaintext = chacha20(key, nonce, 1, ciphertext)`.
 2. Print the message. `plaintext.decode()` turns the bytes into text.

@@ -1,5 +1,5 @@
 # Ready for you: digital signatures as a black box (Ed25519, from the library "cryptography").
-# We do not look inside. Ed25519 is a signature on Curve25519, the curve of Lecture 5.
+# We do not look inside. Ed25519 is a signature on edwards25519, another form of Curve25519 (Lecture 5).
 #
 #   sign(private_key, data)               -> signature (64 bytes)
 #   verify(public_key, data, signature)   -> True or False

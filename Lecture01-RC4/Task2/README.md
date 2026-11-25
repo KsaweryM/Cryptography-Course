@@ -19,9 +19,11 @@ Read the message, and see what one changed letter of the key does to the keystre
 
 Write your code in place of the `TODO` comments in `use_rc4.py`:
 
-1. Make a keystream as long as the ciphertext: `ks = keystream(key, len(ciphertext))`. Print its length.
-2. Decrypt: XOR each ciphertext byte with its keystream byte, turn each result into a character with `chr`, print the message.
-3. Print `keystream(key, 8)` and `keystream(b"Kangarop", 8)` in hex. How many bytes are the same?
+1. Make a keystream as long as the ciphertext: `ks = keystream(key, len(ciphertext))`. The program prints its length.
+2. Decrypt: inside the ready loop, XOR ciphertext byte `i` with keystream byte `i`, turn the result into a character with `chr` and add it to `message`. The program prints the message.
+3. Print `keystream(key, 8)` and `keystream(b"Kangarop", 8)` in hex, one line each, in place of `print("not done yet: TODO 3")`. How many bytes are the same?
+
+Until a step is done, the program prints `not done yet: TODO n` for it.
 
 Hint: `data.hex(" ")` prints bytes in hex with spaces, for example `69 9d da`.
 
@@ -49,4 +51,4 @@ python3 use_rc4.py
 
 About 5 minutes. Python 3, no extra libraries.
 
-Want to see it move? Type your own key and text into the [RC4 black box](https://ksawerym.github.io/Cryptography-simulators/rc4/#1).
+Want to see it move? After the task, type your own key and text into the [RC4 black box](https://ksawerym.github.io/Cryptography-simulators/rc4/#1).

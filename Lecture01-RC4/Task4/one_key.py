@@ -1,4 +1,4 @@
-import random
+import secrets
 
 from rc4 import rc4
 
@@ -40,7 +40,8 @@ m2 = b"Bring the map"
 # TODO 1: c1 = rc4(key, m1) and c2 = rc4(key, m2), then print:
 #         xor(c1, c2) == xor(m1, m2)
 #         rc4(key, m1) == rc4(key, m1)      # the same message, sent twice
-#         When is this dangerous?
+#         When is this dangerous? Replace the line below with your code.
+print("not done yet: TODO 1")
 
 # Step 2: a public value, new for every message
 # Step 1 showed: one key gives one keystream.
@@ -49,27 +50,34 @@ m2 = b"Bring the map"
 
 def encrypt(key, m):
     # TODO 2: encrypt one message with its own RC4 key.
-    #   a) Make a new 3-byte value: n = random.randbytes(3)
+    #   a) Make a new 3-byte value: n = secrets.token_bytes(3)
     #      It does not have to be secret: it travels in the open.
     #   b) The RC4 key for this message is n + key
     #      (n glued in front of the secret key): c = rc4(n + key, m)
     #   c) Return the packet that is sent: n + c (first n, then the ciphertext c).
-    pass
+    return None
 
 
 def decrypt(key, packet):
     # TODO 3: undo encrypt.
     #   a) n = the first 3 bytes of the packet, c = the rest.
-    #   b) The RC4 key is again n + key: give back rc4(n + key, c).
-    pass
+    #   b) The RC4 key is again n + key: return rc4(n + key, c).
+    return None
 
 
-# TODO 4: check, print four lines:
-#   a) p1 = encrypt(key, m1) and p2 = encrypt(key, m2);
-#      xor of the ciphertext parts (packet[3:]) == xor(m1, m2)   should be False
-#   b) encrypt(key, m1) twice: are the two packets different?    should be True
-#   c) decrypt(key, p1)                                          b'Meet at noon.'
-#   d) attacker_learns_xor(p1, p2, m1, m2)                       should be False
-#      (a ready test: the attacker sees only the packets)
+p1 = encrypt(key, m1)
+p2 = encrypt(key, m2)
+if p1 is None:
+    print("not done yet: TODO 2")
+elif decrypt(key, p1) is None:
+    print("not done yet: TODO 3")
+else:
+    # TODO 4: check, print four lines (replace the line below):
+    #   a) xor(p1[3:], p2[3:]) == xor(m1, m2)        should be False
+    #   b) encrypt(key, m1) != encrypt(key, m1)      should be True
+    #   c) decrypt(key, p1)                          b'Meet at noon.'
+    #   d) attacker_learns_xor(p1, p2, m1, m2)       should be False
+    #      (a ready test: the attacker sees only the packets)
+    print("not done yet: TODO 4")
 # Hints: b"ab" + b"cd" == b"abcd", so n + key is n glued in front of key.
 #        packet[0:3] = the first 3 bytes, packet[3:] = the rest.

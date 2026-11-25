@@ -12,6 +12,11 @@ ciphertext = bytes.fromhex(
     "5af90bbf74a35be6b40b8eedf2785e42874d"
 )
 
-# TODO 1: decrypt the ciphertext with counter 1
+plaintext = None
 
-# TODO 2: print the message
+# TODO 1: decrypt the ciphertext with counter 1: plaintext = chacha20(key, nonce, 1, ciphertext)
+
+# TODO 2: print the message: print(plaintext.decode())
+
+if plaintext is None:
+    print("not done yet: TODO 1")

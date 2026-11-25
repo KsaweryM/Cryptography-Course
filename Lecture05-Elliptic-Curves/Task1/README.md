@@ -10,7 +10,7 @@ In Lecture 4, Alice and Bob agreed on a secret with Diffie-Hellman: each picked 
 
 Make a key pair for Alice and one for Bob, compute the shared secret on both sides, check that both are the same, and compare its size with the 256 bytes of Lecture 4.
 
-**Predict first:** how many bytes will the shared secret have?
+**Predict first:** run the file twice. Will the shared secret be the same both times?
 
 ## Ready for you
 

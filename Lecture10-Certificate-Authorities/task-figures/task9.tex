@@ -1,0 +1,19 @@
+% Task 9: validity limits by issue date. source: CA/Browser Forum (825 days from 2018-03-01, ballot SC-081 for 2026 to 2029),
+%   398 days from 2020-09-01 (browser root programs).
+\documentclass[12pt,tikz,border=6pt]{standalone}
+\input{common}
+\begin{document}
+\pagecolor{white}
+\begin{tikzpicture}[>=Stealth]
+
+  \begin{scope}[x=1.0cm]
+    \draw[nInk, very thick, -{Stealth}] (-0.5,0) -- (13.4,0);
+    \foreach \x/\l/\d in {0/{1 Mar\\2018}/825, 2.6/{1 Sep\\2020}/398, 7.6/{15 Mar\\2026}/200, 10.0/{15 Mar\\2027}/100, 12.4/{15 Mar\\2029}/47} {
+      \draw[nInk, thick] (\x,-0.15) -- (\x,0.15);
+      \node[font=\small, text=nInk, below=3pt, align=center] at (\x,-0.15) {\l};
+      \node[hw, font=\small\bfseries, above=10pt] at (\x,0.15) {\d\ days};
+    }
+  \end{scope}
+  \node[note, anchor=north, align=center] at (6.2,-1.6) {\faFolderOpen\ certs/: 8 certificates, coventry.pem and python-org.pem are real.\\For each: is the number of days valid within the limit on the day it was issued?};
+\end{tikzpicture}
+\end{document}

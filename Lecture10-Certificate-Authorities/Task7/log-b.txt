@@ -1,0 +1,8 @@
+0 | 2026-11-02 | Trusty Issuing CA 1 | carol.example | serial 5e:19:a2:7c:40:d3:8b:01
+1 | 2026-11-05 | Trusty Issuing CA 1 | dave.example | serial 2b:c8:71:0f:9e:64:a5:3d
+3 | 2026-11-10 | Trusty Issuing CA 1 | shop.carol.example | serial 41:9f:0c:b7:e2:15:6d:a8
+4 | 2026-11-12 | Trusty Issuing CA 1 | mail.dave.example | serial 0d:e4:93:5a:c1:7f:28:b6
+5 | 2026-11-15 | Trusty Issuing CA 1 | bob.example | serial 3f:2a:d9:86:14:e0:7b:c5
+6 | 2026-11-16 | Trusty Issuing CA 1 | api.bob.example | serial 68:b1:4e:20:d7:9a:c3:0f
+7 | 2026-11-18 | Trusty Issuing CA 1 | alice.example | serial 1c:75:f8:3b:a6:02:e9:4d
+8 | 2026-11-19 | Trusty Issuing CA 1 | dave.example | serial 52:0e:c4:97:3a:81:fd:16

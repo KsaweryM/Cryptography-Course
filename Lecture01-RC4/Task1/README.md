@@ -2,7 +2,7 @@
 
 ## The situation
 
-A sender wants to give you a short secret message. Before, you met and both got the same 11 random bytes: the **one-time pad**. The sender XORed the message with the pad and sent the result, the ciphertext, where anyone can see it. Without the pad it is noise. With the pad, you can read it.
+You are Bob. Alice wants to give you a short secret message. Before, you met and both got the same 11 random bytes: the **one-time pad**. Alice XORed the message with the pad and sent the result, the ciphertext, where anyone can see it. Without the pad it is noise. With the pad, you can read it.
 
 ![The ciphertext row and the pad row, byte under byte. The first column is worked out: A3 XOR EB = 48, ASCII code 72, the letter H. The other 10 letters are question marks.](figure.svg)
 
@@ -21,18 +21,19 @@ pad         EB 9F 77 81 B7 34 CA 72 A7 19 4A
 
 ## Steps
 
-Write your code in place of the `TODO` comment in `decrypt.py`:
-
-1. XOR each ciphertext byte with the pad byte at the same position: `ciphertext[i] ^ pad[i]`.
-2. Each result is an ASCII code. Turn it into a letter: `chr(72)` gives `H` (like the cast `(char)72` in C).
-3. Print the whole message.
+Write your code in place of the `TODO` comments in `decrypt.py`. The loop is ready:
 
 ```python
 plaintext = ""
 for i in range(len(ciphertext)):
-    # TODO: add one letter to plaintext
-print(plaintext)
+    # TODO 1 and TODO 2 go here
 ```
+
+1. Inside the loop, XOR the ciphertext byte with the pad byte at the same position: `x = ciphertext[i] ^ pad[i]` (`^` is XOR, as in C).
+2. Still inside the loop: `x` is an ASCII code. Turn it into a letter and add it to the message: `plaintext = plaintext + chr(x)`. `chr(72)` gives `H`, like the cast `(char)72` in C.
+3. Print the whole message: replace the line `print("not done yet: TODO 3")` with `print(plaintext)`.
+
+Until a step is done, the program prints `not done yet: TODO n`, with the number of the first step that is missing.
 
 ## Expected output
 

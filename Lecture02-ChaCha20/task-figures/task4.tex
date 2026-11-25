@@ -1,0 +1,56 @@
+% Task 4: change one byte, the tag catches it. Values from Task4/tamper.py and Task4/aead.py.
+% The recomputed tag is not shown: finding out what happens is the task.
+% CHECKED (python3, key 0badc0de x 8, nonce 00..01):
+%   seal(key, nonce, b"Pay Bob 100") = 4C EA 76 9D 37 9F 55 B9 D7 A3 5A | tag 0E E9 C8 47 ... 30 71
+%   byte 5 XOR 01: 9F -> 9E; the tag recomputed from the changed ciphertext: A7 90 CE 91 ... 79 28
+%   (without the tag check, the changed ciphertext would decrypt to "Pay Bnb 100")
+\documentclass[12pt,tikz,border=6pt]{standalone}
+\input{common}
+\begin{document}
+\pagecolor{white}
+\begin{tikzpicture}[>=Stealth]
+  \def\dx{0.85}
+  \def\xs{3.6}
+  \def\tx{15.3}
+  \tikzset{tagbox/.style={draw=nInk, very thick, fill=nFill, rounded corners=1.5pt, minimum width=3.6cm,
+    minimum height=0.62cm, font=\ttfamily\small, text=nInk}}
+
+  % ---------- the way of the packet ----------
+  \node[actor=sIndigo, minimum width=2.3cm, minimum height=0.9cm] (a) at (0.6,3.2) {\faUser\ Alice};
+  \node[circle, fill=sPink, text=white, minimum size=1.1cm, font=\Large] (m) at (9.3,3.2) {\faUserSecret};
+  \node[font=\small\bfseries, text=sPinkText, anchor=south] at (9.3,3.8) {Mallory};
+  \node[actor=sTeal, minimum width=2.3cm, minimum height=0.9cm] (b) at (17.6,3.2) {\faUser\ Bob};
+  \draw[data] (a) -- node[above, note] {packet} (m);
+  \draw[data] (m) -- node[above, note] {changed packet} (b);
+
+  % ---------- row 1: what Alice sends ----------
+  \node[font=\small, text=gray, anchor=east] at ({\xs-0.55},1.75) {byte};
+  \foreach \k in {0,...,10} \node[font=\small, text=gray] at ({\xs+\dx*\k},1.75) {\k};
+  \node[rowlabel, align=right] at ({\xs-0.55},1.1) {Alice:\\ \texttt{seal}};
+  \byterow{\xs}{1.1}{ctb}{4C,EA,76,9D,37,9F,55,B9,D7,A3,5A}{\dx}
+  \node[tagbox] (t1) at (\tx,1.1) {0E E9 C8 47 \ldots\ 30 71};
+  \node[font=\small, text=rCtText, anchor=north] at ({\xs+5*\dx},0.7) {ciphertext of \texttt{"Pay Bob 100"}, 11 bytes};
+  \node[font=\small, text=nInk, anchor=north] at (\tx,0.7) {\faStamp\ tag, 16 bytes};
+
+  % ---------- row 2: what Bob receives ----------
+  \node[rowlabel, align=right] at ({\xs-0.55},-0.6) {Bob\\ receives};
+  \byterow{\xs}{-0.6}{ctb}{4C,EA,76,9D,37}{\dx}
+  \node[chg] at ({\xs+5*\dx},-0.6) {9E};
+  \byterow{\xs+6*\dx}{-0.6}{ctb}{55,B9,D7,A3,5A}{\dx}
+  \node[tagbox] (t2) at (\tx,-0.6) {0E E9 C8 47 \ldots\ 30 71};
+  \node[font=\small\bfseries, text=AccentOrange, anchor=north] at ({\xs+5*\dx},-1.0) {Mallory: \texttt{9F XOR 01 = 9E}};
+  \node[font=\small, text=nInk, anchor=north] at (\tx,-1.0) {the tag is not changed};
+
+  % ---------- row 3: Bob checks the tag ----------
+  \draw[nLight, thick, dashed] (0.6,-1.85) -- (13.0,-1.85);
+  \node[rowlabel, align=right] at ({\xs-0.55},-2.75) {Bob:\\ \texttt{open\_}};
+  \node[note, anchor=west, align=left] at ({\xs-0.4},-2.75)
+    {recomputes the tag from the ciphertext\\ that arrived, with the secret key};
+  \draw[data] (10.2,-2.75) -- (13.3,-2.75);
+  \node[tagbox, dashed] (t3) at (\tx,-2.75) {?? ?? ?? ?? \ldots\ ?? ??};
+  \node[font=\Large\bfseries, text=nInk] at (\tx,-1.67) {$=$?};
+  
+  \node[note, anchor=north, align=center] at (9.7,-3.5)
+    {Mallory has no key, so she cannot compute a tag for her change.\\ What does Bob read without the tag check? What does \texttt{open\_} do? Run it and see.};
+\end{tikzpicture}
+\end{document}

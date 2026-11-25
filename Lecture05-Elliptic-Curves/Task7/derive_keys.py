@@ -18,6 +18,16 @@ alice_key_from_bob = None
 bob_key_from_alice = None
 bob_key_to_alice = None
 
+# TODO 4: Mallory sends Alice 32 zero bytes in place of Bob's public key (a point of small order).
+#         a) Alice computes the secret with it: x25519(alice_private, mallory_public)
+#         b) write is_all_zero(secret): True when every byte is 0 (a loop over the 32 bytes, like a loop in C)
+mallory_public = bytes(32)
+mallory_secret = None
+
+
+def is_all_zero(secret):
+    return None
+
 # The printing is ready: each line says "not done yet" until its TODO is done.
 print("shared secret:            ", alice_secret.hex())
 if key is None:
@@ -36,3 +46,8 @@ else:
     print("key Alice to Bob (Bob):   ", bob_key_from_alice.hex())
     print("key Bob to Alice (Bob):   ", bob_key_to_alice.hex())
     print("the same on both sides:", bob_key_from_alice == alice_key_to_bob and bob_key_to_alice == alice_key_from_bob)
+if mallory_secret is None or is_all_zero(bytes(32)) is None:
+    print("not done yet: TODO 4")
+else:
+    print("secret with Mallory's key: ", mallory_secret.hex())
+    print("all zero, refused:", is_all_zero(mallory_secret), "| real secret refused:", is_all_zero(alice_secret))

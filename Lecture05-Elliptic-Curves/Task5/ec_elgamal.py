@@ -53,15 +53,17 @@ def decrypt(C1, C2, d):
     return None
 
 
-# The printing is ready: it says "not done yet" until the TODO is done.
+# The printing is ready: each line says "not done yet" until its TODO is done.
 print("Q =", Q)
 C = encrypt(M, Q, k)
 if C is None:
     print("not done yet: TODO 1")
 else:
     print("ciphertext (C1, C2):", C)
-    D = decrypt(C[0], C[1], d)
-    if D is None:
-        print("not done yet: TODO 2")
-    else:
-        print("decrypted:", D)
+# decrypt is first tried on the example of the slides (d = 7, C1 = (3, 1), C2 = (5, 1)), so it can be done before TODO 1
+if decrypt((3, 1), (5, 1), 7) is None:
+    print("not done yet: TODO 2")
+elif C is None:
+    print("decrypt on the example of the slides:", decrypt((3, 1), (5, 1), 7))
+else:
+    print("decrypted:", decrypt(C[0], C[1], d))

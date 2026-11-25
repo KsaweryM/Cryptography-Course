@@ -1,23 +1,30 @@
-% Task 7: two real certificates, saved on 15 November 2026. CHECKED: openssl x509 -text of Task7/*.pem
+% Task 7: two real certificates, saved on 15 November 2026, and cert_D.pem of Task 4.
+% CHECKED: openssl x509 -text of Task7/*.pem; Task7/solution/read_real.py
 \documentclass[12pt,tikz,border=6pt]{standalone}
 \input{common}
 \begin{document}
 \pagecolor{white}
 \begin{tikzpicture}[>=Stealth, card]
-  \foreach \x/\n/\s/\i/\k in {0/coventry.pem/{CN=www.coventry.ac.uk}/{WE1 (Google Trust Services)}/{EC P-256},
-      8.2/bbc.pem/{CN=www.bbc.com, O=BRITISH \ldots, C=GB}/{GlobalSign GCC R46 OV TLS CA 2025}/{RSA 2048}} {
-    \node[cardbox, minimum width=7.6cm, minimum height=4.0cm] (c) at (\x,0) {};
-    \node[font=\bfseries, text=nInk, anchor=north west] at (\x-3.6,1.85) {\faCertificate\ \n};
-    \node[font=\scriptsize, text=nInk, anchor=west] at (\x-3.6,1.0) {subject: \texttt{\s}};
-    \node[font=\scriptsize, text=sBrown, anchor=west] at (\x-3.6,0.45) {issuer: \i};
-    \node[pubval, font=\scriptsize, anchor=west] at (\x-3.6,-0.15) {\faKey\ \k};
-    \node[font=\scriptsize, text=nInk, anchor=west] at (\x-3.6,-0.75) {days valid: ? \quad SAN: ? names};
-    \node[font=\scriptsize, text=gray, anchor=west] at (\x-3.6,-1.4) {saved with openssl s\_client, 15 November 2026};
+  \foreach \x/\n/\s/\i/\k/\w in {0/coventry.pem/{CN=www.coventry.ac.uk}/{WE1 (Google Trust Services)}/{EC P-256}/{saved 15 November 2026},
+      7.4/bbc.pem/{CN=www.bbc.com, O=BRITISH \ldots}/{GlobalSign GCC R46 OV TLS CA 2025}/{RSA 2048}/{saved 15 November 2026},
+      14.8/cert\_D.pem/{CN=*.dave.example}/{Trusty CA}/{Ed25519}/{from Task 4}} {
+    \node[cardbox, minimum width=7.0cm, minimum height=4.0cm] (c) at (\x,0) {};
+    \node[font=\bfseries, text=nInk, anchor=north west] at (\x-3.3,1.85) {\faCertificate\ \n};
+    \node[font=\scriptsize, text=nInk, anchor=west] at (\x-3.3,1.0) {subject: \texttt{\s}};
+    \node[font=\scriptsize, text=sBrown, anchor=west] at (\x-3.3,0.45) {issuer: \i};
+    \node[pubval, font=\scriptsize, anchor=west] at (\x-3.3,-0.15) {\faKey\ \k};
+    \node[font=\scriptsize, text=nInk, anchor=west] at (\x-3.3,-0.75) {days valid: ? \quad SAN: ? names};
+    \node[font=\scriptsize, text=gray, anchor=west] at (\x-3.3,-1.4) {\w};
   }
-  \foreach \h [count=\j from 0] in {www.coventry.ac.uk, coventry.ac.uk, www.bbc.co.uk, news.bbc.co.uk, sport.bbc.co.uk} {
-    \node[term, font=\ttfamily\scriptsize, anchor=west, inner sep=3pt] at ({-3.8+3.3*\j},-2.75) {\h};
-    \node[font=\large\bfseries, text=AccentOrange] at ({-2.2+3.3*\j},-3.4) {?};
+  \foreach \h [count=\j from 0] in {www.coventry.ac.uk, coventry.ac.uk, www.bbc.co.uk, news.bbc.co.uk} {
+    \node[term, font=\ttfamily\scriptsize, anchor=west, inner sep=3pt] at ({-3.4+4.6*\j},-2.75) {\h};
+    \node[font=\large\bfseries, text=AccentOrange] at ({0.6+4.6*\j},-2.75) {?};
   }
-  \node[note, anchor=north] at (4.1,-3.8) {\badge{3}\ covers(cert, host): is host one of the DNS names in the SAN?};
+  \foreach \h [count=\j from 0] in {sport.bbc.co.uk, play.dave.example, dave.example, x.play.dave.example} {
+    \node[term, font=\ttfamily\scriptsize, anchor=west, inner sep=3pt] at ({-3.4+4.6*\j},-3.6) {\h};
+    \node[font=\large\bfseries, text=AccentOrange] at ({0.6+4.6*\j},-3.6) {?};
+  }
+  \node[note, anchor=north] at (7.4,-4.2) {\badge{3}\ matches(pattern, host): \texttt{*} stands for one label, the left-most \qquad
+    \badge{4}\ covers(cert, host): does one SAN name match?};
 \end{tikzpicture}
 \end{document}

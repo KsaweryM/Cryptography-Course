@@ -1,0 +1,3 @@
+# Signed Tree Head, 2026-11-19 (example data; the signature of the log is left out)
+tree_size 8
+root acbf332a310b69a90d105d4577cd4ddced18640045e389ffc8a8bf091bd4e2b5

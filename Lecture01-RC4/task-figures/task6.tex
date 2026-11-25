@@ -1,5 +1,5 @@
-% Task 6: a cheap generator. Ciphertext from Task6/cheap.py (28 bytes);
-% CHECKED (python3): 0xF6 XOR 'A' (0x41) = 0xB7 = k1. k2, k3, k4 and the message are the result of the task: not shown.
+% Task 6: a cheap generator. Ciphertext from Task6/cheap.py (32 bytes);
+% CHECKED (python3): 0xF3 XOR 'D' (0x44) = 0xB7 = k1. k2, k3, k4 and the message are the result of the task: not shown.
 %   The good generator row is the RC4 keystream of the key "Kangaroo" (Task 2): 69 9d da 7e fe 61 73 62 97 c5 8c ab
 \documentclass[12pt,tikz,border=6pt]{standalone}
 \input{common}
@@ -30,7 +30,7 @@
   \draw[data] (g2.east) -- ({\xs-0.55},2.0);
   \byterow{\xs}{2.0}{ksb}{69,9D,DA,7E,FE,61,73,62,97,C5,8C,AB}{\dx}
   \node[text=nInk] at ({\xs+12*\dx-0.1},2.0) {\ldots};
-  \node[font=\small\bfseries, text=sTealText, anchor=west] at ({\xs+12.4*\dx},2.0) {never repeats};
+  \node[font=\small\bfseries, text=sTealText, anchor=west] at ({\xs+12.4*\dx},2.0) {does not repeat};
 
   \draw[nLight, thick, dashed] (-0.3,1.25) -- (18.3,1.25);
 
@@ -40,21 +40,21 @@
   \node[rowlabel] at ({\xs-0.6},0.15) {\texttt{i \% 4}};
   \foreach \k in {0,...,11} {\pgfmathtruncatemacro{\m}{mod(\k,4)}\node[font=\small\bfseries, text=nInk] at ({\xs+\dx*\k},0.15) {\m};}
   \node[rowlabel] at ({\xs-0.6},-0.5) {ciphertext};
-  \byterow{\xs}{-0.5}{ctb}{F6,44,8B,01,9B,0A,91,08,D2,0A,96,01}{\dx}
+  \byterow{\xs}{-0.5}{ctb}{F3,4F,84,12,97,68,8A,02,9B,0A,91,08}{\dx}
   \node[text=nInk] at ({\xs+12*\dx-0.1},-0.5) {\ldots};
   \node[rowlabel] at ({\xs-0.6},-1.3) {XOR keystream};
   \krow{-1.3}
   \node[text=nInk] at ({\xs+12*\dx-0.1},-1.3) {\ldots};
   \draw[nInk, thick] ({\xs-0.45},-1.75) -- ({\xs+11.45*\dx},-1.75);
   \node[rowlabel] at ({\xs-0.6},-2.2) {message};
-  \byterow{\xs}{-2.2}{ptb, font=\ttfamily\normalsize\bfseries}{A,n,n,a}{\dx}
+  \byterow{\xs}{-2.2}{ptb, font=\ttfamily\normalsize\bfseries}{D,e,a,r}{\dx}
   \foreach \k in {4,...,11} \node[unk] at ({\xs+\dx*\k},-2.2) {?};
   \node[text=nInk] at ({\xs+12*\dx-0.1},-2.2) {\ldots};
-  \node[font=\small, text=nInk, anchor=west] at ({\xs+12.4*\dx},-0.5) {28 bytes};
+  \node[font=\small, text=nInk, anchor=west] at ({\xs+12.4*\dx},-0.5) {32 bytes};
   % the known start gives the 4 numbers
   \draw[annot] ({\xs-0.5},-2.6) rectangle ({\xs+3.5*\dx},-0.1);
   \node[font=\small, text=AccentOrange, anchor=north west, align=left] at (-0.3,-2.75)
-    {\textbf{Known start} \texttt{Anna} gives the 4 numbers. Example: \texttt{k1 = 0xF6 XOR \textquotesingle A\textquotesingle\ = 0xB7}.\\
+    {\textbf{Known start} \texttt{Dear} gives the 4 numbers. Example: \texttt{k1 = 0xF3 XOR \textquotesingle D\textquotesingle\ = 0xB7}.\\
      Then \texttt{k1} also opens bytes 4, 8, 12, \ldots, \texttt{k2} opens bytes 5, 9, 13, \ldots: the whole message.};
 \end{tikzpicture}
 \end{document}

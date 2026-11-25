@@ -25,10 +25,10 @@ C = int(
 )
 
 start = time.perf_counter()
-# TODO: find the PIN without the private key.
+# TODO 1: find the PIN without the private key.
 pin = None
 
 if pin is None:
-    print("not found yet")
+    print("not done yet: TODO 1")
 else:
     print("PIN:", pin, f"   found in {time.perf_counter() - start:.2f} s")

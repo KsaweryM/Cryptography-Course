@@ -1,9 +1,12 @@
-# RC4, ready to use: keystream(key, n) returns n bytes of keystream.
+# RC4, ready to use: keystream(key, n) returns n bytes of keystream. You do not need to read this file.
 
 
 def ksa(key):
-    S = list(range(256))
-    T = [key[i % len(key)] for i in range(256)]
+    S = [0] * 256
+    T = [0] * 256
+    for i in range(256):
+        S[i] = i
+        T[i] = key[i % len(key)]
     j = 0
     for i in range(256):
         j = (j + S[i] + T[i]) % 256

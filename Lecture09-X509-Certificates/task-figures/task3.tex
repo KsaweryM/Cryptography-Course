@@ -29,5 +29,13 @@
   \node[font=\ttfamily\small\bfseries, text=nInk, anchor=west] at (0.3,-5.75) {save, show};
   \node[note, anchor=west] at (3.4,-5.75) {bob.pem, fingerprint E8:C5:56:C2:\ldots? \quad \badge{4}};
   \draw[data] (ca.east) -- (0,-1.5);
+  % step 5: Alice checks the signature of Trusty CA
+  \personnode{al}{-2.2,-8.0}{sIndigo}{Alice}
+  \node[pubval, font=\small, anchor=west] (k1) at (0,-7.55) {\faKey\ Trusty CA's public key};
+  \node[pubval, font=\small, anchor=west] (k2) at (0,-8.45) {\faKey\ Mallory's public key};
+  \node[note, anchor=west] at (4.6,-7.55) {verify(key, tbs\_certificate\_bytes, signature) \textbf{?}};
+  \node[note, anchor=west] at (4.6,-8.45) {verify(key, tbs\_certificate\_bytes, signature) \textbf{?}};
+  \node[font=\small, anchor=west] at (12.55,-8.0) {\badge{5}};
+  \draw[AccentOrange, thick, decorate, decoration={brace, amplitude=5pt}] (12.4,-7.3) -- (12.4,-8.7);
 \end{tikzpicture}
 \end{document}

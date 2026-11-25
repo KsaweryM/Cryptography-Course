@@ -1,12 +1,12 @@
 # Ready helper for Task 6: a saved piece of a Certificate Transparency log. Treat it as a black box.
 #
 #   load_log(path)        -> a list of the certificates in the log (oldest first)
-#   load_orders(path)     -> the SHA-256 fingerprints (hex strings) of the certificates Alice ordered
-#   dns_names(cert)       -> the DNS names in the certificate, e.g. ["alice-shop.example", "www.alice-shop.example"]
+#   load_orders(path)     -> the SHA-256 fingerprints (hex strings) of the certificates Bob ordered
+#   dns_names(cert)       -> the DNS names in the certificate, e.g. ["bob.example", "www.bob.example"]
 #   issuer_cn(cert)       -> the common name of the CA that issued it, e.g. "Trusty CA"
 #   issued_on(cert)       -> the start of the validity period (a date)
 #   CAA_ID                -> the name each CA looks for in CAA records, e.g. CAA_ID["Trusty CA"] == "trusty-ca.example"
-#   ALLOWED               -> the CAA names in Alice's record (caa.txt): ["trusty-ca.example"]
+#   ALLOWED               -> the CAA names in Bob's record (caa.txt): ["trusty-ca.example"]
 #
 # A real log is a public server (RFC 6962) with billions of entries; monitors such as crt.sh read it for you.
 # Here it is a file with nine certificates from October and November 2026, so the task works offline.

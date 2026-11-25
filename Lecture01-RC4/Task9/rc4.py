@@ -1,6 +1,12 @@
+# RC4, ready to use: ksa(key) returns S after the KSA, prga(S, n) returns n keystream bytes.
+
+
 def ksa(key):
-    S = list(range(256))
-    T = [key[i % len(key)] for i in range(256)]
+    S = [0] * 256
+    T = [0] * 256
+    for i in range(256):
+        S[i] = i
+        T[i] = key[i % len(key)]
     j = 0
     for i in range(256):
         j = (j + S[i] + T[i]) % 256

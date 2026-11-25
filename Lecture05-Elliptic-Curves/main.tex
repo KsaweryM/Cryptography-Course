@@ -424,7 +424,7 @@
   \vspace{0.1cm}
   \begin{center}\footnotesize\textcolor{gray}{Elliptic curve: Diffie-Hellman on the points of a curve (next slide), here X25519.}\end{center}
   \vfill
-  \begin{center}\small A phone makes thousands of connections a day; a payment card or a sensor has a small chip and little power.\end{center}
+  \begin{center}\small A phone opens many connections every day; a payment card or a sensor has a small chip and little power.\end{center}
   \keymsg{Long keys cost bytes on every connection and time on every key agreement.}
   \say{Klucz publiczny RSA-3072 to 384 bajty (sam moduł n), klucz na krzywej (X25519) to 32 bajty. Czas jednego uzgodnienia klucza na moim laptopie (openssl speed, szczegóły na slajdzie Measured on a laptop): Diffie-Hellman 3072 bity około 0,72 ms, X25519 około 0,034 ms. Na małym chipie karty płatniczej albo czujnika te same operacje trwają dużo dłużej, a pamięci i energii jest mało. Klucz publiczny serwera jest wysyłany przy każdym połączeniu HTTPS (strony WWW z kłódką).}
 \end{frame}
@@ -500,12 +500,12 @@
   \vfill
   \begin{enumerate}\small
     \item Alice picks a secret $a$, Bob a secret $b$. Each sends one public point to the other.
-    \item Change $a$ or $b$ with $+$ and $-$: the shared point changes, but both sides always get the same one.
+    \item Roll new secrets with the dice: the shared point changes, but both sides always get the same one.
     \item Look at Eve's box: she sees the curve, a public starting point $G$, and the two public points, never $a$ or $b$.
   \end{enumerate}
   \vfill
   \keymsg{Two secrets in, one shared point out. Next: the same on Curve25519, a curve used in practice, in Python.}
-  \say{Pokazać na żywo, około 3 minut. Na razie czarna skrzynka: nie tłumaczymy jeszcze, co to punkt ani mnożenie punktu; to jest treść kolejnych sekcji. Ustawienia startowe a = 3, b = 10 to te same liczby co na slajdzie ECDH on our curve. Karty z atakiem Eve nie otwierać: pokazuje wielokrotności G, które studenci policzą w zadaniach 2 i 3.}
+  \say{Pokazać na żywo, około 3 minut. Na razie czarna skrzynka: nie tłumaczymy jeszcze, co to punkt ani mnożenie punktu; to jest treść kolejnych sekcji. Pod adresem \#1 liczby sekretów są ukryte (pole ze znakiem zapytania i kostka), bo z nimi strona zdradzałaby wyniki zadań 2 i 3; widać tylko, że obie strony dostają ten sam punkt. Przycisku ,,pokaż liczby'' ani karty z atakiem Eve nie otwierać przed zadaniem 3. Po zadaniu 3 link \#1.1 (slajd ECDH on our curve) otwiera ten krok z liczbami a = 3, b = 10.}
 \end{frame}
 
 \begin{frame}{Task 1: ECDH as a black box}
@@ -513,11 +513,11 @@
   \taskgoal{Alice and Bob make key pairs with X25519 and get the same shared secret.}
   \taskready{\texttt{x25519\_ready.py}: \texttt{public\_key} and \texttt{x25519}. X25519 is ECDH on Curve25519, a curve used in practice, as in HTTPS.}
   \vfill
-  \probbox{Predict first}{The Diffie-Hellman secret of lecture 4 had 256 bytes. How many times shorter is the X25519 secret?}
+  \probbox{Predict first}{Run it twice. Will the shared secret be the same both times?}
   \vfill
   \opentask{Task1}{about 5 minutes}
   \vfill
-  \say{Około 5 minut. Polecenia są w README na GitHubie. To samo co zadanie 2 z wykładu 4 (prawdziwa wymiana z 2048-bitowym p), tylko z gotowym modułem na krzywej: losowy klucz prywatny (secrets.token\_bytes(32)), public\_key, potem x25519 z własnym kluczem prywatnym i cudzym publicznym. Najpierw zapytać salę o przewidywanie rozmiaru sekretu i zapisać je na tablicy. Uruchomić dwa razy: wartości są za każdym razem inne, equal: True zawsze. Co jest w środku public\_key, wyjaśniamy w kolejnych sekcjach; szczegóły X25519 na slajdzie X25519.}
+  \say{Około 5 minut. Polecenia są w README na GitHubie. To samo co zadanie 2 z wykładu 4 (prawdziwa wymiana z 2048-bitowym p), tylko z gotowym modułem na krzywej: losowy klucz prywatny (secrets.token\_bytes(32)), public\_key, potem x25519 z własnym kluczem prywatnym i cudzym publicznym. Najpierw zapytać salę o przewidywanie (ten sam sekret przy drugim uruchomieniu?) i zapisać je na tablicy. Uruchomić dwa razy: wartości są za każdym razem inne, bo klucze prywatne są losowe, ale equal: True zawsze. Rozmiar sekretu (32 bajty) porównujemy z wykładem 4 na następnym slajdzie. Co jest w środku public\_key, wyjaśniamy w kolejnych sekcjach; szczegóły X25519 na slajdzie X25519.}
 \end{frame}
 
 \samedot
@@ -543,7 +543,7 @@
   \vfill
   \begin{center}\footnotesize\textcolor{gray}{And X25519 is even stronger: Diffie-Hellman needs 3072 bits (384 bytes) for the same security.}\end{center}
   \keymsg{The same exchange as in lecture 4, 8 times shorter. Next: how points are added, and what $a\,G$ does.}
-  \say{Wynik sprawdzony (folder solution), uruchomiony dwa razy: inne bajty przy każdym uruchomieniu, ale equal: True i 32 bajty zawsze. Klucz publiczny X25519 też ma 32 bajty, a w wykładzie 4 wartość publiczna i sekret miały do 256 bajtów (p ma 2048 bitów). Do tego X25519 jest bezpieczniejsze: 128 bitów bezpieczeństwa wobec 112 dla 2048-bitowego p (NIST SP 800-57). Porównać z przewidywaniami z tablicy. Teraz otwieramy czarną skrzynkę.}
+  \say{Wynik sprawdzony (folder solution), uruchomiony dwa razy: inne bajty przy każdym uruchomieniu, ale equal: True i 32 bajty zawsze. Klucz publiczny X25519 też ma 32 bajty, a w wykładzie 4 wartość publiczna i sekret miały do 256 bajtów (p ma 2048 bitów). Do tego X25519 jest bezpieczniejsze: 128 bitów bezpieczeństwa wobec 112 dla 2048-bitowego p (NIST SP 800-57). Porównać z przewidywaniami z tablicy: sekret jest za każdym razem inny, bo klucze prywatne są nowe, a obie strony zawsze mają ten sam. Teraz otwieramy czarną skrzynkę.}
 \end{frame}
 
 % ======================================================================
@@ -561,9 +561,11 @@
       Here: $a = 2$, $b = 2$:
       \begin{center}\large $y^2 = x^3 + 2x + 2$\end{center}
       over the real numbers.\\[10pt]
-      \textcolor{gray}{One line, the same above and below the $x$-axis.}
+      \textcolor{gray}{One line, the same above and below the $x$-axis.}\\[10pt]
+      % CHECKED: python3: 4 * 2**3 + 27 * 2**2 = 140 (and 140 % 17 = 4, not 0 modulo 17 either)
+      \footnotesize\textcolor{gray}{Rule: $4a^3 + 27b^2 \neq 0$ (here $32 + 108 = 140$), so the line has no sharp point.}
   \end{columns}
-  \say{Nazwa nie ma nic wspólnego z elipsą; pochodzi z historycznych obliczeń długości łuku elipsy. Krzywa jest symetryczna względem osi x, bo y i -y dają ten sam kwadrat.}
+  \say{Nazwa nie ma nic wspólnego z elipsą; pochodzi z historycznych obliczeń długości łuku elipsy. Krzywa jest symetryczna względem osi x, bo y i -y dają ten sam kwadrat. Szara linia: warunek z definicji (Paar i Pelzl). Gdy $4a^3 + 27b^2 = 0$, krzywa ma ostrze albo przecina samą siebie; w takim punkcie nie ma jednej stycznej, a na takiej krzywej logarytm dyskretny da się sprowadzić do łatwego problemu. Dla naszej krzywej to 140, modulo 17 też nie zero (4), więc wszystko w porządku. Nie trzeba tego zapamiętywać: krzywe używane w praktyce spełniają warunek z definicji.}
 \end{frame}
 
 % CHECKED: python3, the real curve y^2 = x^3 + 2x + 2:
@@ -770,7 +772,7 @@
   \vfill
   \begin{center}\small Exactly, both are the point $30\,P$. Rounded, they differ from the 12th digit:
     keys made from them would be completely different.\\[3pt]
-    \footnotesize\textcolor{gray}{Exact fractions do not help: their digits grow with every addition, and on the smooth line Eve could find $k$.\\
+    \footnotesize\textcolor{gray}{Exact fractions do not help: their digits grow with every addition, and on the smooth line Eve could recover the secret.\\
     Modulo $p$ the numbers keep their size and the multiples jump around (Task 3).}\end{center}
   \vfill
   \bigdef{Exact numbers: we compute \textbf{modulo a prime $p$}, as in Diffie-Hellman.}
@@ -822,8 +824,31 @@
   \say{Każdy punkt można tak sprawdzić. (5, 2) by nie pasował: lewa strona to 4. W symulatorze można kliknąć dowolne pole siatki i zobaczyć to samo sprawdzenie.}
 \end{frame}
 
+\begin{frame}{Recall: the modular inverse}
+  % CHECKED: python3: 3 * 6 = 18 = 1 mod 17, pow(3, -1, 17) = 6; 3 * 12 = 36 = 2 * 17 + 2
+  \vfill
+  \begin{center}
+    the inverse of $v \bmod p$:\quad the number $v^{-1}$ with\quad $v \cdot v^{-1} = 1 \bmod p$
+  \end{center}
+  \vfill
+  \begin{center}
+    \Large the inverse of $3 \bmod 17$ is $\mathbf{6}$,\quad because\quad
+    $3 \times 6 = 18 = 17 + \colorbox{AccentOrange!25}{$\mathbf{1}$}$
+  \end{center}
+  \vfill
+  \begin{center}
+    \normalsize It does the job of a division: $2 / 3$ becomes $2 \cdot 3^{-1} = 2 \cdot 6 = 12 \bmod 17$.\\[3pt]
+    \footnotesize\textcolor{gray}{Check: $3 \cdot 12 = 36 = 2 \bmod 17$. In Python: \texttt{pow(3, -1, 17)} gives 6.}
+  \end{center}
+  \vfill
+  \bigdef{$p$ prime: every $v \neq 0$ has an inverse modulo $p$.}
+  \curious{math/extended-euclid/}
+  \say{Odwrotność znamy z wykładów 3 i 4 (tam d = pow(e, -1, phi) w RSA i odwrotność przy odszyfrowaniu ElGamala). Tu będzie potrzebna w każdym dodawaniu punktów, bo wzory dzielą przez $x_2 - x_1$ albo $2y_1$. Dlaczego p musi być pierwsze: wtedy każda liczba od 1 do p - 1 ma odwrotność; przy złożonym p, na przykład 15, liczba 3 jej nie ma. Link prowadzi do rozszerzonego algorytmu Euklidesa z wykładu 3, który tę odwrotność liczy.}
+\end{frame}
+
+\samedot
 \begin{frame}{Only the arithmetic changes}
-  % CHECKED: 3 * 6 = 18 = 1 mod 17, so 3^-1 = 6; 2 * 6 = 12; 3 * 12 = 36 = 2 * 17 + 2
+  % CHECKED: 3 * 6 = 18 = 1 mod 17, so 3^-1 = 6; 2 * 6 = 12
   \begin{center}\small The geometry gave formulas that only add, subtract, multiply and divide: all four work modulo a prime.\end{center}
   \vspace{-0.3cm}
   \begin{center}
@@ -842,11 +867,8 @@
       \bottomrule
     \end{tabular}
   \end{center}
-  \defbox{The same formulas: ``$/\,v$'' becomes ``$\cdot\, v^{-1}$'', the \textbf{modular inverse}: $v \cdot v^{-1} = 1 \bmod p$.
-    Here $3 \cdot 6 = 18 = 1 \bmod 17$, so $3^{-1} = 6$ (check: $3 \cdot 12 = 36 = 2 \bmod 17$). Every result is taken mod $p$.
-    \textbf{$p$ prime}: every $v \neq 0$ has a $v^{-1}$.}
-  \curious{math/extended-euclid/}
-  \say{To jest sedno przejścia: geometria (prosta, trzeci punkt, odbicie) dała wzory, a wzory działają w każdej arytmetyce, w której można dodawać, mnożyć i dzielić. Zmienia się tylko arytmetyka: zamiast dzielenia mnożymy przez odwrotność modularną i każdy wynik bierzemy mod p. Odwrotność modularna z wykładów 3 i 4: v razy $v^{-1}$ mod p daje 1, w Pythonie pow(v, -1, p). Link prowadzi do rozszerzonego algorytmu Euklidesa z wykładu 3, który tę odwrotność liczy. Modulo p prosta też istnieje, tylko zawija się na siatce; pokazuje to symulator w kroku 5, po zadaniu 2.}
+  \keymsg{The same formulas: ``$/\,v$'' becomes ``$\cdot\, v^{-1}$'', and every result is taken mod $p$.}
+  \say{To jest sedno przejścia: geometria (prosta, trzeci punkt, odbicie) dała wzory, a wzory działają w każdej arytmetyce, w której można dodawać, mnożyć i dzielić. Zmienia się tylko arytmetyka: zamiast dzielenia mnożymy przez odwrotność modularną z poprzedniego slajdu i każdy wynik bierzemy mod p. Modulo p prosta też istnieje, tylko zawija się na siatce; pokazuje to symulator w kroku 5, po zadaniu 2.}
 \end{frame}
 
 \begin{frame}{See it: from real numbers to modulo 17}
@@ -884,8 +906,8 @@
   \end{center}
   \vfill
   \begin{center}\small Plus one extra point: the \textbf{point at infinity} $O$, from $P + (-P) = O$.\end{center}
-  \keymsg{This curve has 19 points: 18 dots and $O$.}
-  \say{Punkt w nieskończoności znamy ze slajdu P + (-P) = O: działa jak zero przy dodawaniu. Modulo 17 też jest potrzebny, bo P + (-P) dalej nie ma innego wyniku.}
+  \keymsg{The points of the curve: the 18 dots and $O$.}
+  \say{Punkt w nieskończoności znamy ze slajdu P + (-P) = O: działa jak zero przy dodawaniu. Modulo 17 też jest potrzebny, bo P + (-P) dalej nie ma innego wyniku. Liczby punktów jeszcze nie podsumowujemy: w zadaniu 3 studenci sprawdzą, ile z nich odwiedzi G; o liczbie punktów krzywej mówimy po zadaniu 4 (slajd How many points?).}
 \end{frame}
 
 % doubling G = (5, 1) on the toy curve, #1 = the step of this slide (1 to 3)
@@ -1003,13 +1025,23 @@
       \small $\mathbf{3G = (10, 6)}$.\\[3pt] Check: $6^2 = 36 = 2 \bmod 17$, \; $1000 + 20 + 2 = 1022 = 2 \bmod 17$.
     \column{0.38\textwidth}
       \centering
-      \modgrid[0.24]{\gmark{5,1}{$G$}{below right}\gmark{6,3}{$2G$}{above right}
-        \gmark[AccentOrange]{10,6}{$3G$}{above right}}
+      % CHECKED: python3: the line y = 2x + 8 mod 17 goes through G = (5, 1), 2G = (6, 3) and (10, 11) (2 * 10 + 8 = 28 = 11),
+      %   and through no other point of the curve; (10, 11) reflected is (10, 6) = 3G
+      \modgrid[0.24]{
+        \begin{scope}
+          \clip (-0.5,-0.5) rectangle (16.5,16.5);
+          \foreach \k in {-1,0,1,2} \draw[AccentOrange!60, thick] (-0.5,{2*(-0.5)+8-17*\k}) -- (16.5,{2*16.5+8-17*\k});
+        \end{scope}
+        \gmark{5,1}{$G$}{below right}\gmark{6,3}{$2G$}{right}
+        \node[circle, draw=AccentOrange, line width=1.2pt, fill=white, minimum size=8pt, inner sep=0pt] at (10,11) {};
+        \node[font=\scriptsize\bfseries, text=AccentOrange, right, fill=white, fill opacity=0.85, text opacity=1, inner sep=1pt, outer sep=3pt] at (10,11) {third};
+        \draw[AccentOrange, thick, dashed, -{Stealth}] (10.5,10.4) to[bend left=30] (10.5,6.6);
+        \gmark[AccentOrange]{10,6}{$3G$}{below right}}
   \end{columns}
   \vfill
   \curious{elliptic-curves/\#5}
   \keymsg{Two different points: the slope is $(y_2 - y_1) \cdot (x_2 - x_1)^{-1} \bmod 17$.}
-  \say{W symulatorze (link) przykład G + G liczy krok po kroku podwajanie z poprzednich slajdów; G + 2G (to zadanie) można wybrać ręcznie w menu P i Q, tak jak dowolne dwa punkty. Rysunek obok rachunku: prosta przez G i 2G o nachyleniu 2 modulo 17 zawija się na siatce, trafia w krzywą w trzecim punkcie (10, 11), a jego odbicie to 3G = (10, 6), czyli ten sam obraz co na krzywej rzeczywistej. Wynik sprawdzony programem. 1022 = 60 · 17 + 2. Tu dzielenie było łatwe, bo mianownik to 1; zwykle trzeba policzyć odwrotność modulo 17.}
+  \say{W symulatorze (link) przykład G + G liczy krok po kroku podwajanie z poprzednich slajdów; G + 2G (to zadanie) można wybrać ręcznie w menu P i Q, tak jak dowolne dwa punkty. Rysunek obok rachunku: prosta przez G i 2G, y = 2x + 8 mod 17 (nachylenie 2), zawija się na siatce: gdy wychodzi górą, wraca dołem. Trafia w krzywą w trzecim punkcie (10, 11), a jego odbicie to 3G = (10, 6), czyli ten sam obraz co na krzywej rzeczywistej. Ten sam obraz, krok po kroku i dla dowolnych dwóch punktów, jest w symulatorze w kroku 5. Wynik sprawdzony programem. 1022 = 60 · 17 + 2. Tu dzielenie było łatwe, bo mianownik to 1; zwykle trzeba policzyć odwrotność modulo 17.}
 \end{frame}
 
 \begin{frame}{Task 3: all points from G}
@@ -1017,7 +1049,7 @@
     \column{0.56\textwidth}
       \taskgoal{write the point addition in Python, then add $G$ again and again until you reach $O$.}
       \taskready{\texttt{ec\_toy.py}: the curve, $G$, $O$ (\texttt{None}), and the cases $P + O$ and $P + (-P)$.}
-      \probbox{Predict first}{How many points before $O$?}
+      \probbox{Predict first}{Will $G$ visit all 18 dots before $O$, or come back to $O$ earlier?}
     \column{0.42\textwidth}
       \centering
       \modgrid[0.17]{
@@ -1206,12 +1238,45 @@
   \end{columns}
   \vfill
   \begin{center}\small $G$ must have a huge prime order, or $kG$ takes too few values.\\
-    \footnotesize\textcolor{gray}{Prime: a composite order lets Eve split the problem into small pieces.}\end{center}
+    \footnotesize\textcolor{gray}{Prime: a composite order lets an attacker split the problem into small pieces (Task 6 does it).}\end{center}
   \keymsg{The choice of $G$ matters: a large prime order, or the curve is weak.}
   \say{Jak przy złym g w wykładzie 4: jeśli wielokrotności G zapętlą się szybko, napastnik ma mało do sprawdzenia. Rząd pierwszy chroni też przed atakami, które rozbijają problem na mniejsze kawałki.}
 \end{frame}
 
 \samedot
+\begin{frame}{How many points? About $p$}
+  % CHECKED: python3, y^2 = x^3 + 2x + b mod 17 for b = 0 to 16, points with O:
+  %   20 24 19 22 16 18 11 12 21 21 12 11 18 16 22 19 24; 4a^3 + 27b^2 != 0 mod 17 for all of them;
+  %   Hasse: 18 - 2 sqrt(17) = 9.75, 18 + 2 sqrt(17) = 26.25, so 10 to 26
+  \begin{center}\small Hasse's theorem: a curve modulo $p$ has between $p + 1 - 2\sqrt{p}$ and $p + 1 + 2\sqrt{p}$ points.\end{center}
+  \vspace{-0.3cm}
+  \begin{center}
+    \begin{tikzpicture}[x=0.55cm]
+      \fill[aExec!12] (10,-0.25) rectangle (26,1.75);
+      \draw[nLine, thick] (8.5,0) -- (27.5,0);
+      \foreach \v in {9,...,27} \draw[nLine] (\v,-0.08) -- (\v,0.08);
+      \foreach \v in {10,14,18,22,26} \node[font=\tiny, text=gray, anchor=north] at (\v,-0.1) {\v};
+      \node[font=\scriptsize, text=aExec, anchor=north west] at (10.1,1.72) {allowed for $p = 17$: 10 to 26};
+      % the 17 curves y^2 = x^3 + 2x + b, b = 0 to 16: one dot per curve
+      \foreach \n/\h in {20/0, 24/0, 19/0, 22/0, 16/0, 18/0, 11/0, 12/0, 21/0, 21/1, 12/1, 11/1, 18/1, 16/1, 22/1, 19/1, 24/1}
+        \fill[sViolet!60] (\n,{0.35+0.4*\h}) circle (3.5pt);
+      \draw[AccentOrange, line width=1.4pt] (19,0.35) circle (6pt);
+      \node[font=\scriptsize\bfseries, text=AccentOrange, anchor=west] at (19.5,1.4) {our curve: 19};
+      \draw[AccentOrange, thick] (19.55,1.3) -- (19.2,0.55);
+    \end{tikzpicture}\\
+    \footnotesize\textcolor{gray}{one dot for each curve $y^2 = x^3 + 2x + b \bmod 17$, $b = 0$ to $16$}
+  \end{center}
+  \vspace{-0.1cm}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.48\textwidth}
+      \stepbox{The order of $G$ divides the number of points}{19 is prime, so the order is 19: $G$ visits every point (Task 3).}
+    \column{0.48\textwidth}
+      \stepbox{A 256-bit $p$: about $2^{256}$ points}{Pollard's rho: about $\sqrt{2^{256}} = 2^{128}$ steps.}
+  \end{columns}
+  \keymsg{About $p$ points, so a 256-bit $p$ gives about $2^{256}$ multiples and 128-bit security.}
+  \say{Tego brakowało w odpowiedzi na główne pytanie: dlaczego 256 bitów p daje około $2^{256}$ wielokrotności. Twierdzenie Hassego: liczba punktów (z O) różni się od p + 1 najwyżej o $2\sqrt{p}$. Dla p = 17 to od 10 do 26; rysunek pokazuje wszystkie 17 krzywych z a = 2 i różnymi b, każda w tym przedziale, nasza ma 19. Dla 256-bitowego p odchylenie $2\sqrt{p}$ ma tylko około 129 bitów, więc liczba punktów to prawie dokładnie p. Lewe pole: twierdzenie Lagrange'a (bez dowodu): rząd każdego punktu dzieli liczbę punktów krzywej. 19 jest liczbą pierwszą, więc każdy punkt różny od O ma rząd 19; dlatego w zadaniu 3 G odwiedził wszystkie kropki. Gdy liczba punktów nie jest pierwsza, na przykład 8 razy duża liczba pierwsza w Curve25519, część punktów ma mały rząd; to jest kofaktor z następnego slajdu. Prawe pole: atak rho Pollarda z poprzednich slajdów potrzebuje pierwiastka z liczby wielokrotności.}
+\end{frame}
+
 \begin{frame}{Curves used in practice}
   \vfill
   \begin{center}
@@ -1288,7 +1353,7 @@
         \gmark[sAmber]{13,10}{\textcolor{sAmberText}{shared}}{above}}
   \end{columns}
   \vfill
-  \curious{elliptic-curves/\#1}
+  \curious{elliptic-curves/\#1.1}
   \say{Wracamy do ECDH z sekcji 2, teraz z liczbami: a(bG) i b(aG) to G dodane ab razy, dlatego obie strony dostają ten sam punkt. Sprawdzone w Pythonie. Wspólny punkt to 30G, a 30 = 19 + 11 i 19G = O, czyli 30G = 11G = (13, 10) z listy z zadania 3. Litery a i b w równaniu krzywej to coś innego niż sekrety a i b; tradycja nazw, nie da się jej uniknąć. W symulatorze można zmieniać sekrety a i b na tej samej krzywej i zobaczyć atak Eve na tak małą krzywą.}
 \end{frame}
 
@@ -1380,6 +1445,214 @@
 \end{frame}
 
 % ======================================================================
+\section[Fake points]{Fake points}
+% ======================================================================
+
+\begin{frame}{Recall: check what you receive}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \personnode{alice}{0,0}{sIndigo}{Alice}
+      \personnode{bob}{10,0}{sTeal}{Bob}
+      \node[person=sPink] (mal) at (5,0.2) {\faUserSecret};
+      \node[font=\small\bfseries, text=sPinkText, below=0.08cm of mal] {Mallory changes};
+      \draw[data, sViolet] (alice.east) ++(0.3,0) -- (mal.west);
+      \draw[data, aWrite] (mal.east) -- node[above, font=\small, text=nInk] {a value with a tiny cycle} ($(bob.west)+(-0.3,0)$);
+      \node[actorlight=sAmber, anchor=north, text width=9cm] at (5,-1.5)
+        {\small Lecture 4: a public value such as $p - 1$ has a cycle of length 2, so the shared secret
+         takes only 2 values, and Mallory can try them all.};
+      \node[actorlight=aExec, anchor=north, text width=9cm] at (5,-2.9)
+        {\small The fix: \textbf{check every public value you receive} before you use it.};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \keymsg{On a curve the public values are points. Mallory has one more way to cheat with them.}
+  \say{Przypomnienie z wykładu 4 (walidacja wartości publicznych w Diffiem-Hellmanie): Mallory, który zmienia wiadomości, podsuwa wartość z bardzo krótkim cyklem, na przykład p - 1, i wspólny sekret ma wtedy tylko kilka możliwych wartości. Poprawka: sprawdzić każdą otrzymaną wartość publiczną. Na krzywej wartości publiczne to punkty, a sprawdzanie punktów ma jeszcze jeden powód, który zaraz zobaczymy. Mallory zmienia, Eve tylko słucha.}
+\end{frame}
+
+\samedot
+\begin{frame}{The formulas never use b}
+  % CHECKED: python3: the 23 points of y^2 = x^3 + 2x + 1 mod 17 (24 with O) are the rings; (7, 1): 343 + 14 + 1 = 358 = 21 * 17 + 1
+  \begin{columns}[c,onlytextwidth]
+    \column{0.55\textwidth}
+      \begin{center}
+        \begin{tikzpicture}
+          \node[hw, align=left, inner sep=7pt, font=\small] {
+            $s = (y_2 - y_1) \cdot (x_2 - x_1)^{-1}$\\[2pt]
+            $s = (3x_1^2 + \mhl{a}) \cdot (2y_1)^{-1}$\\[2pt]
+            $x_3 = s^2 - x_1 - x_2$, \quad $y_3 = s\,(x_1 - x_3) - y_1$};
+        \end{tikzpicture}
+      \end{center}
+      \small The curve is $y^2 = x^3 + a\,x + \mathbf{b}$, but $b$ appears nowhere: the same \texttt{add()} adds the points of
+      \textbf{any} curve $y^2 = x^3 + 2x + b'$.\\[6pt]
+      Mallory picks $b' = 1$ and the point \textcolor{sPinkText}{$(7, 1)$}: $1 = 343 + 14 + 1 \bmod 17$.\\[3pt]
+      \footnotesize\textcolor{gray}{For Bob's curve the right side is $343 + 14 + 2 = 2 \bmod 17$, not 1.}
+    \column{0.43\textwidth}
+      \centering
+      \modgrid[0.24]{
+        \foreach \x/\y in {0/1,0/16,1/2,1/15,2/8,2/9,3/0,5/0,6/5,6/12,7/1,7/16,8/6,8/11,9/0,10/1,10/16,12/6,12/11,14/6,14/11,16/7,16/10}
+          \draw[sPink, thick] (\x,\y) circle (4.5pt);
+        \node[circle, draw=sPink, fill=sPink, minimum size=8pt, inner sep=0pt] at (7,1) {};
+        \node[font=\scriptsize\bfseries, text=sPinkText, right, fill=white, fill opacity=0.85, text opacity=1, inner sep=1pt, outer sep=3pt] at (7,1) {(7, 1)};}\\
+      \footnotesize \tikz\fill[nInk] (0,0) circle (2.6pt); Bob's curve, $b = 2$ \quad \tikz\draw[sPink, thick] (0,0) circle (3pt); $b' = 1$
+  \end{columns}
+  \vfill
+  \keymsg{A point that is not on Bob's curve is still added without any error.}
+  \say{Popatrzeć na wzory z sekcji Adding points: jest w nich a (w nachyleniu stycznej), ale nie ma b. b wyznacza tylko, które punkty leżą na krzywej. Dlatego funkcja add() bez protestu dodaje punkty zupełnie innej krzywej z tym samym a i innym b. Różowe kółka: krzywa z b' = 1, ma 24 punkty razem z O (sprawdzone w Pythonie). Punkt (7, 1) leży na niej, a nie leży na krzywej Boba. Bob, który nie sprawdza, liczy więc na krzywej, którą wybrał Mallory.}
+\end{frame}
+
+\samedot
+\begin{frame}{Mallory's fake point}
+  % CHECKED: python3 with the add() of the tasks: (7, 1) on y^2 = x^3 + 2x + 1: 2 (7, 1) = (7, 16), 3 (7, 1) = O;
+  %   d = 7: 7 (7, 1) = (7, 1), so d mod 3 = 1
+  \begin{columns}[c,onlytextwidth]
+    \column{0.52\textwidth}
+      \small \textcolor{sTealText}{\textbf{Bob}} keeps one private key, \priv{$d = 7$} (the ElGamal example), and answers anyone
+      who sends a point $P$, with a message encrypted with a key made from $S = d\,P$.\\[8pt]
+      \textcolor{sPinkText}{\textbf{Mallory}} sends $P = (7, 1)$. It has only \textbf{3 multiples}: $P$, $2P = (7, 16)$, $3P = O$.\\[8pt]
+      So $S$ is one of 3 points. Mallory makes the 3 keys and sees which one opens Bob's answer:
+      $S = P$, so\\[4pt]
+      \centerline{\large $d \bmod 3 = 1$}
+    \column{0.46\textwidth}
+      \centering
+      \begin{tikzpicture}[>=Stealth]
+        \foreach \i/\lbl/\ang in {0/{$O$}/90, 1/{$P = (7, 1)$}/330, 2/{$2P = (7, 16)$}/210} {
+          \node[circle, draw=sPink, line width=1.4pt, fill=sPink!12, minimum size=0.9cm, font=\scriptsize\bfseries, text=nInk]
+            (c\i) at (\ang:1.7) {\ifnum\i=0 $O$\else\i P\fi};
+        }
+        \node[font=\scriptsize, text=nInk, anchor=north] at (c1.south) {$(7, 1)$};
+        \node[font=\scriptsize, text=nInk, anchor=north] at (c2.south) {$(7, 16)$};
+        \draw[flow, sPink] (c0) to[bend left=25] node[right, font=\scriptsize, text=nInk] {$+P$} (c1);
+        \draw[flow, sPink] (c1) to[bend left=25] node[below, font=\scriptsize, text=nInk] {$+P$} (c2);
+        \draw[flow, sPink] (c2) to[bend left=25] node[left, font=\scriptsize, text=nInk] {$+P$} (c0);
+        \draw[annot] (c1) circle (0.62);
+        \node[font=\scriptsize\bfseries, text=AccentOrange, anchor=west] at ([xshift=0.25cm]c1.east) {$7P$};
+        \node[font=\scriptsize, text=gray, align=center] at (0,0) {7 steps\\round the\\cycle};
+      \end{tikzpicture}
+  \end{columns}
+  \vfill
+  \keymsg{A fake point with a small cycle turns Bob's answer into a piece of his private key.}
+  \say{Bob ma stały klucz prywatny (tak jak w ElGamalu: d = 7, Q = 7G), a ktokolwiek przyśle mu punkt, dostaje odpowiedź zaszyfrowaną kluczem z S = dP. Tak działa na przykład serwer ze stałym kluczem ECDH. Punkt (7, 1) z poprzedniego slajdu ma tylko 3 wielokrotności: P, 2P i O. Bob liczy 7P, czyli obchodzi ten cykl 7 razy po kroku: wynik to P, bo 7 = 2 · 3 + 1. Mallory nie zna d, ale może zrobić 3 klucze z O, P i 2P i sprawdzić, który otwiera odpowiedź Boba. Pasuje P, więc d mod 3 = 1. To jest ten sam pomysł co mała podgrupa w wykładzie 4, tylko na krzywej wybranej przez Mallory'ego.}
+\end{frame}
+
+\samedot
+\begin{frame}{Three fake points give the whole key}
+  % CHECKED: python3 with the add() of the tasks, d = 7: (7, 1) on b' = 1 has order 3, 7 (7, 1) = (7, 1): d mod 3 = 1;
+  %   (2, 8) on b' = 1 has order 4, 7 (2, 8) = (2, 9) = 3 (2, 8): d mod 4 = 3;
+  %   (3, 6) on b' = 3 has order 11, 7 (3, 6) = (14, 15) = 7 (3, 6): d mod 11 = 7; the only d in 0..131 with all three: 7
+  \begin{center}
+    \renewcommand{\arraystretch}{1.15}
+    \begin{tabular}{@{}l@{\qquad}c@{\qquad}c@{\qquad}l@{}}
+      \toprule
+      \textbf{fake point} & \textbf{curve} & \textbf{multiples} & \textbf{Bob's answer gives} \\
+      \midrule
+      \textcolor{sPinkText}{$(7, 1)$} & $b' = 1$ & 3 & $d \bmod 3 = 1$ \\
+      \textcolor{sPinkText}{$(2, 8)$} & $b' = 1$ & 4 & $d \bmod 4 = 3$ \\
+      \textcolor{sPinkText}{$(3, 6)$} & $b' = 3$ & 11 & $d \bmod 11 = 7$ \\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+  \vspace{-0.1cm}
+  \begin{center}
+    \begin{tikzpicture}[x=0.5cm, y=0.38cm]
+      \foreach \v in {0,...,131} {
+        \pgfmathtruncatemacro{\cx}{mod(\v,22)}
+        \pgfmathtruncatemacro{\cy}{-int(\v/22)}
+        \ifnum\v=7
+          \fill[AccentOrange] (\cx,\cy) rectangle +(0.85,0.85);
+          \node[font=\tiny\bfseries, text=white] at (\cx+0.42,\cy+0.42) {7};
+        \else
+          \fill[nFill] (\cx,\cy) rectangle +(0.85,0.85);
+          \node[font=\tiny, text=nLine] at (\cx+0.42,\cy+0.42) {\v};
+        \fi
+      }
+      \node[font=\scriptsize, text=gray, anchor=north west] at (0,-5.05) {the numbers 0 to 131 ($3 \cdot 4 \cdot 11 = 132$): only one fits all three answers};
+    \end{tikzpicture}
+  \end{center}
+  \keymsg{Small pieces, put together, give $d$: here $d = 7$, after 3 + 4 + 11 tries.}
+  \say{Trzy fałszywe punkty o rzędach 3, 4 i 11 dają trzy reszty z dzielenia d. Spośród liczb od 0 do 131 tylko 7 ma wszystkie trzy reszty (to chińskie twierdzenie o resztach; w zadaniu wystarczy sprawdzić liczby po kolei). Mallory potrzebowała 3 + 4 + 11 = 18 prób zamiast szukania d wśród wszystkich możliwości. Na krzywej używanej w praktyce d ma 256 bitów, więc Mallory potrzebuje więcej fałszywych punktów, aż iloczyn rzędów przekroczy $2^{256}$; każdy kawałek dalej kosztuje tylko kilka tysięcy prób. Dlatego krzywa z rzędem złożonym (slajd The order of G) jest słaba: to ten sam mechanizm. Tu pierwszy raz wszystko liczymy na krzywych wybranych przez Mallory'ego.}
+\end{frame}
+
+\samedot
+\begin{frame}{The fix: check the point}
+  % CHECKED: RFC 8446, section 4.2.8.2: "For the curves secp256r1, secp384r1, and secp521r1, peers MUST validate each
+  %   other's public value Q by ensuring that the point is a valid point on the elliptic curve."
+  % CHECKED: kb.cert.org/vuls/id/304725 (CERT VU#304725, 23 July 2018): CVE-2018-5383, Bluetooth implementations
+  %   "may not sufficiently validate elliptic curve parameters"; found by Lior Neumann and Eli Biham (Technion)
+  % CHECKED 2026-11-25 (search summary of the paper's introduction, not the full text): Jager, Schwenk, Somorovsky, "Practical
+  %   Invalid Curve Attacks on TLS-ECDH", ESORICS 2015, pp. 407-425: of 8 TLS-ECDH libraries, Bouncy Castle and Oracle's SunEC
+  %   (the JCE provider) fully broken
+  \begin{columns}[c,onlytextwidth]
+    \column{0.5\textwidth}
+      \stepbox{Bob checks every point he receives}{
+        \faCheck\ $x$ and $y$ are numbers from 0 to $p - 1$\\
+        \faCheck\ $y^2 = x^3 + a\,x + \mathbf{b} \bmod p$, \textbf{with $b$}\\
+        \faCheck\ the point is not $O$\\[2pt]
+        otherwise he refuses it and stops.}
+      \vspace{0.1cm}
+      {\footnotesize\textcolor{gray}{TLS 1.3 requires this check for P-256 (RFC 8446).}}
+    \column{0.47\textwidth}
+      \probbox{Skipped in real code}{
+        \textbf{2015}: two Java libraries for TLS: a server's private key recovered with fake points.\\[3pt]
+        \textbf{2018}: Bluetooth pairing (CVE-2018-5383): a device on the radio could learn the pairing key.}
+  \end{columns}
+  \vfill
+  \keymsg{One line of code: check that a received point is on the curve, or refuse it.}
+  \say{Sprawdzenie kosztuje kilka mnożeń, a zamyka cały atak. Uwaga na b: wzory na dodawanie go nie potrzebują, ale sprawdzenie musi go użyć, inaczej niczego nie sprawdza. W TLS 1.3 (RFC 8446, punkt 4.2.8.2; w 2026 zastąpiony przez RFC 9846) dla P-256 to sprawdzenie jest obowiązkowe. Przypadki: w 2015 roku Jager, Schwenk i Somorovsky odzyskali tak klucze prywatne serwerów TLS korzystających z dwóch bibliotek Javy (Bouncy Castle i Oracle JCE). W 2018 roku Biham i Neumann pokazali to samo w parowaniu Bluetooth: urządzenia sprawdzały tylko x punktu, nie y, a napastnik w zasięgu radia mógł poznać klucz (CVE-2018-5383). W X25519 tego sprawdzenia nie ma z innego powodu; zobaczymy go w następnej sekcji.}
+\end{frame}
+
+\begin{frame}{See it: fake points}
+  \begin{center}\small Mallory's fake points go round their small cycles, and the candidates for Bob's key disappear.\end{center}
+  \vfill
+  \opensim{elliptic-curves/\#6}
+  \vfill
+  \begin{enumerate}\small
+    \item Pick a fake point: it lies on another curve (another $b'$) and goes round a small cycle.
+    \item Send it to Bob: his answer marks one place on the cycle, and the candidates for $d$ that do not fit go grey.
+    \item Turn on ``Bob checks the point'': every fake point is refused, and Mallory learns nothing.
+  \end{enumerate}
+  \vfill
+  \keymsg{Each fake point removes most of the candidates; the check removes the attack.}
+  \say{Pokazać na żywo, około 3 minut. Liczby są te same co na slajdach (d = 7, punkty (7, 1), (2, 8), (3, 6)); zadanie 6 ma inne punkty i inny klucz Boba, więc symulator nie zdradza wyniku. Kolejność dowolna: każdy punkt wyszarza liczby, które nie pasują, a po trzech zostaje jedna. Przełącznik sprawdzania pokazuje, że Bob z jedną linijką kodu odrzuca każdy fałszywy punkt.}
+\end{frame}
+
+\begin{frame}{Task 6: Mallory's fake points}
+  \vfill
+  \taskgoal{as Mallory, recover Bob's private key with three fake points; then, as Bob's programmer, stop the attack.}
+  \taskready{\texttt{bob\_server.py}: Bob, who answers any point; \texttt{fake\_points.py}: \texttt{add}, \texttt{mul} and Mallory's three points.}
+  \vfill
+  \probbox{Predict first}{How many multiples will a fake point have, compared with the 19 of $G$?}
+  \vfill
+  \opentask{Task6}{about 10 minutes}
+  \vfill
+  \say{Około 10 minut. Polecenia są w README na GitHubie. Klucz Boba jest inny niż na slajdach i schowany w bob\_server.py; punkty Mallory'ego też są inne. TODO 1: rząd punktu (pętla z zadania 3). TODO 2: kawałek klucza, próbowanie j od 0 do n - 1. TODO 3: złożenie kawałków, sprawdzanie liczb po kolei. TODO 4: funkcja on\_curve po stronie Boba; po niej atak przestaje działać, a zwykłe punkty dalej przechodzą. Najpierw zapytać salę o przewidywanie i zapisać je na tablicy.}
+\end{frame}
+
+\samedot
+\begin{frame}{Task 6: what we saw}
+  % CHECKED: python3 Task6/solution/fake_points.py (2026-11-19), and the same file with on_curve not done:
+  %   (3, 2): order 3, d mod 3 = 2; (0, 8): order 4, d mod 4 = 1; (2, 3): order 11, d mod 11 = 6; d = 17, correct: True;
+  %   with on_curve: all three refused, "Mallory learned nothing about d", G still answered: True
+  \begin{columns}[c,onlytextwidth]
+    \column{0.5\textwidth}
+      \stepbox{Without the check}{\ttfamily\footnotesize
+        (3, 2): order 3, d mod 3 = 2\\
+        (0, 8): order 4, d mod 4 = 1\\
+        (2, 3): order 11, d mod 11 = 6\\
+        \normalfont\small Bob's private key: \priv{$d = 17$} \ok}
+    \column{0.46\textwidth}
+      \stepbox{With \texttt{on\_curve()} at Bob's door}{\footnotesize
+        all three points refused \ok\\
+        Mallory learns nothing about $d$\\
+        a point of the curve still gets an answer \ok}
+  \end{columns}
+  \vfill
+  \begin{center}\small 3 + 4 + 11 = 18 tries gave $d$ modulo 132; Bob's $d$ is below 19, so it is unique.\end{center}
+  \keymsg{A point from outside is checked before it is used: the formulas will not do it for you.}
+  \say{Rozwiązanie sprawdzone (folder solution). Kolejne fałszywe punkty mają 3, 4 i 11 wielokrotności, dużo mniej niż 19 wielokrotności G; porównać z przewidywaniami. Reszty 2, 1 i 6 daje tylko d = 17 wśród liczb od 1 do 132. Po dopisaniu on\_curve Bob odrzuca wszystkie trzy, a G dalej przechodzi.}
+\end{frame}
+
+% ======================================================================
 \section[Keys in practice]{Keys in practice: X25519}
 % ======================================================================
 
@@ -1399,7 +1672,7 @@
   \end{columns}
   \vfill
   \keymsg{The shared point needs one more step before it is a key.}
-  \say{Najpierw pytanie z góry slajdu: dlaczego wracamy do ECDH? Bo ElGamal na krzywej szyfruje tylko punkt (wiadomość trzeba najpierw zamienić na punkt) i w praktyce się go nie używa; używa się ECDH, funkcji wyprowadzania klucza (KDF, następny slajd) i szyfru symetrycznego. Wspólny punkt abG. Dwa powody, dla których nie bierzemy jego współrzędnej wprost. (1) Współrzędna x ma strukturę: jest mniejsza od p i nie każda liczba jest x jakiegoś punktu, więc jej bajty nie są równomiernie losowe. (2) Gdyby Alice i Bob szyfrowali tym samym kluczem i oboje zaczęli od nonce 0, keystream by się powtórzył (wykład 2).}
+  \say{Najpierw pytanie z góry slajdu: dlaczego wracamy do ECDH? Bo ElGamal na krzywej szyfruje tylko punkt (wiadomość trzeba najpierw zamienić na punkt) i w praktyce się go nie używa; używa się ECDH, funkcji wyprowadzania klucza (KDF, następny slajd) i szyfru symetrycznego. Wspólny punkt abG. Dwa powody, dla których nie bierzemy jego współrzędnej wprost. (1) Współrzędna x ma strukturę: jest mniejsza od p i nie każda liczba jest x jakiegoś punktu, więc jej bajty nie są równomiernie losowe. (2) Gdyby Alice i Bob szyfrowali tym samym kluczem i oboje zaczęli od nonce 0, keystream by się powtórzył (wykład 2). Gdyby ktoś pytał: połączenie ECDH + KDF + szyfr symetryczny, gdy Alice robi jednorazową parę kluczy i wysyła wiadomość Bobowi na jego klucz publiczny, ma nazwę ECIES, a jego nowoczesny standard to HPKE (RFC 9180); to praktyczny następca ElGamala na krzywej.}
 \end{frame}
 
 \samedot
@@ -1427,7 +1700,7 @@
   \vfill
   \begin{center}\small The proper version of the hash in ``From a number to a key'' (lecture 4).\\
     The common choice is \textbf{HKDF} (RFC 5869), built on a hash function.\end{center}
-  \say{ChaCha20 i AES-256 biorą 32-bajtowy klucz (AES-128 bierze 16 bajtów). W wykładzie 4 robiliśmy klucz z sekretu DH jednym skrótem SHA-256; KDF to porządna wersja tego samego: najpierw wyciąga z sekretu równomiernie losowe bajty, potem z jednego sekretu robi tyle kluczy, ile trzeba, każdy z inną etykietą (info). Ta sama etykieta daje zawsze ten sam klucz, więc Alice i Bob dostają te same dwa klucze, nie wymieniając ich. Funkcja skrótu z poprzednich wykładów: odcisk dowolnych danych. RFC to oficjalny dokument standardu internetowego. W zadaniu 6 zrobimy dokładnie te dwa klucze, po obu stronach.}
+  \say{ChaCha20 i AES-256 biorą 32-bajtowy klucz (AES-128 bierze 16 bajtów). W wykładzie 4 robiliśmy klucz z sekretu DH jednym skrótem SHA-256; KDF to porządna wersja tego samego: najpierw wyciąga z sekretu równomiernie losowe bajty, potem z jednego sekretu robi tyle kluczy, ile trzeba, każdy z inną etykietą (info). Ta sama etykieta daje zawsze ten sam klucz, więc Alice i Bob dostają te same dwa klucze, nie wymieniając ich. Funkcja skrótu z poprzednich wykładów: odcisk dowolnych danych. RFC to oficjalny dokument standardu internetowego. W zadaniu 7 zrobimy dokładnie te dwa klucze, po obu stronach.}
 \end{frame}
 
 % a cube of bytes: \bytecube{x,y}{fill colour}{label}{caption}
@@ -1441,6 +1714,46 @@
     \node[font=\scriptsize, text=gray, anchor=north] at (1.05,-0.55) {#4};
   \end{scope}}
 
+\begin{frame}{A public key in bytes}
+  % CHECKED: RFC 8446, section 4.2.8.2: UncompressedPointRepresentation = legacy_form 4, X, Y; P-256: 32-byte coordinates;
+  %   SEC 1, section 2.3.3: the compressed form 02 or 03 (y even or odd) and x; G of P-256: FIPS 186-4, D.1.2.3
+  %   (x = 6b17d1f2...d898c296, y = 4fe342e2...37bf51f5, y is odd, so compressed G starts with 03); X25519: RFC 7748, section 5
+  \begin{center}\small The point $G$ of P-256, the way it is sent:\end{center}
+  \vspace{-0.1cm}
+  \begin{center}
+    \begin{tikzpicture}[x=0.15cm, y=0.8cm]
+      \foreach \y/\name/\tag/\len/\hasy/\tot in {0/uncompressed/04/32/1/65, -1.25/compressed/03/32/0/33, -2.5/X25519/{}/32/0/32} {
+        \node[font=\small\bfseries, text=nInk, anchor=east] at (-1,\y) {\name};
+        \ifx\tag\empty \def\xs{0}\else
+          \fill[AccentOrange] (0,\y-0.3) rectangle (1.6,\y+0.3);
+          \node[font=\scriptsize\ttfamily\bfseries, text=white] at (0.8,\y) {\tag};
+          \def\xs{1.6}\fi
+        \fill[sViolet!25, draw=sViolet] (\xs,\y-0.3) rectangle (\xs+32,\y+0.3);
+        \node[font=\scriptsize, text=nInk] at (\xs+16,\y) {$x$: 32 bytes};
+        \ifnum\hasy=1
+          \fill[sViolet!45, draw=sViolet] (\xs+32,\y-0.3) rectangle (\xs+64,\y+0.3);
+          \node[font=\scriptsize, text=nInk] at (\xs+48,\y) {$y$: 32 bytes};
+        \fi
+        \node[font=\small\bfseries, text=nInk, anchor=west] at (67,\y) {\tot\ B};
+      }
+    \end{tikzpicture}
+  \end{center}
+  \vspace{-0.05cm}
+  \vspace{-0.2cm}
+  \begin{center}\scriptsize\ttfamily
+    04 6b17d1f2e12c4247\ldots d898c296 \;4fe342e2fe1a7f9b\ldots 37bf51f5 \qquad 03 6b17d1f2e12c4247\ldots d898c296
+  \end{center}
+  \vspace{-0.2cm}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.48\textwidth}
+      \stepbox{04: both coordinates}{The receiver must check $y^2 = x^3 + ax + b$ (section Fake points).}
+    \column{0.48\textwidth}
+      \stepbox{02 or 03: only $x$}{The receiver computes $y$ from the equation; 02 or 03: $y$ even or odd.}
+  \end{columns}
+  \keymsg{A point travels as its coordinates: 65 bytes, 33 bytes compressed, 32 bytes in X25519.}
+  \say{Jak punkt wygląda w bajtach. P-256: bajt 04 i dwie 32-bajtowe współrzędne, razem 65 bajtów; tak go wysyła TLS 1.3 i tak jest zapisany w certyfikatach (wykład 9). Postać skompresowana: tylko x i bajt 02 albo 03, który mówi, czy y jest parzyste, czy nieparzyste; odbiorca liczy y z równania (pierwiastek modulo p), a y i p - y mają różną parzystość, bo p jest nieparzyste. Dla G z P-256 y kończy się na f5, jest nieparzyste, więc postać skompresowana zaczyna się od 03. X25519 wysyła samo x (w RFC 7748 nazywa się u), 32 bajty od najmłodszego bajtu (little endian, jak liczby w pamięci procesorów x86). Bajty x i y są z FIPS 186-4.}
+\end{frame}
+
 \begin{frame}{X25519}
   \begin{center}\small The black box of Task 1, opened: ECDH on Curve25519, as used on the internet (RFC 7748).\\
     X25519 keeps only the $x$ coordinate of $a\,b\,G$ ($P$ and $-P$ share it): 32 bytes; the public key too.\end{center}
@@ -1453,28 +1766,86 @@
     \end{tikzpicture}
   \end{center}
   \vfill
-  \plainbox{Remember the special cases in \texttt{add()}: $O$, $Q = -P$, $P = Q$? X25519 uses \textbf{one formula with no special cases},
-    the same steps for every key, and \textbf{any 32 bytes} are a valid public key.}
+  \plainbox{Remember the special cases in \texttt{add()}: $O$, $Q = -P$, $P = Q$? X25519 uses \textbf{one formula with no special cases}
+    and the \textbf{same steps for every key} (next slide). \textbf{Any 32 bytes} can be used as a public key, with no on-curve check,
+    but the shared secret must not come out as 32 zero bytes (after next).}
   \vfill
-  \say{X25519 liczy tylko współrzędną x (y nie jest potrzebne, bo P i -P mają ten sam x). Brak przypadków szczególnych oznacza mniej miejsc na błąd w kodzie, a te same kroki dla każdego klucza oznaczają, że czas obliczenia nie zdradza klucza. Każde 32 bajty to poprawny klucz publiczny, więc nie trzeba sprawdzać, czy punkt leży na krzywej (pominięcie takiego sprawdzenia psuło implementacje innych krzywych). Dla porównania klucz publiczny RSA 3072 ma 384 bajty.}
-\end{frame}
-
-\begin{frame}{Task 6: from a shared secret to keys}
-  \vfill
-  \taskgoal{turn the X25519 secret into keys with HKDF: one ChaCha20 key, then one key per direction, on both sides.}
-  \taskready{\texttt{x25519\_ready.py}: \texttt{hkdf(secret, info)}, in plain Python.}
-  \taskready{\texttt{derive\_keys.py}: the X25519 exchange of Task 1, done, with the test keys of RFC 7748.}
-  \vfill
-  \opentask{Task6}{about 6 minutes}
-  \vfill
-  \say{Około 6 minut. Polecenia są w README na GitHubie. Wymiana X25519 jest gotowa (to samo co w zadaniu 1, ale ze stałymi kluczami z RFC 7748, punkt 6.1, żeby każdy dostał te same bajty). Zadanie to obrazek ze slajdu Key derivation: TODO 1 jeden klucz dla ChaCha20, TODO 2 ten sam sekret i dwie etykiety, dwa różne klucze, TODO 3 Bob robi to samo ze swoim sekretem i dostaje te same dwa klucze, choć żaden klucz nie szedł przez sieć. hkdf jest napisane na hmac i hashlib z biblioteki standardowej.}
+  \say{X25519 liczy tylko współrzędną x (y nie jest potrzebne, bo P i -P mają ten sam x). Brak przypadków szczególnych oznacza mniej miejsc na błąd w kodzie. Dlaczego nie trzeba sprawdzać, czy punkt leży na krzywej (sekcja Fake points): X25519 dostaje samo x. Każde x jest albo x punktu Curve25519, albo x punktu drugiej krzywej, tak zwanego twistu, i Bernstein wybrał stałe tak, żeby obie krzywe miały duży rząd pierwszy (poza małym kofaktorem). Fałszywy punkt nie ma więc dokąd uciec do małego cyklu, poza kilkoma punktami małego rzędu, o których za dwa slajdy. Dla porównania klucz publiczny RSA 3072 ma 384 bajty.}
 \end{frame}
 
 \samedot
-\begin{frame}{Task 6: what we saw}
-  % CHECKED: python3 Task6/solution/derive_keys.py, 2026-11-18: the secret is the one in RFC 7748, section 6.1;
+\begin{frame}{The same steps for every key}
+  % CHECKED: RFC 7748, section 5: "the same sequence of field operations is performed for all values of the secret key";
+  %   the keys 0b1000 0001 (2 ones) and 0b1111 1111 (8 ones): 7 doublings and 1 or 7 additions, by the slide "Fast: double and add"
+  \begin{center}\small Double and add (section Multiplying): a bit 1 costs a doubling \textbf{and} an addition, a bit 0 only a doubling.\end{center}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[x=0.55cm]
+      \foreach \y/\name/\bits in {0/{$k = 1000\,0001$}/10000001, -1.0/{$k = 1111\,1111$}/11111111} {
+        \node[font=\small, text=nInk, anchor=east] at (-0.4,\y) {\name};
+      }
+      % key 1: bits 1 0 0 0 0 0 0 1 (from the top): the first 1 is only taken, then 7 doublings, one addition at the end
+      \foreach \x in {0,1.2,2.4,3.6,4.8,6.0,7.2} \fill[sViolet!60, rounded corners=1pt] (\x,-0.28) rectangle +(1.1,0.56);
+      \fill[AccentOrange, rounded corners=1pt] (8.4,-0.28) rectangle +(1.1,0.56);
+      \node[font=\scriptsize\bfseries, text=nInk, anchor=west] at (9.7,0) {short};
+      % key 2: every bit 1: 7 doublings and 7 additions
+      \foreach \i in {0,...,6} {
+        \fill[sViolet!60, rounded corners=1pt] ({2.4*\i},-1.28) rectangle +(1.1,0.56);
+        \fill[AccentOrange, rounded corners=1pt] ({2.4*\i+1.2},-1.28) rectangle +(1.1,0.56);
+      }
+      \node[font=\scriptsize\bfseries, text=nInk, anchor=west] at (16.9,-1.0) {long};
+      \node[font=\scriptsize, text=nInk, anchor=west] at (0,-2.0) {\tikz\fill[sViolet!60] (0,0) rectangle (0.3,0.2); doubling
+        \quad \tikz\fill[AccentOrange] (0,0) rectangle (0.3,0.2); addition};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small Eve, who measures the time, learns how many bits of the key are 1 (with care, which ones).\\[3pt]
+    X25519 does \textbf{one doubling and one addition for every bit}, whatever the bit: the time is the same for every key.\end{center}
+  \keymsg{The time of a computation must not depend on the secret: X25519 does the same steps for every key.}
+  \say{To jest atak czasowy, jeden z kanałów bocznych: napastnik nie łamie matematyki, tylko mierzy, ile trwa obliczenie (albo ile prądu pobiera chip karty). Zwykłe double and add z sekcji Multiplying robi dodawanie tylko dla jedynek w zapisie k, więc czas zależy od klucza. X25519 używa drabiny Montgomery'ego (pętla w x25519\_ready.py): dla każdego z 255 bitów jedno podwojenie i jedno dodawanie, a bit decyduje tylko, które dwie wartości zamienić miejscami (swap), bez if, który by trwał różnie długo. Szczegóły drabiny pomijamy. Sam rachunek bez rozgałęzień to nie wszystko (RFC 7748 też to zaznacza), ale usuwa najprostszy wyciek.}
+\end{frame}
+
+\samedot
+\begin{frame}{Small-order points and clamping}
+  % CHECKED: RFC 7748, section 5 (decodeScalar25519): the three lowest bits set to 0, the top bit to 0, the second-highest
+  %   (bit 254) to 1; section 6.1: both "MAY check ... whether K is the all-zero value and abort if so";
+  %   RFC 8446, section 7.4.2: implementations "MUST check whether the computed Diffie-Hellman shared secret is the
+  %   all-zero value and abort if so"; python3 Task7/x25519_ready.py: x25519(random key, 32 zero bytes) = 32 zero bytes
+  \begin{center}\small Recall: Curve25519 has 8 times more points than the multiples of $G$ (the cofactor 8).
+    A few of them have order 1, 2, 4 or 8.\end{center}
+  \vfill
+  \begin{columns}[T,onlytextwidth]
+    \column{0.48\textwidth}
+      \stepbox{Clamping the private key}{\texttt{x25519\_ready.py}, \texttt{\_decode\_scalar}:\\[2pt]
+        \faCheck\ the 3 lowest bits set to 0: the key is a multiple of 8, so a point of order 1, 2, 4 or 8 always goes to $O$\\
+        \faCheck\ bit 254 set to 1: every key has the same length, so the same 255 steps}
+    \column{0.48\textwidth}
+      \stepbox{The shared secret 0}{Mallory sends a point of small order, e.g.\ 32 zero bytes. The result is $O$, written as 32 zero bytes,
+        \textbf{whatever the private key}: Mallory knows the secret too.\\[2pt]
+        \faCheck\ the fix: refuse an all-zero secret (RFC 7748 allows it, TLS 1.3 requires it)}
+  \end{columns}
+  \vfill
+  \keymsg{X25519 checks no point, but every key is clamped, and an all-zero secret must be refused.}
+  \say{Kofaktor ze slajdu Curves used in practice: cała krzywa Curve25519 ma 8 razy więcej punktów niż wielokrotności G, więc istnieje kilka punktów rzędu 1, 2, 4 i 8. Przycinanie (clamping) klucza prywatnego robi z niego wielokrotność 8: punkt małego rzędu razy wielokrotność 8 to zawsze O, więc taki punkt nic nie zdradza o kluczu (w przeciwieństwie do fałszywych punktów z sekcji Fake points). Ustawiony bit 254 daje każdemu kluczowi tę samą długość, czyli tę samą liczbę kroków drabiny. Ale zostaje inny problem: wynik O. X25519 zapisuje go jako 32 bajty zer. Mallory, który podmieni klucz publiczny na 32 bajty zer (albo inny punkt małego rzędu), zna wtedy wspólny sekret, choć nie zna żadnego klucza prywatnego. RFC 7748 (punkt 6.1) pozwala to sprawdzić (MAY), a TLS 1.3 (RFC 8446, punkt 7.4.2) wymaga (MUST): sekret z samych zer, koniec połączenia. Zrobimy to w ostatnim kroku zadania 7.}
+\end{frame}
+
+\begin{frame}{Task 7: from a shared secret to keys}
+  \vfill
+  \taskgoal{turn the X25519 secret into keys with HKDF: one ChaCha20 key, then one key per direction, on both sides; then refuse Mallory's all-zero key.}
+  \taskready{\texttt{x25519\_ready.py}: \texttt{hkdf(secret, info)}, in plain Python.}
+  \taskready{\texttt{derive\_keys.py}: the X25519 exchange of Task 1, done, with the test keys of RFC 7748.}
+  \vfill
+  \opentask{Task7}{about 8 minutes}
+  \vfill
+  \say{Około 8 minut. Polecenia są w README na GitHubie. Wymiana X25519 jest gotowa (to samo co w zadaniu 1, ale ze stałymi kluczami z RFC 7748, punkt 6.1, żeby każdy dostał te same bajty). Zadanie to obrazek ze slajdu Key derivation: TODO 1 jeden klucz dla ChaCha20, TODO 2 ten sam sekret i dwie etykiety, dwa różne klucze, TODO 3 Bob robi to samo ze swoim sekretem i dostaje te same dwa klucze, choć żaden klucz nie szedł przez sieć. TODO 4: Mallory podsuwa Alice 32 bajty zer jako klucz publiczny Boba; sekret wychodzi z samych zer, a student pisze is\_all\_zero (pętla po bajtach), czyli sprawdzenie z TLS 1.3. hkdf jest napisane na hmac i hashlib z biblioteki standardowej.}
+\end{frame}
+
+\samedot
+\begin{frame}{Task 7: what we saw}
+  % CHECKED: python3 Task7/solution/derive_keys.py, 2026-11-18: the secret is the one in RFC 7748, section 6.1;
   %   key Alice to Bob ebc98d3d...6fb36a67, key Bob to Alice a187bf50...9804edcf, different: True;
-  %   Bob's keys from bob_secret: the same on both sides: True (the keys also recomputed with hmac + hashlib directly, 2026-11-17)
+  %   Bob's keys from bob_secret: the same on both sides: True; TODO 4 (2026-11-19): secret with Mallory's key 00...00,
+  %   all zero, refused: True | real secret refused: False; (the keys also recomputed with hmac + hashlib directly, 2026-11-17)
   \vfill
   \begin{center}
     \begin{tikzpicture}[>=Stealth]
@@ -1497,9 +1868,10 @@
     \end{tikzpicture}
   \end{center}
   \vfill
-  \begin{center}\small Bob, from his own secret: the same two keys. \;\texttt{the same on both sides: True} \textcolor{aExec}{\faCheck}\end{center}
+  \begin{center}\small Bob, from his own secret: the same two keys. \;\texttt{the same on both sides: True} \textcolor{aExec}{\faCheck}\\[2pt]
+    Mallory's 32 zero bytes give the secret \texttt{00\ldots 00}; \texttt{is\_all\_zero} refuses it, and only it. \textcolor{aExec}{\faCheck}\end{center}
   \keymsg{A different label gives a completely different key; the same label gives both sides the same key.}
-  \say{Rozwiązanie sprawdzone. Sekret zgadza się z RFC 7748, punkt 6.1. Klucz dla ChaCha20 z hkdf: 8232af18b2d158a867dead920cb27b5f70409d17ef4712ba664eb4d2ff392f78. Klucze kierunków: Alice to Bob ebc98d3d10432aec017fa08fc2100ee93ef249f8ca6635e3bd6569aa6fb36a67, Bob to Alice a187bf5005903e5b1b59498cf8cc53c6ec7f90618b31773f84ca91bd9804edcf, different: True. Bob ze swojego sekretu dostaje te same dwa klucze: the same on both sides: True. Etykiety (info) z lewej, klucze z prawej. Funkcja hkdf daje wynik zgodny z wektorami z RFC 5869.}
+  \say{Rozwiązanie sprawdzone. Sekret zgadza się z RFC 7748, punkt 6.1. Klucz dla ChaCha20 z hkdf: 8232af18b2d158a867dead920cb27b5f70409d17ef4712ba664eb4d2ff392f78. Klucze kierunków: Alice to Bob ebc98d3d10432aec017fa08fc2100ee93ef249f8ca6635e3bd6569aa6fb36a67, Bob to Alice a187bf5005903e5b1b59498cf8cc53c6ec7f90618b31773f84ca91bd9804edcf, different: True. Bob ze swojego sekretu dostaje te same dwa klucze: the same on both sides: True. Etykiety (info) z lewej, klucze z prawej. Funkcja hkdf daje wynik zgodny z wektorami z RFC 5869. TODO 4: z kluczem Mallory'ego sekret to 64 zera w zapisie szesnastkowym, all zero, refused: True; prawdziwy sekret: False.}
 \end{frame}
 
 % ======================================================================
@@ -1530,7 +1902,7 @@
   \vfill
   \bigdef{\textbf{ECC}: elliptic-curve cryptography.}
   \vfill
-  \say{Wymyślone niezależnie przez dwie osoby w tym samym roku. Szerzej używane od lat 2000, gdy wygasły wątpliwości patentowe i pojawiły się standardy.}
+  \say{Wymyślone niezależnie przez dwie osoby: Miller przedstawił pomysł na konferencji CRYPTO 1985, Koblitz zgłosił pracę w 1985 roku, wydrukowano ją w 1987. Standardy pojawiły się około 2000 roku (ANSI X9.62, FIPS 186-2). Wątpliwości patentowe (patenty firmy Certicom na część technik) hamowały użycie jeszcze długo potem; w przeglądarkach i TLS krzywe stały się powszechne w latach 2010.}
 \end{frame}
 
 \begin{frame}{Key sizes}
@@ -1557,7 +1929,11 @@
 
 \samedot
 \begin{frame}{Measured on a laptop}
-  % CHECKED: openssl speed on the author's laptop (i5-8265U, OpenSSL 3.0.13), from the draft
+  % CHECKED: openssl speed on the author's laptop (i5-8265U, OpenSSL 3.0.13), from the draft of this lecture;
+  %   the command: openssl speed ecdhx25519 ecdhp256 ffdh3072 rsa3072 (the date of the run was not recorded).
+  % CHECKED 2026-11-25, re-run (openssl speed -seconds 3, same laptop, two runs, load average 0.3 to 0.5): X25519 31 827 / 32 055,
+  %   P-256 21 867 / 21 958, ffdh3072 1 502 / 1 597, RSA-3072 sign 601 / 607 op/s: 5 to 13 % above the bars, the ratios
+  %   (14 to 21, 36 to 53) the same as in the keymsg (local/audyt/tmp-facts2/ossl_l5.txt)
   \begin{center}\small operations per second, \texttt{openssl speed}, log scale\end{center}
   \begin{center}
     \begin{tikzpicture}[x=2.6cm]
@@ -1578,7 +1954,8 @@
       }
     \end{tikzpicture}
   \end{center}
-  \keymsg{At the same security, ECC key agreement is 14 to 50 times faster than DH or RSA.}
+  % CHECKED: python3: 29600 / 1390 = 21.3, 19900 / 1390 = 14.3, 19900 / 566 = 35.2, 29600 / 566 = 52.3
+  \keymsg{At the same security, ECC key agreement is 14 to 21 times faster than DH, and 35 to 52 times faster than an RSA decryption.}
   \say{openssl speed na laptopie z i5-8265U, OpenSSL 3.0.13. RSA-3072: operacja kluczem prywatnym, czyli odszyfrowanie (openssl mierzy ją pod nazwą rsa3072). Szyfrowanie RSA kluczem publicznym jest dużo szybsze, bo RSA używa małego e.}
 \end{frame}
 
@@ -1590,7 +1967,7 @@
           \faLock/HTTPS/{X25519, often with\\ML-KEM (post-quantum)},
           \faIcon{mobile-alt}/phones/{short keys and fast\\operations save battery},
           \faBitcoin/cryptocurrency/{Bitcoin keys live\\on the curve secp256k1},
-          \faCommentDots/messengers/{Signal: X25519\\to agree on keys},
+          \faCommentDots/messengers/{Signal: X25519, and\\since 2023 also Kyber},
           \faCreditCard/smart cards/{small chips\\with little memory},
           \faMicrochip/IoT/{sensors and\\small devices}} {
         \pgfmathsetmacro{\x}{4.75*mod(\k,3)}
@@ -1603,10 +1980,15 @@
     \end{tikzpicture}
   \end{center}
   \vfill
+  % CHECKED: signal.org/blog/pqxdh (September 2023): PQXDH = X25519 together with CRYSTALS-Kyber (NIST standardized Kyber as ML-KEM, FIPS 203)
+  % Bitcoin on secp256k1 (en.bitcoin.it/wiki/Secp256k1; well known, page not re-read); phones, smart cards, IoT are general
+  %   examples, no number. CHECKED 2026-11-25: Firefox 132 desktop default mlkem768x25519 (bugzilla.mozilla.org 1919097, 1918484);
+  %   Chrome 131 and Safari 26: developers.cloudflare.com/ssl/post-quantum-cryptography/pqc-support, support.apple.com/122756
+  %   (search summary); Edge 131: not checked in a source
   % CHECKED: developers.cloudflare.com/ssl/post-quantum-cryptography/pqc-support (2026-11-17): X25519MLKEM768 default in
   %   Chrome 131+, Edge 131+, Firefox 132+ (desktop), Safari 26+; firefox-admin-docs.mozilla.org, policy
   %   PostQuantumKeyAgreementEnabled: "Firefox offers hybrid X25519 + ML-KEM-768 key agreement by default"
-  \say{HTTPS uzgadnia klucz w protokole TLS 1.3. Przeglądarki (Chrome i Edge od wersji 131, Firefox od 132, Safari od 26) domyślnie proponują hybrydę X25519MLKEM768: X25519 razem z ML-KEM, nowym algorytmem odpornym na komputery kwantowe (więcej na slajdzie o komputerach kwantowych). Klucz jest bezpieczny, jeśli choć jeden z dwóch algorytmów jest bezpieczny. IoT to internet rzeczy: małe urządzenia w sieci.}
+  \say{HTTPS uzgadnia klucz w protokole TLS 1.3. Przeglądarki (Chrome i Edge od wersji 131, Firefox od 132, Safari od 26) domyślnie proponują hybrydę X25519MLKEM768: X25519 razem z ML-KEM, nowym algorytmem odpornym na komputery kwantowe (więcej na slajdzie o komputerach kwantowych). Klucz jest bezpieczny, jeśli choć jeden z dwóch algorytmów jest bezpieczny. Signal od 2023 roku robi to samo w protokole PQXDH: X25519 razem z algorytmem postkwantowym Kyber (NIST ustandaryzował go jako ML-KEM). IoT to internet rzeczy: małe urządzenia w sieci.}
 \end{frame}
 
 \begin{frame}{Good to know: where do the constants come from?}
@@ -1623,7 +2005,7 @@
         \node[circle, fill=aWrite, text=white, font=\large, inner sep=4pt] at (c.north east) {\faQuestion};
       \end{tikzpicture}
     \column{0.48\textwidth}
-      % CHECKED: A24 = 121665 = (486662 - 2) / 4 in Task6/x25519_ready.py; RFC 7748, section 4.1: v^2 = u^3 + A*u^2 + u
+      % CHECKED: A24 = 121665 = (486662 - 2) / 4 in Task7/x25519_ready.py; RFC 7748, section 4.1: v^2 = u^3 + A*u^2 + u
       \begin{tikzpicture}
         \node[hw, text width=6.1cm, align=left, minimum height=3.3cm] (c) {
           \textbf{Curve25519} \textcolor{gray}{(2006)}\\[4pt]
@@ -1653,28 +2035,33 @@
       \stepbox{That is why}{X25519 is now often paired with a post-quantum algorithm.}
       \vspace{0.3cm}
       % CHECKED: NIST IR 8547 (final, October 2026), tables 2 and 4: ECDSA, EdDSA, RSA, ECDH, finite field DH:
-      %   deprecated after 2030, disallowed after 2035
-      \plainbox{The same NIST plan as for RSA (lecture 3) covers ECC:\\ deprecated after 2030, disallowed after 2035.}
+      %   deprecated after 2030, disallowed after 2035 (local/audyt/fakty.md, 2026-11-19: the final version deprecates
+      %   every strength after 2030; the draft of 2024 did so only for 112 bits); confirmed in the primary source by the
+      %   Lecture 8 agent (nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8547.pdf, tables 2 and 4, sections 4.1.1 and 4.1.2)
+      \plainbox{The same NIST plan as for RSA (lecture 3) covers ECC, every key size:\\ deprecated after 2030, disallowed after 2035.}
   \end{columns}
   \say{Można pominąć. Paradoksalnie krótsze klucze ECC byłyby dla komputera kwantowego łatwiejsze niż RSA. Takiego komputera jeszcze nie ma. Plan NIST IR 8547 (wersja końcowa z października 2026) obejmuje także uzgadnianie kluczy na krzywych (ECDH).}
 \end{frame}
 
-\begin{frame}{Summary}
+\begin{frame}{The answer: why 12 times shorter}
+  % CHECKED: NIST SP 800-57 part 1, table 2: 128-bit security = DH 3072 bits, ECC 256 bits; 3072 / 256 = 12
   \vfill
-  \begin{tikzpicture}
-    \foreach \t [count=\k] in {
-        {ECC gives the same tools as DH and ElGamal with keys about \textbf{12 times shorter}.},
-        {Points are \textbf{added} with a line; modulo $p$, the same formulas give exact points.},
-        {$kG$ is fast by \textbf{double and add}; finding $k$ is the \textbf{ECDLP}; $G$ needs a large prime order.},
-        {\textbf{ECDH} is Diffie-Hellman with points: $a\,(b\,G) = b\,(a\,G)$.},
-        {\textbf{ElGamal} works on curves too: $C_1 = kG$, $C_2 = M + kQ$.},
-        {A \textbf{KDF} such as HKDF turns the point into keys, one per label; \textbf{X25519} in practice.}} {
-      \node[hw, text width=12.6cm, align=left, minimum height=0.8cm, anchor=west, font=\small] at (0.8,{-0.95*\k}) {\t};
-      \node[circle, fill=AccentOrange, text=white, font=\bfseries, minimum size=0.65cm] at (0.4,{-0.95*\k}) {\k};
-    }
-  \end{tikzpicture}
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \foreach \y/\lbl/\a/\b/\c/\col in {0.9/{on a curve}/{$p$: 256 bits}/{about $2^{256}$ points\\(Hasse)}/{only the $\sqrt{n}$ search:\\$2^{128}$ steps}/AccentOrange,
+          -0.9/{modulo $p$}/{$p$: 3072 bits}/{$2^{3072}$ numbers}/{clever shortcuts:\\about $2^{128}$ steps}/nInk} {
+        \node[font=\small\bfseries, text=\col, anchor=east] at (-0.3,\y) {\lbl};
+        \node[hw, minimum width=2.6cm, minimum height=1.1cm, draw=\col] (a) at (1.2,\y) {\a};
+        \node[hw, minimum width=3.0cm, minimum height=1.1cm, font=\small] (b) at (5.0,\y) {\b};
+        \node[hw, minimum width=3.2cm, minimum height=1.1cm, font=\small] (c) at (8.9,\y) {\c};
+        \draw[data] (a) -- (b); \draw[data] (b) -- (c);
+      }
+      \node[actor=aExec, font=\small\bfseries, minimum height=2.9cm, text width=1.5cm] at (11.8,0) {128-bit\\security\\for both};
+    \end{tikzpicture}
+  \end{center}
   \vfill
-  \say{Po jednym zdaniu na każdy cel wykładu. To koniec bloku: od szyfrów strumieniowych do krzywych eliptycznych.}
+  \bigdef{The same safety: 256 bits on a curve, 3072 bits modulo $p$: \textbf{12 times shorter}.}
+  \say{Odpowiedź na pytanie z początku wykładu jednym rysunkiem. Na krzywej: 256-bitowe p, około $2^{256}$ punktów (twierdzenie Hassego, slajd How many points?), a jedyny znany ogólny atak to rho Pollarda, pierwiastek z liczby punktów, czyli $2^{128}$ kroków. Modulo p: sprytne metody (sito liczbowe, ta sama rodzina co przy faktoryzacji z wykładu 3) sprawiają, że ten sam poziom $2^{128}$ wymaga 3072 bitów. 3072 / 256 = 12. To koniec bloku: od szyfrów strumieniowych do krzywych eliptycznych.}
 \end{frame}
 
 \end{document}

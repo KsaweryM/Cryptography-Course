@@ -1,21 +1,32 @@
-% Task 9: build SHA-256 from its parts. IV[0] = 6a09e667 (FIPS 180-4).
+% Task 9: a Merkle tree. Values from checks/make_task9.py (root 34e794e7...).
 \documentclass[12pt,tikz,border=6pt]{standalone}
 \input{common}
 \begin{document}
 \pagecolor{white}
-\begin{tikzpicture}[>=Stealth]
-  \node[msgval, minimum width=6.0cm] (m) at (2.6,2.2) {message, 79 bytes};
-  \node[hw, font=\scriptsize] (p) at (7.6,2.2) {0x80, zeros, length};
-  \node[msgval, minimum width=3.0cm] (b1) at (3.0,0.9) {block 1, 64 bytes};
-  \node[msgval, minimum width=3.0cm] (b2) at (7.0,0.9) {block 2, 64 bytes};
-  \node[hw, font=\scriptsize\ttfamily] (iv) at (0,-0.6) {IV: 6a09e667 \ldots};
-  \node[hwmain] (c1) at (3.0,-0.6) {\faCogs\ compress};
-  \node[hwmain] (c2) at (7.0,-0.6) {\faCogs\ compress};
-  \node[unk] (d) at (10.6,-0.6) {digest = ?};
-  \draw[data] (b1) -- (c1); \draw[data] (b2) -- (c2);
-  \draw[data] (iv) -- (c1); \draw[data] (c1) -- node[above, font=\scriptsize] {state} (c2); \draw[data] (c2) -- (d);
-  \node[dgval, font=\scriptsize] at (10.6,0.6) {hashlib.sha256(message)};
-  \node[font=\small\bfseries, text=AccentOrange] at (10.6,0.0) {the same?};
-  \node[unk, font=\small] at (3.0,-2.0) {how many blocks for 3, 55, 56, 64 bytes?};
+\begin{tikzpicture}[>=Stealth, x=1.75cm]
+  \foreach \n [count=\i from 0] in {README.txt, editor.py, fonts.dat, icons.dat, plugins.py, spell-en.dat, spell-pl.dat, LICENSE.txt} {
+    \node[msgval, font=\scriptsize, minimum width=1.55cm] (f\i) at (\i,0) {\n};
+    \node[dgval, font=\scriptsize, minimum width=1.3cm] (l\i) at (\i,1.2) {leaf \i};
+    \draw[data] (f\i) -- (l\i);
+  }
+  \foreach \j in {0,...,3} {
+    \pgfmathsetmacro{\x}{2*\j+0.5}
+    \node[dgval, font=\scriptsize, minimum width=1.3cm] (a\j) at (\x,2.5) {};
+  }
+  \foreach \j in {0,1} {
+    \pgfmathsetmacro{\x}{4*\j+1.5}
+    \node[dgval, font=\scriptsize, minimum width=1.3cm] (b\j) at (\x,3.8) {};
+  }
+  \node[dgval, font=\small\ttfamily, minimum width=2.4cm] (r) at (3.5,5.1) {root 34e794e7\ldots};
+  \node[font=\scriptsize, text=gray, anchor=west] at (r.east) {\ on Alice's website};
+  \foreach \j in {0,...,3} {\pgfmathtruncatemacro{\p}{2*\j}\pgfmathtruncatemacro{\q}{2*\j+1}
+    \draw[data] (l\p) -- (a\j); \draw[data] (l\q) -- (a\j);}
+  \draw[data] (a0) -- (b0); \draw[data] (a1) -- (b0); \draw[data] (a2) -- (b1); \draw[data] (a3) -- (b1);
+  \draw[data] (b0) -- (r); \draw[data] (b1) -- (r);
+  \foreach \n in {l4, a3, b0} \draw[sTeal, line width=2pt, rounded corners=3pt] ($(\n.south west)+(-0.08,-0.08)$) rectangle ($(\n.north east)+(0.08,0.08)$);
+  \node[font=\scriptsize\bfseries, text=AccentOrange, anchor=north] at (5,-0.45) {Bob's file};
+  \node[font=\scriptsize\bfseries, text=sTealText, align=left, anchor=west] at (8.0,3.2) {teal:\\ the proof,\\ 3 digests};
+  \mallorynode{mal}{8.6,0.9}
+  \node[unk, font=\scriptsize, anchor=west] at (9.1,0.9) {her spell-en.dat: the root again?};
 \end{tikzpicture}
 \end{document}

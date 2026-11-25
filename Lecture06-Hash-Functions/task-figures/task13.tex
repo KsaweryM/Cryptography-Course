@@ -1,0 +1,14 @@
+% Task 13: how fast?
+\documentclass[12pt,tikz,border=6pt]{standalone}
+\input{common}
+\begin{document}
+\pagecolor{white}
+\begin{tikzpicture}[>=Stealth]
+  \node[msgval, minimum height=3.6cm, minimum width=1.6cm] (d) at (0,0) {50 MB};
+  \foreach \n [count=\k from 0] in {MD5, SHA-1, SHA-256, SHA-512, SHA3-256} {
+    \node[hwmain, minimum width=2.4cm] (h\k) at (3.4,{1.6-0.8*\k}) {\faCogs\ \n};
+    \draw[data] (d.east) -- (h\k.west);
+    \node[unk, font=\small, anchor=west] at (5.0,{1.6-0.8*\k}) {bits = ? \quad \faTachometer*\ MB/s = ?};
+  }
+\end{tikzpicture}
+\end{document}

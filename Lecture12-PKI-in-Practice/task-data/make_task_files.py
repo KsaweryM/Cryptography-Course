@@ -140,14 +140,14 @@ def task3():
                    d(2025, 1, 1), d(2046, 1, 1), ca=True)
     write(os.path.join(c, "trusty-ca.pem"), pem(ca))
     srv = [ec.generate_private_key(ec.SECP256R1()) for _ in range(4)]
-    shop = make_cert(name("shop.alice.example"), ca.subject, srv[0].public_key(), ca_key,
-                     d(2026, 9, 1), d(2045, 9, 1), dns=["shop.alice.example"], eku=[ExtendedKeyUsageOID.SERVER_AUTH])
-    selfsigned = make_cert(name("shop.alice.example"), name("shop.alice.example"), srv[1].public_key(), srv[1],
-                           d(2026, 9, 1), d(2045, 9, 1), dns=["shop.alice.example"])
+    shop = make_cert(name("shop.bob.example"), ca.subject, srv[0].public_key(), ca_key,
+                     d(2026, 9, 1), d(2045, 9, 1), dns=["shop.bob.example"], eku=[ExtendedKeyUsageOID.SERVER_AUTH])
+    selfsigned = make_cert(name("shop.bob.example"), name("shop.bob.example"), srv[1].public_key(), srv[1],
+                           d(2026, 9, 1), d(2045, 9, 1), dns=["shop.bob.example"])
     own = make_cert(name("mallory.example"), ca.subject, srv[2].public_key(), ca_key,
                     d(2026, 9, 1), d(2045, 9, 1), dns=["mallory.example"], eku=[ExtendedKeyUsageOID.SERVER_AUTH])
-    expired = make_cert(name("shop.alice.example"), ca.subject, srv[3].public_key(), ca_key,
-                        d(2025, 2, 1), d(2025, 8, 20), dns=["shop.alice.example"], eku=[ExtendedKeyUsageOID.SERVER_AUTH])
+    expired = make_cert(name("shop.bob.example"), ca.subject, srv[3].public_key(), ca_key,
+                        d(2025, 2, 1), d(2025, 8, 20), dns=["shop.bob.example"], eku=[ExtendedKeyUsageOID.SERVER_AUTH])
     names = ["shop", "mallory-selfsigned", "mallory-own-name", "shop-expired"]
     certs = [shop, selfsigned, own, expired]
     for i in range(4):
@@ -199,7 +199,7 @@ COLL_B = ("d131dd02c5e6eec4693d9a0698aff95c2fcab50712467eab4004583eb8fb7f89"
           "55ad340609f4b30283e4888325f1415a085125e8f7cdc99fd91dbd7280373c5b"
           "d8823e3156348f5bae6dacd436c919c6dd53e23487da03fd02396306d248cda0"
           "e99f33420f577ee8ce54b67080280d1ec69821bcb6a8839396f965ab6ff72a70")
-SUFFIX = (b"\nTEXT0: Trusty CA certifies: shop.alice.example is a website. It may NOT sign certificates.\n"
+SUFFIX = (b"\nTEXT0: Trusty CA certifies: shop.bob.example is a website. It may NOT sign certificates.\n"
           b"TEXT1: Trusty CA certifies: Mallory is a CA. She may sign certificates for any website.\n")
 
 
@@ -224,15 +224,15 @@ def task6():
     for cn in ["Trusty CA", "Shady CA", "Green CA"]:
         cas[cn] = ec.generate_private_key(ec.SECP256R1())
     entries = [
-        ("bob-bakery.example", ["bob-bakery.example", "www.bob-bakery.example"], "Green CA", d(2026, 10, 2)),
-        ("alice-shop.example", ["alice-shop.example", "www.alice-shop.example"], "Trusty CA", d(2026, 10, 5)),
+        ("bakery.example", ["bakery.example", "www.bakery.example"], "Green CA", d(2026, 10, 2)),
+        ("bob.example", ["bob.example", "www.bob.example"], "Trusty CA", d(2026, 10, 5)),
         ("carol.example", ["carol.example"], "Green CA", d(2026, 10, 9)),
-        ("api.alice-shop.example", ["api.alice-shop.example"], "Trusty CA", d(2026, 10, 14)),
-        ("alice-shop.example.mallory.example", ["alice-shop.example.mallory.example"], "Green CA", d(2026, 10, 21)),
+        ("api.bob.example", ["api.bob.example"], "Trusty CA", d(2026, 10, 14)),
+        ("bob.example.mallory.example", ["bob.example.mallory.example"], "Green CA", d(2026, 10, 21)),
         ("dave.example", ["dave.example", "mail.dave.example"], "Trusty CA", d(2026, 10, 25)),
-        ("alice-shop.example", ["alice-shop.example", "www.alice-shop.example"], "Shady CA", d(2026, 11, 2)),
-        ("login.alice-shop.example", ["login.alice-shop.example"], "Trusty CA", d(2026, 11, 6)),
-        ("bob.example", ["bob.example"], "Shady CA", d(2026, 11, 9)),
+        ("bob.example", ["bob.example", "www.bob.example"], "Shady CA", d(2026, 11, 2)),
+        ("login.bob.example", ["login.bob.example"], "Trusty CA", d(2026, 11, 6)),
+        ("mallory.example", ["mallory.example"], "Shady CA", d(2026, 11, 9)),
     ]
     out = b""
     mine = []
@@ -241,10 +241,10 @@ def task6():
         cert = make_cert(name(cn), name(ca, ca), k.public_key(), cas[ca], start, start + datetime.timedelta(days=199),
                          dns=dns, eku=[ExtendedKeyUsageOID.SERVER_AUTH])
         out += pem(cert)
-        if ca == "Trusty CA" and cn in ("alice-shop.example", "api.alice-shop.example"):
+        if ca == "Trusty CA" and cn in ("bob.example", "api.bob.example"):
             mine.append(cert.fingerprint(hashes.SHA256()).hex())
     write(os.path.join(t, "ct_log.pem"), out)
-    text = "# SHA-256 fingerprints of the certificates that Alice ordered for alice-shop.example\n"
+    text = "# SHA-256 fingerprints of the certificates that Bob ordered for bob.example\n"
     for m in mine:
         text += m + "\n"
     write(os.path.join(t, "my_orders.txt"), text)

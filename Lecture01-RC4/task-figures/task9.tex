@@ -1,7 +1,8 @@
-% Task 9: measure the second byte. CHECKED with python3 and Task9/rc4.py:
-%   random.seed(5), 7 keys of 16 random bytes, z = prga(ksa(key), 3):
-%   457c769f... fa 3b 75 | 37ce91cb... 2d 0f e3 | 29fe69bd... db 71 cd | efe26c07... 5a 13 55
-%   74d37ff1... 94 9a 8a | 3b6aa1e6... 08 a0 be | a2e81478... fd 00 e5
+% Task 9: is the keystream uniform? CHECKED with python3 and Task9/rc4.py:
+%   random.seed(9), keys of 16 random bytes, z = prga(ksa(key), 3); picked: five keys without a 0,
+%   one with z[0] = 0, one with z[2] = 0 (so that the example does not point at byte 2):
+%   6ea68776... 10 bf a8 | aa517723... ca bc 7a | 21b1479c... 00 76 36 | 50baa501... 09 ac bc
+%   1ddbf6e5... 35 28 12 | 7ff75213... 0a fd 00 | 47abe48d... 91 e5 a7
 %   1/256 = 0.39%. The measured percentages are the result of the task: not shown.
 \documentclass[12pt,tikz,border=6pt]{standalone}
 \input{common}
@@ -13,9 +14,9 @@
   % the table of keys and their first 3 keystream bytes
   \node[font=\small\bfseries, text=nInk] at (1.8,0.75) {random key (16 bytes)};
   \foreach \c/\l in {0/{z[0]},1/{z[1]},2/{z[2]}} \node[font=\ttfamily\small\bfseries, text=sAmberText] at ({5.0+1.0*\c},0.75) {\l};
-  \foreach \k/\key/\z [count=\r from 0] in {1/{45 7C 76 9F \ldots}/{FA,3B,75}, 2/{37 CE 91 CB \ldots}/{2D,0F,E3},
-      3/{29 FE 69 BD \ldots}/{DB,71,CD}, 4/{EF E2 6C 07 \ldots}/{5A,13,55}, 5/{74 D3 7F F1 \ldots}/{94,9A,8A},
-      6/{3B 6A A1 E6 \ldots}/{08,A0,BE}, 7/{A2 E8 14 78 \ldots}/{FD,00,E5}} {
+  \foreach \k/\key/\z [count=\r from 0] in {1/{6E A6 87 76 \ldots}/{10,BF,A8}, 2/{AA 51 77 23 \ldots}/{CA,BC,7A},
+      3/{21 B1 47 9C \ldots}/{00,76,36}, 4/{50 BA A5 01 \ldots}/{09,AC,BC}, 5/{1D DB F6 E5 \ldots}/{35,28,12},
+      6/{7F F7 52 13 \ldots}/{0A,FD,00}, 7/{47 AB E4 8D \ldots}/{91,E5,A7}} {
     \node[font=\small, text=gray, anchor=east] at (-0.1,{-\dy*\r}) {\k};
     \node[actorlight=sAmber, font=\ttfamily\small, minimum height=0.5cm, inner sep=2pt] at (1.8,{-\dy*\r}) {\key};
     \draw[data] (3.65,{-\dy*\r}) -- (4.35,{-\dy*\r});
@@ -24,9 +25,10 @@
   \node[font=\Large\bfseries, text=nInk] at (1.8,{-\dy*7+0.05}) {$\vdots$};
   \node[font=\small, text=gray, anchor=east] at (-0.1,{-\dy*8}) {100\,000};
   \node[font=\small, text=nInk] at (1.8,{-\dy*8}) {(a new key every time)};
-  \draw[annot] (5.5,{-\dy*6-0.33}) rectangle (6.5,{-\dy*6+0.33});
-  \node[font=\small\bfseries, text=AccentOrange, anchor=west] at (7.7,{-\dy*6}) {a 0 in \texttt{z[1]}: \ \texttt{counts[1] += 1}};
-  \node[font=\small, text=nInk, anchor=west] at (7.7,{-\dy*7}) {after these 7 keys: \ \texttt{counts = [0, 1, 0]}};
+  \draw[annot] (4.5,{-\dy*2-0.33}) rectangle (5.5,{-\dy*2+0.33});
+  \draw[annot] (6.5,{-\dy*5-0.33}) rectangle (7.5,{-\dy*5+0.33});
+  \node[font=\small\bfseries, text=AccentOrange, anchor=west] at (7.7,{-\dy*6}) {a 0 in \texttt{z[n]}: \ \texttt{counts[n] += 1}};
+  \node[font=\small, text=nInk, anchor=west] at (7.7,{-\dy*7}) {after these 7 keys: \ \texttt{counts = [1, 0, 1]}};
   \node[font=\small, text=nInk, anchor=west] at (7.7,{-\dy*8}) {\ttfamily z = prga(ksa(key), 3)};
 
   % the idea: compare each percentage with the uniform line

@@ -1,5 +1,5 @@
 \documentclass[aspectratio=169,10pt]{beamer}
-% notes.tex defines \NOTESONLY and reads this file: then only the speaker notes are printed
+% \NOTESONLY (defined before this file is read) prints only the speaker notes
 \ifdefined\NOTESONLY
   \setbeameroption{show only notes}
 \fi
@@ -32,8 +32,8 @@
 % one dot per idea, not per frame: \samedot before a frame gives it the dot of the frame before
 % (it undoes the step of the dot counter that the next frame makes)
 \newcommand{\samedot}{\addtocounter{subsectionslide}{-1}}
-% "RC4 fix N/3": an orange label at the right end of the title bar, on the slides that fix one RC4 problem
-% (as "RC4 mistake N/3" in Lecture 1)
+% "RC4 fix N/3": an orange label at the right end of the title bar, on the slides that fix RC4 problem N
+% (the problems are numbered in Section 1 in the same order: 1 the key is the only input, 2 not random, 3 no integrity)
 \newcommand{\fixtag}[1]{%
   \begin{tikzpicture}[remember picture, overlay]
     \node[fill=AccentOrange, text=white, font=\scriptsize\bfseries, rounded corners=3pt, inner sep=3pt, anchor=east]
@@ -139,16 +139,6 @@
   \begin{beamercolorbox}[rounded=true,sep=0.1cm,wd=\textwidth]{block body example}
     \centering\footnotesize #1
   \end{beamercolorbox}}
-% a grey box without a title
-\newcommand{\plainbox}[1]{%
-  \begin{beamercolorbox}[rounded=true,sep=0.12cm,wd=\linewidth]{block body}
-    \centering\footnotesize #1
-  \end{beamercolorbox}\vspace{0.06cm}}
-\setbeamercolor{block body problem}{bg=AccentOrange!10,fg=black}
-\newcommand{\probbox}[2]{%
-  \begin{beamercolorbox}[rounded=true,sep=0.09cm,wd=\linewidth]{block body problem}
-    \footnotesize\textbf{\textcolor{AccentOrange}{\faExclamationTriangle}\ #1}\\ #2
-  \end{beamercolorbox}\vspace{0.06cm}}
 
 % ---------- code: dark window, grey dots, syntax colours ----------
 \definecolor{VSDarkBg}{RGB}{25,25,25}
@@ -158,21 +148,6 @@
 \definecolor{VSString}{RGB}{255,140,80}
 \definecolor{VSComment}{RGB}{80,220,80}
 \setbeamercolor{vscodelisting}{bg=VSDarkBg}
-\newcommand{\hlcode}[1]{{\setlength{\fboxsep}{1pt}\colorbox{AccentOrange}{\textcolor{white}{\bfseries #1}}}}
-\newcommand{\eol}{\tikz[remember picture, overlay]\coordinate (eol) at (0,0.08);}
-\newcommand{\codenote}[3][0pt]{%
-  \begin{tikzpicture}[remember picture, overlay, >=Stealth]
-    \node[draw=AccentOrange, very thick, fill=AccentOrange!6, rounded corners=4pt, text width=0.33\paperwidth,
-      align=left, inner sep=6pt, font=\footnotesize, anchor=west] (cal)
-      at ([yshift=#1]eol -| {$(current page.west)!0.6!(current page.east)$}) {\textbf{\textcolor{AccentOrange}{#2}}\\[3pt]#3};
-    \draw[->, very thick, AccentOrange] (eol -| cal.west) -- ([xshift=4pt]eol);
-  \end{tikzpicture}}
-% program output: a light terminal line
-\newcommand{\terminal}[1]{%
-  \begin{tikzpicture}
-    \node[draw=nLine, thick, fill=nFill, rounded corners=3pt, inner sep=5pt, font=\ttfamily\small, text=nInk]
-      {\textcolor{nLine}{\$}\ #1};
-  \end{tikzpicture}}
 
 % ======================================================================
 % Course macros
@@ -255,10 +230,6 @@
   \draw[sBrown, thick] (#1.north west) -- ([yshift=-0.45cm]#1.north) -- (#1.north east);
   \node[circle, fill=sBrown, text=white, inner sep=1.5pt, font=\scriptsize] at ([yshift=-0.45cm]#1.north) {\faLock};
   \node[font=\scriptsize\bfseries, text=nInk] at ([yshift=-0.28cm]#1.center) {#3};}
-% a note with plaintext on it: \papernote{name}{position}{text}
-\newcommand{\papernote}[3]{%
-  \node[draw=sViolet, thick, fill=sViolet!12, rounded corners=1pt, inner sep=6pt, font=\ttfamily\small, text=nInk,
-    rotate=3] (#1) at (#2) {#3};}
 % code drawn in TikZ, so that single lines can be marked:
 %   \codebox{number of lines}{width}  then  \cl{line}{text}, \clmark{line} (runs now), \clnote{line}{text}
 \newcommand{\codepitch}{0.36}
@@ -314,25 +285,9 @@
 }
 
 
-% \bytes{x of the first cell}{y}{style}{values}{label above}
-\newcommand{\bytes}[5]{%
-  \foreach \v [count=\i from 0] in {#4} \node[#3, smallbyte] at ({#1+0.55*\i},#2) {\v};
-  \node[font=\scriptsize\bfseries, text=nInk] at ({#1+0.55},{#2+0.45}) {#5};}
-
-% a small dark box with one or more lines of code
-\newcommand{\pycode}[1]{%
-  \begin{beamercolorbox}[rounded=true,sep=1.6mm,wd=\linewidth]{vscodelisting}
-    \ttfamily\scriptsize\color{VSText}#1
-  \end{beamercolorbox}}
 
 
-% an invoice on paper: \invoice{name}{position}{amount}
-\newcommand{\invoice}[3]{%
-  \node[draw=nLine, thick, fill=white, minimum width=2.1cm, minimum height=2.5cm, rounded corners=1pt] (#1) at (#2) {};
-  \node[font=\tiny\bfseries, text=nInk, anchor=north] at ([yshift=-0.12cm]#1.north) {INVOICE};
-  \foreach \d in {0.6,0.8,1.0} \draw[nLight, thick] ([shift={(0.25,-\d)}]#1.north west) -- ([shift={(-0.25,-\d)}]#1.north east);
-  \node[font=\tiny, text=nInk, anchor=south west] at ([shift={(0.15,0.55)}]#1.south west) {to pay:};
-  \node[font=\ttfamily\scriptsize\bfseries, text=nInk, anchor=south] at ([yshift=0.15cm]#1.south) {#3};}
+
 
 
 \title{Cryptography}
@@ -390,11 +345,6 @@
     \node[ksb, minimum width=2.2cm, minimum height=0.6cm] (o) at (7.6,0) {64 bytes};
     \node[font=\scriptsize, text=nInk, anchor=north] at (o.south) {one block of keystream};
   \end{tikzpicture}}
-% a horizontal bar chart row: \hbar{y}{label}{value}{scale}{text}
-\newcommand{\hbarrow}[5]{%
-  \fill[nLine] (0,{#1-0.2}) rectangle ({#3*#4},{#1+0.2});
-  \node[font=\small\bfseries, text=nInk, anchor=east] at (-0.15,#1) {#2};
-  \node[font=\small, text=nInk, anchor=west] at ({#3*#4+0.15},#1) {#5};}
 % the ChaCha20 quarter round in a code window: #1 = the line that runs now (0 = none), #2 = width
 \newcommand{\qrcode}[1]{%
   \begin{tikzpicture}
@@ -405,14 +355,14 @@
     \cl{4}{c += d;\ \ b \textasciicircum= c;\ \ b = rotl(b, 7)}
     \ifnum#1>0 \clmark{#1}\fi
   \end{tikzpicture}}
-% four words a, b, c, d; #5 = the changed words, as a list of letters
-\newcommand{\abcd}[5]{%
+% the Salsa20 quarter round in the same window
+\newcommand{\salsaqrcode}{%
   \begin{tikzpicture}
-    \foreach \l/\v [count=\i from 0] in {a/#1, b/#2, c/#3, d/#4} {
-      \node[font=\small\bfseries, text=nInk] at ({2.0*\i},0.5) {\l};
-      \node[wcell, minimum width=1.85cm, font=\ttfamily\small] (Q\l) at ({2.0*\i},0) {\v};
-    }
-    \foreach \l in {#5} {\draw[cellmark] (Q\l.south west) rectangle (Q\l.north east);}
+    \codebox{4}{5.2}
+    \cl{1}{b \textasciicircum= rotl(a + d, 7)}
+    \cl{2}{c \textasciicircum= rotl(b + a, 9)}
+    \cl{3}{d \textasciicircum= rotl(c + b, 13)}
+    \cl{4}{a \textasciicircum= rotl(d + c, 18)}
   \end{tikzpicture}}
 
 
@@ -496,7 +446,7 @@
 
 \begin{frame}
   \titlepage
-  \say{Dziś szyfr strumieniowy, którego używa dziś pół internetu: ChaCha20. Zobaczymy go jako odpowiedź na to, co RC4 robił źle.}
+  \say{Dziś ChaCha20, szyfr strumieniowy, który chroni dużą część dzisiejszych połączeń HTTPS (zwłaszcza z telefonów bez sprzętowego AES), VPN-y i SSH, oraz jego starszy brat Salsa20. Zobaczymy ChaCha20 jako odpowiedź na to, co RC4 robił źle.}
 \end{frame}
 
 \begin{frame}{Agenda For Today}
@@ -506,7 +456,7 @@
       % what we will do today: one icon and one sentence per point (the section names are in the bar at the top)
       \foreach \ic/\t [count=\k from 0] in {
           {\faForward}/{Build a keystream from a key, a nonce and a counter, as ChaCha20 does.},
-          {\faRandom}/{Test that this keystream looks random, where RC4 failed, and see why it is fast on any phone.},
+          {\faRandom}/{Mix it so that it looks random (ChaCha20 and its older sibling Salsa20), test it where RC4 failed, and see why it is fast on any phone.},
           {\faIcon{shield-alt}}/{Add a tag, so that any change to a message is caught.}} {
         \node[circle, fill=DeepBlue, text=white, minimum size=1.3cm, font=\LARGE] at (0,{-1.9*\k}) {\ic};
         \node[anchor=west, text width=12cm, font=\large, align=left, execute at begin node={\hyphenpenalty=10000 }] at (1.0,{-1.9*\k}) {\t};
@@ -514,7 +464,7 @@
     \end{tikzpicture}
   \end{center}
   \vfill
-  \say{Trzy naprawy RC4: nonce jako wejście, keystream, który wygląda losowo, i znacznik przy wiadomości. Po drodze jeden slajd o szybkości. Nazwy sekcji są na pasku u góry, a link do zadań jest przy każdym zadaniu.}
+  \say{Trzy naprawy RC4, w kolejności problemów z sekcji 1: nonce i licznik jako wejścia, keystream, który wygląda losowo, i znacznik przy wiadomości. Po drodze Salsa20 (pierwsza wersja tego samego pomysłu) i krótka sekcja o szybkości. Nazwy sekcji są na pasku u góry, a link do zadań jest przy każdym zadaniu.}
 \end{frame}
 
 % ======================================================================
@@ -533,7 +483,7 @@
       \byterow{4.9}{1.0}{ksb}{69,9D,DA,7E,FE,61}{0.7}
       \node[font=\small] at (9.2,1.0) {\ldots};
       \node[font=\small, text=nInk, anchor=west] at (9.6,1.0) {keystream \textbf{Z}\ \ \textcolor{gray}{(looks random)}};
-      \node[font=\scriptsize\bfseries, text=nInk] at (6.65,0.5) {XOR};
+      \node[font=\small\bfseries, text=nInk] at (6.65,0.5) {$\oplus$};
       \node[rowlabel, font=\small] at (4.45,0) {plaintext \textbf{P}};
       \byterow{4.9}{0}{ptb}{M,e,e,t,{\textvisiblespace},m}{0.7}
       \node[font=\small] at (9.2,0) {\ldots};
@@ -544,7 +494,7 @@
     \end{tikzpicture}
   \end{center}
   \vfill
-  \begin{center}\Large C = P XOR Z\qquad\qquad P = C XOR Z\end{center}
+  \begin{center}\Large $C = P \oplus Z$\qquad\qquad $P = C \oplus Z$\\[2pt] \small ($\oplus$ = XOR, bit by bit)\end{center}
   \vfill
   \keymsg{Encrypt and decrypt are the same XOR with the same keystream.}
   \say{Krótkie przypomnienie, bo nie zakładam, że wszyscy znają szyfr strumieniowy. Generator robi z klucza długi ciąg, szyfrujemy XOR-em bajt po bajcie, odbiorca robi to samo. (Bajty na rysunku to Task 2 z wykładu 1: RC4 z kluczem Kangaroo.)}
@@ -556,12 +506,12 @@
   \vfill
   \begin{center}
     \begin{tikzpicture}[>=Stealth]
-      \envelope{e1}{0,0.8}{C1}
-      \envelope{e2}{0,-0.8}{C2}
+      \envelope{e1}{0,0.8}{$C_1$}
+      \envelope{e2}{0,-0.8}{$C_2$}
       \node[actorlight=sAmber, font=\scriptsize\bfseries] at (1.45,1.25) {Z};
       \node[actorlight=sAmber, font=\scriptsize\bfseries] at (1.45,-0.35) {Z};
       \draw[data, line width=1.6pt] (1.5,0) -- (2.6,0);
-      \node[font=\normalsize, text=nInk, anchor=west] at (2.7,0) {C1 XOR C2 = (P1 XOR Z) XOR (P2 XOR Z) = \textbf{P1 XOR P2}};
+      \node[font=\normalsize, text=nInk, anchor=west] at (2.7,0) {$C_1 \oplus C_2 = (P_1 \oplus Z) \oplus (P_2 \oplus Z) = \mathbf{P_1 \oplus P_2}$};
     \end{tikzpicture}
   \end{center}
   \vfill
@@ -581,7 +531,7 @@
       \hspace*{0.4cm}\textcolor{nInk}{\faWifi}\ \ Wi-Fi networks (WEP)\\[0.15cm]
       \hspace*{0.4cm}\textcolor{nInk}{\faLock}\ \ browser-to-website traffic (TLS)\\[0.5cm]
       Banned in TLS in 2015. Why did it fall?\\[0.2cm]
-      \hspace*{0.4cm}$\rightarrow$ three mistakes, and one feature it never had.
+      \hspace*{0.4cm}$\rightarrow$ three problems; ChaCha20 fixes each one.
     \column{0.4\textwidth}
       \centering
       \begin{tikzpicture}
@@ -598,11 +548,43 @@
   \end{columns}
   \vfill
   \keymsg{A cipher can be everywhere and still be the wrong choice.}
-  % source: RFC 7465 (February 2015) prohibits RC4 cipher suites in TLS
-  \say{RC4 był prosty i szybki, dlatego był wszędzie. Dziś jest zakazany (RFC 7465, 2015). Zaraz zobaczymy, co dokładnie robił źle, i to będzie lista rzeczy, które ChaCha20 naprawia.}
+  % CHECKED: RFC 7465 (February 2015) prohibits RC4 cipher suites in TLS (local/audyt/fakty.md, 2026-11-19)
+  \say{RC4 był prosty i szybki, dlatego był wszędzie. Dziś jest zakazany (RFC 7465, 2015). Zaraz zobaczymy trzy problemy, ponumerowane tak samo jak naprawy dalej (pomarańczowa etykieta ,,RC4 fix N/3'' w prawym górnym rogu). Źródło zakazu: RFC 7465 (luty 2015).}
 \end{frame}
 
-\begin{frame}{The keystream does not look random (mistakes 1 and 2)}
+\begin{frame}{RC4 problem 1: the key is its only input}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \node[font=\small\bfseries, text=nInk, anchor=west] at (-0.9,1.45) {Modern cipher};
+      \node[actorlight=sAmber, font=\scriptsize\bfseries] (k1) at (0,0.8) {\faKey\ key};
+      \node[draw=sAmber, line width=1pt, fill=white, rounded corners=3pt, font=\scriptsize\bfseries, inner sep=4pt] (n1) at (0,0.05) {nonce};
+      \node[draw=sAmber, line width=1pt, dashed, fill=white, rounded corners=3pt, font=\scriptsize\bfseries, inner sep=4pt] (t1) at (0,-0.7) {counter};
+      \node[hwmain, minimum width=1.9cm, minimum height=1.9cm, font=\small\bfseries] (c1) at (2.6,0.05) {cipher};
+      \draw[data] (k1) -- (c1.west |- k1); \draw[data] (n1) -- (c1.west |- n1); \draw[data] (t1) -- (c1.west |- t1);
+      \draw[data, line width=1.4pt] (c1.east) -- (4.3,0.05);
+      \byterow{4.7}{0.05}{ksb}{,,,}{0.55}
+      \node[font=\scriptsize, text=nInk, anchor=north] at (5.5,-0.25) {keystream};
+      \node[font=\small\bfseries, text=nInk, anchor=west] at (7.3,1.45) {RC4};
+      \node[actorlight=sAmber, font=\scriptsize\bfseries] (k2) at (8.2,0.8) {\faKey\ key};
+      \node[hwmain, minimum width=1.9cm, minimum height=1.9cm, font=\small\bfseries] (c2) at (10.8,0.05) {\faCogs\ RC4};
+      \draw[data] (k2) -- (c2.west |- k2);
+      \draw[annot, dashed] (7.5,-0.95) rectangle (8.9,0.3);
+      \node[font=\scriptsize, text=AccentOrange, align=center] at (8.2,-0.33) {no other\\ input};
+      \draw[data, line width=1.4pt] (c2.south) -- (10.8,-1.25);
+      \byterow{10.0}{-1.55}{ksb}{,,,}{0.55}
+      \node[font=\scriptsize, text=nInk, anchor=north] at (10.8,-1.85) {keystream, from byte 0 on};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small No nonce: everyone glues it in their own way. WEP glued it to the key, and it broke.\\[3pt]
+    No counter: RC4 only goes forward. To get byte $n$, it must make all the bytes before it.\end{center}
+  \vfill
+  \keymsg{One input only: no safe place for a nonce, no way to jump to the middle.}
+  \say{RC4 bierze tylko klucz. Nonce trzeba dokleić samemu, a to prosta droga do błędu: WEP dokleił go do klucza i dał się złamać. Do tego RC4 idzie tylko do przodu: żeby dostać bajt numer n, trzeba wyprodukować wszystkie wcześniejsze. Dobry szyfr ma nonce i licznik (numer bloku) jako osobne wejścia. To jest problem 1 i naprawa 1 w sekcji 2.}
+\end{frame}
+
+\begin{frame}{RC4 problem 2: the keystream does not look random}
   \begin{center}\small Two symptoms of \textbf{one} weakness:\end{center}
   \vfill
   \begin{columns}[T,onlytextwidth]
@@ -638,40 +620,10 @@
   \end{columns}
   \vfill
   \keymsg{A good keystream looks random. RC4's does not, in two ways.}
-  \say{Dwa błędy RC4, ale to jeden problem: keystream nie wygląda losowo. Raz widać to od strony klucza (wyjście go pamięta), raz od strony wyjścia (drugi bajt jest skrzywiony). Liczby pokażę w sekcji 3, na żywo. Link na dole: symulator RC4 z wykładu 1, gdyby ktoś chciał to sobie przypomnieć.}
+  \say{Problem 2 ma dwa objawy, ale to jedna słabość: keystream nie wygląda losowo. Raz widać to od strony klucza (wyjście go pamięta), raz od strony wyjścia (drugi bajt jest skrzywiony). Liczby pokażę w sekcji 3, na żywo (naprawa 2). Źródła: ciasteczko z powtarzanej wiadomości to AlFardan i in. (2013) oraz RC4 NOMORE (Vanhoef, Piessens, 2015). Link na dole: symulator RC4 z wykładu 1, gdyby ktoś chciał to sobie przypomnieć.}
 \end{frame}
 
-\begin{frame}{RC4 problem: no nonce}
-  \vfill
-  \begin{center}
-    \begin{tikzpicture}[>=Stealth]
-      \node[font=\small\bfseries, text=nInk, anchor=west] at (-0.9,1.25) {Modern cipher};
-      \node[actorlight=sAmber, font=\scriptsize\bfseries] (k1) at (0,0.5) {\faKey\ key};
-      \node[draw=sAmber, line width=1pt, fill=white, rounded corners=3pt, font=\scriptsize\bfseries, inner sep=4pt] (n1) at (0,-0.4) {nonce};
-      \node[hwmain, minimum width=1.9cm, minimum height=1.5cm, font=\small\bfseries] (c1) at (2.6,0.05) {cipher};
-      \draw[data] (k1) -- (c1.west |- k1); \draw[data] (n1) -- (c1.west |- n1);
-      \draw[data, line width=1.4pt] (c1.east) -- (4.3,0.05);
-      \byterow{4.7}{0.05}{ksb}{,,,}{0.55}
-      \node[font=\scriptsize, text=nInk, anchor=north] at (5.5,-0.25) {keystream};
-      \node[font=\small\bfseries, text=nInk, anchor=west] at (7.3,1.25) {RC4};
-      \node[actorlight=sAmber, font=\scriptsize\bfseries] (k2) at (8.2,0.5) {\faKey\ key};
-      \node[hwmain, minimum width=1.9cm, minimum height=1.5cm, font=\small\bfseries] (c2) at (10.8,0.05) {\faCogs\ RC4};
-      \draw[data] (k2) -- (c2.west |- k2);
-      \draw[annot, dashed] (7.6,-0.65) rectangle (8.8,-0.15);
-      \node[font=\scriptsize, text=AccentOrange] at (8.2,-0.4) {no input};
-      \draw[data, line width=1.4pt] (c2.south) -- (10.8,-1.25);
-      \byterow{10.0}{-1.55}{ksb}{,,,}{0.55}
-      \node[font=\scriptsize, text=nInk, anchor=north] at (10.8,-1.85) {keystream};
-    \end{tikzpicture}
-  \end{center}
-  \vfill
-  \begin{center}\small So everyone glues the nonce in their own way.\\ WEP glued it to the key, and it broke.\end{center}
-  \vfill
-  \keymsg{No nonce input: the safe way is not the easy way.}
-  \say{RC4 bierze tylko klucz. Nonce trzeba dokleić samemu, a to prosta droga do błędu: WEP dokleił go do klucza i dał się złamać. Dobry szyfr ma nonce jako osobne wejście.}
-\end{frame}
-
-\begin{frame}{RC4 problem: no integrity}
+\begin{frame}{RC4 problem 3: no integrity}
   \vfill
   \begin{center}
     % CHECKED: python3, RC4 key "Kangaroo", "Pay Bob 100" XOR the keystream = the first row;
@@ -683,8 +635,8 @@
     A stream cipher hides the message. It does \textbf{not} protect it from change.\end{center}
   \vfill
   \defbox{\textbf{Integrity}: the certainty that nobody changed the message.}
-  \keymsg{Three fixes to come: look random, a nonce input, a tag.}
-  \say{To nie jest błąd tylko RC4: żaden goły szyfr strumieniowy nie chroni integralności. Mallory odwraca bit w szyfrogramie, a odbiorca niczego nie zauważa. (Na rysunku RC4 z kluczem Kangaroo: bajt 3D zmienia się w 35, a 100 w 900.) Podsumowanie: trzy naprawy, które zobaczymy po kolei.}
+  \keymsg{Three fixes to come: 1 a nonce and a counter as inputs, 2 a keystream that looks random, 3 a tag.}
+  \say{To nie jest błąd tylko RC4: żaden goły szyfr strumieniowy nie chroni integralności. Mallory odwraca bit w szyfrogramie, a odbiorca niczego nie zauważa. (Na rysunku RC4 z kluczem Kangaroo: bajt 3D zmienia się w 35, a 100 w 900.) Podsumowanie: trzy naprawy, które zobaczymy po kolei, w tej samej kolejności co problemy.}
 \end{frame}
 
 % ======================================================================
@@ -720,7 +672,7 @@
   \vfill
   \fixtag{1}%
   \keymsg{We want any part of the keystream, without the parts before it.}
-  \say{Przewijanie filmu: chcemy keystream w środku, nie od początku. RC4 jako maszyna idąca tylko do przodu musiałby policzyć i wyrzucić wszystko wcześniej, tu 1,5 GB. Potrzebujemy czegoś lepszego.}
+  \say{Naprawa 1, druga połowa problemu 1 (,,RC4 idzie tylko do przodu''). Przewijanie filmu: chcemy keystream w środku, nie od początku. RC4 jako maszyna idąca tylko do przodu musiałby policzyć i wyrzucić wszystko wcześniej, tu 1,5 GB. Potrzebujemy czegoś lepszego.}
 \end{frame}
 
 \begin{frame}{The idea: number the blocks}
@@ -751,6 +703,37 @@
   \say{Zamiast maszyny idącej do przodu: każdy 64-bajtowy blok liczymy osobno z klucza, nonce i numeru bloku. Numer bloku to licznik. Dzięki temu dojdziemy od razu do bloku 700.}
 \end{frame}
 
+\samedot
+\begin{frame}{Why separate blocks are safe}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \foreach \lab/\y/\shades in {{key, N1, 0}/1.2/{15,70,35,90,10,55,80,25,60,40}, {key, N1, 1}/0.5/{85,20,60,30,75,10,45,95,15,65}, {key, N2, 0}/-0.2/{40,95,10,65,25,85,50,5,70,30}} {
+        \node[font=\scriptsize\ttfamily, text=nInk, anchor=east] at (1.6,\y) {\lab};
+        \node[hwmain, minimum width=0.9cm, minimum height=0.45cm, font=\scriptsize\bfseries, inner sep=1pt] (f) at (2.3,\y) {f};
+        \draw[data] (f.east) -- (3.2,\y);
+        \foreach \sh [count=\c from 0] in \shades \node[draw=sAmber, fill=sAmber!\sh, minimum width=0.3cm, minimum height=0.4cm, inner sep=0pt] at ({3.45+0.32*\c},\y) {};
+      }
+      \node[font=\scriptsize, text=nInk, anchor=west] at (6.9,0.5) {look unrelated and random};
+      \node[font=\scriptsize\ttfamily, text=nInk, anchor=east] at (1.6,-1.2) {key, N1, 0};
+      \node[hwmain, minimum width=0.9cm, minimum height=0.45cm, font=\scriptsize\bfseries, inner sep=1pt] (g) at (2.3,-1.2) {f};
+      \draw[data] (g.east) -- (3.2,-1.2);
+      \foreach \sh [count=\c from 0] in {15,70,35,90,10,55,80,25,60,40} \node[draw=sAmber, fill=sAmber!\sh, minimum width=0.3cm, minimum height=0.4cm, inner sep=0pt] at ({3.45+0.32*\c},-1.2) {};
+      \node[font=\scriptsize\bfseries, text=AccentOrange, anchor=west] at (6.9,-1.2) {the same input again: the same block as the first row};
+      \draw[nLight, thick, dashed] (-0.3,-0.65) -- (12.6,-0.65);
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \defbox{\textbf{Pseudorandom function}: without the key, its outputs look like independent random blocks, for every different input.}
+  \begin{center}\small A new (nonce, $n$) gives a block that looks fresh: all blocks together look like one long random keystream.\\[3pt]
+    The same (nonce, $n$) gives the same block again. So this pair must never repeat under one key.\end{center}
+  \vfill
+  \fixtag{1}%
+  \keymsg{Each block looks fresh and random, as long as its input is new.}
+  \say{Dlaczego wolno liczyć każdy blok osobno: dobre f zachowuje się jak funkcja losowa. Kto nie zna klucza, nie odróżni wyników dla różnych wejść od niezależnych losowych bloków, nawet jeśli wejścia różnią się o jeden bit (licznik 0 i 1). Dlatego bloki 0, 1, 2, ... razem wyglądają jak jeden długi losowy keystream. Jedyny wyjątek: to samo wejście daje ten sam blok, stąd reguła, że para (nonce, licznik) nie może się powtórzyć. Ten sam pomysł zobaczymy w sekcji 4 przy AES-CTR.}
+\end{frame}
+
+% CHECKED: Salsa20 2005, ChaCha20 2008, Bernstein: https://cr.yp.to/chacha.html (local/audyt/fakty.md)
 \begin{frame}{ChaCha20 from the outside}
   \vfill
   \begin{center}\threeinputs{ChaCha20}\end{center}
@@ -768,14 +751,14 @@
         \node[font=\scriptsize, text=gray, anchor=north] at (1.9,-0.35) {(one input)};
       \end{tikzpicture}
     \column{0.52\textwidth}
-      \small Daniel J. Bernstein: \textbf{Salsa20} (2005),\\ \textbf{ChaCha20} (2008), the better version.\\[3pt]
-      Today we use ChaCha20.
+      \small Daniel J. Bernstein: \textbf{Salsa20} (2005),\\ then \textbf{ChaCha20} (2008), which mixes faster\\ (we compare them in Section 3).\\[3pt]
+      Today ChaCha20 is the usual choice.
   \end{columns}
   \vfill
   \curious{chacha20/\#1}
   \fixtag{1}%
   \keymsg{Three inputs in, 64 bytes out. We use it before we open it.}
-  \say{ChaCha20 jako czarna skrzynka: klucz, nonce, licznik na wejściu, 64 bajty na wyjściu. Od razu widać różnicę z RC4: nonce ma własne wejście. Najpierw go użyjemy, dopiero potem zajrzymy do środka. W symulatorze z linku można zmieniać licznik i patrzeć, jak wiadomość przesuwa się po keystreamie.}
+  \say{ChaCha20 jako czarna skrzynka: klucz, nonce, licznik na wejściu, 64 bajty na wyjściu. Od razu widać różnicę z RC4: nonce ma własne wejście. Najpierw go użyjemy, dopiero potem zajrzymy do środka. W symulatorze z linku można zmieniać licznik i patrzeć, jak wiadomość przesuwa się po keystreamie. Gdyby ktoś pytał, skąd Alice i Bob mają wspólny 32-bajtowy klucz: to wymiana kluczy z wykładów 4 i 5 (Diffie-Hellman, krzywe eliptyczne).}
 \end{frame}
 
 \begin{frame}{Task 1: use ChaCha20}
@@ -820,25 +803,26 @@
 \samedot
 \begin{frame}{Task 2: what we saw}
   \vfill
-  % CHECKED: Task2/solution/jump.py, author's laptop (i5-8265U, Python 3.12), five runs:
-  %          one block 0.00015 to 0.00020 s, all 701 blocks 0.100 to 0.103 s
+  % CHECKED: Task2/solution/jump.py, author's laptop (i5-8265U, Python 3.12), 2026-11-19, five runs:
+  %          one block 0.00014 to 0.00020 s, all 701 blocks 0.102 to 0.114 s; shown: the first run
+  %          (0.00014 s and 0.10195 s, the same run as in Task2/README.md); 0.10195 / 0.00014 = 728
   \begin{center}
     \begin{minipage}{0.6\textwidth}
       \stepbox{Output}{\texttt{Frame 0700: the hero finally opens the red door.}\\[3pt]
-        \texttt{one block: 0.00016 s}\\
+        \texttt{one block: 0.00014 s}\\
         \texttt{all 701:\ \ \ 0.10 s}}
     \end{minipage}\\[0.5cm]
     \begin{tikzpicture}
       \fill[nLine] (0,0.5) rectangle (6.4,0.8);
       \node[font=\small, text=nInk, anchor=west] at (6.55,0.65) {all 701 blocks: 0.10 s};
       \fill[AccentOrange] (0,-0.15) rectangle (0.06,0.15);
-      \node[font=\small, text=nInk, anchor=west] at (0.2,0) {one block: about 600 times faster};
+      \node[font=\small, text=nInk, anchor=west] at (0.2,0) {one block: about 700 times faster};
     \end{tikzpicture}
   \end{center}
   \vfill
   \fixtag{1}%
   \keymsg{The counter gives random access to the keystream.}
-  \say{Jeden blok zamiast 701. To jest dostęp swobodny do keystreamu, czego RC4 nie miał. Czasy z mojego laptopa (i5-8265U, Python 3.12): pięć uruchomień dało 0,00015 do 0,00020 s dla jednego bloku i około 0,10 s dla 701 bloków. U studentów liczby będą inne, ale różnica podobna.}
+  \say{Jeden blok zamiast 701. To jest dostęp swobodny do keystreamu, czego RC4 nie miał. Czasy z mojego laptopa (i5-8265U, Python 3.12): pięć uruchomień dało 0,00014 do 0,00020 s dla jednego bloku i 0,10 do 0,11 s dla 701 bloków; na slajdzie i w README jest ten sam, pierwszy pomiar. U studentów liczby będą inne, ale różnica podobna.}
 \end{frame}
 
 \begin{frame}{Nonce and counter: two different jobs}
@@ -894,21 +878,21 @@
 % ======================================================================
 
 \begin{frame}{Inside: a 4 by 4 table}
-  \vfill
   \begin{center}
     \statefig[1.45]{const/c,const/c,const/c,const/c,key/k,key/k,key/k,key/k,key/k,key/k,key/k,key/k,ctr/t,nonce/n,nonce/n,nonce/n}{%
       \node[font=\small, text=nInk, anchor=west] at ([xshift=0.3cm]W3.east) {constants (fixed)};
       \node[font=\small, text=sAmberText, anchor=west] at ([xshift=0.3cm]W7.east) {your key};
       \node[font=\small, text=sAmberText, anchor=west] at ([xshift=0.3cm]W11.east) {your key};
-      \node[font=\small, text=nInk, anchor=west] at ([xshift=0.3cm]W15.east) {counter + nonce};}\\[6pt]
+      \node[font=\small, text=nInk, anchor=west] at ([xshift=0.3cm]W15.east) {counter + nonce};}\\[2pt]
     \statelegend
   \end{center}
   \vfill
-  \bigdef{\textbf{State}: everything the cipher works on, 16 words, 4 by 4.}
+  \defbox{\centering \textbf{State}: everything the cipher works on, 16 words, 4 by 4.\\[1pt]
+    {\footnotesize \textbf{word} = 32 bits = 4 bytes, lowest byte first (little-endian); key = 8 words, counter = 1, nonce = 3.}}
   \curious{chacha20/\#2}
   \fixtag{2}%
   \keymsg{Everything that should change the keystream is in the table.}
-  \say{Wnętrze ChaCha20 to jedna tabela 4 na 4: stałe, klucz, licznik, nonce. To wszystko, na czym szyfr pracuje. Nie uczymy się liczb, tylko co gdzie siedzi. (Słowo ma 32 bity, czyli 4 bajty: klucz to 8 słów, nonce 3, licznik 1.) W symulatorze z linku widać tę tabelę dla własnego klucza i nonce.}
+  \say{Wnętrze ChaCha20 to jedna tabela 4 na 4: stałe, klucz, licznik, nonce. To wszystko, na czym szyfr pracuje. Nie uczymy się liczb, tylko co gdzie siedzi. (Słowo ma 32 bity, czyli 4 bajty: klucz to 8 słów, nonce 3, licznik 1. Bajty wchodzą do słowa od najmłodszego: stała ,,expa'' to bajty 65 78 70 61, czyli słowo 61707865.) W symulatorze z linku widać tę tabelę dla własnego klucza i nonce.}
 \end{frame}
 
 \begin{frame}{Three simple steps, no tables}
@@ -932,7 +916,7 @@
       % rotate
       \begin{scope}[shift={(4.7,0)}]
         \node[font=\normalsize\bfseries, text=DeepBlue, anchor=west] at (-0.2,1.55) {rotate};
-        \node[font=\scriptsize\ttfamily, text=nInk, anchor=west] at (1.05,1.55) {a = a <\kern-1pt<\kern-1pt< 7};
+        \node[font=\scriptsize\ttfamily, text=nInk, anchor=west] at (1.05,1.55) {a = a <\kern-1pt<\kern-1pt< 2};
         \node[font=\tiny, text=gray, anchor=west] at (-0.2,1.15) {bits move left, wrap (here 8 bits, by 2)};
         \bitrow{R}{0.2}{0.6}{0,0,1,1,0,1,0,1}{wcell}
         \bitrow{T}{0.2}{-0.5}{1,1,0,1,0,1,0,0}{st-k}
@@ -954,7 +938,7 @@
     \end{tikzpicture}
   \end{center}
   \vfill
-  \begin{center}\small = \textbf{ARX} (add, rotate, xor). No lookup tables in memory.\\[3pt]
+  \begin{center}\small = \textbf{ARX} (add, rotate, xor). No lookup tables in memory. ChaCha20 rotates by 16, 12, 8 and 7.\\[3pt]
     RC4 reads a table (S); ChaCha20 does not.\end{center}
   \vfill
   \curious{chacha20/\#4}
@@ -1002,33 +986,145 @@
   \curious{chacha20/\#3}
   \fixtag{2}%
   \keymsg{Twenty rounds, until everything depends on everything.}
-  \say{Te trzy kroki powtarzamy na całej tabeli 20 razy. Nie rysujemy ćwiartki rundy ani kolumn i przekątnych: intuicja to ,,miesza w kółko, aż wszystko zależy od wszystkiego''. Na końcu dodajemy tabelę początkową, inaczej dałoby się rundy cofnąć i odczytać klucz. (Liczby pod tabelami to pierwsze słowo przykładu z RFC 8439, punkt 2.3.2.) Kto chce zobaczyć ćwiartki rundy, kolumny i przekątne, ma je w symulatorze z linku.}
+  \say{Te trzy kroki powtarzamy na całej tabeli 20 razy. Nie rysujemy ćwiartki rundy ani kolumn i przekątnych: intuicja to ,,miesza w kółko, aż wszystko zależy od wszystkiego''. Na końcu dodajemy tabelę początkową, inaczej dałoby się rundy cofnąć i odczytać klucz. Po co stałe ,,expand 32-byte k'': bez nich tabela z samych zer (klucz zero, nonce zero, licznik zero) dawałaby same zera, bo ARX zera nie rusza; stałe odróżniają też wariant z kluczem 16-bajtowym (,,expand 16-byte k''). (Liczby pod tabelami to pierwsze słowo przykładu z RFC 8439, punkt 2.3.2.) Kto chce zobaczyć ćwiartki rundy, kolumny i przekątne, ma je w symulatorze z linku.}
 \end{frame}
 
-\begin{frame}{See it: does the output remember the key?}
+% CHECKED: Task3/salsa.py matches the Salsa20 specification (cr.yp.to/snuffle/spec.pdf): quarterround(1,0,0,0) =
+%          (08008145, 00000080, 00010200, 20500000), the Salsa20 hash example 211,159,... -> 109,42,178,168,...;
+%          local/audyt/tmp-L02/work/salsa_check.py: scrypt built on this Salsa20/8 = hashlib.scrypt
+% CHECKED 2026-11-25: eSTREAM final portfolio announced 15 April 2008, profile 1 (software): HC-128, Rabbit, Salsa20/12, SOSEMANUK
+%   (ECRYPT II deliverable D.SYM.10, cordis.europa.eu/docs/projects/cnect/6/216676/080/deliverables/001-DSYM10v1.pdf, via search summary)
+\begin{frame}{Salsa20: the older sibling}
+  \vfill
+  \begin{center}
+    \begin{tabular}{c@{\qquad\qquad}c}
+      \textbf{Salsa20} (2005) & \textbf{ChaCha20} (2008) \\[3pt]
+      \statefig[1.0]{const/c,key/k,key/k,key/k,key/k,const/c,nonce/n,nonce/n,ctr/t,ctr/t,const/c,key/k,key/k,key/k,key/k,const/c}{} &
+      \statefig[1.0]{const/c,const/c,const/c,const/c,key/k,key/k,key/k,key/k,key/k,key/k,key/k,key/k,ctr/t,nonce/n,nonce/n,nonce/n}{} \\[3pt]
+      {\scriptsize constants on the diagonal; nonce 8 bytes, counter 8 bytes} & {\scriptsize constants in the first row; nonce 12 bytes, counter 4 bytes}
+    \end{tabular}\\[6pt]
+    \statelegend
+  \end{center}
+  \vfill
+  \begin{center}\small The same idea: a 4 by 4 table, add, rotate and xor, 20 rounds, the start table added back.\\[3pt]
+    In 2008 eSTREAM, a European contest for stream ciphers, chose Salsa20/12 (12 rounds) for software.\end{center}
+  \vfill
+  \keymsg{ChaCha20 is Salsa20 reworked: the same pieces, a new layout and a new quarter round.}
+  \say{Salsa20 to pierwsza wersja tego samego pomysłu, Bernstein 2005, zgłoszona do eSTREAM (europejski konkurs na szyfry strumieniowe, 2004 do 2008). W końcowym portfelu z 2008 roku jest Salsa20/12, czyli wersja z 12 rundami, w profilu ,,software''. Te same klocki: tabela 4 na 4, ARX, 20 rund, dodanie tabeli startowej. Różnice: stałe na przekątnej, nonce 8 bajtów i licznik 8 bajtów (64 bity). ChaCha20 z RFC 8439 ma nonce 12 bajtów i licznik 4 bajty; oryginalna ChaCha Bernsteina (i libsodium crypto\_stream\_chacha20) miała, jak Salsa, 8 i 8. IETF wydłużył nonce do 12 bajtów dla zgodności z zaleceniami RFC 5116 (RFC 8439, punkt 2.3; np. 4 bajty nadawcy i 8 bajtów licznika), kosztem krótszego licznika (256 GiB na wiadomość).}
+\end{frame}
+
+\samedot
+\begin{frame}{Two quarter rounds side by side}
+  \vfill
+  \begin{columns}[T,onlytextwidth]
+    \column{0.48\textwidth}
+      \centering\textbf{Salsa20}\\[4pt]
+      \salsaqrcode\\[6pt]
+      \small each word changes \textbf{once}\\ (b, then c, d, a)\\[3pt]
+      rounds: columns, then rows
+    \column{0.48\textwidth}
+      \centering\textbf{ChaCha20}\\[4pt]
+      \qrcode{0}\\[6pt]
+      \small each word changes \textbf{twice}\\ (a, d, c, b, and again)\\[3pt]
+      rounds: columns, then diagonals
+  \end{columns}
+  \vfill
+  \begin{center}\small Both: 12 small steps on 4 words. Which one spreads a change further?\end{center}
+  \vfill
+  \keymsg{The same amount of work per quarter round, but ChaCha20 touches every word twice.}
+  \say{Ćwiartka rundy obu szyfrów obok siebie. Tyle samo pracy: 4 dodawania, 4 XOR-y, 4 rotacje. W Salsie każde słowo zmienia się raz, w ChaCha dwa razy, więc zmiana jednego bitu powinna rozejść się szybciej. Rotacje 16 i 8 w ChaCha to przesunięcia o całe bajty, szybkie na wielu procesorach. Układ ChaCha (kolumny, potem przekątne, stałe w pierwszym wierszu) wygodnie liczy się instrukcjami wektorowymi: cały wiersz to jeden wektor. Pytanie na dole sprawdzamy w zadaniu 3.}
+\end{frame}
+
+\begin{frame}{Task 3: which one mixes faster?}
+  \vfill
+  \taskgoal{flip one bit and count how far it spreads in Salsa20 and in ChaCha20.}
+  \taskready{\texttt{salsa.py} and \texttt{chacha.py}: \texttt{quarter\_round}, \texttt{rounds}, \texttt{initial\_state}.}
+  \vfill
+  \opentask{Task3}{about 8 minutes}
+  \vfill
+  \say{Około 8 minut. Najpierw przewidywanie: która ćwiartka rozniesie zmianę dalej? Studenci odwracają jeden bit wejścia, liczą zmienione bity wyjścia (popcount z XOR), potem średnio po 128 bitach, potem cała tabela po 1 do 4 rundach. Moduły są gotowe; kroki w README.}
+\end{frame}
+
+\samedot
+\begin{frame}{Task 3: what we saw}
+  % CHECKED: Task3/solution/mix.py, python3 3.12: one quarter round, bit 0 of a: Salsa20 31, ChaCha20 36;
+  %          average over 128 bits 15.8 and 25.1; whole table, key bit 0 flipped, of 512 bits:
+  %          1 round 15 / 37, 2 rounds 124 / 245, 3 rounds 234 / 238, 4 rounds 265 / 256
+  \vfill
+  \begin{center}
+    \small one quarter round, average bits changed (of 128):\quad Salsa20 \textbf{15.8}\quad ChaCha20 \textbf{25.1}\\[8pt]
+    \begin{tikzpicture}
+      \node[font=\scriptsize\bfseries, text=nInk, anchor=south] at (2.6,2.95) {whole table: bits changed (of 512) after $n$ rounds};
+      \foreach \n/\a/\b in {1/15/37, 2/124/245, 3/234/238, 4/265/256} {
+        \fill[nLine] ({1.3*\n-1.0},0) rectangle ({1.3*\n-0.55},{\a/100});
+        \fill[AccentOrange] ({1.3*\n-0.5},0) rectangle ({1.3*\n-0.05},{\b/100});
+        \ifnum\a<100 \def\anc{south}\def\col{nInk}\else\def\anc{north}\def\col{white}\fi
+        \node[font=\tiny\bfseries, text=nInk, anchor=\anc, inner sep=2pt] at ({1.3*\n-0.775},{\a/100}) {\a};
+        \ifnum\b<100 \def\anc{south}\def\col{nInk}\else\def\anc{north}\def\col{white}\fi
+        \node[font=\tiny\bfseries, text=\col, anchor=\anc, inner sep=2pt] at ({1.3*\n-0.275},{\b/100}) {\b};
+        \node[font=\scriptsize, text=nInk, anchor=north] at ({1.3*\n-0.525},0) {\n};
+      }
+      \draw[nLine] (0,0) -- (5.4,0);
+      \draw[DeepBlue, thick, dashed] (0,2.56) -- (5.4,2.56) node[right, font=\scriptsize, text=DeepBlue] {random: 256};
+      \node[font=\scriptsize, text=nInk, anchor=north] at (2.6,-0.35) {rounds};
+      \fill[nLine] (7.6,1.6) rectangle (7.9,1.85); \node[font=\scriptsize, anchor=west] at (8.0,1.72) {Salsa20};
+      \fill[AccentOrange] (7.6,1.1) rectangle (7.9,1.35); \node[font=\scriptsize, anchor=west] at (8.0,1.22) {ChaCha20};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \keymsg{ChaCha20 mixes more per round: random-looking after 2 rounds, Salsa20 after 3 to 4.}
+  \say{Wyniki z rozwiązania. Jeden bit to jedna próbka (31 i 36, mała różnica), dlatego liczymy średnią: 15,8 kontra 25,1 bitu na ćwiartkę. W całej tabeli ChaCha20 po 2 rundach jest już przy połowie bitów (245 z 512, czyli jak losowo), Salsa20 dopiero po 3 lub 4. Oba robią 20 rund, więc oba mają duży zapas; ChaCha20 dostaje ten sam zapas szybciej.}
+\end{frame}
+
+% CHECKED: libsodium crypto_secretbox = XSalsa20 + Poly1305 (doc.libsodium.org/secret-key_cryptography/secretbox, 2026-11-19);
+%          scrypt uses the Salsa20/8 core (tested: salsa_check.py against hashlib.scrypt); secondary sources only: best published attacks: Salsa20/8 (Aumasson et al. 2008,
+%          about 2^251; later about 2^245) and ChaCha 7 rounds (about 2^248, later about 2^243): eprint.iacr.org/2015/698,
+%          aumasson.jp/data/papers/AFKMR08.pdf
+\begin{frame}{Why ChaCha20 won, and where Salsa20 lives on}
+  \vfill
+  \begin{columns}[T,onlytextwidth]
+    \column{0.5\textwidth}
+      \textbf{ChaCha20 is the better version}\\[6pt]
+      \small
+      \ok\ more mixing per round (Task 3)\\[4pt]
+      \ok\ a row of the table is one vector:\\ \hspace*{1.1em}fast with SIMD instructions\\[4pt]
+      \ok\ best attacks: 7 of 20 rounds\\ \hspace*{1.1em}(Salsa20: 8 of 20); both far from practical
+    \column{0.46\textwidth}
+      \textbf{Salsa20 is still in use}\\[6pt]
+      \small
+      \textcolor{nInk}{\faBox}\ \ NaCl and libsodium: \texttt{crypto\_secretbox}\\ \hspace*{1.4em}= XSalsa20 + Poly1305 (the tag of Section 5)\\[4pt]
+      \textcolor{nInk}{\faKey}\ \ scrypt, a password hash (Lecture 7):\\ \hspace*{1.4em}built on Salsa20 with 8 rounds
+  \end{columns}
+  \vfill
+  \curious{chacha20/\#6}
+  \keymsg{New designs pick ChaCha20; Salsa20 lives on where it was chosen first.}
+  \say{Dlaczego ChaCha20 wygrała: więcej mieszania na rundę (zadanie 3), wygodniejsza dla instrukcji wektorowych (SIMD: to samo działanie na kilku słowach naraz), a w kryptoanalizie zapas jest podobny albo lepszy: najlepsze opublikowane ataki sięgają 8 rund Salsy (Aumasson i in. 2008) i 7 rund ChaCha, ze złożonością rzędu 2 do potęgi 240 i więcej, czyli tylko trochę poniżej przeszukania wszystkich kluczy. (Preprint z 2025 roku obiecuje dużo mniej, ale nie był recenzowany.) Salsa20 żyje dalej: w bibliotekach NaCl i libsodium funkcja crypto\_secretbox to XSalsa20-Poly1305 (XSalsa20 to Salsa z 24-bajtowym nonce, Bernstein 2008, wzór dla XChaCha20). scrypt (wykład 7) używa rdzenia Salsa20/8 do mieszania pamięci.}
+\end{frame}
+
+\begin{frame}{See it: does the key schedule remember the key?}
   \opensim{chacha20/\#5}
   \vfill
   \begin{enumerate}\small
-    \item Card 1: many random keys. (100\,000 here). Is the first output byte \texttt{key[0]}? Press \textbf{run}.
-    \item RC4 says yes far too often; ChaCha20 as often as chance. Tick \textbf{seed 2026} for the numbers below.
+    \item Card 1, 100\,000 random keys: is byte 0 of what the key setup gives equal to \texttt{key[0]}? Press \textbf{run}.
+    \item RC4's table S: far too often. ChaCha20's block: as often as chance. Tick \textbf{seed 2026} for these numbers.
   \end{enumerate}
   \vfill
   \begin{center}
     % CHECKED: random.seed(2026), 100 000 keys: RC4 36.75%, ChaCha20 0.40% (chance 0.39%)
     \begin{tikzpicture}
       \fill[AccentOrange] (0,0.7) rectangle ({36.75*0.14},1.15);
-      \node[font=\small\bfseries, text=nInk, anchor=east] at (-0.15,0.92) {RC4\ \ \texttt{S[0] == key[0]}};
-      \node[font=\small, text=nInk, anchor=west] at ({36.75*0.14+0.15},0.92) {\textbf{36.75\%}\ \ $\leftarrow$ it remembers};
+      \node[font=\small\bfseries, text=nInk, anchor=east, align=right] at (-0.15,0.92) {RC4: S after the key schedule\\[-2pt] {\mdseries\scriptsize\texttt{S[0] == key[0]}}};
+      \node[font=\small, text=nInk, anchor=west] at ({36.75*0.14+0.15},0.92) {\textbf{36.75\%}\ \ $\leftarrow$ remembers};
       \fill[nLine] (0,-0.22) rectangle ({0.40*0.14},0.22);
-      \node[font=\small\bfseries, text=nInk, anchor=east] at (-0.15,0) {ChaCha20\ \ \texttt{first byte == key[0]}};
+      \node[font=\small\bfseries, text=nInk, anchor=east, align=right] at (-0.15,0) {ChaCha20: the output block\\[-2pt] {\mdseries\scriptsize\texttt{byte 0 == key[0]}}};
       \node[font=\small, text=nInk, anchor=west] at (0.25,0) {\textbf{0.40\%}\ \ $\leftarrow$ like chance (1/256 = 0.39\%)};
       \draw[nLine] (0,-0.45) -- (0,1.4);
     \end{tikzpicture}
   \end{center}
   \vfill
   \fixtag{2}%
-  \keymsg{That was RC4 mistake 1. ChaCha20's output remembers nothing.}
-  \say{Pokazać na żywo w symulatorze, karta pierwsza. RC4 w 37\% zdradza pierwszy bajt klucza (jak w Task 7 z wykładu 1), ChaCha20 tylko w 0,4\%, czyli jak przypadek. To był błąd 1 RC4. Z zaznaczonym ziarnem 2026 wychodzą liczby ze slajdu.}
+  \keymsg{That was RC4 problem 2 (a). ChaCha20's block shows nothing of the key.}
+  \say{Pokazać na żywo w symulatorze, karta pierwsza. Uczciwie: u RC4 mierzymy tablicę S po układaniu klucza (KSA), a nie bajt wyjścia; u ChaCha20 mierzymy gotowy blok wyjścia, czyli to, co z ChaCha20 wychodzi. To, co RC4 przygotowuje z klucza, w 37\% przypadków ma S[0] = key[0] (jak w Task 7 z wykładu 1). W WEP ten stan przecieka do pierwszych bajtów keystreamu i na tym stoi atak FMS. Blok ChaCha20 trafia w key[0] tylko w 0,4\% kluczy, czyli jak przypadek. To był problem 2, objaw (a). Z zaznaczonym ziarnem 2026 wychodzą liczby ze slajdu.}
 \end{frame}
 
 \samedot
@@ -1036,7 +1132,7 @@
   \opensim{chacha20/\#5}
   \vfill
   \begin{enumerate}\small
-    \item Card 2: many random keys. (100\,000 here). How often is the second byte 0? Press \textbf{run}.
+    \item Card 2: 100\,000 random keys: how often is the second keystream byte 0? Press \textbf{run}.
     \item RC4 hits 0 twice too often; ChaCha20 stays at chance. Tick \textbf{seed 2026} for the numbers below.
   \end{enumerate}
   \vfill
@@ -1057,7 +1153,7 @@
   \vfill
   \fixtag{2}%
   \keymsg{RC4 leaked two ways; ChaCha20's mixing closes both.}
-  \say{Pokazać na żywo w symulatorze, karta druga. To był błąd 2 RC4: drugi bajt bywa 0 dwa razy za często. ChaCha20 daje 0,36\%: to szum losowania, przy 100\,000 kluczy spodziewamy się około 390 zer, plus minus 20. Domknięcie: błędy 1 i 2 to jeden mechanizm, dokładne mieszanie, zmierzony raz od strony klucza, raz od strony wyjścia.}
+  \say{Pokazać na żywo w symulatorze, karta druga. To był problem 2, objaw (b): drugi bajt bywa 0 dwa razy za często. ChaCha20 daje 0,36\%: to szum losowania, przy 100\,000 kluczy spodziewamy się około 390 zer, plus minus 20. Domknięcie: oba objawy to jeden mechanizm, dokładne mieszanie, zmierzony raz od strony klucza, raz od strony wyjścia.}
 \end{frame}
 
 \begin{frame}{How do we know it is secure?}
@@ -1076,7 +1172,7 @@
         \fi
       }
       \draw[decorate, decoration={brace, mirror, amplitude=5pt}, aWrite, thick] (-0.25,-0.38) -- ({0.56*6+0.25},-0.38)
-        node[midway, below=6pt, font=\scriptsize\bfseries, text=aWrite] {best known attack breaks 7};
+        node[midway, below=6pt, font=\scriptsize\bfseries, text=aWrite, align=center] {best known attacks reach 7,\\ far from practical};
       \draw[decorate, decoration={brace, mirror, amplitude=5pt}, aExec, thick] ({0.56*7-0.25},-0.38) -- ({0.56*19+0.25},-0.38)
         node[midway, below=6pt, font=\scriptsize\bfseries, text=aExec!70!black] {13 of margin};
       \draw[->, very thick, DeepBlue] ({0.56*19},1.05) -- ({0.56*19},0.35);
@@ -1086,7 +1182,7 @@
   \vfill
   \fixtag{2}%
   \keymsg{We trust ChaCha20 because attacks stall far short of 20 rounds.}
-  \say{Nasze testy potrafią tylko wykryć wadę (jak w RC4), nie zaświadczyć, że dobry szyfr jest bezpieczny. Pewność bierze się z kryptoanalizy: najlepsze znane ataki łamią dopiero 7 z 20 rund, więc zostaje duży zapas. ChaCha8 i ChaCha12 to mniej rund: szybsze, mniejszy zapas. Bez szczegółów ataków różnicowych i liniowych.}
+  \say{Nasze testy potrafią tylko wykryć wadę (jak w RC4), nie zaświadczyć, że dobry szyfr jest bezpieczny. Pewność bierze się z kryptoanalizy: najlepsze znane ataki sięgają 7 z 20 rund, a i tak są tylko teoretyczne (rzędu $2^{243}$ do $2^{248}$ operacji, niewiele mniej niż przeszukanie wszystkich $2^{256}$ kluczy), więc zostaje duży zapas. Dla Salsy20 to 8 rund. ChaCha8 i ChaCha12 to mniej rund: szybsze, mniejszy zapas. Bez szczegółów ataków różnicowych i liniowych.}
 \end{frame}
 
 % ======================================================================
@@ -1183,41 +1279,26 @@
   \vfill
   \begin{center}\small Without an AES chip, fast AES uses \textbf{lookup tables}. Which entry it reads depends on the key.\\[2pt]
     An attacker who measures the timing can work the key back out.\\[4pt]
-    ChaCha20 (add, rotate, xor): no tables. The same steps every time, whatever the key: nothing to leak.\end{center}
+    ChaCha20 (add, rotate, xor): no tables. The same steps every time, whatever the key: nothing to leak.\\[4pt]
+    It needs only plain integer instructions, and it fits vector (SIMD) instructions on any CPU.\end{center}
   \vfill
   \keymsg{A key-dependent table lookup can leak the key; ARX has none.}
-  \say{Szybki AES w programie czyta tablice, a to, którą komórkę, zależy od klucza. Napastnik mierzy czas dostępu (cache) i odtwarza klucz. To jest atak czasowy. ChaCha20 robi dodawanie, rotację i XOR zawsze tak samo, niezależnie od klucza, więc nie ma czego podsłuchać. (Da się zrobić stałoczasowy AES, ale to osobny, sprytny kod SIMD.)}
+  \say{Szybki AES w programie czyta tablice, a to, którą komórkę, zależy od klucza. Napastnik mierzy czas dostępu (cache) i odtwarza klucz. To jest atak czasowy. ChaCha20 robi dodawanie, rotację i XOR zawsze tak samo, niezależnie od klucza, więc nie ma czego podsłuchać. (Da się zrobić stałoczasowy AES, ale to osobny, sprytny kod SIMD.) SIMD to instrukcje wektorowe: to samo działanie na kilku słowach naraz; ChaCha20 dobrze się na nie układa, bo cały wiersz tabeli to jeden wektor. Źródła ataku: Bernstein 2005 (,,Cache-timing attacks on AES''), Osvik, Shamir, Tromer 2005.}
 \end{frame}
 
-\samedot
-\begin{frame}{ChaCha20 needs nothing special}
-  \begin{center}\large \textbf{ARX}: add, rotate, xor on 32-bit words.\end{center}
-  \vfill
-  \begin{center}
-    \small
-    \renewcommand{\arraystretch}{2.0}
-    \begin{tabular}{c l}
-      \textcolor{nInk}{\Large\faStopwatch} & the same time for every key (no secret-dependent table lookup) \\
-      \textcolor{nInk}{\Large\faMicrochip} & runs on plain integer instructions, on any CPU \\
-      \textcolor{nInk}{\Large\faTh} & fits ordinary vector instructions (SIMD) \\
-    \end{tabular}
-  \end{center}
-  \vfill
-  \keymsg{Constant time, no special chip, no key leak.}
-  \say{ChaCha20 liczy w stałym czasie, bez tablic, więc bez wycieku. Działa na zwykłych instrukcjach każdego procesora. SIMD to instrukcje wektorowe: to samo działanie na kilku słowach naraz.}
-\end{frame}
 
 \begin{frame}{Measured on a laptop}
   \begin{center}\small\textcolor{gray}{Intel Core i5-8265U\ \ $\cdot$\ \ OpenSSL 3.0.13\ \ $\cdot$\ \ 16 KiB blocks}\end{center}
   \vfill
   \begin{center}
-    % CHECKED (draft): openssl speed -evp, 16384-byte blocks, the author's laptop; AES-NI switched off with OPENSSL_ia32cap.
-    %   Re-run 2026-11-14 on the same laptop: AES-128-CTR 5.24 / 0.44 GB/s, ChaCha20 2.76 GB/s
-    %   (1.46 GB/s under the mask, which also switches off SIMD: shown as 3.0, see the notes)
+    % CHECKED: 2026-11-25, the author's laptop (i5-8265U, OpenSSL 3.0.13), openssl speed -evp X -bytes 16384 -seconds 2,
+    %   two runs (local/audyt/tmp-L02/speed/out2.txt): AES-128-CTR 6.03 / 5.71 GB/s, ChaCha20 3.22 / 2.99 GB/s;
+    %   OPENSSL_ia32cap="~0x200000200000000:~0x0" (AES-NI and PCLMULQDQ off): AES-128-CTR 0.62 / 0.59, ChaCha20 3.14 / 3.12.
+    %   Without ":~0x0" OpenSSL also forgets AVX2 and ChaCha20 drops to 1.6: not the question we ask.
     \begin{tikzpicture}
       \node[font=\small\bfseries, text=nInk] at (2.3,2.2) {with AES-NI};
       \node[font=\small\bfseries, text=nInk] at (8.3,2.2) {without AES-NI};
-      \foreach \x/\a/\c in {0/5.8/3.0, 6.0/0.6/3.0} {
+      \foreach \x/\a/\c in {0/5.9/3.1, 6.0/0.6/3.1} {
         \fill[nLine] (\x,1.1) rectangle ({\x+0.7*\a},1.6);
         \node[font=\small, text=nInk, anchor=west] at ({\x+0.7*\a+0.1},1.35) {\a\ GB/s};
         \fill[AccentOrange] (\x,0.3) rectangle ({\x+0.7*\c},0.8);
@@ -1226,12 +1307,13 @@
       }
       \node[font=\small\bfseries, text=nInk, anchor=east] at (-0.15,1.35) {AES-128-CTR};
       \node[font=\small\bfseries, text=nInk, anchor=east] at (-0.15,0.55) {ChaCha20};
-      \draw[annot] (5.85,0.2) rectangle (9.75,0.9);
+      \draw[annot] (5.85,0.2) rectangle (9.85,0.9);
     \end{tikzpicture}
   \end{center}
   \vfill
+  \begin{center}\scriptsize\textcolor{gray}{without AES-NI = the same laptop with the AES instructions switched off; both measured}\end{center}
   \keymsg{With AES chips, AES wins. Without them, ChaCha20 wins.}
-  \say{Prawdziwe liczby z mojego laptopa (i5-8265U, openssl speed). Ze sprzętem AES wygrywa około 2 razy, bez sprzętu ChaCha20 wygrywa około 5 razy. Słupek ChaCha20 jest taki sam w obu kolumnach, bo ChaCha nie używa AES-NI; zmierzony spadek do 1,5 pod maską to artefakt (maska gasi też SIMD), nie realna zależność. GCM i Poly1305 to wersje ze znacznikiem.}
+  \say{Prawdziwe liczby z mojego laptopa (i5-8265U, openssl speed, pomiar 25.11.2026, średnia z dwóch uruchomień). Ze sprzętem AES wygrywa około 2 razy. Z wyłączonymi instrukcjami AES (zmienna OPENSSL\_ia32cap) AES spada do 0,6 GB/s, a ChaCha20 się nie zmienia, bo tych instrukcji nie używa: wygrywa około 5 razy. Oba słupki ChaCha20 są zmierzone. (Uwaga, gdyby ktoś powtarzał pomiar: maska bez drugiej części ,,:\textasciitilde 0x0'' gasi w OpenSSL także AVX2 i wtedy ChaCha20 spada do 1,6 GB/s.) Zegar laptopa się zmienia, więc liczby też, proporcje zostają.}
 \end{frame}
 
 \begin{frame}{Why Google added ChaCha20 to HTTPS}
@@ -1250,14 +1332,14 @@
       \small
       \textbf{2014}: many Android phones had no hardware AES.\\[3pt]
       HTTPS with AES was slow, so Google added \textbf{ChaCha20-Poly1305} to Chrome.\\[8pt]
-      \textbf{Today}: most phones have hardware AES and often use AES-GCM.\\[3pt]
+      \textbf{Today}: most phones have hardware AES and often use AES-GCM (AES with a tag).\\[3pt]
       But ChaCha20-Poly1305 stayed a standard HTTPS cipher (TLS 1.3),\\ chosen wherever there is no AES hardware.\\[8pt]
       ``Google uses it'' = browser and server pick it per HTTPS connection, not the whole phone.
   \end{columns}
   \vfill
   \keymsg{No AES hardware $\rightarrow$ ChaCha20; it stayed a standard either way.}
-  % source: Google Security Blog, April 2014
-  \say{W 2014 wiele telefonów z Androidem nie miało sprzętowego AES, więc HTTPS przez AES był wolny; Google dodał ChaCha20-Poly1305 do Chrome (BoringSSL) i swoich serwerów. Chrome wybiera adaptacyjnie: gdy procesor ma sprzętowy AES, woli AES-GCM, a bez niego ChaCha20. Systemowa biblioteka TLS Androida (Conscrypt) też to obsługuje, więc nie tylko Chrome. ,,Google używa'' znaczy: przeglądarka i serwer negocjują szyfr dla danego połączenia HTTPS, a nie ,,cały telefon''. Osobny przypadek: szyfrowanie dysku tanich telefonów bez AES to Adiantum (XChaCha12), inny użytek niż HTTPS. (Stan bieżący według wiedzy do 2026.)}
+  % CHECKED: Google Security Blog, April 2014 (local/audyt/fakty.md); TLS 1.3: RFC 8446 section 9.1
+  \say{W 2014 wiele telefonów z Androidem nie miało sprzętowego AES, więc HTTPS przez AES był wolny; Google dodał ChaCha20-Poly1305 do Chrome (BoringSSL) i swoich serwerów. Chrome wybiera adaptacyjnie: gdy procesor ma sprzętowy AES, woli AES-GCM, a bez niego ChaCha20. Systemowa biblioteka TLS Androida (Conscrypt) też to obsługuje, więc nie tylko Chrome. ,,Google używa'' znaczy: przeglądarka i serwer negocjują szyfr dla danego połączenia HTTPS, a nie ,,cały telefon''. Osobny przypadek: szyfrowanie dysku tanich telefonów bez AES to Adiantum (XChaCha12), inny użytek niż HTTPS. (Źródła: Google Security Blog, kwiecień 2014; RFC 8446, sekcja 9.1: TLS\_CHACHA20\_POLY1305\_SHA256 jako SHOULD.)}
 \end{frame}
 
 % ======================================================================
@@ -1267,7 +1349,7 @@
 \begin{frame}{Recall: encryption does not protect integrity}
   \vfill
   \begin{center}
-    % CHECKED: python3, aead.chacha20 with the key and nonce of Task 3, counter 1: "Pay Bob 100" gives the first row;
+    % CHECKED: python3, aead.chacha20 with the key and nonce of Task 4, counter 1: "Pay Bob 100" gives the first row;
     %          byte 8 XOR 0x08 (D7 -> DF) decrypts to "Pay Bob 900"
     \tamperfig{4C,EA,76,9D,37,9F,55,B9,D7,A3,5A}{4C,EA,76,9D,37,9F,55,B9,DF,A3,5A}
   \end{center}
@@ -1282,12 +1364,12 @@
 
 \samedot
 \begin{frame}{A tag}
-  \begin{center}\small \textbf{Poly1305} computes a 16-byte \textbf{tag} from the ciphertext (and the key).\end{center}
+  \begin{center}\small \textbf{Poly1305} computes a 16-byte \textbf{tag} from the ciphertext and a secret key.\end{center}
   \vfill
   \begin{center}
-    % CHECKED: Task3/aead.py, seal(key, nonce, b"Pay Bob 100") with the key and nonce of Task 3:
+    % CHECKED: Task4/aead.py, seal(key, nonce, b"Pay Bob 100") with the key and nonce of Task 4:
     %          ciphertext 4c ea 76 9d 37 9f 55 b9 d7 a3 5a, tag 0e e9 c8 47 ... 30 71;
-    %          with byte 5 XOR 1 the recomputed tag is a7 90 ce 91 ... 79 28
+    %          with byte 8 XOR 08 ("Pay Bob 900", the slide before) the recomputed tag is 0c 11 a0 78 ... 04 3e
     \begin{tikzpicture}[>=Stealth]
       \node[font=\small\bfseries, text=nInk, anchor=east] at (-0.4,0) {send:};
       \byterow{0}{0}{ctb}{4C,EA,76,9D,37,9F,55,B9,D7,A3,5A}{0.66}
@@ -1297,14 +1379,46 @@
       \node[font=\small\bfseries, text=nInk, anchor=east] at (-0.4,-1.0) {Bob:};
       \node[font=\small, text=nInk, anchor=west] at (-0.2,-1.0) {recomputes the tag from what arrived};
       \node[font=\small, text=nInk, anchor=west] at (-0.2,-1.5) {\ok\ unchanged: \texttt{0e e9 c8 47 \ldots} = the tag: accept};
-      \node[font=\small, text=nInk, anchor=west] at (-0.2,-1.95) {\nok\ one byte changed: \texttt{a7 90 ce 91 \ldots} $\neq$ the tag: \textbf{reject}};
+      \node[font=\small, text=nInk, anchor=west] at (-0.2,-1.95) {\nok\ Mallory's \texttt{900}: \texttt{0c 11 a0 78 \ldots} $\neq$ the tag: \textbf{reject}};
     \end{tikzpicture}
   \end{center}
   \vfill
   \bigdef{\textbf{Authenticated encryption}: hide the message \textbf{and} detect any change.}
   \fixtag{3}%
   \keymsg{A wrong tag means a changed message: throw it away.}
-  \say{Poly1305 dolicza 16-bajtowy znacznik. Odbiorca liczy go ponownie; jeśli się różni, odrzuca wiadomość. Bez klucza Mallory nie umie policzyć znacznika dla zmienionej wiadomości. Szyfrowanie z uwierzytelnieniem to AEAD. Bajty na slajdzie to prawdziwy wynik aead.py z zadania 3.}
+  \say{Poly1305 dolicza 16-bajtowy znacznik. Odbiorca liczy go ponownie; jeśli się różni, odrzuca wiadomość. Bez klucza Mallory nie umie policzyć znacznika dla zmienionej wiadomości (dlaczego, na następnym slajdzie). Bajty na slajdzie to prawdziwy wynik aead.py z zadania 4, dla zmiany 100 na 900 z poprzedniego slajdu; zadanie sprawdza inną zmianę.}
+\end{frame}
+
+\samedot
+\begin{frame}{How Poly1305 makes the tag}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \foreach \k/\l in {0/1, 1/2, 2/3} {
+        \node[ctb, minimum width=2.3cm, minimum height=0.55cm, font=\scriptsize] (m\k) at ({3.1*\k},1.4) {chunk $m_\l$ (16 bytes)};
+      }
+      \node[font=\scriptsize, text=nInk, anchor=west] at (7.6,1.4) {the ciphertext, cut into 16-byte chunks};
+      \node[draw=nInk, thick, fill=nFill, rounded corners=2pt, font=\scriptsize\ttfamily, minimum height=0.55cm] (a0) at (-1.7,0) {acc = 0};
+      \foreach \k/\l in {0/1, 1/2, 2/3} {
+        \node[hwmain, minimum width=2.3cm, minimum height=0.55cm, font=\scriptsize] (s\k) at ({3.1*\k},0) {(acc + $m_\l$) $\cdot$ \textbf{r}};
+        \draw[data] (m\k) -- (s\k);
+      }
+      \draw[data] (a0) -- (s0); \draw[data] (s0) -- (s1); \draw[data] (s1) -- (s2);
+      \node[circle, draw=AccentOrange, very thick, fill=white, font=\small\bfseries, text=AccentOrange, inner sep=1pt] (pl) at (8.4,0) {+ \textbf{s}};
+      \draw[data] (s2) -- (pl);
+      \node[draw=nInk, very thick, fill=nFill, rounded corners=1.5pt, font=\scriptsize\bfseries, minimum height=0.55cm] (tg) at (10.6,0) {\faStamp\ tag (16 bytes)};
+      \draw[data] (pl) -- (tg);
+      \node[font=\scriptsize, text=nInk, anchor=north] at (3.1,-0.45) {every step modulo the prime $p = 2^{130} - 5$};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small $\text{tag} = (m_1 r^3 + m_2 r^2 + m_3 r \bmod p) + s$:\ a polynomial in the secret point $r$, then hidden by $s$.\\[3pt]
+    Mallory changes a chunk: the tag changes in a way she cannot compute without $r$ and $s$. She can only guess.\end{center}
+  \vfill
+  \curious{chacha20/\#7}
+  \fixtag{3}%
+  \keymsg{The tag mixes every chunk with the secret $r$; without $r$ and $s$, no right tag.}
+  \say{Intuicja Poly1305 bez dowodu. Szyfrogram dzielimy na kawałki po 16 bajtów i traktujemy je jak liczby (do każdego dopisuje się bajt 1, żeby kawałek z zerami na końcu różnił się od krótszego). Akumulator: dodaj kawałek, pomnóż przez tajne r, wszystko modulo liczba pierwsza $2^{130}-5$. Wychodzi wielomian od r o współczynnikach z wiadomości. Na koniec dodajemy tajne s. Zmiana dowolnego kawałka zmienia wielomian, a nowej wartości nie da się policzyć bez r; s ukrywa wynik, więc z tagu nie widać r. Szansa trafienia tagu na ślepo jest znikoma (rzędu $2^{-100}$ na próbę dla krótkich wiadomości). W ChaCha20-Poly1305 do kawałków dochodzą jeszcze długości i dane powiązane (zaraz). Symulator, krok 7: akumulator kawałek po kawałku.}
 \end{frame}
 
 \samedot
@@ -1322,53 +1436,81 @@
     \end{tikzpicture}
   \end{center}
   \vfill
-  \begin{center}\small ChaCha20 block with counter 0 $\rightarrow$ one-time Poly1305 key.\\[3pt]
-    Data is encrypted from counter 1 on.\end{center}
+  \begin{center}\small ChaCha20 block with counter 0 $\rightarrow$ its first 32 bytes are $r$ and $s$; the other 32 are not used.\\[3pt]
+    Why new for every message: two tags made with the same $(r, s)$ give Mallory two equations,\\ from which she can compute $r$ and $s$, and then the tag of any message.\\[3pt]
+    So the data is encrypted from counter 1 on, and block 0 is a fresh key for each nonce.\end{center}
   \vfill
   \fixtag{3}%
   \keymsg{The tag key is a fresh ChaCha20 block, one per message.}
-  \say{Skąd klucz do znacznika: blok ChaCha20 z licznikiem 0 (pierwsze 32 bajty). Dane szyfrujemy od licznika 1, stąd licznik 1 w zadaniu 1. Jedno zdanie, bez matematyki Poly1305.}
-\end{frame}
-
-\begin{frame}{Task 3: change one byte}
-  \vfill
-  \taskgoal{seal a message, change one byte, then try to open it.}
-  \taskready{\texttt{aead.py}, the functions \texttt{seal} and \texttt{open\_}.}
-  \vfill
-  \opentask{Task3}{about 5 minutes}
-  \vfill
-  \fixtag{3}%
-  \say{Około 5 minut. aead.py gotowy (seal, open\_). Podkreślnik w nazwie, bo open to już funkcja Pythona. Zmień jeden bajt i spróbuj otworzyć. Szczegóły w README.}
+  \say{Skąd klucz do znacznika: blok ChaCha20 z licznikiem 0, z którego bierzemy tylko pierwsze 32 bajty (16 na r, 16 na s). Po co nowy klucz dla każdej wiadomości: Poly1305 to MAC jednorazowy. Dwa tagi z tym samym (r, s) to dwa równania wielomianowe; odejmując je, s znika i zostaje równanie na r, które da się rozwiązać. Z r i s Mallory liczy tag dowolnej wiadomości. Nowy nonce daje nowy blok 0, więc nowe (r, s). Dane szyfrujemy od licznika 1, stąd licznik 1 w zadaniu 1.}
 \end{frame}
 
 \samedot
-\begin{frame}{Task 3: what we saw}
+\begin{frame}{Associated data: read in the clear, still protected}
   \vfill
-  % CHECKED: Task3/solution/tamper.py prints "open_ raises: bad tag: message rejected";
-  %          aead.py gives the ciphertext d31a8d34648e60db... and the tag 1ae10b59... of RFC 8439 2.8.2
   \begin{center}
-    \begin{minipage}{0.5\textwidth}
-      \stepbox{Output}{\texttt{open\_ raises:}\\ \texttt{bad tag: message rejected}}
+    \begin{tikzpicture}[>=Stealth]
+      \node[draw=nInk, thick, fill=white, rounded corners=1.5pt, minimum width=3.2cm, minimum height=0.6cm, font=\scriptsize\ttfamily] (h) at (0,0) {to: Bob, packet 7};
+      \node[ctb, minimum width=4.2cm, minimum height=0.6cm, font=\scriptsize] (c) at (3.8,0) {ciphertext};
+      \node[draw=nInk, very thick, fill=nFill, rounded corners=1.5pt, minimum width=2.4cm, minimum height=0.6cm, font=\scriptsize] (t) at (7.25,0) {\faStamp\ tag};
+      \node[font=\scriptsize, text=nInk, anchor=south] at (h.north) {header: not encrypted};
+      \node[font=\scriptsize, text=nInk, anchor=south] at (c.north) {encrypted};
+      \draw[decorate, decoration={brace, mirror, amplitude=5pt}, AccentOrange, thick] ([yshift=-0.12cm]h.south west) -- ([yshift=-0.12cm]c.south east)
+        node[midway, below=6pt, font=\scriptsize\bfseries, text=AccentOrange] {the tag covers both};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small Routers and servers must read the header (where it goes, which packet), so it is not encrypted.\\[3pt]
+    Mallory changes it to \texttt{to: Eve}: the tag does not match, Bob rejects the packet.\end{center}
+  \vfill
+  \bigdef{\textbf{AEAD}: authenticated encryption with associated data.}
+  \fixtag{3}%
+  \keymsg{Encrypt what is secret; let the tag protect also what must stay readable.}
+  \say{AD w AEAD: dane powiązane, czyli nagłówek, który musi być jawny (adres, numer pakietu, numer rekordu w TLS), ale nie może być zmieniony. Szyfrujemy tylko treść, a znacznik liczymy z nagłówka i szyfrogramu razem (i ich długości). Zmieniony nagłówek przy tym samym szyfrogramie: znacznik się nie zgadza. ChaCha20-Poly1305 to AEAD; parametr aad w aead.py to właśnie te dane. Sprawdzimy to w ostatnim kroku zadania 4.}
+\end{frame}
+
+\begin{frame}{Task 4: change one byte}
+  \vfill
+  \taskgoal{seal a message, change one byte or the header, and see what Bob reads with and without the tag.}
+  \taskready{\texttt{aead.py}: \texttt{seal}, \texttt{open\_} and \texttt{chacha20}.}
+  \vfill
+  \opentask{Task4}{about 7 minutes}
+  \vfill
+  \fixtag{3}%
+  \say{Około 7 minut. aead.py gotowy (seal, open\_, chacha20). Podkreślnik w nazwie, bo open to już funkcja Pythona. Studenci zmieniają bajt 5 (inny niż na slajdzie), odszyfrowują bez znacznika, potem próbują open\_, a na końcu zmieniają tylko nagłówek (aad). Najpierw przewidywanie. Szczegóły w README.}
+\end{frame}
+
+\samedot
+\begin{frame}{Task 4: what we saw}
+  \vfill
+  % CHECKED: Task4/solution/tamper.py, python3 3.12: without the tag b'Pay Bnb 100'; with the tag and with the changed
+  %          header "open_ raises: bad tag: message rejected"; aead.py gives the ciphertext d31a8d34648e60db... and the
+  %          tag 1ae10b594f09e26a7e902ecbd0600691 of RFC 8439 2.8.2
+  \begin{center}
+    \begin{minipage}{0.72\textwidth}
+      \stepbox{Output}{\texttt{without the tag Bob reads: b'Pay Bnb 100'}\\
+        \texttt{with the tag: open\_ raises: bad tag: message rejected}\\
+        \texttt{header changed: open\_ raises: bad tag: message rejected}}
     \end{minipage}\\[0.4cm]
-    Nothing is decrypted: the tag is checked first.
+    Nothing is decrypted: the tag is checked first, in constant time.
   \end{center}
   \vfill
   \fixtag{3}%
   \keymsg{One changed byte: rejected. Without a tag it would pass unseen.}
-  \say{open\_ odrzuca wiadomość, nic się nie odszyfrowuje. Ta sama zmiana bez znacznika przeszłaby niezauważona. To jest ostatnia naprawa.}
+  \say{Bez znacznika zmiana przechodzi: Bob czyta Pay Bnb 100 i nic nie podejrzewa. Ze znacznikiem open\_ odrzuca pakiet i nic nie odszyfrowuje; tak samo przy zmienionym nagłówku. Dwie zasady implementacji: najpierw sprawdź tag, dopiero potem wydaj tekst jawny; porównuj tagi w stałym czasie (aead.py używa hmac.compare\_digest, bo zwykłe porównanie kończy się na pierwszym różnym bajcie, a czas mógłby zdradzać, ile bajtów podróbki jest dobrych). To jest ostatnia naprawa.}
 \end{frame}
 
 \begin{frame}{The nonce rule still holds}
   \vfill
   \begin{center}
     \begin{tikzpicture}[>=Stealth]
-      \envelope{e1}{0,0.8}{C1}
-      \envelope{e2}{0,-0.8}{C2}
+      \envelope{e1}{0,0.8}{$C_1$}
+      \envelope{e2}{0,-0.8}{$C_2$}
       \node[actorlight=sAmber, font=\scriptsize\bfseries, align=center] at (2.3,0.8) {key, nonce N};
       \node[actorlight=sAmber, font=\scriptsize\bfseries, align=center] at (2.3,-0.8) {key, nonce N};
       \node[font=\scriptsize\bfseries, text=AccentOrange] at (2.3,0) {the same!};
       \draw[data, line width=1.6pt] (3.6,0) -- (4.6,0);
-      \node[font=\normalsize, text=nInk, anchor=west, align=left] at (4.7,0) {the same keystream $\rightarrow$\\[2pt] C1 XOR C2 = \textbf{P1 XOR P2}\ \ (and tags can be forged)};
+      \node[font=\small, text=nInk, anchor=west, align=left] at (4.7,0) {the same keystream $\rightarrow$ $C_1 \oplus C_2 = \mathbf{P_1 \oplus P_2}$\\[2pt] the same Poly1305 key $\rightarrow$ two tags reveal it: tags can be forged};
     \end{tikzpicture}
   \end{center}
   \vfill
@@ -1377,35 +1519,61 @@
   \vfill
   \fixtag{3}%
   \keymsg{One (key, nonce) pair, one message. Still never twice.}
-  \say{Powtórzony nonce to ten sam keystream, czyli dokładnie błąd z sekcji 1, plus ten sam klucz Poly1305, więc można podrabiać znaczniki. ChaCha20 nie zwalnia z reguły ,,never twice''.}
+  \say{Powtórzony nonce to ten sam keystream, czyli dokładnie błąd z sekcji 1, plus ten sam klucz Poly1305 z bloku 0, a dwa tagi z jednym kluczem pozwalają go wyliczyć (poprzedni slajd o kluczu tagu), więc można podrabiać znaczniki. Limity klucza i szyfry odporne na powtórzony nonce (np. AES-GCM-SIV, RFC 8452) to temat na później. ChaCha20 nie zwalnia z reguły ,,never twice''.}
 \end{frame}
 
+% CHECKED 2026-11-25, read: RFC 8446 section 5.3 (64-bit record sequence number, padded, XORed with the static write_iv);
+%          wireguard.com/protocol (u64 counter, nonce = 32 zero bits + the 64-bit counter); NIST SP 800-38D section 8.3
+%          (random IVs: at most 2^32 invocations per key, for AES-GCM);
+%          the chance of a repeat after q = 2^32 random 96-bit nonces is about q^2 / 2^97 = 2^-33 (python3: 2**64 / 2**97)
 \samedot
+\begin{frame}{Choosing nonces in practice}
+  \vfill
+  \begin{center}
+    \renewcommand{\arraystretch}{1.9}
+    \small
+    \begin{tabular}{c l l}
+      \bigbadge{1} & \textbf{count}: nonce = message number & TLS 1.3: a secret IV XOR the record number;\\
+                   &                                         & WireGuard: a counter in every packet \\
+      \bigbadge{2} & \textbf{one key per direction} & Alice to Bob, Bob to Alice: the counters never meet \\
+      \bigbadge{3} & \textbf{random} 12-byte nonce & fine up to about $2^{32}$ messages per key\\
+                   &                                & (then a repeat has chance about $2^{-33}$)
+    \end{tabular}
+  \end{center}
+  \vfill
+  \fixtag{3}%
+  \keymsg{A counter never repeats; a random 12-byte nonce is safe only up to a limit.}
+  \say{Jak w praktyce dbać o regułę ,,nigdy dwa razy''. Najprościej licznik: TLS 1.3 bierze tajny IV i XOR-uje go z numerem rekordu, WireGuard wysyła 64-bitowy licznik w każdym pakiecie. Ważne: osobne klucze dla każdego kierunku, bo inaczej licznik Alice i licznik Boba dałyby te same nonce. Losowy nonce 12-bajtowy: z paradoksu urodzin po q wiadomościach szansa powtórki to około $q^2/2^{97}$; NIST dla AES-GCM z losowym IV pozwala na $2^{32}$ wiadomości na klucz, wtedy szansa jest rzędu $2^{-33}$. Kto chce losować bez liczenia, bierze dłuższy nonce: następny slajd.}
+\end{frame}
+
 \begin{frame}{Good to know: XChaCha20}
   \vfill
   \begin{center}
     \begin{tikzpicture}
       \node[font=\small\bfseries, text=nInk, anchor=east] at (-0.4,0) {ChaCha20};
       \foreach \k in {0,...,11} \node[draw=sAmber, line width=1pt, fill=white, minimum width=0.42cm, minimum height=0.45cm, inner sep=0pt] at ({0.45*\k},0) {};
-      \node[font=\small, text=nInk, anchor=west] at (5.3,0) {12 bytes: a random nonce is a bit risky to repeat};
+      \node[font=\small, text=nInk, anchor=west] at (5.3,0) {12 bytes: random up to $2^{32}$ messages};
       \node[font=\small\bfseries, text=nInk, anchor=east] at (-0.4,-0.9) {XChaCha20};
       \foreach \k in {0,...,23} \node[draw=sAmber, line width=1pt, fill=white, minimum width=0.42cm, minimum height=0.45cm, inner sep=0pt] at ({0.45*\k},-0.9) {};
       \node[font=\small, text=nInk, anchor=west] at (10.7,-0.9) {24 bytes};
-      \node[font=\small, text=aExec!70!black, anchor=west] at (5.3,-1.6) {\ok\ you can pick it at random, safely};
+      \node[font=\small, text=aExec!70!black, anchor=west] at (5.3,-1.6) {\ok\ random is safe in practice};
     \end{tikzpicture}
   \end{center}
   \vfill
   \fixtag{3}%
   \keymsg{A longer nonce: safe to choose at random.}
-  \say{Wariant XChaCha20 ma 24-bajtowy nonce, więc można go losować bez obaw o powtórkę. Przy 12 bajtach losowy nonce po bardzo wielu wiadomościach może się powtórzyć (jak w paradoksie urodzin). Slajd opcjonalny.}
+  % CHECKED 2026-11-25: datatracker.ietf.org/doc/draft-irtf-cfrg-xchacha: expired, IRTF state Dead, last revision -03 of 2020-01-10
+  \say{Wariant XChaCha20 ma 24-bajtowy nonce, więc można go losować bez obaw o powtórkę (nawet po $2^{64}$ wiadomościach szansa jest pomijalna). Jak to działa: HChaCha20 robi z klucza i pierwszych 16 bajtów nonce nowy podklucz, a reszta nonce idzie do zwykłej ChaCha20. Pierwowzorem jest XSalsa20 (Bernstein 2008), ta z libsodium. XChaCha20 nie ma RFC: szkic IRTF (draft-\allowbreak irtf-\allowbreak cfrg-\allowbreak xchacha) wygasł w 2020 roku, ale wariant jest w libsodium i wielu bibliotekach. Slajd opcjonalny.}
 \end{frame}
 
+% CHECKED: TLS 1.3, WireGuard, OpenSSH 6.5 (local/audyt/fakty.md); OpenBSD arc4random and Linux 4.8 /dev/urandom use ChaCha20
+%          (en.wikipedia.org/wiki/Salsa20, read 2026-11-25; a secondary source)
 \begin{frame}{Where you use it}
   \vfill
   \begin{center}
     \begin{tikzpicture}
       \foreach \ic/\t/\s [count=\k from 0] in {\faLock/TLS 1.3/{the padlock in your browser}, \faNetworkWired/WireGuard/{a modern VPN},
-          \faTerminal/OpenSSH/{remote login}, \faMobile/{Chrome, Android}/{phones without AES instructions}} {
+          \faTerminal/OpenSSH/{remote login}, \faDice/{Linux, OpenBSD}/{random numbers}} {
         \node[hw, minimum width=2.9cm, minimum height=2.3cm] (b\k) at ({3.3*\k},0) {};
         \node[text=nInk] at ({3.3*\k},0.35) {\fontsize{30}{32}\selectfont\ic};
         \node[font=\normalsize\bfseries, text=nInk] at ({3.3*\k},-0.65) {\t};
@@ -1415,8 +1583,8 @@
   \end{center}
   \vfill
   \fixtag{3}%
-  \keymsg{ChaCha20-Poly1305 runs on a large part of today's internet.}
-  \say{Gdzie dziś żyje: TLS 1.3 (kłódka w przeglądarce), WireGuard (nowoczesny VPN), OpenSSH (zdalne logowanie), Chrome na Androidzie (telefony bez instrukcji AES). Każdą nazwę jednym zdaniem.}
+  \keymsg{ChaCha20, with Poly1305 or alone, runs on a large part of today's internet.}
+  \say{Gdzie dziś żyje: TLS 1.3 (kłódka w przeglądarce), WireGuard (nowoczesny VPN, tylko ChaCha20-Poly1305), OpenSSH (chacha20-poly1305@openssh.com od wersji 6.5, 2014), oraz generatory liczb losowych: OpenBSD zamienił w arc4random RC4 na ChaCha20 , a Linux używa ChaCha20 w /dev/urandom od jądra 4.8 (2016). Ładne domknięcie historii RC4 $\rightarrow$ ChaCha20.}
 \end{frame}
 
 % ======================================================================
@@ -1432,33 +1600,17 @@
       \toprule
       \textbf{problem} & \textbf{RC4} & \textbf{ChaCha20-Poly1305} & \textbf{how} \\
       \midrule
-      looks random? & \nok\ no (2 ways) & \ok\ yes & 20 rounds, no table \\
-      nonce input? & \nok\ no & \ok\ yes & key + nonce + counter \\
-      integrity? & \nok\ no & \ok\ yes & Poly1305 tag \\
+      1 nonce and counter inputs? & \nok\ no & \ok\ yes & key + nonce + counter \\
+      2 looks random? & \nok\ no (2 ways) & \ok\ yes & 20 rounds of ARX \\
+      3 integrity? & \nok\ no & \ok\ yes & Poly1305 tag \\
       fast without an AES chip? & \textcolor{sAmberText}{\faExclamationTriangle}\ yes (broken) & \ok\ yes & ARX \\
       \bottomrule
     \end{tabular}
   \end{center}
   \vfill
   \keymsg{Everything RC4 got wrong, ChaCha20-Poly1305 gets right.}
-  \say{Zebranie całego wykładu: cztery wiersze, trzy naprawy i szybkość. Każdy wiersz to jedno ,,jak'' po prawej.}
+  \say{Zebranie całego wykładu i spełnienie obietnicy ze slajdu o RC4: trzy problemy (w kolejności napraw), każdy z naprawą, plus szybkość. Każdy wiersz to jedno ,,jak'' po prawej. Pewności co do ChaCha20 nie dały nasze dwa testy (one tylko złapały RC4), tylko lata nieudanych ataków.}
 \end{frame}
 
-\begin{frame}{Summary}
-  \vfill
-  \begin{center}
-    \renewcommand{\arraystretch}{1.6}
-    \begin{tabular}{cl}
-      \bigbadge{1} & A counter makes any block of keystream on its own; the nonce is an input. \\
-      \bigbadge{2} & Twenty rounds of add, rotate and xor make the keystream look random. \\
-      \bigbadge{3} & Two tests prove it: the output forgets the key, and no bias. \\
-      \bigbadge{4} & No tables: fast and leak-free without an AES chip. \\
-      \bigbadge{5} & Poly1305 adds a tag: change one byte and it is rejected. \\
-    \end{tabular}
-  \end{center}
-  \vfill
-  \keymsg{ChaCha20-Poly1305: the fixes RC4 was missing.}
-  \say{Po jednym zdaniu na cel z planu. Bez nowych treści.}
-\end{frame}
 
 \end{document}

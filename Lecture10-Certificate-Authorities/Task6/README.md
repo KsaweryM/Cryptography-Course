@@ -19,7 +19,7 @@ Read the SCTs of two real certificates and of one that was never logged.
 
 ## Steps
 
-The loop over the three files is ready. Write your code in place of the `TODO` comments in `find_scts.py`:
+The loop over the three files is ready. Write your code in place of the `TODO` comments in `find_scts.py`. Under each `TODO` there is a line `print("not done yet: TODO n")`: replace it with your code.
 
 1. Get the list of SCTs of the certificate with `scts_of` and print how many there are.
 2. For each SCT print the name of its log and its time.

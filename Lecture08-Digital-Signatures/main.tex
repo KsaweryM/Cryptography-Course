@@ -1253,8 +1253,9 @@ except InvalidSignature:
   \vfill
   \bigdef{$M_1^{d} \times M_2^{d} = (M_1 \times M_2)^{d} \pmod n$: \;the product of two signatures is a signature of the product.}
   \vfill
+  {\centering\small\textcolor{gray}{Recall: Lecture 3, Task 7. Mallory doubled a transfer by multiplying a ciphertext: the same rule.}\par}
   \keymsg{From two signed messages, Mallory makes a third signature without the private key.}
-  \say{Rachunek: S(2) = 2 do 23 mod 187 = 162, S(3) = 181. Mallory mnoży: 162 razy 181 mod 187 = 150. I rzeczywiście 150 do 7 mod 187 = 6, więc 150 to poprawny podpis wiadomości 6, której Alice nigdy nie podpisała. Dlaczego: potęgowanie zachowuje mnożenie, (ab) do d = a do d razy b do d. Podpis Mallory jest różowy: zrobiła go ona, choć przechodzi z kluczem Alice.}
+  \say{Tę własność sala zna z wykładu 3 (zadanie 7: pomnożony szyfrogram dał podwojony przelew); tu działa tak samo dla podpisów. Rachunek: S(2) = 2 do 23 mod 187 = 162, S(3) = 181. Mallory mnoży: 162 razy 181 mod 187 = 150. I rzeczywiście 150 do 7 mod 187 = 6, więc 150 to poprawny podpis wiadomości 6, której Alice nigdy nie podpisała. Dlaczego: potęgowanie zachowuje mnożenie, (ab) do d = a do d razy b do d. Podpis Mallory jest różowy: zrobiła go ona, choć przechodzi z kluczem Alice.}
 \end{frame}
 
 \samedot

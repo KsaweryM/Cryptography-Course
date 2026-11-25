@@ -8,6 +8,7 @@
 #   ext_name(ext), oid_name(oid)                    a short name of an extension or of an OID
 #   key_name(public_key)                            for example "EC P-256" or "RSA 2048"
 #   make_cert(subject, issuer, public_key, signing_key)   a certificate as in Task 3
+#   colon_hex(data)                                 bytes as hex with ":" between them, e.g. "E8:C5:56"
 #   show(cert)                                      print the main fields and the fingerprint
 
 import datetime

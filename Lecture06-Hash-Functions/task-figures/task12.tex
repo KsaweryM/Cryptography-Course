@@ -1,0 +1,20 @@
+% Task 12: SHA-3 and SHAKE. SHA3-256 rate 136 bytes, capacity 64 bytes (FIPS 202).
+\documentclass[12pt,tikz,border=6pt]{standalone}
+\input{common}
+\begin{document}
+\pagecolor{white}
+\begin{tikzpicture}[>=Stealth]
+  \node[msgval, font=\small\ttfamily] (m) at (0,0) {"Hello, Bob!"};
+  \node[hwmain, minimum width=5.0cm, minimum height=1.9cm, anchor=west] (sp) at (2.0,0) {};
+  \node[font=\small\bfseries, text=white, anchor=north] at (sp.north) {\faCogs\ sponge, 200-byte state};
+  \node[draw=sViolet, fill=sViolet!25, text=nInk, minimum width=3.2cm, minimum height=0.6cm, font=\scriptsize, anchor=south west] at ($(sp.south west)+(0.15,0.2)$) {rate 136 bytes};
+  \node[draw=nLine, fill=nLight, text=nInk, minimum width=1.0cm, minimum height=0.6cm, font=\scriptsize, align=center, anchor=south east] at ($(sp.south east)+(-0.15,0.2)$) {cap. 64};
+  \draw[data] (m) -- (sp);
+  \foreach \t/\y [count=\k] in {{SHA3-256, 32 bytes}/1.5, {SHAKE256, 16 bytes}/0.5, {SHAKE256, 32 bytes}/-0.5, {SHAKE256, 64 bytes}/-1.5} {
+    \node[dgval, font=\scriptsize, anchor=west, minimum width=3.2cm] (o\k) at (8.4,\y) {\t\ = ?};
+    \draw[data] (sp.east) -- (o\k.west);
+  }
+  \node[font=\small\bfseries, text=AccentOrange, anchor=west] at (12.0,-0.5) {related?};
+  \node[font=\small\bfseries, text=AccentOrange, anchor=west] at (12.0,1.0) {the same?};
+\end{tikzpicture}
+\end{document}

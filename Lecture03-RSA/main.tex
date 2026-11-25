@@ -1424,8 +1424,8 @@
   \say{Obie mają 256 bajtów dla RSA-2048, czyli dopełnione P jest prawie tak duże jak n. PKCS\#1 v1.5 (RFC 8017, sekcja 7.2) jest prosty: 00 02, co najmniej 8 losowych niezerowych bajtów, bajt 00 i wiadomość. OAEP (Bellare i Rogaway, 1994) miesza losowe ziarno z wiadomością funkcją skrótu (wykład 6), tak że żadna część nie zostaje stała; przy SHA-256 wiadomość ma najwyżej 190 bajtów. Najważniejsze: po odszyfrowaniu Bob sprawdza strukturę i odrzuca szyfrogram, który jej nie ma. To chroni przed sztuczką z zadania 7. Ale samo sprawdzenie staje się furtką, jeśli Bob mówi na zewnątrz, czy struktura była poprawna: następny slajd.}
 \end{frame}
 
-% source: D. Bleichenbacher, "Chosen ciphertext attacks against protocols based on the RSA encryption standard PKCS #1",
-%         CRYPTO 1998: about 2^20 (roughly a million) chosen ciphertexts for a 1024-bit key
+% CHECKED 2026-11-25, read the paper: D. Bleichenbacher, "Chosen ciphertext attacks against protocols based on the RSA
+%         encryption standard PKCS #1", CRYPTO 1998: "between 300 thousand and 2 million" chosen ciphertexts (512- and 1024-bit keys)
 \samedot
 \begin{frame}{When Bob says ``bad padding''}
   \vfill
@@ -1449,8 +1449,8 @@
   \say{To intuicja ataku Bleichenbachera (1998), bez szczegółów. Mallory nagrała szyfrogram C. Mnoży go przez s\textsuperscript{e} (sztuczka z zadania 7) i wysyła serwerowi. Serwer odszyfrowuje s razy P i odpowiada, czy dopełnienie jest poprawne. Odpowiedź tak mówi, że s razy P mod n zaczyna się od 00 02, czyli leży w wąskim przedziale; z wielu takich odpowiedzi zostaje tylko jedno P. Dla klucza 1024-bitowego potrzeba było około miliona zapytań: dużo dla człowieka, mało dla komputera, a nieporównanie mniej niż faktoryzacja. Taka odpowiedź serwera nazywa się wyrocznią dopełnienia (padding oracle). Nie musi być komunikatem: wystarczy inny czas odpowiedzi.}
 \end{frame}
 
-% source: ROBOT, Böck, Somorovsky, Young, Dec 2017, USENIX Security 2018 (https://robotattack.org): vulnerable TLS servers
-%         of large vendors and sites, among them Facebook and PayPal; Marvin, H. Kario (Red Hat), 2023,
+% CHECKED 2026-11-25, read robotattack.org: ROBOT, Böck, Somorovsky, Young, Dec 2017, USENIX Security 2018: "Facebook and Paypal"
+%         affected, "We were able to sign a test message with Facebook's private key". Not re-read: Marvin, H. Kario (Red Hat), 2023,
 %         "Everlasting ROBOT: the Marvin Attack" (https://eprint.iacr.org/2023/1442): the same oracle from timing;
 %         TLS 1.3, RFC 8446 (Aug 2018), section 1.2: static RSA key transport removed
 \samedot
@@ -1480,9 +1480,9 @@
 \section[RSA in the real world]{RSA in the real world}
 % ======================================================================
 
-% source: Heninger, Durumeric, Wustrow, Halderman, "Mining Your Ps and Qs", USENIX Security 2012 (https://factorable.net):
-%         RSA private keys of about 0.50% of TLS hosts (66 540 hosts in total) from shared prime factors, mostly network devices;
-%         Lenstra et al., "Ron was wrong, Whit is right", 2012, the same finding
+% CHECKED 2026-11-25, read the paper (factorable.net/weakkeys12.extended.pdf): Heninger, Durumeric, Wustrow, Halderman,
+%         "Mining Your Ps and Qs", USENIX Security 2012: shared primes gave the keys of 64 081 TLS hosts (0.50%); 66 540 is TLS and
+%         SSH hosts together; mostly routers, firewalls, management cards. Not re-read: Lenstra et al., "Ron was wrong, Whit is right", 2012
 \begin{frame}{Weak randomness: two keys, one p}
   \vfill
   \begin{center}
@@ -1500,7 +1500,7 @@
   \end{center}
   \vfill
   \keymsg{RSA is as strong as the random numbers that made p and q.}
-  \say{Na slajdzie What Eve would need jedyną drogą była faktoryzacja. W praktyce RSA padało częściej przez złe klucze. Urządzenia sieciowe tworzą klucz zaraz po pierwszym włączeniu, kiedy generator losowy ma jeszcze mało entropii; wiele z nich wylosowało to samo p. Heninger i in. (Mining Your Ps and Qs, 2012) policzyli gcd par z milionów kluczy i odzyskali klucze prywatne około 0,5 procent serwerów TLS (ponad 66 000), głównie routerów, firewalli i urządzeń VPN. Równolegle to samo znalazł zespół Lenstry. gcd dwóch 617-cyfrowych liczb to około 1200 dzieleń.}
+  \say{Na slajdzie What Eve would need jedyną drogą była faktoryzacja. W praktyce RSA padało częściej przez złe klucze. Urządzenia sieciowe tworzą klucz zaraz po pierwszym włączeniu, kiedy generator losowy ma jeszcze mało entropii; wiele z nich wylosowało to samo p. Heninger i in. (Mining Your Ps and Qs, 2012) policzyli gcd par z milionów kluczy i odzyskali klucze prywatne około 0,5 procent serwerów TLS (około 64 000), głównie routerów, firewalli i urządzeń VPN. Równolegle to samo znalazł zespół Lenstry. gcd dwóch 617-cyfrowych liczb to około 1200 dzieleń.}
 \end{frame}
 
 \samedot
@@ -1530,9 +1530,9 @@
   \say{Sprawdzone, czasy z mojego laptopa. Klucz routera 2 pada tak samo: n2 // p. Dlatego generator liczb losowych do kluczy musi być kryptograficzny i mieć dość entropii.}
 \end{frame}
 
-% source: Nemec, Sys, Svenda, Klinec, Matyas, "The Return of Coppersmith's Attack" (ROCA), ACM CCS 2017, CVE-2017-15361
-%         (https://crocs.fi.muni.cz/public/papers/rsa_ccs17); Estonia suspended the certificates of about 760 000 ID cards
-%         worst case 2048 bits: about 140.8 CPU-years (paper, Table 1); 1024 bits: about 97 CPU-days (to confirm, facts agent)
+% CHECKED 2026-11-25, read the paper (crocs.fi.muni.cz, nemec_roca_ccs17_preprint.pdf): ROCA, ACM CCS 2017, CVE-2017-15361;
+%         worst case 1024 bits 97.1 CPU days, 2048 bits 140.8 CPU years (Table 1). Estonia: certificates of about 760 000 ID cards
+%         suspended on 3 Nov 2017 (Ars Technica 2017-11-06, scmagazine; some sources say 750 000)
 \samedot
 \begin{frame}{Good to know: primes with a pattern (ROCA, 2017)}
   \vfill
@@ -1639,6 +1639,7 @@
   %         RFC 9846 (July 2026) obsoletes RFC 8446 and keeps this. RSA stays for authentication (rsa_pss_* signature schemes).
 % CHECKED: local/audyt/fakty.md (2026-11-19): TLS 1.2 kept RSA key transport; Java disabled TLS_RSA by default only in 2024
 %          (https://mail.openjdk.org/pipermail/security-dev/2024-November/042878.html); draft-ietf-tls-deprecate-obsolete-kex
+%          CHECKED 2026-11-25: RFC 9846 (July 2026, rfc-editor.org/rfc/rfc9846) obsoletes RFC 8446 (ietf-announce, search summary)
   % source: OpenPGP RFC 9580 (RSA still allowed for encryption keys); S/MIME 4.0 RFC 8551 with RSA key transport (RFC 8017).
   % source: SSH: RFC 8332 (rsa-sha2-256/512 user and host keys); IPsec IKEv2: RFC 7296 (RSA authentication).
   \say{Uczciwie: dziś RSA głównie potwierdza, kim jest serwer albo osoba; omówimy to później w kursie (podpis cyfrowy w wykładzie 8, certyfikaty w wykładach 9 do 12). Gdy przeglądarka łączy się ze stroną, serwer pokazuje klucz publiczny RSA i udowadnia, że ma pasujący klucz prywatny. Klucz sesji ustala się dziś inną metodą: TLS 1.3 z 2018 roku (RFC 8446, w 2026 zastąpiony przez RFC 9846) nie pozwala przesyłać klucza przez RSA, bo nie chroni przeszłości (poprzedni slajd) i bo dopełnienie PKCS\#1 v1.5 dawało wyrocznię Bleichenbachera. Starsze połączenia TLS 1.2 nadal mogły tak robić; na przykład Java wyłączyła te zestawy domyślnie dopiero w 2024 roku, a IETF wycofuje je osobnym dokumentem. Domyślnym typem klucza w OpenSSH (ssh-keygen) jest dziś Ed25519, ale klucze RSA nadal są w powszechnym użyciu. Szyfrowanie RSA nadal żyje w poczcie: OpenPGP i S/MIME zamykają RSA klucz każdej wiadomości, czyli dokładnie szyfrowanie hybrydowe z tego wykładu. SSH i VPN używają kluczy RSA do logowania i do potwierdzenia, kim są obie strony.}

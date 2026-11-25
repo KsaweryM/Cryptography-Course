@@ -17,13 +17,13 @@ Decrypt **only** block 700 of the film, using the counter, and measure how much 
 
 ## Steps
 
-Write your code in place of the `TODO` comments in `jump.py`:
+Write your code in place of the `TODO` comments in `jump.py`. Each line of the output says `not done yet` until its TODO is done.
 
-1. Cut out block 700: bytes `700*64` to `701*64`. Use a slice: `data[start : end]` gives the bytes from `start` up to `end - 1` (like the `end - start` bytes at `data + start` in C).
-2. Decrypt that block with `counter = 700` and print it. `.decode()` turns the bytes into text.
-3. Time it: one block versus all 701 blocks (blocks 0 to 700, so `data[0 : 701*64]` with counter 0).
+1. Cut out block 700 into `block`: bytes `700*64` to `701*64`. Use a slice: `data[start : end]` gives the bytes from `start` up to `end - 1` (like the `end - start` bytes at `data + start` in C).
+2. Decrypt that block with `counter = 700` into `frame`. The printing is ready: `frame.decode()` turns the bytes into text.
+3. Time it into `one` and `all701`: one block versus all 701 blocks (blocks 0 to 700, so `data[0 : 701*64]` with counter 0).
    - `start = time.perf_counter()` before, `time.perf_counter() - start` after: the time in seconds.
-   - Print both times with 5 decimal places: `print(f"one block: {one:.5f} s")` works like `printf("one block: %.5f s\n", one)` in C.
+   - The printing is ready: `print(f"one block: {one:.5f} s")` works like `printf("one block: %.5f s\n", one)` in C.
 
 ## Expected output
 
@@ -35,8 +35,8 @@ Frame 700 of the film, then two times. The block ends with a newline, so an empt
 ```
 Frame 0700: the hero finally opens the red door.
 
-one block: 0.00022 s
-all 701:   0.12798 s
+one block: 0.00014 s
+all 701:   0.10195 s
 ```
 
 </details>

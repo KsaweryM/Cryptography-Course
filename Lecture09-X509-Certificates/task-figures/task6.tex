@@ -1,12 +1,11 @@
-% Task 6: a self-signed certificate. CHECKED: Task6/solution/self_signed.py (True, False, True)
+% Task 6: a self-signed certificate. CHECKED: Task6/solution/self_signed.py (True, True; fingerprints True, False)
 \documentclass[12pt,tikz,border=6pt]{standalone}
 \input{common}
 \begin{document}
 \pagecolor{white}
 \begin{tikzpicture}[>=Stealth, card]
   \foreach \x/\t/\key/\sig/\n in {0/{Alice's certificate}/{Alice's key}/{Alice's}/{\badge{1}\ \badge{2}\ \badge{3}},
-      6.2/{Mallory swaps the key}/{\textbf{Mallory's} key}/{Alice's}/{\badge{4}},
-      12.4/{Mallory's own}/{\textbf{Mallory's} key}/{\textbf{Mallory's}}/{\badge{5}}} {
+      7.0/{Mallory's own}/{\textbf{Mallory's} key}/{\textbf{Mallory's}}/{\badge{4}}} {
     \node[font=\bfseries, text=nInk] at (\x,2.0) {\t};
     \node[cardbox, minimum width=5.9cm, minimum height=3.0cm] at (\x,0.2) {};
     \node[font=\scriptsize\ttfamily, text=nInk] at (\x,1.2) {issuer = subject =};
@@ -15,6 +14,13 @@
     \node[privval, font=\small] at (\x,-0.65) {signed with \sig\ private key};
     \node[font=\Large\bfseries, text=AccentOrange] at (\x,-1.75) {verify: ?};
     \node at (\x,-2.45) {\n};
+    \node[font=\small, text=nInk] at (\x,-3.3) {fingerprint = ALICE\_FP ?};
   }
+  % step 5: the fingerprint Alice read out on the phone
+  \personnode{al}{-1.2,-5.4}{sIndigo}{Alice}
+  \node[font=\Huge, text=nInk] at (1.1,-5.4) {\faPhone};
+  \personnode{bob}{3.4,-5.4}{sTeal}{Bob}
+  \node[term, font=\ttfamily\scriptsize, anchor=west] at (4.6,-5.4) {ALICE\_FP = 6F:4B:D6:04:C8:F5:0B:73:\ldots};
+  \node[font=\small, anchor=west] at (11.4,-5.4) {\badge{5}};
 \end{tikzpicture}
 \end{document}

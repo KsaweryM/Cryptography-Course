@@ -21,7 +21,7 @@ Before you run it, predict: how many of the 12 users fall, and how many SHA-256 
 
 Write your code in `crack_unsalted.py`, in place of the `TODO` comments:
 
-1. `check_login(user, typed)`: find the index of `user` in `names` with an index loop, then return whether `hashlib.sha256(typed.encode()).hexdigest()` equals `digests[index]`.
+1. `check_login(user, typed)`: find the index of `user` in `names` with an index loop, then return whether `hashlib.sha256(typed.encode()).hexdigest()` equals `digests[index]`. (A real server compares with `hmac.compare_digest(a, b)`, which always takes the same time, so that the time of a failed login does not tell how many characters matched; for this task `==` is enough.)
 2. The dictionary attack: for every word, compute its digest **once** (add 1 to `hashes`), then compare it with the digest of every user. On a match, print `f"{names[u]}: {word}"` and add 1 to `cracked`.
 3. Print the summary line given in the comment.
 4. Print every pair of users with the same digest (two index loops, the inner one from `u + 1`).

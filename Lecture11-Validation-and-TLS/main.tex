@@ -653,7 +653,9 @@ depth=2: C = US, O = Google Trust Services LLC, CN = GTS Root R4
   \say{Przypomnienie z wykładu 10, bez powtarzania całej historii: ten sam klucz GTS Root R4 ma dwa certyfikaty, więc od WE1 prowadzą dwie ścieżki. Dla budowy ścieżki ważne jest tylko to, że walidator musi wybrać tę, którą umie zakończyć w swoim magazynie. Ten laptop z Ubuntu nie ma już GlobalSign Root CA w magazynie, więc używa ścieżki dolnej.}
 \end{frame}
 
-% source: Let's Encrypt, "DST Root CA X3 Expiration (September 2021)"
+% source: Let's Encrypt, "DST Root CA X3 Expiration (September 2021)" (letsencrypt.org/docs/dst-root-ca-x3-expiration-september-2021):
+%   OpenSSL 1.0.x fails; Android before 7.1.1 does not check the expiry of a trust anchor, so the special cross-sign
+%   of ISRG Root X1 by DST Root CA X3 kept old Android working until 30 September 2024 (as in Lecture 10)
 \samedot
 \begin{frame}{Good to know: when one of two paths expires}
   \begin{center}\small Recall (Lecture 10): on 30 September 2021 \textbf{DST Root CA X3}, which cross-signed
@@ -665,13 +667,14 @@ depth=2: C = US, O = Google Trust Services LLC, CN = GTS Root R4
       path builder & what it did & \\
       \midrule
       a good one & tried the other path, to ISRG Root X1 in the store & \ok\\
-      OpenSSL 1.0.2 & took the path through the expired root and did not try another & \nok\\
+      OpenSSL 1.0.x & took the path through the expired root and did not try another & \nok\\
+      old Android (before 7.1.1) & ignores the dates of a root in its store: kept working until 2024 & \ok\\
       \bottomrule
     \end{tabular}
   \end{center}
   \vfill
   \keymsg{Path building is not trivial: two paths, and one of them expires.}
-  \say{Można pominąć. Historię DST Root CA X3 opowiada wykład 10; tu tylko to, co dotyczy budowy ścieżki. Stara wersja OpenSSL wybierała ścieżkę przez wygasły root i nie próbowała drugiej, więc odrzucała poprawne certyfikaty, choć ISRG Root X1 był w magazynie. Dobra budowa ścieżki próbuje wszystkich możliwości.}
+  \say{Można pominąć. Historię DST Root CA X3 opowiada wykład 10; tu tylko to, co dotyczy budowy ścieżki. Stary OpenSSL (1.0.x) wybierał ścieżkę przez wygasły root i nie próbowała drugiej, więc odrzucał poprawne certyfikaty, choć ISRG Root X1 był w magazynie. Dobra budowa ścieżki próbuje wszystkich możliwości. Stary Android działał dalej z innego powodu: nie sprawdza dat korzenia z magazynu, a Let's Encrypt miał specjalny podpis krzyżowy ważny do 30 września 2024.}
 \end{frame}
 
 % CHECKED: coventry_leaf.pem: Authority Information Access: CA Issuers - URI:http://i.pki.goog/we1.crt
@@ -1698,7 +1701,7 @@ New, TLSv1.3, Cipher is TLS_AES_256_GCM_SHA384
   \vfill
   \begin{center}\small
     Any of them may issue a certificate for \texttt{api.bob.example}: a CA that makes a mistake,
-    a CA that is broken into (Lecture 12), a CA the user was told to install (a company proxy, malware).
+    a CA that is broken into (Lecture 12), a CA the user was told to install (a company proxy, malware; Lecture 12: Superfish).
   \end{center}
   \vfill
   \keymsg{The app talks to ONE server that Bob controls. Why trust everybody?}
@@ -1868,28 +1871,7 @@ EYgQ3iXaufQ2xeZk7/zwUHY6mFXSeviJ49pCLdv5ass=
   {\centering\small Pin the key (SPKI) \;$\cdot$\; set an expiration \;$\cdot$\; keep a backup key offline \;$\cdot$\; test the rotation\par}
   \vfill
   \keymsg{Pinning adds safety against other CAs, at the price of your own outages.}
-  \say{Dziś wiele firm rezygnuje z pinningu albo przypina tylko klucze własnego prywatnego CA. Więcej o dobrych praktykach w wykładzie 12.}
-\end{frame}
-
-% ======================================================================
-% Closing
-% ======================================================================
-
-\begin{frame}{Summary}
-  \vfill
-  \begin{tikzpicture}
-    \foreach \t [count=\k] in {
-        {Validation takes the server's certificates, the name, the time and the trust store, and answers OK or why not.},
-        {A path is built by matching Issuer to Subject and AKI to SKI; then \textbf{six checks} run on it, plus revocation.},
-        {Revocation needs a signed, fresh answer: \textbf{CRL} or \textbf{OCSP}; with soft-fail, Mallory can block it or replay an old one.},
-        {Today: stapling, lists pushed to browsers (CRLite) and \textbf{short-lived} certificates.},
-        {TLS 1.3 sends the chain in \textbf{Certificate} and proves the key in \textbf{CertificateVerify}; mTLS does it for clients; apps may pin keys.}} {
-      \node[hw, text width=12.6cm, align=left, minimum height=0.95cm, anchor=west, font=\small] at (0.8,{-1.1*\k}) {\t};
-      \node[circle, fill=AccentOrange, text=white, font=\bfseries, minimum size=0.7cm] at (0.4,{-1.1*\k}) {\k};
-    }
-  \end{tikzpicture}
-  \vfill
-  \say{Po jednym zdaniu na cel. W wykładzie 12: gdzie jeszcze używa się PKI, dobre praktyki i prawdziwe incydenty.}
+  \say{Dziś wiele firm rezygnuje z pinningu albo przypina tylko klucze własnego prywatnego CA. Więcej o dobrych praktykach w wykładzie 12. W wykładzie 12: gdzie jeszcze używa się PKI, dobre praktyki i prawdziwe incydenty.}
 \end{frame}
 
 \end{document}

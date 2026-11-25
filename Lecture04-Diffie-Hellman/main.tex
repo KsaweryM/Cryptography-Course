@@ -496,7 +496,15 @@
       \textcolor{AccentOrange}{\Large\faTrophy}\ \ Turing Award, 2015.
   \end{columns}
   \vfill
-  \say{Ralph Merkle miał podobny pomysł rok wcześniej; Hellman sam mówi, że jego nazwisko powinno być w nazwie. Nagroda Turinga to najważniejsza nagroda w informatyce.}
+  % CHECKED 2026-11-25, read: Hellman, "An overview of public key cryptography", IEEE Communications Magazine, 50th Anniversary
+  %   issue, May 2002 (www.cs.miami.edu/home/burt/manuscripts/crypto_for_intelligence/hellman.pdf): "hence should be called
+  %   Diffie-Hellman-Merkle key exchange". The other years below: secondary sources only.
+  % CHECKED (secondary sources: Wikipedia "Merkle's Puzzles", "Malcolm J. Williamson"; schneier.com 1998): the years below.
+  %   Turing Award 2015 (announced March 2016), amturing.acm.org/award_winners/diffie_8371646.cfm;
+  %   Merkle's puzzles: a CS244 project at Berkeley in 1974, published in CACM 21(4), 1978; Hellman proposed the name
+  %   "Diffie-Hellman-Merkle" in IEEE Communications Magazine, May 2002 ("An overview of public key cryptography");
+  %   GCHQ: Malcolm Williamson, 1974 to 1976, made public by GCHQ in 1997
+  \say{Ralph Merkle miał podobny pomysł już w 1974 roku (zagadki Merkle'a, projekt na zajęciach w Berkeley, opublikowany dopiero w 1978); Hellman w 2002 zaproponował nazwę Diffie-Hellman-Merkle. Słowo ,,public'' jest ważne: w brytyjskim GCHQ Malcolm Williamson wymyślił tę samą wymianę w latach 1974 do 1976, ale to było tajne do 1997 roku (tak samo jak RSA w wykładzie 3). Nagroda Turinga to najważniejsza nagroda w informatyce; ta jest za rok 2015, ogłoszona w marcu 2016.}
 \end{frame}
 
 % ======================================================================
@@ -572,7 +580,7 @@
   % CHECKED (python3): pow(5, 23, 23) = 5
   \begin{center}\footnotesize Every number from 1 to 22 appears \textbf{exactly once}. Then $5^{23} \bmod 23 = 5$ again:
     the powers go round in a \textbf{cycle} of 22.\end{center}
-  \keymsg{A good g has a long cycle: here it reaches every number from 1 to 22.}
+  \keymsg{The cycle of $g$ is what Eve has to search, so it must be long.}
   \say{Taką liczbę g nazywamy generatorem. Liczy się długość cyklu: ile różnych wartości dają potęgi g, zanim zaczną się powtarzać. Tyle możliwości musiałaby sprawdzić Eve. Widać też, że wyniki skaczą bez żadnego porządku; to wróci w sekcji 3.}
 \end{frame}
 
@@ -598,9 +606,8 @@
     Eve guesses the shared secret on the first or the second try.\end{center}
   \vfill
   \curious{diffie-hellman/\#2}
-  \keymsg{$g$ must have a long cycle. Real standards pick $p$ and $g$ so that the cycle has about $p/2$ values.}
-  % CHECKED (python3): RFC 3526 group 14, P = the 2048-bit prime: pow(2, (P - 1)//2, P) == 1, so g = 2 has the cycle (P - 1)/2
-  \say{22 to p - 1, czyli -1 modulo 23: jego potęgi to na zmianę 22 i 1. Taki cykl to katastrofa. Pół cyklu to nie problem: w RFC 3526 (grupa 14, której używamy dalej) g = 2 daje (p - 1)/2 różnych wartości, około 2 do potęgi 2047; to tylko o jeden bit mniej niż pełny cykl, a standard wybiera tak celowo. Wybór g należy do twórców standardu, nie do użytkownika. W symulatorze z linku potęgi g chodzą po zegarze; wpisz g = 22.}
+  \keymsg{A short cycle is a disaster: $g$ must have a long cycle.}
+  \say{22 to p - 1, czyli -1 modulo 23: jego potęgi to na zmianę 22 i 1. Taki cykl to katastrofa. Wybór g należy do twórców standardu, nie do użytkownika. Ta liczba 22 wróci w sekcji 5: wtedy wybierze ją Mallory, nie standard. Dlaczego prawdziwe standardy biorą cykl o połowę krótszy niż 22: w sekcji 3. W symulatorze z linku potęgi g chodzą po zegarze; wpisz g = 22.}
 \end{frame}
 
 % ---------- the exchange, one picture in five steps ----------
@@ -772,6 +779,9 @@
 \end{frame}
 
 % CHECKED (python3): the prime of group 14 from RFC 3526 has 2048 bits and 617 decimal digits
+% CHECKED: secrets of 256 bits: RFC 3526, section 8, gives 220 to 320 bits of exponent for group 14;
+%   NIST SP 800-56A Rev. 3 asks for at least 2 * 112 = 224 bits at 112 bits of security; 256 bits give 2^128 steps for the
+%   square-root methods (slide "From 28 bits to 256 bits"). TLS 1.3 uses the groups ffdhe2048 ... of RFC 7919 (section 4.2.7 of RFC 8446)
 \begin{frame}{Real sizes}
   \vfill
   \begin{center}
@@ -779,7 +789,7 @@
     \begin{tabular}{@{}lll@{}}
       \tikz[baseline=(n.base)]\node[pub] (n) {$p$}; & \textbf{2048 bits} (617 digits) & a fixed public prime from the standard \textbf{RFC 3526} \\
       \tikz[baseline=(n.base)]\node[pub] (n) {$g$}; & 2 & from the same standard \\
-      \tikz[baseline=(n.base)]\node[sec] (n) {$a, b$}; & at least \textbf{256 bits} & random and \textbf{secret} \\
+      \tikz[baseline=(n.base)]\node[sec] (n) {$a, b$}; & at least \textbf{256 bits} & random and \textbf{secret} \ \textcolor{gray}{(why 256: section 3)} \\
     \end{tabular}
   \end{center}
   \vspace{0.1cm}
@@ -788,7 +798,7 @@
     \scriptsize\ttfamily\color{nInk} $p$ = \seqsplit{32317006071311007300338913926423828248817941241140239112842009751400741706634354222619689417363569347117901737909704191754605873209195028853758986185622153212175412514901774520270235796078236248884246189477587641105928646099411723245426622522193230540919037680524235519125679715870117001058055877651038861847280257976054903569732561526167081339361799541336476559160368317896729073178384589680639671900977202194168647225871031411336429319536193471636533209717077448227988588565369208645296636077250268955505928362751121174096972998068410554359584866583291642136218231078990999448652468262416972035911852507045361090559}
   \end{beamercolorbox}
   \vfill
-  \say{RFC to oficjalny dokument standardu internetowego; RFC 3526 podaje kilka gotowych par p i g (grupa 14 ma 2048 bitów). Słowo grupa ma w matematyce szersze znaczenie; tu wystarczy: gotowa para p i g, wspólna dla wszystkich.}
+  \say{RFC to oficjalny dokument standardu internetowego; RFC 3526 podaje kilka gotowych par p i g (grupa 14 ma 2048 bitów). Słowo grupa ma w matematyce szersze znaczenie; tu wystarczy: gotowa para p i g, wspólna dla wszystkich. Gdyby ktoś pytał: TLS 1.3 nie bierze grup z RFC 3526, tylko nazwane grupy ffdhe2048, ffdhe3072 i dalsze z RFC 7919; inne liczby pierwsze, ta sama budowa (bezpieczna liczba pierwsza, g = 2).}
 \end{frame}
 
 \begin{frame}{Task 2: a real exchange}
@@ -896,6 +906,60 @@
   \say{Zwykły logarytm da się policzyć, bo potęgi rosną po kolei. Modulo p nie ma porządku, więc trzeba zgadywać. W symulatorze z linku potęgi g na tarczy zegara i Eve, która zgaduje wykładnik po kolei.}
 \end{frame}
 
+% CHECKED (python3): pow(8, 11, 23) = 1, pow(19, 11, 23) = 22; pow(5, e, 23) ** 11 % 23 == 1 exactly for the 11 even e in 1..22
+\begin{frame}{A cycle of 22 gives away one bit}
+  \small Powers of 5 mod 23 again. The cycle has $22 = 2 \times 11$ values. Raise any of them to the power 11:
+  \begin{center}
+    \begin{tikzpicture}
+      \foreach \e in {1,...,22} \node[font=\tiny, text=gray] at ({0.6*\e},0.45) {\e};
+      \valrow{5,2,10,4,20,8,17,16,11,9,22,18,21,13,19,3,15,6,7,12,14,1}{pub}
+      \foreach \k in {2,4,...,22} \node[draw=aExec, very thick, rounded corners=2pt, minimum width=0.56cm, minimum height=0.5cm] at (v\k) {};
+      \node[rowlabel] at (0.2,0.45) {exponent $e$};
+      \node[rowlabel] at (0.2,0) {$5^e \bmod 23$};
+      \node[font=\scriptsize, text=aExec, anchor=west] at (0.3,-0.55) {\faSquare[regular]\ $e$ even: the value to the power 11 gives \textbf{1}};
+      \node[font=\scriptsize, text=nInk, anchor=west] at (7.3,-0.55) {$e$ odd: it gives \textbf{22}};
+    \end{tikzpicture}
+  \end{center}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.48\textwidth}
+      \stepbox{\faUserSecret\ Eve, with Alice's $A = 8$}{$8^{11} \bmod 23 = \mathbf{1}$, so $a$ is \textbf{even}.\\ \textcolor{gray}{(Indeed $a = 6$.)}}
+    \column{0.48\textwidth}
+      \stepbox{\faUserSecret\ Eve, with Bob's $B = 19$}{$19^{11} \bmod 23 = \mathbf{22}$, so $b$ is \textbf{odd}.\\ \textcolor{gray}{(Indeed $b = 15$.)}}
+  \end{columns}
+  \vfill
+  \begin{center}\small Why: if $a = 2t$, then $A^{11} = 5^{22t} = 1$, because 22 steps go once round the cycle.\end{center}
+  \keymsg{Every small factor of the cycle length gives Eve a piece of $a$ for free.}
+  \say{Eve nie liczy logarytmu, tylko jedną potęgę: A do potęgi 11. Wynik 1 znaczy, że a jest parzyste. To jeden bit za darmo. Ogólnie (metoda Pohliga-Hellmana): jeśli długość cyklu rozkłada się na małe czynniki, Eve liczy osobno kawałek a dla każdego czynnika i skleja je; logarytm jest tak trudny jak dla największego czynnika pierwszego długości cyklu. Przy 22 = 2 · 11 zostaje do szukania tylko cykl 11. Pytanie do sali: czy Eve może tak zgadnąć parzystość, gdy cykl ma 11 wartości? Następny slajd.}
+\end{frame}
+
+% CHECKED (python3): [pow(2, e, 23) for e in range(1, 12)] = 2, 4, 8, 16, 9, 18, 13, 3, 6, 12, 1; 23 = 2 * 11 + 1;
+%   RFC 3526 group 14: q = (P - 1)//2 has 2047 bits and passes 40 rounds of Miller-Rabin, pow(2, q, P) == 1
+\samedot
+\begin{frame}{Why a cycle of prime length?}
+  \small Powers of 2 mod 23: a cycle of \textbf{11} values, and 11 is a prime.
+  \begin{center}
+    \begin{tikzpicture}[scale=1.3, transform shape]
+      \foreach \e in {1,...,11} \node[font=\tiny, text=gray] at ({0.6*\e},0.45) {\e};
+      \valrow{2,4,8,16,9,18,13,3,6,12,1}{pub}
+      \node[cellfree, minimum width=0.56cm, minimum height=0.5cm] at (7.2,0) {2};
+      \node[cellfree, minimum width=0.56cm, minimum height=0.5cm] at (7.8,0) {4};
+      \node[font=\scriptsize, text=gray] at (8.4,0) {\dots};
+      \draw[-{Stealth}, very thick, AccentOrange] (v11.south) to[out=-40, in=-140] node[below, font=\tiny, text=AccentOrange] {again} (7.15,-0.27);
+    \end{tikzpicture}
+  \end{center}
+  \vspace{-0.1cm}
+  \begin{itemize}\setlength{\itemsep}{4pt}
+    \item 11 has no smaller factors, so there are \textbf{no small pieces} to split off: Eve has to search the whole cycle.
+    \item It costs only 1 bit: 11 values instead of 22.
+    \item The standard does exactly this. $p = 2q + 1$ with $q$ also prime (a \textbf{safe prime}), and $g$ with a cycle of exactly $q$.
+      Here $23 = 2 \times 11 + 1$. In RFC 3526, $g = 2$ and $q$ is a prime of 2047 bits.
+  \end{itemize}
+  \vfill
+  \curious{diffie-hellman/\#2}
+  \keymsg{Real groups use a cycle of prime length $q$: long, and with no small pieces.}
+  \say{Dlatego pół cyklu to nie wada, tylko cel: pełny cykl ma długość p - 1, a to liczba parzysta, więc zawsze ma czynnik 2. Bezpieczna liczba pierwsza p = 2q + 1 daje cykl długości q, liczby pierwszej. Ten sam pomysł da nam w sekcji 5 sprawdzenie wartości od drugiej strony. W zadaniu 3 wszystkie cztery p są takimi bezpiecznymi liczbami pierwszymi, a g = 4 ma cykl q. Dla ciekawych: w pełnej grupie (g = 5) A zdradza też, czy wynik jest ,,kwadratem'' modulo p, co psuje szyfrowanie ElGamal z sekcji 6; w grupie rzędu pierwszego tego problemu nie ma. W symulatorze z linku przycisk g = 2 pokazuje ten cykl na tarczy.}
+\end{frame}
+
 \begin{frame}{Task 3: find a}
   \vfill
   \taskgoal{find $a$ from $A$ by trying $a = 1, 2, 3, \dots$, then estimate how long a 256-bit $a$ would take.}
@@ -967,11 +1031,36 @@
   \begin{itemize}\setlength{\itemsep}{3pt}
     \item Our speed: about \textbf{10 million tries per second}. Every $a$ of 256 bits: $2^{256}$ tries, $3.5 \times 10^{62}$ years.
     \item Smarter general methods (about the square root of the number of possible $a$): about $2^{128}$ steps, still about $10^{24}$ years.
-    \item The cleverest methods depend on the \textbf{size of $p$}, not of $a$, and are \textbf{the same family as for factoring}.
-      So $a$ of 256 bits is enough, but $p$ needs 2048 bits, like RSA's $n$.
+      That is why $a$ has 256 bits.
   \end{itemize}}
   \plainbox{Diffie-Hellman is safe as long as the \textbf{discrete logarithm is hard}.}
-  \say{Wszechświat ma około 1,4 · 10\textasciicircum 10 lat. Metody ogólne (np. Pollard rho, baby-step giant-step) potrzebują około pierwiastka z liczby możliwych a, czyli 2\textasciicircum 128 kroków; krok jest droższy niż jedno mnożenie, więc 10\textasciicircum 24 lat to rząd wielkości. Najsprytniejsze metody (sito ciała liczbowego) zależą od rozmiaru p, nie a, i są tej samej rodziny co metody rozkładu liczb na czynniki: dlatego p ma 2048 bitów, jak n w RSA.}
+  \say{Wszechświat ma około 1,4 · 10\textasciicircum 10 lat. Metody ogólne (np. Pollard rho, baby-step giant-step) potrzebują około pierwiastka z liczby możliwych a, czyli 2\textasciicircum 128 kroków; krok jest droższy niż jedno mnożenie, więc 10\textasciicircum 24 lat to rząd wielkości. Te metody działają w każdej grupie, więc 256 bitów a daje 128 bitów bezpieczeństwa.}
+\end{frame}
+
+% CHECKED: NIST SP 800-57 Part 1 Rev. 5, table 2: FFC with p of 2048 bits = 112 bits of security, 3072 bits = 128,
+%   7680 bits = 192, 15360 bits = 256; the same table gives RSA n of the same sizes (re-read 2026-11-25 in the PDF,
+%   nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-57pt1r5.pdf, table 2; 1024 bits: <= 80; FFC N = 224 at 112 bits)
+\samedot
+\begin{frame}{How big must p be?}
+  \begin{center}\small The cleverest methods (the \textbf{number field sieve}) attack $p$ itself, not $a$.\\
+    They are the \textbf{same family as for factoring}, so $p$ must be as big as RSA's $n$.\end{center}
+  \vfill
+  \begin{center}
+    \renewcommand{\arraystretch}{1.5}
+    \begin{tabular}{@{}lll@{}}
+      \toprule
+      \textbf{size of $p$} & \textbf{security} & \\
+      \midrule
+      1024 bits & about 80 bits & \textcolor{aWrite}{\faTimes\ too weak today} \\
+      \rowcolor{AccentOrange!10} 2048 bits & \textbf{112 bits} & \textcolor{aExec}{\faCheck\ the minimum (RFC 3526 group 14)} \\
+      3072 bits & 128 bits & \textcolor{aExec}{\faCheck\ as strong as a 128-bit key, or $a$ of 256 bits} \\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+  \vfill
+  \begin{center}\small ``Security of $n$ bits'': breaking it takes about $2^{n}$ steps.\end{center}
+  \keymsg{$a$ needs 256 bits, but $p$ needs at least 2048: two different attacks set two sizes.}
+  \say{Liczby z NIST SP 800-57 (część 1, tabela 2); te same rozmiary co dla n w RSA. Następny wykład: krzywe eliptyczne dają 128 bitów bezpieczeństwa przy 256 bitach zamiast 3072. Dla grupy 2048-bitowej 112 bitów to mniej niż 128 z wykładnika: najsłabsze ogniwo decyduje. Komputer kwantowy z algorytmem Shora łamałby logarytm dyskretny modulo p tak samo jak rozkład RSA, niezależnie od rozmiaru; o tym przy RSA i w następnym wykładzie.}
 \end{frame}
 
 \begin{frame}{When p is too small: Logjam (2015)}
@@ -990,16 +1079,21 @@
     \column{0.66\textwidth}
       Some servers still accepted old 512-bit \textbf{``export''} groups in TLS (the browser padlock, lecture 1):
       weakened on purpose in the 1990s, to obey US export rules.
+      An attacker \textbf{on the connection} could make such a server pick one.
       \vspace{0.3cm}
 
+      % CHECKED: Adrian et al., "Imperfect Forward Secrecy", CCS 2015 (weakdh.org/imperfect-forward-secrecy-ccs15.pdf), abstract:
+      %   "After a week-long precomputation for a specified 512-bit group, we can compute arbitrary discrete logs in that group
+      %   in about a minute"; section 1: "applies to 8.4% of Alexa Top Million HTTPS sites" (section 3: 8.4% supported DHE_EXPORT)
+      %   (re-read 2026-11-25: pdftotext of the paper, lines quoted above found)
       \stepbox{The attack}{\faCalendar\ one week of computing for one fixed $p$,\\
         \faClock\ then about one minute for each discrete logarithm in that group}
       \vspace{0.2cm}
 
-      \textbf{\textcolor{aWrite}{8.4\%}} of the top one million web sites were vulnerable.
+      The attack applied to \textbf{\textcolor{aWrite}{8.4\%}} of the top one million HTTPS web sites.
   \end{columns}
   \vfill
-  \say{Grupy eksportowe to pozostałość po amerykańskich ograniczeniach z lat 90. Napastnik pośrodku połączenia (jak Mallory w sekcji 5) podmienia wiadomości na początku połączenia tak, że serwer wybiera grupę eksportową, a przeglądarka tego nie zauważa (downgrade). TLS to protokół zabezpieczający HTTPS. Atak opisali Adrian i inni na konferencji CCS w 2015 roku.}
+  \say{Grupy eksportowe to pozostałość po amerykańskich ograniczeniach z lat 90. Napastnik na połączeniu podmienia wiadomości na początku połączenia tak, że serwer wybiera grupę eksportową, a przeglądarka tego nie zauważa (downgrade); taką napastniczkę nazwiemy w sekcji 5 Mallory i tam do tego wrócimy. TLS to protokół zabezpieczający HTTPS. Atak opisali Adrian i inni na konferencji CCS w 2015 roku.}
 \end{frame}
 
 \samedot
@@ -1028,7 +1122,10 @@
   \end{columns}
   \vfill
   \keymsg{At 2048 bits even the one-time work is out of reach, so one shared $p$ is fine. Use at least 2048 bits, or the elliptic version from the next lecture.}
-  \say{Autorzy Logjam oszacowali, że złamanie 10 popularnych grup 1024-bitowych otworzyłoby dużą część szyfrowanych połączeń w internecie. Dlatego dziś p ma co najmniej 2048 bitów.}
+  % CHECKED: Adrian et al., CCS 2015, abstract: "performing precomputation for a single 1024-bit group would allow passive
+  %   eavesdropping on 18% of popular HTTPS sites, and a second group would allow decryption of traffic to 66% of IPsec VPNs
+  %   and 26% of SSH servers"; section 1: ten groups: 66% of IKE VPNs, 26% of SSH, 16% of SMTP, 24% of popular HTTPS sites
+  \say{Autorzy Logjam oszacowali: złamanie jednej, najpopularniejszej grupy 1024-bitowej pozwoliłoby podsłuchiwać 18\% popularnych stron HTTPS, a drugiej grupy: 66\% sieci VPN (IPsec) i 26\% serwerów SSH. Dlatego dziś p ma co najmniej 2048 bitów.}
 \end{frame}
 
 \begin{frame}{Good to know: the Diffie-Hellman problem}
@@ -1050,7 +1147,7 @@
     Nobody knows a way to do that faster than computing a discrete logarithm.
   \end{center}
   \vfill
-  \say{Można pominąć. To formalnie inny problem, ale w praktyce równie trudny.}
+  \say{Można pominąć. To formalnie inny problem (obliczeniowy problem Diffiego-Hellmana, CDH), ale w praktyce równie trudny. Gdyby ktoś pytał: dla szyfrowania ElGamal z sekcji 6 potrzeba jeszcze więcej, problemu decyzyjnego (DDH): Eve nie umie nawet odróżnić g\textasciicircum ab od losowej liczby. To założenie działa tylko w grupie o cyklu długości liczby pierwszej, jak w RFC 3526; w pełnym cyklu 22 Eve widzi parzystość, slajd ,,A cycle of 22 gives away one bit''.}
 \end{frame}
 
 % ======================================================================
@@ -1165,7 +1262,9 @@
   \say{To odpowiedź na problem z wykładu 3: wyciek klucza otwierał całą historię. Przy ulotnych kluczach tej historii nie ma czym otworzyć. Serwer ma też klucz długoterminowy (do pieczęci, sekcja 5). Jeśli go ukradną, Mallory może w przyszłości podszywać się pod serwer, ale nagranych rozmów nim nie otworzy: on tylko pieczętuje, nie szyfruje.}
 \end{frame}
 
-% CHECKED: openssl speed ffdh2048 ffdh3072 on the author's laptop (i5-8265U)
+% CHECKED 2026-11-25: openssl speed -seconds 3 ffdh2048 ffdh3072, OpenSSL 3.0.13, the author's laptop (i5-8265U), three runs
+%   (load average 0.2 to 2.2): 2048 bits 3801, 3849, 3920 op/s; 3072 bits 1519, 1484, 1520 op/s; 1/3850 = 0.26 ms, 1/1500 = 0.67 ms
+%   (local/audyt/tmp-facts2/ossl.txt). An earlier run of 2026-11-19 gave 3713 and 1420.
 \samedot
 \begin{frame}{How fast is Diffie-Hellman?}
   \vfill
@@ -1176,7 +1275,7 @@
           axis line style={nLine}, tick label style={font=\small}, xlabel={\scriptsize operations per second (OpenSSL)},
           enlarge y limits=0.5, nodes near coords, point meta=explicit symbolic,
           nodes near coords style={font=\small, text=nInk, anchor=west}, nodes near coords align={horizontal}, xticklabel style={/pgf/number format/fixed}, scaled x ticks=false]
-        \addplot[fill=DeepBlue!70, draw=DeepBlue] coordinates {(3600,2048-bit group)[about 3600 /s \ (0.28 ms)] (1400,3072-bit group)[about 1400 /s \ (0.70 ms)]};
+        \addplot[fill=DeepBlue!70, draw=DeepBlue] coordinates {(3800,2048-bit group)[about 3800 /s \ (0.26 ms)] (1500,3072-bit group)[about 1500 /s \ (0.67 ms)]};
       \end{axis}
     \end{tikzpicture}
   \end{center}
@@ -1202,7 +1301,7 @@
   \vfill
   \begin{center}\small Today mostly in its \textbf{elliptic-curve} version: next lecture.\end{center}
   \vfill
-  \say{SSH to szyfrowane logowanie na zdalny komputer, IPsec to szyfrowanie ruchu IP, na którym działa wiele sieci VPN. W TLS 1.3 każde pełne nawiązanie połączenia (full handshake) zawiera wymianę Diffiego-Hellmana; wyjątek to wznowienie sesji samym wcześniej ustalonym kluczem (tryb PSK-only, RFC 8446), rzadkie w praktyce.}
+  \say{SSH to szyfrowane logowanie na zdalny komputer, IPsec to szyfrowanie ruchu IP, na którym działa wiele sieci VPN. W TLS 1.3 każde pełne nawiązanie połączenia (full handshake) zawiera wymianę Diffiego-Hellmana; wyjątek to wznowienie sesji samym wcześniej ustalonym kluczem (tryb psk\_ke w RFC 8446, sekcja 4.2.9); jest też tryb psk\_dhe\_ke, czyli wznowienie z nową wymianą. Dziś coraz częściej wymiana jest hybrydowa: krzywa eliptyczna razem z algorytmem odpornym na komputery kwantowe (X25519MLKEM768), bo algorytm Shora złamałby sam Diffie-Hellman.}
 \end{frame}
 
 \begin{frame}{But who is on the other side?}
@@ -1254,7 +1353,7 @@
     \end{tabular}
   \end{center}
   \vfill
-  \say{Eve jest bierna, Mallory aktywna. Taki atak nazywa się man-in-the-middle, człowiek pośrodku.}
+  \say{Eve jest bierna, Mallory aktywna. Taki atak nazywa się man-in-the-middle, człowiek pośrodku. Przypomnienie: Logjam z sekcji 3 to właśnie robota Mallory. Podmienia pierwsze wiadomości połączenia tak, że serwer wybiera grupę eksportową 512-bitową, a przeglądarka tego nie zauważa.}
 \end{frame}
 
 % the attack, one picture in three steps
@@ -1370,6 +1469,154 @@
   \say{Sprawdzone. change\_A: self.key\_alice = key\_from\_secret(pow(A, self.m, P)) i zwraca self.g\_m (wartość publiczną Mallory, g\textasciicircum m) zamiast A. change\_B tak samo, z kluczem dla Boba. change\_message: decrypt kluczem Alice, print, encrypt kluczem Boba. Bob dostał poprawną wiadomość i niczego nie zauważył.}
 \end{frame}
 
+% Mallory replaces both public values by one bad value: \badscene{value}{Alice's computation}{Bob's computation}{Mallory's box}
+\newcommand{\badscene}[4]{%
+  \begin{tikzpicture}[>=Stealth]
+    \useasboundingbox (-1,-2.7) rectangle (13,1.4);
+    \alice{0}{0}
+    \mallory{6}{0}
+    \bob{12}{0}
+    \draw[netarrow] (0.7,0.25) -- node[above, font=\small] {$A = 8$} (5.3,0.25);
+    \draw[netarrow] (6.7,0.25) -- node[above, font=\small\bfseries, text=sPinkText] {#1} (11.3,0.25);
+    \draw[netarrow] (11.3,-0.25) -- node[below, font=\small] {$B = 19$} (6.7,-0.25);
+    \draw[netarrow] (5.3,-0.25) -- node[below, font=\small\bfseries, text=sPinkText] {#1} (0.7,-0.25);
+    \node[draw=sPink, thick, fill=white, rounded corners=3pt, font=\scriptsize, text=nInk, align=center, anchor=south] at (6,0.75) {#4};
+    \node[sec, font=\small] at (1.2,-1.9) {#2};
+    \node[sec, font=\small] at (10.8,-1.9) {#3};
+    \node[capt] at (1.2,-2.5) {\textcolor{sIndigo}{\textbf{Alice}}, $a = 6$};
+    \node[capt] at (10.8,-2.5) {\textcolor{sTealText}{\textbf{Bob}}, $b = 15$};
+  \end{tikzpicture}}
+
+% CHECKED (python3): pow(1, 6, 23) = 1, pow(1, 15, 23) = 1
+\begin{frame}{Mallory sends 1}
+  \vfill
+  \begin{center}\badscene{1}{$1^{6} \bmod 23 = \mathbf{1}$}{$1^{15} \bmod 23 = \mathbf{1}$}{no secret $m$ needed:\\ $1^{\text{anything}} = 1$}\end{center}
+  \vfill
+  \begin{center}
+    Alice and Bob get \textbf{the same} secret, 1, so they even have the same key.\\[2pt]
+    Mallory knows it without computing anything. She reads every message and passes it on unchanged.
+  \end{center}
+  \vfill
+  \keymsg{A value from the other side can be a trap. Even ``we have the same key'' proves nothing.}
+  \say{Na tych samych liczbach co w wymianie: A = 8 i B = 19, ale Mallory obie podmienia na 1. W zadaniu 4 Mallory musiała prowadzić dwie wymiany i szyfrować na nowo; tu nie liczy nic. Gdyby Alice i Bob porównali swoje klucze (np. odcisk klucza przez telefon), zobaczyliby to samo i uspokoiliby się. Pytanie do sali: jakie jeszcze liczby byłyby tak samo złe? Następny slajd.}
+\end{frame}
+
+% CHECKED (python3): pow(22, 6, 23) = 1, pow(22, 15, 23) = 22
+\samedot
+\begin{frame}{Mallory sends p - 1}
+  \vfill
+  \begin{center}\badscene{22}{$22^{6} \bmod 23 = \mathbf{1}$}{$22^{15} \bmod 23 = \mathbf{22}$}{the secret is 1 or 22:\\ two tries}\end{center}
+  \vfill
+  \begin{center}
+    Recall ``A bad g'': the powers of $22 = p - 1$ are only 22 and 1.\\[2pt]
+    The same bad number, but now \textbf{Mallory} picks it, not the standard.
+  \end{center}
+  \vfill
+  \keymsg{A value with a short cycle traps the secret among a few values.}
+  \say{Alice ma a = 6, parzyste, więc dostaje 1; Bob ma b = 15, nieparzyste, więc 22. Mallory nie zna a ani b, ale ma tylko dwa kandydaty na każdy sekret i próbuje oba. Ogólnie: wartość o krótkim cyklu zamyka sekret w małym zbiorze (small-subgroup confinement, zamknięcie w małej podgrupie).}
+\end{frame}
+
+% CHECKED: RFC 8446 (TLS 1.3), section 4.2.8.1: "Peers MUST validate each other's public key Y by ensuring that 1 < Y < p-1.
+%   This check ensures that the remote peer is properly behaved and isn't forcing the local system into a small subgroup."
+%   RFC 7919, section 5.1: the same range check; NIST SP 800-56A Rev. 3, 5.6.2.3.1 (full validation): 2 <= y <= p - 2 and y^q mod p = 1
+% CHECKED (python3): p = 23, q = 11, g = 2: pow(16, 11, 23) = 1 (16 = 2^4), pow(22, 11, 23) = 22, pow(5, 11, 23) = 22
+\samedot
+\begin{frame}{Check what you receive}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \node[pub, font=\Large, minimum width=2.0cm, minimum height=1.1cm] (v) at (0,0) {$B$};
+      \node[draw=aExec, very thick, fill=aExec!8, rounded corners=4pt, font=\Large, inner sep=8pt] (c) at (4.6,0) {$1 < B < p - 1$};
+      \draw[data] (v) -- (c);
+      \node[text=aExec, font=\Large, anchor=west] (ok) at (7.4,0.45) {\faCheck};
+      \node[font=\small, text=nInk, anchor=west] at (8.0,0.45) {go on};
+      \node[text=aWrite, font=\Large, anchor=west] at (7.4,-0.45) {\faTimes};
+      \node[font=\small, text=nInk, anchor=west] at (8.0,-0.45) {1 or $p - 1$: stop};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{itemize}\setlength{\itemsep}{5pt}
+    \item TLS 1.3 requires it from both sides: ``Peers MUST validate each other's public key'' (RFC 8446).
+    \item With a safe prime, 1 and $p - 1$ are the only values with a short cycle, so this check is enough.
+    \item The full check of NIST also tests $B^{q} \bmod p = 1$: $B$ lies on the cycle of $g$.\\
+      \small Recall ``Why a cycle of prime length?'': with $g = 2$ mod 23, $q = 11$, and $16^{11} \bmod 23 = 1$, but $22^{11} \bmod 23 = 22$.
+  \end{itemize}
+  \vfill
+  \keymsg{Never use a public value before you check it.}
+  \say{Dlaczego wystarcza przy bezpiecznej liczbie pierwszej p = 2q + 1: długość cyklu każdej liczby dzieli p - 1 = 2q, więc może być 1 (tylko liczba 1), 2 (tylko p - 1), q albo 2q. Liczby z cyklem q lub 2q są długie, więc wystarczy odrzucić 1 i p - 1. Uwaga: sprawdzenie B do potęgi q ma sens tylko w grupie z cyklem q, jak w RFC 3526; przy g = 5 mod 23 (pełny cykl) prawdziwe B = 19 daje 19\textasciicircum 11 mod 23 = 22 i zostałoby odrzucone. Sprawdzenie nie zatrzyma Mallory z zadania 4: jej g\textasciicircum m jest porządną liczbą. Na to potrzebna jest pieczęć, za chwilę.}
+\end{frame}
+
+\begin{frame}{Task 5: Mallory sends 1}
+  \vfill
+  \taskgoal{read Alice's message with no secret of your own, then stop the attack with one check.}
+  \taskready{\texttt{network.py}: Alice and Bob, who call your check on every value they receive.}
+  \begin{center}
+    \small\textcolor{AccentOrange}{\faLightbulb}\ \textbf{Predict first:} must Mallory encrypt the message again for Bob, as in Task 4?
+  \end{center}
+  \vfill
+  \opentask{Task5}{about 8 minutes}
+  \vfill
+  \say{Około 8 minut. Program uruchamia wymianę dwa razy: bez sprawdzania i z funkcją check\_public studenta. Zapisać przewidywania na tablicy.}
+\end{frame}
+
+% CHECKED: python3 Task5/solution/send_one.py (PYTHONPATH=Task5), 2026-11-19, prints the four lines below
+\samedot
+\begin{frame}{Task 5: what we saw}
+  \vfill
+  \begin{center}
+    \begin{minipage}{0.86\textwidth}
+      \stepbox{The output}{\ttfamily Without the check:\\
+        \textcolor{sPinkText}{Mallory reads:} The new Wi-Fi password is Blue-Heron-58.\\
+        \textcolor{sTealText}{Bob reads:}\ \ \ \ \,The new Wi-Fi password is Blue-Heron-58.\\
+        With the check:\\
+        \textcolor{aWrite}{Bob rejects A = 1 and stops.}}
+    \end{minipage}\\[0.4cm]
+    Both keys came from the secret 1, so Mallory did not even re-encrypt.\\
+    One comparison, $1 < A < p - 1$, stopped the attack before Bob computed anything.
+  \end{center}
+  \vfill
+  \curious{diffie-hellman/\#3}
+  \keymsg{Without a check, Mallory needs no secret at all.}
+  \say{Sprawdzone. change\_A i change\_B zwracają 1, change\_message: self.key = key\_from\_secret(1), print, i zwraca dane bez zmian. check\_public: return 1 < value < P - 1. W symulatorze z linku przełącznik ,,Mallory sends: 1 / p - 1'' i sprawdzanie 1 < value < p - 1, na małych liczbach.}
+\end{frame}
+
+% CHECKED: C. H. Lim, P. J. Lee, "A key recovery attack on discrete log-based schemes using a prime order subgroup",
+%   CRYPTO '97; CVE-2016-0701, OpenSSL advisory 2016-01-28 (openssl-library.org/news/secadv/20160128.txt): OpenSSL 1.0.2,
+%   X9.42 parameters as for RFC 5114 with primes that are not safe, the server reusing its private DH exponent;
+%   fixed in 1.0.2f; reported by Antonio Sanso (Adobe). L. Valenta et al., "Measuring small subgroup attacks against
+%   Diffie-Hellman", NDSS 2017
+\samedot
+\begin{frame}{Good to know: when the secret stays the same}
+  \vfill
+  \begin{columns}[c,onlytextwidth]
+    \column{0.36\textwidth}
+      \begin{center}
+      \begin{tikzpicture}
+        \node[text=sTeal, font=\fontsize{44}{44}\selectfont] at (0,0.5) {\faServer};
+        \node[sec, font=\small] at (0,-0.85) {the same $b$\\ for every client};
+        \foreach \i/\y in {1/1.5, 2/0.6, 3/-0.3} {
+          \node[text=sPink, font=\large] (m\i) at (-2.4,\y) {\faUserNinja};
+          \draw[data, thin] (m\i) -- (-0.75,0.5);
+        }
+        \node[font=\scriptsize, text=sPinkText, align=center] at (-2.4,-0.95) {many\\ handshakes};
+      \end{tikzpicture}
+      \end{center}
+    \column{0.6\textwidth}
+      \small
+      A server that keeps \textbf{one} secret $b$ for many connections (a \textbf{static} key, not ephemeral):
+      \vspace{0.2cm}
+
+      \begin{itemize}\setlength{\itemsep}{4pt}
+        \item If $p - 1$ has many small factors, Mallory sends values with short cycles of length 2, 3, 5, \dots{} and learns $b$ modulo each of them, a few handshakes each (Lim and Lee, 1997).
+        \item Put the pieces together, and she has the server's \textbf{whole} $b$.
+        \item \textbf{CVE-2016-0701}: OpenSSL 1.0.2 with the groups of RFC 5114 (not safe primes) and a reused $b$. Fixed in January 2016.
+      \end{itemize}
+  \end{columns}
+  \vfill
+  \keymsg{Safe prime, checked values, a new secret every time: each closes the same door.}
+  \say{Można pominąć. Klucz statyczny to odwrotność ulotnego: serwer mógł trzymać jedno b dla wielu połączeń (OpenSSL 1.0.2 robił tak, gdy opcja SSL\_OP\_SINGLE\_DH\_USE była wyłączona), żeby oszczędzić czas. Wtedy każda zła wartość od Mallory zdradza kawałek b, jak parzystość w slajdzie ,,A cycle of 22 gives away one bit''. Błąd zgłosił Antonio Sanso (Adobe); poprawka w OpenSSL 1.0.2f sprawdza B\textasciicircum q i zawsze bierze nowe b. Valenta i inni (NDSS 2017): z ponad 20 bibliotek żadna przed styczniem 2016 nie sprawdzała domyślnie rzędu podgrupy.}
+\end{frame}
+
 % a seal: \seal{x}{y}{colour}{text}
 \newcommand{\seal}[4]{%
   \node[circle, draw=#3, very thick, fill=#3!15, text=#3, minimum size=1.0cm, inner sep=0pt, font=\tiny\bfseries, align=center]
@@ -1393,6 +1640,7 @@
     Bob adds to his $B$ a \textbf{seal} that only his long-term private key (not $b$) can make.\\
     Alice checks the seal with Bob's public key.\\[6pt]
     Mallory can replace $B$, but she \textbf{cannot seal} her $g^{m}$ as Bob.\\[4pt]
+    \small The seal does not replace the check $1 < B < p - 1$: TLS 1.3 requires both.\\[2pt]
     \small\textcolor{gray}{Such a seal is a digital signature: lecture 8.}
   \end{center}
   \vfill
@@ -1532,7 +1780,7 @@
   \end{center}
   \vfill
   \curious{diffie-hellman/\#4}
-  \say{19\textasciicircum 3 = 6859, a 6859 mod 23 = 5, więc C2 = 7 · 5 mod 23 = 35 mod 23 = 12. Wiadomość M to liczba mniejsza od p. W symulatorze z linku ten sam przykład: szyfrowanie i odszyfrowanie. Karta ,,ta sama wiadomość dwa razy'' jest tam zwinięta pod przyciskiem; nie otwierać jej przed zadaniem 5.}
+  \say{19\textasciicircum 3 = 6859, a 6859 mod 23 = 5, więc C2 = 7 · 5 mod 23 = 35 mod 23 = 12. Wiadomość M to liczba mniejsza od p. W symulatorze z linku ten sam przykład: szyfrowanie i odszyfrowanie. Karta ,,ta sama wiadomość dwa razy'' jest tam zwinięta pod przyciskiem; nie otwierać jej przed zadaniem 6.}
 \end{frame}
 
 \samedot
@@ -1605,22 +1853,22 @@
   \begin{center}\small In our example: $10^{15} \bmod 23 = 5$ and $19^{3} \bmod 23 = 5$. Without $C_1$, Bob could not find it.\\[2pt]
     $y^{k}$ looks random to Eve (she would need $k$ or $x$), so $M \times y^{k}$ looks random, like XOR with a keystream.\end{center}
   \keymsg{Alice multiplies $M$ by the shared secret. Bob divides by it.}
-  \say{Dzielenie modulo p to mnożenie przez odwrotność. Dwie części szyfrogramu: C1 to połowa wymiany od Alice (Bob potrzebuje jej, żeby policzyć sekret), C2 to wiadomość zakryta tym sekretem.}
+  \say{Dzielenie modulo p to mnożenie przez odwrotność. Dwie części szyfrogramu: C1 to połowa wymiany od Alice (Bob potrzebuje jej, żeby policzyć sekret), C2 to wiadomość zakryta tym sekretem. Uczciwie: ,,wygląda losowo'' jest prawdą w grupie o cyklu długości liczby pierwszej, jak w RFC 3526 i w zadaniu 6. Przy g = 5 mod 23 (pełny cykl 22) Eve widzi z C1 i y, czy y\textasciicircum k jest ,,kwadratem'', i z tego jeden bit o M, jak parzystość w sekcji 3.}
 \end{frame}
 
-\begin{frame}{Task 5: ElGamal in Python}
+\begin{frame}{Task 6: ElGamal in Python}
   \vfill
   \taskgoal{write \texttt{encrypt} and \texttt{decrypt} of ElGamal, for the real 2048-bit group.}
   \taskready{Bob's keys $x$ and $y$, and text to number and back, in \texttt{elgamal.py}.}
   \vfill
-  \opentask{Task5}{about 8 minutes}
+  \opentask{Task6}{about 8 minutes}
   \vfill
   \say{Około 8 minut. Wzory są na poprzednich slajdach. Tekst zamieniany na liczbę i z powrotem jest już gotowy w pliku. Odwrotność: pow(s, -1, P).}
 \end{frame}
 
-% CHECKED: Task5/solution/elgamal.py prints the two lines below (and C1, C2: new digits on every run)
+% CHECKED: Task6/solution/elgamal.py prints the two lines below (and C1, C2: new digits on every run)
 \samedot
-\begin{frame}{Task 5: what we saw}
+\begin{frame}{Task 6: what we saw}
   \vfill
   \begin{center}
     \begin{minipage}{0.8\textwidth}
@@ -1653,7 +1901,7 @@
   \begin{center}
     \renewcommand{\arraystretch}{1.4}
     \begin{tabular}{lll}
-      textbook RSA: & the same message, \textcolor{aWrite}{\textbf{the same ciphertext}} & \textcolor{gray}{(the PIN attack)} \\
+      textbook RSA: & the same message, \textcolor{aWrite}{\textbf{the same ciphertext}} & \textcolor{gray}{(the PIN guessing of lecture 3)} \\
       ElGamal: & the same message, \textcolor{aExec}{\textbf{a different ciphertext}} & \\
     \end{tabular}
   \end{center}
@@ -1663,8 +1911,8 @@
   \say{W wykładzie 3 zgadywaliśmy PIN, bo podręcznikowe RSA zawsze daje ten sam szyfrogram. ElGamal tego problemu nie ma, bo losuje k.}
 \end{frame}
 
-% the first digits of the values in Task6/reuse.py
-\begin{frame}{Task 6: k used twice}
+% the first digits of the values in Task7/reuse.py
+\begin{frame}{Task 7: k used twice}
   \vfill
   \taskgoal{recover the second message, without Bob's private key.}
   {\centering
@@ -1679,14 +1927,14 @@
     \end{tikzpicture}\par}\vspace{0.1cm}
   \taskready{the two ciphertexts, and the first message (from a public receipt), in \texttt{reuse.py}.}
   \vfill
-  \opentask{Task6}{about 7 minutes}
+  \opentask{Task7}{about 7 minutes}
   \vfill
   \say{Około 7 minut. Nie podpowiadać od razu. Jeśli trzeba: co w obu C2 jest takie samo? Zamiana tekstu na liczbę jest gotowa w pliku.}
 \end{frame}
 
-% CHECKED: Task6/solution/reuse.py prints the line below
+% CHECKED: Task7/solution/reuse.py prints the line below
 \samedot
-\begin{frame}{Task 6: what we saw}
+\begin{frame}{Task 7: what we saw}
   \vfill
   \begin{center}
     \begin{tikzpicture}
@@ -1722,6 +1970,36 @@
   \say{Keystream i nonce to pojęcia z wykładów o szyfrach strumieniowych: tam też powtórka jednorazowej wartości otwierała wiadomość.}
 \end{frame}
 
+% CHECKED (python3): 2 * 12 % 23 = 1; pow(pow(10, 15, 23), -1, 23) = 14; 1 * 14 % 23 = 14 = 2 * 7
+\begin{frame}{Mallory doubles the message}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \envpic{0}{0}{sBrown!15}{sBrown}
+      \node[font=\small\bfseries, text=nInk, fill=sBrown!15, inner sep=1pt] at (0,-0.22) {(10, 12)};
+      \node[capt, below=0.6cm] at (0,0) {from Alice, $M = 7$};
+      \mallory{3.4}{0}
+      \node[draw=sPink, thick, fill=white, rounded corners=3pt, font=\small, text=nInk, anchor=south] at (3.4,0.75) {$C_2 \times 2$: $12 \times 2 \bmod 23 = 1$};
+      \draw[data] (0.9,0) -- (2.7,0);
+      \draw[data] (4.1,0) -- (5.9,0);
+      \envpic{6.8}{0}{sBrown!15}{sBrown}
+      \node[font=\small\bfseries, text=nInk, fill=sBrown!15, inner sep=1pt] at (6.8,-0.22) {(10, \textcolor{sPinkText}{1})};
+      \draw[data] (7.7,0) -- (9.2,0);
+      \bob{10.0}{0}
+      \node[msgb, font=\small, anchor=north] at (10.0,-0.95) {$M = 1 \times 14 \bmod 23 = \mathbf{14}$};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}
+    $C_2 = M \times y^{k}$, so $2 \times C_2 = (2M) \times y^{k}$: a valid ciphertext of $2M$.\\[2pt]
+    Mallory knows neither $M$ nor any key, yet Bob decrypts $14 = 2 \times 7$.\\[4pt]
+    \small A payment of 250 EUR could arrive as 500 EUR.
+  \end{center}
+  \vfill
+  \keymsg{Textbook ElGamal hides $M$, but anyone can multiply it.}
+  \say{Mallory nie odszyfrowuje niczego, tylko mnoży C2 przez 2. Bob liczy jak zwykle: s = 10\textasciicircum 15 mod 23 = 5, odwrotność 14, M = 1 · 14 = 14. Taka własność to podatność na modyfikację (malleability); podręcznikowe RSA ma ją tak samo (szyfrogram razy 2\textasciicircum e daje 2M). Dlatego ElGamala w praktyce nie używa się tak ,,goło'': wspólny sekret idzie do KDF, a wiadomość szyfruje szyfr z uwierzytelnieniem (DHIES, ECIES, HPKE z RFC 9180); o KDF w następnym wykładzie. Na tę zmianę nie pomaga też losowe k.}
+\end{frame}
+
 \begin{frame}{ElGamal and RSA side by side}
   \vfill
   \begin{center}
@@ -1734,6 +2012,7 @@
       ciphertext & two numbers $(C_1, C_2)$ & one number \\
       randomness & built in (a new $k$) & needs padding (OAEP) \\
       \textcolor{aWrite}{\faExclamationTriangle}\ danger & \textcolor{aWrite}{a repeated $k$} & \textcolor{aWrite}{textbook use without padding} \\
+      \textcolor{aWrite}{\faExclamationTriangle}\ textbook form & \textcolor{aWrite}{anyone can multiply $M$} & \textcolor{aWrite}{anyone can multiply $M$} \\
       in GnuPG (e-mail) & default encryption key until 2009 & default since 2009 \\
       \bottomrule
     \end{tabular}
@@ -1741,23 +2020,10 @@
   \vfill
   \keymsg{Two ways to public-key crypto, each with its own trap.}
   % CHECKED: GnuPG NEWS: 0.3.0 "Key generation defaults to DSA/ElGamal keys"; 1.4.10 (2009-09-02) and 2.0.13 (2009-09-04):
-  %   "2048 bit RSA keys are now generated by default" (github.com/gpg/gnupg, NEWS of STABLE-BRANCH-1-4 and 2-0)
+  %   "2048 bit RSA keys are now generated by default" (github.com/gpg/gnupg, NEWS of STABLE-BRANCH-1-4 and 2-0);
+  %   2.3.0 (2021-04-07): "gpg: Switch to ed25519/cv25519 as default public key algorithms"
+  %   (lists.gnupg.org/pipermail/gnupg-announce/2021q2/000458.html)
   \say{Faktoryzacja to rozkład liczby na czynniki pierwsze, problem z wykładu 3. OAEP to losowe dopełnienie dla RSA, też z wykładu 3. GnuPG to najpopularniejszy program szyfrowanej poczty (standard OpenPGP): od pierwszych wersji (koniec lat 90.) domyślnie tworzył klucz ElGamal do szyfrowania, od wersji 1.4.10 i 2.0.13 (wrzesień 2009) domyślnie RSA, a od 2.3 (2021) krzywe eliptyczne, o których następny wykład.}
 \end{frame}
 
-\begin{frame}{Summary}
-  \vfill
-  \begin{center}
-    \renewcommand{\arraystretch}{1.7}
-    \begin{tabular}{cp{0.86\textwidth}}
-      \bigbadge{1} & Diffie-Hellman: both sides compute $g^{ab} \bmod p$, nobody sends it. \\
-      \bigbadge{2} & It is safe while the discrete logarithm is hard: $p$ of at least 2048 bits. \\
-      \bigbadge{3} & DH agrees on a key; ephemeral keys give forward secrecy; it needs authentication. \\
-      \bigbadge{4} & ElGamal: $C_1 = g^{k}$, $C_2 = M\,y^{k}$; the two parts are a DH exchange and the message; never reuse $k$. \\
-      \bigbadge{5} & Compared with RSA, ElGamal is randomised, but its ciphertext is twice as long. \\
-    \end{tabular}
-  \end{center}
-  \vfill
-  \say{Po jednym zdaniu na każdy cel wykładu. Następnym razem te same pomysły na krzywych eliptycznych.}
-\end{frame}
 \end{document}

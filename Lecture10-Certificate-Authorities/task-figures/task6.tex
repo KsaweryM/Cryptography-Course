@@ -6,7 +6,7 @@
 \begin{tikzpicture}[>=Stealth]
 
   \foreach \t/\s [count=\k from 0] in {coventry.pem/{www.coventry.ac.uk\\90 days}, python-org.pem/{www.python.org\\397 days}, my-shop.pem/{made with make\_cert\\90 days}} {
-    \cert{c\k}{{5.2*\k},0}{sIndigo}{4.4cm}{\t}{\s\\[3pt]\textbf{SCTs:}\ \textcolor{AccentOrange}{\textbf{?}}}
+    \cert{c\k}{{5.2*\k},0}{sTeal}{4.4cm}{\t}{\s\\[3pt]\textbf{SCTs:}\ \textcolor{AccentOrange}{\textbf{?}}}
   }
   \foreach \k in {0,1,2} \node[hw, minimum width=2.6cm, font=\small] (l\k) at ({3.5*\k+1.7},2.6) {\faBook\ CT log};
   \foreach \k in {0,1} \foreach \j in {0,1,2} \draw[nLine, thick, dashed] (l\j.south) -- (c\k h.north);

@@ -9,6 +9,8 @@ class Mallory:
     def __init__(self):
         self.m = secrets.randbits(256)       # Mallory's own secret
         self.g_m = pow(G, self.m, P)         # and her public value g^m (g_m: "g to the m")
+        self.key_alice = None                # the key Mallory shares with Alice (TODO 1)
+        self.key_bob = None                  # the key Mallory shares with Bob (TODO 2)
 
     def change_A(self, A):
         # Alice sends A to Bob.
@@ -29,4 +31,7 @@ class Mallory:
         return data
 
 
-run(Mallory())
+mallory = Mallory()
+run(mallory)
+if mallory.key_alice is None:
+    print("not done yet: TODO 1 to 3")

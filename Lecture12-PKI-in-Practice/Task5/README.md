@@ -4,11 +4,11 @@
 
 A CA does not sign a certificate as a whole: it signs the hash of its **tbsCertificate**, the part "to be signed" with all the fields (Lecture 9). If two different tbsCertificates have the same hash, one signature fits both. For MD5 such pairs are easy to make since 2004 (Lecture 7, Task 4).
 
-Mallory prepared two tbsCertificates, A and B, that differ in only 6 of 308 bytes. A program that reads them shows two very different sentences: A is an ordinary website certificate, B makes Mallory a CA. She gets Trusty CA to sign the harmless A. Trusty CA signed A twice: once over MD5 (as some CAs still did in 2008) and once over SHA-256.
+Mallory prepared two tbsCertificates, A and B, that differ in only 6 of 306 bytes. A program that reads them shows two very different sentences: A is an ordinary website certificate, B makes Mallory a CA. She gets Trusty CA to sign the harmless A. Trusty CA signed A twice: once over MD5 (as some CAs still did in 2008) and once over SHA-256.
 
 A real CA writes some fields itself, such as the serial number and the validity dates, so Mallory cannot prepare the bytes alone: she must guess exactly what the CA will write. In 2008 the researchers did exactly that (see the slide "2008: the rogue CA in PKI detail"). Here Trusty CA simply signs the bytes Mallory gives it.
 
-![Two files of 308 bytes. tbs_a.bin: bytes 0 to 127 are strange bytes; the 6 that differ are 87, 71, f2, b4, a8, 2b at bytes 19, 45, 59, 83, 109, 123; then the text, the same in both, and a program shows: "shop.alice.example is a website. It may NOT sign certificates." tbs_b.bin: the 6 bytes are 07, f1, 72, 34, 28, ab, and the program shows: "Mallory is a CA. She may sign certificates for any website." Under each file: MD5 the same, SHA-256 different. Trusty CA signs A, RSA over MD5 and over SHA-256. Does the same signature fit B?](figure.svg)
+![Two files of 306 bytes. tbs_a.bin: bytes 0 to 127 are strange bytes; the 6 that differ are 87, 71, f2, b4, a8, 2b at bytes 19, 45, 59, 83, 109, 123; then the text, the same in both, and a program shows: "shop.bob.example is a website. It may NOT sign certificates." tbs_b.bin: the 6 bytes are 07, f1, 72, 34, 28, ab, and the program shows: "Mallory is a CA. She may sign certificates for any website." Under each file: MD5 the same, SHA-256 different. Trusty CA signs A, RSA over MD5 and over SHA-256. Does the same signature fit B?](figure.svg)
 
 The 128 strange bytes are the famous MD5 collision of Wang, Feng, Lai and Yu (2004), the pair from Lecture 7. In the real attack of 2008 the researchers computed their own collision for two certificates.
 
@@ -39,13 +39,13 @@ The MD5 signature fits both tbsCertificates, the SHA-256 signature only A.
 <summary>Check your answer</summary>
 
 ```
-A says: Trusty CA certifies: shop.alice.example is a website. It may NOT sign certificates.
+A says: Trusty CA certifies: shop.bob.example is a website. It may NOT sign certificates.
 B says: Trusty CA certifies: Mallory is a CA. She may sign certificates for any website.
-bytes that differ: 6 of 308
-MD5     A: 7e58325ffced260e7cf07eb336bf0907
-MD5     B: 7e58325ffced260e7cf07eb336bf0907
-SHA-256 A: 99cfc680cafeeddc57c0d92de1c79bfc418ddad3676da15d4b17ae94ab3f991e
-SHA-256 B: 748ac700ab50682b30ec1dfcc89aa2898d2ef9cf15aad984faef9ca25c20cb9b
+bytes that differ: 6 of 306
+MD5     A: c1ce19ef2bff14e3d0a24b79426459cb
+MD5     B: c1ce19ef2bff14e3d0a24b79426459cb
+SHA-256 A: f8a5fde58bf3b7ce9b524e114e238b9a0b5fde6e176e7293de577041dac7c9d0
+SHA-256 B: 646d9bfca497b64a994b87635f48b7fc34976aa3fef739473010af36a1290e49
 MD5 signature on A:     True
 MD5 signature on B:     True
 SHA-256 signature on A: True

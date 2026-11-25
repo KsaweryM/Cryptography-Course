@@ -1,9 +1,10 @@
 # Task 8: what the cost costs.
 # Part 1: how the time of one bcrypt grows with the cost.
 # Part 2: Mallory stole Dave's bcrypt text (cost 4) and tries the 20 most common passwords.
-import hashlib
+# Part 3: a fair comparison with SHA-256: both in plain Python.
 import time
 from bcrypt_ready import hash_password, check_password
+from sha256_ready import sha256
 
 
 def load_lines(path):
@@ -31,7 +32,11 @@ print("stolen:", stored)
 #         Measure the whole loop and print f"bcrypt cost 4: {tries / seconds:.1f} guesses per second"
 print("not done yet: TODO 2")
 
-# TODO 3: for comparison, measure SHA-256 on the same guesses: compute
-#         hashlib.sha256(guesses[i].encode()).hexdigest() for all 20 guesses, 10000 times over (200000 hashes),
-#         and print f"SHA-256: {200000 / seconds:.0f} guesses per second"
+# TODO 3: for a fair comparison, measure SHA-256 in plain Python too (sha256_ready.py, like bcrypt_ready.py):
+#         compute sha256(guesses[i].encode()) for all 20 guesses, 100 times over (2000 hashes),
+#         and print f"SHA-256, plain Python: {2000 / seconds:.0f} guesses per second"
 print("not done yet: TODO 3")
+
+# TODO 4: print how many SHA-256 guesses Mallory makes in the time of one bcrypt guess (cost 4):
+#         print(f"one bcrypt guess = {ratio:.0f} SHA-256 guesses")
+print("not done yet: TODO 4")

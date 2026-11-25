@@ -1,54 +1,66 @@
-# Task 10: how fast?
+# Task 10: build SHA-256 from its parts
 
 ## The situation
 
-Bob must choose a hash function for a backup tool that hashes many gigabytes a day. Python's `hashlib` offers MD5, SHA-1, SHA-256, SHA-512 and SHA3-256. How long are their digests, and how many megabytes per second does each hash on your computer?
+Bob wants to see that SHA-256 really is the Merkle-Damgård construction from the slides: pad the message, cut it into 64-byte blocks, and feed the blocks one by one into the compression function, which carries a state of 8 words from block to block. The hard part, the compression function with its 64 rounds, is ready in `sha256_ready.py`. You write the rest and compare your digest with `hashlib`.
 
-![Five dark boxes MD5, SHA-1, SHA-256, SHA-512, SHA3-256; 50 MB of violet data go into each; out come brown digests of different lengths, "bits = ?", and a speedometer "MB/s = ?" for each.](figure.svg)
+![A violet message is padded (grey 0x80, zero bytes and the length) and cut into 64-byte blocks, block 1 and block 2. The starting state IV (8 words, 6a09e667 ...) goes into a dark box compress together with block 1; the new state goes into the next compress with block 2; the last state is the brown digest "= ?", compared with hashlib.](figure.svg)
 
 ## Goal
 
-Print the digest size of five hash functions and measure their speed on 50 MB.
+Find how many blocks the padding makes, then build SHA-256 from `pad` and `compress` and get exactly the digest of `hashlib`.
 
 ## Ready for you
 
-- `speed.py`: the list `NAMES` and `DATA`, 50 MB of zero bytes.
-
-`hashlib.new(name)` makes a hash object by its name, like a function pointer chosen from a table in C; `hashlib.new(name, DATA)` also hashes `DATA` at once. `h.digest_size` is the length of the digest in bytes.
+- `sha256_ready.py` (FIPS 180-4, in plain Python; you do not need to read it):
+  - `IV`: the starting state, a list of 8 numbers of 32 bits (like `uint32_t iv[8]` in C).
+  - `pad(message)`: the message followed by the byte 0x80, zero bytes, and the length of the message in bits as 8 bytes, so that the total is a multiple of 64.
+  - `compress(state, block)`: the compression function; a state of 8 words and one 64-byte block in, a new state of 8 words out.
+  - `state_to_bytes(state)`: the 8 words as 32 bytes.
+- `build_sha256.py`: the test at the end, which compares your function with `hashlib.sha256` for a 3-byte and a 79-byte message.
 
 ## Steps
 
-1. For each name: `h = hashlib.new(name)`, print the name and `8 * h.digest_size` bits.
-2. Predict first: which is the fastest, which the slowest? Then for each name measure 3 times and keep the best (shortest) time: `best = 1000.0`, then 3 times `t0 = time.perf_counter()`, `hashlib.new(name, DATA).digest()`, `seconds = time.perf_counter() - t0`, and `if seconds < best: best = seconds`. Print `50 / best` MB/s. Other programs on your laptop slow single runs down; the best of 3 is closer to what the processor can do.
+1. Predict first: how many 64-byte blocks for a message of 3 bytes, 55, 56, 64 bytes? Then check: for each `n`, `padded = pad(bytes(n))`, `blocks = len(padded) // 64` (`//` is integer division, as `/` on `int` in C), and print with the format in the TODO.
+2. In `my_sha256(message)`: pad the message, start with the state `IV`, and for every 64-byte block of the padded message, from the first to the last, set `state = compress(state, block)`. The block that starts at index `i` is `padded[i:i + 64]`, like `&padded[i]` with length 64 in C. Print the first word of the state after each block (the block number `k` = 1, 2, ...), then `return state_to_bytes(state)`.
+   <details><summary>Hint: the loop</summary>
+
+   `for i in range(0, len(padded), 64):` goes through `i = 0, 64, 128, ...` below `len(padded)`, like `for (i = 0; i < len; i += 64)` in C; the block number is `k = i // 64 + 1`.
+   </details>
 
 ## Expected output
 
-Five sizes, then five speeds. Your speeds will differ (they depend on the processor and even change between runs), but the sizes will not.
+The four lines of step 1, then for each test message the state after each block, your digest, the one of `hashlib`, and `the same: True`.
 
 <details>
 <summary>Check your answer</summary>
 
 ```
-md5       128 bits
-sha1      160 bits
-sha256    256 bits
-sha512    512 bits
-sha3_256  256 bits
-md5          754 MB/s
-sha1        1064 MB/s
-sha256       499 MB/s
-sha512       701 MB/s
-sha3_256     384 MB/s
+ 3 bytes ->  64 bytes after padding, 1 block(s)
+55 bytes ->  64 bytes after padding, 1 block(s)
+56 bytes -> 128 bytes after padding, 2 block(s)
+64 bytes -> 128 bytes after padding, 2 block(s)
+3 bytes: b'abc'
+  after block 1: ba7816bf ...
+  mine:    ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad
+  hashlib: ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad
+  the same: True
+79 bytes: b'The quick brown fox jumps over the lazy dog, then over the lazy cat, then home.'
+  after block 1: 26988411 ...
+  after block 2: 8c166dba ...
+  mine:    8c166dbaa503f9d49ad48c6326a284d5c5c0af17d9757fe2cf841e37d5d21b20
+  hashlib: 8c166dbaa503f9d49ad48c6326a284d5c5c0af17d9757fe2cf841e37d5d21b20
+  the same: True
 ```
 
-(Intel Core i5-8265U laptop without SHA instructions, Python 3.12 with OpenSSL 3.0.13, the best of 3 runs.) All of them hash hundreds of megabytes per second. On this laptop SHA-512 is faster than SHA-256, because it works on 64-bit words and processes 128 bytes per block. Processors with SHA instructions (AMD Zen, Intel Ice Lake and newer, Apple M) hash SHA-256 several times faster, and there SHA-256 may be the fastest of all, so both answers to "which is the fastest?" can be right. On Linux, `grep -o sha_ni /proc/cpuinfo` prints something if your processor has them. To compare with OpenSSL itself: `openssl speed -evp sha256`. The broken MD5 and SHA-1 are faster, but speed is no reason to use them.
+55 bytes still fit in one block (55 + 1 byte 0x80 + 8 bytes of length = 64), 56 bytes do not, so the padding adds a whole second block. The state after the last block **is** the digest: compare `ba7816bf` with the first 8 hex digits of SHA-256("abc").
 
 </details>
 
 ## Run
 
 ```
-python3 speed.py
+python3 build_sha256.py
 ```
 
-About 6 minutes. Python 3.8 or newer, no extra libraries. It needs about 50 MB of memory and runs for a few seconds.
+About 12 minutes. Python 3.8 or newer, no extra libraries.

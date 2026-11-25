@@ -1,4 +1,4 @@
-% Task 5: three CSRs. CHECKED: Task5/solution/check_csrs.py (bob True, bob-changed False, mallory True).
+% Task 5: three CSRs (and Carol's, made by the student). CHECKED: Task5/solution/check_csrs.py (bob True, bob-changed False, mallory True).
 \documentclass[12pt,tikz,border=6pt]{standalone}
 \input{common}
 \begin{document}
@@ -7,9 +7,9 @@
 
   \person{bob}{0,0}{sTeal}{Bob}
   \person{mal}{0,-3.6}{sPink}{Mallory}
-  \cert{c1}{4.6,1.1}{sTeal}{5.4cm}{bob.csr}{\textbf{Subject:} bob-shop.example\\\textbf{Key:} Bob's key\\signed by Bob's key}
-  \cert{c2}{12.2,1.1}{sPink}{5.4cm}{bob-changed.csr}{\textbf{Subject:} \textcolor{sPinkText}{\textbf{mal}}-shop.example\\\textbf{Key:} Bob's key\\signature: Bob's, as it was}
-  \cert{c3}{4.6,-2.5}{sPink}{5.4cm}{mallory.csr}{\textbf{Subject:} bob-shop.example\\\textbf{Key:} Mallory's key\\signed by Mallory's key}
+  \cert{c1}{4.6,1.1}{sTeal}{5.4cm}{bob.csr}{\textbf{Subject:} bob.example\\\textbf{Key:} Bob's key\\signed by Bob's key}
+  \cert{c2}{12.2,1.1}{sPink}{5.4cm}{bob-changed.csr}{\textbf{Subject:} \textcolor{sPinkText}{\textbf{mal}}.example\\\textbf{Key:} Bob's key\\signature: Bob's, as it was}
+  \cert{c3}{4.6,-2.5}{sPink}{5.4cm}{mallory.csr}{\textbf{Subject:} bob.example\\\textbf{Key:} Mallory's key\\signed by Mallory's key}
   \draw[sig] (bob.east) -- (c1h.west |- bob.east);
   \draw[sig] (c1.east) -- node[above, font=\small] {bytes changed} node[below, font=\small] {on the way} (c2.west);
   \draw[sig] (mal.east) -- (c3h.west |- mal.east);

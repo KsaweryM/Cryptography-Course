@@ -1,65 +1,61 @@
-# Task 8: is this validity allowed?
+# Task 8: get a certificate by ACME
 
 ## The situation
 
-Public TLS certificates may not live as long as their owners would like. The CA/Browser Forum and the browsers have shortened the limit several times, and the limit that counts is the one in force on the day the certificate was issued:
+Let's Encrypt gives certificates through ACME, with no person involved. To prove that Bob controls `bob.example`, the CA gives him a random token, and Bob puts a file with the "key authorization" on his web server, at `http://bob.example/.well-known/acme-challenge/<token>`. The CA downloads the file; if the text is right, it signs his CSR. This is the http-01 challenge.
 
-| Issued on or after | At most |
-|---|---|
-| 1 March 2018 | 825 days |
-| 1 September 2020 | 398 days |
-| 15 March 2026 | 200 days |
-| 15 March 2027 | 100 days |
-| 15 March 2029 | 47 days |
+Here everything runs on your computer: `acme_toy.py` starts a small web server on 127.0.0.1 that serves the folder `webroot/`, and a toy CA "Toy ACME CA R1" that believes `bob.example` is that web server. Simplified: real ACME signs every request with the account key and sends it over HTTPS; the http-01 challenge and the thumbprint are real (RFC 8555, RFC 7638).
 
-The folder `certs/` holds 8 certificates: `coventry.pem` and `python-org.pem` are real (saved on 15 November 2026), the other six were made for this task, some of them dated in the future.
-
-![A time line of the limits: 825 days from 1 March 2018, 398 days from 1 September 2020, 200 days from 15 March 2026, 100 days from 15 March 2027, 47 days from 15 March 2029. For each of the 8 certificates in certs/: is the number of days valid within the limit on the day it was issued?](figure.svg)
+![A sequence between get_certificate.py (Bob) and ToyCA. 1 new_order for bob.example with an account key; the CA answers with a token. 2 key authorization = token + "." + thumbprint(account key). 3 the file webroot/.well-known/acme-challenge/<token>. 4 validate(order): the CA downloads the file. 5 finalize(order, CSR) gives a certificate for 90 days.](figure.svg)
 
 ## Goal
 
-Check eight certificates against the limit that held on the day each was issued.
+Pass the http-01 challenge of a toy ACME CA and get a 90-day certificate.
 
 ## Ready for you
 
-- `certs/`: the 8 certificates; the list of file names is in `check_validity.py`.
-- `cert_ready.py` (a black box): `load_cert`, `valid_from`, `valid_until`.
-- A date to compare with: `datetime.datetime(2026, 3, 15, tzinfo=UTC)`; dates compare with `>=` like numbers. The difference of two dates is a duration: `(a - b).total_seconds()`.
+- `acme_toy.py` (a black box): `thumbprint(account_key)` gives the thumbprint of the public account key as text; `start_web_server(folder)`; `ToyCA(dns)` with `ca.new_order(domain, account_key)` (the order has `order.token`), `ca.validate(order)` (returns `"valid"` or `"invalid: ..."`) and `ca.finalize(order, csr)` (returns a certificate, or `None`).
+- `cert_ready.py` (a black box): `new_key`, `make_csr`, `subject_of`, `issuer_of`, `valid_from`, `valid_until`.
+- In `get_certificate.py` the web server and the CA are already started.
 
 ## Steps
 
-Write your code in place of the `TODO` comments in `check_validity.py`:
+Write your code in place of the `TODO` comments in `get_certificate.py`. Under each `TODO` there is a line `print("not done yet: TODO n")`: replace it with your code.
 
-1. Write `max_days(issued)`: a chain of `if` statements, the newest date first, that returns the limit from the table (and `None` before 1 March 2018).
-2. In the loop, compute how many days the certificate is valid: `(valid_until(cert) - valid_from(cert)).total_seconds() / 86400`.
-3. Compare it with `max_days(valid_from(cert))` and print the file name, the issue date, the days, the limit, and `OK` or `TOO LONG`.
+1. Make an account key (`new_key()`), ask the CA for a new order for `"bob.example"` and print `order.token`.
+2. Build the key authorization: `order.token + "." + thumbprint(account_key)`.
+3. Write it into the file `webroot/.well-known/acme-challenge/<token>`: build the folder name with `os.path.join("webroot", ".well-known", "acme-challenge")`, create it with `os.makedirs(folder, exist_ok=True)`, then `open(...)`, `write`, `close` as in C.
+4. Ask the CA to validate the order and print the answer.
+5. Make a new key for the website and a CSR for `"bob.example"`, send it with `ca.finalize(order, csr)`, and print the subject, the issuer and the dates of the certificate.
+
+Finished early? Play Mallory, who found Bob's token: in step 2 use the thumbprint of another account key (`thumbprint(new_key())`) and run again. The CA says `invalid`, and the order cannot be used any more: the thumbprint ties the answer to the account that asked, so a copied token is worth nothing on another account.
 
 ## Expected output
 
-Predict first: is the 397-day certificate of www.python.org allowed?
+The token and the thumbprint are different in every run.
 
 <details>
 <summary>Check your answer</summary>
 
 ```
-coventry.pem    2026-10-13   90 days, limit 200 : OK
-python-org.pem  2026-01-13  397 days, limit 398 : OK
-shop-2019.pem   2019-05-01  730 days, limit 825 : OK
-shop-2021.pem   2021-03-01  730 days, limit 398 : TOO LONG
-api-2026.pem    2026-04-01  397 days, limit 200 : TOO LONG
-blog-2026.pem   2026-11-01  199 days, limit 200 : OK
-mail-2027.pem   2027-04-01  100 days, limit 100 : OK
-vpn-2029.pem    2029-06-01   90 days, limit  47 : TOO LONG
+1. token: S6JM86BWAylUbeYysS3AGjia1b-Whqge4T6U4SKorQI
+2. key authorization: S6JM86BWAylUbeYysS3AGjia1b-Whqge4T6U4SKorQI.ZBiPuY0ddMd4NCRxqcgOX7N4UIwK6twfMMNL2tHLPjg
+3. file written
+   [CA] downloads http://bob.example/.well-known/acme-challenge/S6JM86BWAylUbeYysS3AGjia1b-Whqge4T6U4SKorQI
+   [web server] GET /.well-known/acme-challenge/S6JM86BWAylUbeYysS3AGjia1b-Whqge4T6U4SKorQI -> 200
+4. the CA says: valid
+5. subject: CN=bob.example  issuer: CN=Toy ACME CA R1
+   valid: 2026-11-19 to 2027-02-17
 ```
 
-`python-org.pem` lives 397 days and was issued in January 2026, just before the limit dropped to 200 days, so it is fine; the same certificate issued in April 2026 (`api-2026.pem`) is too long. In 2029 even the 90 days of Let's Encrypt will be too long.
+The CA downloaded the file from the web server and found the right text, so it signed the CSR: a certificate for 90 days. Only someone who controls the website can put that file there; certbot does the same steps over the internet.
 
 </details>
 
 ## Run
 
 ```
-python3 check_validity.py
+python3 get_certificate.py
 ```
 
-About 8 minutes. Python 3 and the library `cryptography` (`pip install cryptography`, version 41 or newer). No internet needed.
+About 12 minutes. Python 3 and the library `cryptography` (`pip install cryptography`, version 41 or newer). No internet needed.

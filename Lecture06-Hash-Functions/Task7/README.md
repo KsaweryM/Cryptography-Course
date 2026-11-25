@@ -16,7 +16,12 @@ Make and check commitments with a hash, catch the one who changed her prediction
 
 ## Steps
 
-1. In `commit(r, prediction)`: return `hashlib.sha256(r + prediction).hexdigest()`. `r + prediction` joins the two byte strings.
+1. In `commit(r, prediction)`: return the SHA-256 of `r` followed by the prediction, as 64 hex digits, as on the slide c = H(r ‖ prediction). `r + prediction` joins the two byte strings.
+   <details><summary>Hint</summary>
+
+   `hashlib.sha256(r + prediction).hexdigest()`
+   </details>
+
 2. In `check(commitment, r, prediction)`: compute the commitment again from `r` and `prediction` and compare it with the published `commitment` (`==` on two strings compares them character by character, like `strcmp(a, b) == 0`).
 3. Carol's commitment has no r. Try every score `home:away` with `home` and `away` from 0 to 9 (two nested `for` loops), as bytes `(str(home) + ":" + str(away)).encode()`, until `hashlib.sha256(guess).hexdigest() == CAROL_COMMIT`. Count the tries.
 

@@ -3,7 +3,10 @@
 #   seal(key, nonce, plaintext)  returns the packet: ciphertext + a 16-byte tag
 #   open_(key, nonce, packet)    checks the tag and returns the plaintext,
 #                                or raises ValueError if the packet was changed
+# Both take an optional aad: associated data (a header), not encrypted but protected by the tag.
 # (open_ has a "_" at the end because open is already a Python function.)
+
+import hmac
 
 MASK = 0xFFFFFFFF   # keeps 32 bits
 
@@ -99,6 +102,8 @@ def seal(key, nonce, plaintext, aad=b""):
 def open_(key, nonce, packet, aad=b""):
     ciphertext = packet[:-16]
     tag = packet[-16:]
-    if make_tag(key, nonce, ciphertext, aad) != tag:
+    # compare_digest takes the same time wherever the tags differ (a plain != stops at the first
+    # different byte, and the time could tell Mallory how many bytes of her tag are right)
+    if not hmac.compare_digest(make_tag(key, nonce, ciphertext, aad), tag):
         raise ValueError("bad tag: message rejected")
     return chacha20(key, nonce, 1, ciphertext)

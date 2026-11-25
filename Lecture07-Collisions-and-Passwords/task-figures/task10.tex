@@ -1,0 +1,24 @@
+% Task 10: scrypt needs memory. The times and the counts are the answers: question marks.
+\documentclass[12pt,tikz,border=6pt]{standalone}
+\input{common}
+\begin{document}
+\pagecolor{white}
+\begin{tikzpicture}[>=Stealth]
+  \node[font=\small\bfseries, text=nInk, anchor=west] at (-0.4,1.4) {Part 1: one scrypt for n = $2^{12}$ to $2^{15}$ (r = 8)};
+  \node[msgval, font=\scriptsize\ttfamily] (p) at (0.6,0.4) {violet kettle 1987};
+  \node[saltval, font=\scriptsize\ttfamily] (s) at (0.6,-0.4) {salt 5d0c7b2e\ldots};
+  \node[mech, minimum width=2.0cm, minimum height=1.3cm] (h) at (3.9,0) {\faCogs\ scrypt};
+  \draw[data] (p.east) -- (h); \draw[data] (s.east) -- (h);
+  \foreach \k/\x in {12/6.3, 13/7.9, 14/9.5, 15/11.1} {
+    \node[hw, font=\scriptsize, minimum width=1.4cm] at (\x,0.45) {n = $2^{\k}$};
+    \node[unk, font=\scriptsize, minimum width=1.4cm] at (\x,-0.35) {? s, ? MiB};
+  }
+  \draw[data] (h) -- (5.45,0);
+  \node[font=\small\bfseries, text=nInk, anchor=west] at (-0.4,-1.5) {Part 2: a device that gives scrypt at most 16 MiB};
+  \node[hw, font=\scriptsize] at (1.6,-2.3) {\faMemory\ 16 MiB};
+  \node[unk, font=\scriptsize] at (4.6,-2.3) {n = $2^{15}$: done or refused?};
+  \node[font=\small\bfseries, text=nInk, anchor=west] at (-0.4,-3.3) {Part 3: one graphics card, 24 GiB of memory, 16\,384 cores};
+  \node[hw, font=\scriptsize, text width=3.2cm] at (1.6,-4.3) {\faMicrochip\ 24 GiB\\ 16\,384 cores};
+  \node[unk, font=\scriptsize, align=left] at (6.4,-4.3) {bcrypt, 4 KiB per guess: ? guesses at once\\ scrypt $2^{15}$, 32 MiB per guess: ? guesses at once};
+\end{tikzpicture}
+\end{document}

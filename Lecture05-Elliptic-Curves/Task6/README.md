@@ -1,59 +1,72 @@
-# Task 6: from a shared secret to keys
+# Task 6: Mallory's fake points
 
 ## The situation
 
-Alice and Bob have done the X25519 exchange (the same steps as in Task 1) and share a 32-byte secret. Now they want to chat with ChaCha20. They do not use the secret itself as the key: HKDF turns it into keys. First one ChaCha20 key, then two keys, one for each direction, so that Alice and Bob never encrypt with the same key and nonce. Each side derives the keys on its own, and they never send a key over the network. The private keys here are the test values from RFC 7748, section 6.1, so you can compare the shared secret with the standard.
+Bob runs a server on the small curve y^2 = x^3 + 2x + 2 mod 17. He keeps one private key d for every connection: whoever sends him a point P gets an answer encrypted with a key made from the shared point d P. Bob's code never checks that P is on his curve. Mallory sends him three points that are on other curves, with another b, where each point has only a few multiples. From Bob's three answers she learns d.
 
-![Alice and Bob, each with the same shared secret in amber, 4a5d9d5ba4ce2de1... 3376f09b3c1e161742, from x25519 (ready). On Alice's side the secret goes into hkdf with info b"lecture 5 chat key" and out comes "ChaCha20 key = ?". Below, on both sides, the secret goes into hkdf twice, with info b"Alice to Bob" and b"Bob to Alice", and out come "key Alice to Bob = ?" and "key Bob to Alice = ?". Between the two keys on Alice's side: "different?"; between Alice's and Bob's keys: "the same?". Nothing goes over the network.](figure.svg)
+![Mallory, in red, sends three fake points to Bob, in green: (3, 2), (0, 8) and (2, 3), each marked "not on Bob's curve" and "order = ?". Bob holds his private key d, shown as a locked amber box with "d = ?". For each point, Bob computes d P with add() and sends back a short reply, a fingerprint of d P. On Mallory's side: "d mod ? = ?" three times, then "d = ?". Below Bob, a dashed box TODO 4: "check: is P on y^2 = x^3 + 2x + 2?". The grid of the curve mod 17 shows Bob's 18 dots in dark ink and the three fake points as red rings between them.](figure.svg)
 
 ## Goal
 
-Derive a ChaCha20 key from the shared secret, then two different keys, one per direction, on Alice's side and on Bob's side, and check that both sides get the same two keys.
+Recover Bob's private key d with three fake points, then add the one check that stops the attack.
 
 ## Ready for you
 
-- `x25519_ready.py` (RFC 7748 and RFC 5869, in plain Python):
-  - `public_key(private)` and `x25519(my_private, other_public)`: the exchange of Task 1.
-  - `hkdf(secret, info)`: a 32-byte key made from the secret; `info` is a label for what the key is for.
-- `derive_keys.py`: the exchange is done. `alice_secret` and `bob_secret` are the shared secret, 32 bytes, computed on each side. A `bytes` object is like a `const uint8_t[32]` in C.
-- The printing at the end of `derive_keys.py`: each line says `not done yet: TODO n` until its TODO is done. It compares keys with `==` and `!=`, which compare two `bytes` objects byte by byte, like `memcmp` in C.
+- `bob_server.py` (you do not need to read it; as Mallory you could not):
+  - `bob_reply(P)`: Bob computes S = d P and answers with `key_check(S)`.
+  - `key_check(S)`: a short fingerprint of a point (the first 8 bytes of SHA-256). It stands for Bob's encrypted answer: Mallory can make the same fingerprint for any point she guesses.
+  - `is_bob_secret(d)`: only to check your answer at the end.
+- `fake_points.py`:
+  - `add(P, Q)` and `mul(k, P)`, the same as Bob's. `O = None` is the point at infinity; `mul(0, P)` is `O`.
+  - `FAKE`: Mallory's three points. `bob_receives(P)`: Bob's front door, it passes P to Bob unless `on_curve(P)` is `False`.
+- The printing at the end: each line says `not done yet: TODO n` until its TODO is done. The tests use the example of the slides.
 
 ## Steps
 
-Write your code in place of the `None` after each `TODO` in `derive_keys.py`:
+Write your code in place of the `return None` after each `TODO` in `fake_points.py`:
 
-1. One ChaCha20 key from Alice's secret: `key = hkdf(alice_secret, b"lecture 5 chat key")`. `b"..."` is a `bytes` literal.
-2. One secret, two keys: `alice_key_to_bob = hkdf(alice_secret, b"Alice to Bob")` and `alice_key_from_bob = hkdf(alice_secret, b"Bob to Alice")`. Alice encrypts with the first key, Bob with the second. The only difference is the label `info`.
-3. Bob does the same on his side, with his own secret: `bob_key_from_alice = hkdf(bob_secret, b"Alice to Bob")` and `bob_key_to_alice = hkdf(bob_secret, b"Bob to Alice")`.
+1. `order(P)`: start with `R = P` and `n = 1`; while `R is not O`, add P to R and add 1 to n. Return n. This is the loop of Task 3, on another curve: `add` works there too, because it never uses b. Predict first: how many multiples will a fake point have, compared with the 19 of G?
+2. `piece(P, n, reply)`: Bob's point d P is one of the n points `mul(0, P)`, `mul(1, P)`, ..., `mul(n - 1, P)`. Loop over j, and when `key_check(mul(j, P)) == reply`, return j: that is d mod n.
+3. `combine(pieces)`: `pieces` is a list of pairs `(n, r)`. First multiply all n (the product). Then try every d from 1 to the product and return the first one with `d % n == r` for every pair: two nested `for` loops with an index, as in C.
+4. Now you are Bob's programmer. `on_curve(P)`: return `False` for `O`, otherwise whether `(y * y - (x * x * x + a * x + b)) % p == 0`. Run again: Bob refuses every fake point, and still answers a point of his curve.
 
 ## Expected output
 
-The shared secret, the ChaCha20 key, Alice's two keys and `different: True`, then Bob's two keys and `the same on both sides: True`. Compare the secret with RFC 7748, section 6.1.
+Until TODO 4 the attack works; after it, Bob refuses the fake points.
 
 <details>
 <summary>Check your answer</summary>
 
+After TODO 1 to 3:
+
 ```
-shared secret:             4a5d9d5ba4ce2de1728e3bf480350f25e07e21c947d19e3376f09b3c1e161742
-ChaCha20 key:              8232af18b2d158a867dead920cb27b5f70409d17ef4712ba664eb4d2ff392f78
-key Alice to Bob (Alice):  ebc98d3d10432aec017fa08fc2100ee93ef249f8ca6635e3bd6569aa6fb36a67
-key Bob to Alice (Alice):  a187bf5005903e5b1b59498cf8cc53c6ec7f90618b31773f84ca91bd9804edcf
-different: True
-key Alice to Bob (Bob):    ebc98d3d10432aec017fa08fc2100ee93ef249f8ca6635e3bd6569aa6fb36a67
-key Bob to Alice (Bob):    a187bf5005903e5b1b59498cf8cc53c6ec7f90618b31773f84ca91bd9804edcf
-the same on both sides: True
+not done yet: TODO 4 (until then Bob accepts every point)
+Mallory sends (3, 2): order 3, Bob's reply 36982eb65d45edb1, d mod 3 = 2
+Mallory sends (0, 8): order 4, Bob's reply 870832a6e38931f2, d mod 4 = 1
+Mallory sends (2, 3): order 11, Bob's reply f0ef0c371acf7acd, d mod 11 = 6
+Bob's private key: d = 17, correct: True
 ```
 
-The secret is exactly the value in RFC 7748, section 6.1. The three keys come from the same secret and differ only in the label: change one letter of a label and the key changes completely. Bob gets the same two keys as Alice, because the same secret with the same label always gives the same key.
+After TODO 4:
+
+```
+Mallory sends (3, 2): Bob refuses it, not on the curve
+Mallory sends (0, 8): Bob refuses it, not on the curve
+Mallory sends (2, 3): Bob refuses it, not on the curve
+Mallory learned nothing about d
+Bob still answers a point of the curve: True
+```
+
+Three questions with 3, 4 and 11 possible answers give d mod 3 · 4 · 11 = d mod 132, and Bob's d is smaller than 19, so it is unique. On a curve used in practice d has 256 bits, and Mallory needs more fake points, with small orders whose product has more than 256 bits; each answer still costs her only a few tries. One line of checking stops all of it.
 
 </details>
 
 ## Run
 
 ```
-python3 derive_keys.py
+python3 fake_points.py
 ```
 
-About 6 minutes. Python 3, no extra libraries.
+About 10 minutes. Python 3, no extra libraries.
 
-Want to see it move? The [elliptic-curves simulator, step 1](https://ksawerym.github.io/Cryptography-simulators/elliptic-curves/#1) runs the exchange on the small curve mod 17 and, lower on the page, on P-256: change the secrets and watch both sides get the same point.
+Want to see it move? The [elliptic-curves simulator, step 6](https://ksawerym.github.io/Cryptography-simulators/elliptic-curves/#6) shows each fake point going round its small cycle and the candidates for d disappearing, with the numbers of the slides.

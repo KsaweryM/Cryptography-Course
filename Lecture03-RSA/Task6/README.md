@@ -18,7 +18,7 @@ Find the PIN without the private key.
 
 Write your code in place of the `TODO` comment in `pin.py`:
 
-1. Find the PIN without the private key and store it in `pin`. Until then the file prints `not found yet`.
+1. Find the PIN without the private key and store it in `pin`. Until then the file prints `not done yet: TODO 1`.
 
 <details>
 <summary>Hint</summary>

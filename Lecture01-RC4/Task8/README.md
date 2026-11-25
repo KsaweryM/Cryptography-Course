@@ -19,9 +19,11 @@ Find both keys, read both messages, and estimate how long longer keys would take
 
 Write your code in place of the `TODO` comments in `crack.py`:
 
-1. Write `crack(ciphertext, n)`: try every key of `n` bytes. For each key, XOR the first 5 bytes of the ciphertext with `keystream(key, 5)`. If the result is `known`, add the key to a list. Return the list.
-2. In the ready loop, decrypt the whole ciphertext with the key you found and print the message.
-3. The program prints the time of each search. From these two times, estimate (do not run it!) how long a key of 5 bytes, and of 16 bytes, would take.
+1. Write `crack(ciphertext, n)`: try every key of `n` bytes. For each key, XOR the first 5 bytes of the ciphertext with `keystream(key, 5)`. If all 5 results equal the bytes of `known`, add the key to the list `keys`.
+2. In the ready loop, decrypt the whole ciphertext with `keys[0]` and print the message, in place of `print("not done yet: TODO 2")`.
+3. The program prints the time of each search. From these two times, estimate (do not run it!) how long a key of 5 bytes, and of 16 bytes, would take. Print your two estimates in place of `print("not done yet: TODO 3")`.
+
+Until a step is done, the program prints `not done yet: TODO n` for it.
 
 Hint: there are 256<sup>n</sup> keys of `n` bytes (`256 ** n` in Python). This loop visits all of them, as bytes:
 
@@ -32,15 +34,15 @@ for k in range(256 ** n):
 
 ## Expected output
 
-Four lines: for each key length, the key found with the time, then the message. The keys and messages are always the same. The times depend on your computer.
+Five lines: for each key length, the key found with the time, then the message; then your estimate. The keys and messages are always the same. The times depend on your computer.
 
 <details>
 <summary>Check your answer</summary>
 
 ```
-1 byte(s): keys ['a7'], 0.02 s
+1 byte(s): keys a7 , 0.01 s
 Hello Bob, the meeting is moved to Friday.
-2 byte(s): keys ['c35e'], 3.12 s
+2 byte(s): keys c35e , 3.12 s
 Hello Alice, the spare key is under the blue pot.
 ```
 
@@ -55,5 +57,3 @@ python3 crack.py
 ```
 
 The 2-byte search takes a few seconds. About 8 minutes. Python 3, no extra libraries.
-
-Want to see it move? Try a few keys by hand in the [RC4 black box](https://ksawerym.github.io/Cryptography-simulators/rc4/#1).

@@ -1,43 +1,44 @@
-% Task 6: from a shared secret to keys. Values from Task6/derive_keys.py (the private keys of RFC 7748, section 6.1).
-% CHECKED (python3, Task6/solution/derive_keys.py): the shared secret is 4a5d9d5b...1e161742, the one of RFC 7748,
-%   section 6.1 (the exchange is ready in the starter, so the figure may show it); the keys are the results: unknown
+% Task 6: Mallory's fake points. Values from Task6/fake_points.py: FAKE = (3, 2), (0, 8), (2, 3).
+% CHECKED (python3): (3, 2): 4 != 27 + 6 + 2 = 35 = 1 mod 17; (0, 8): 64 = 13 != 2 mod 17; (2, 3): 9 != 14 mod 17,
+%   so none is on Bob's curve. The orders, the pieces and d are the results of the task: not shown.
 \documentclass[12pt,tikz,border=6pt]{standalone}
 \input{common}
+\newcommand{\fakemark}[3]{%
+  \node[circle, draw=rEve, line width=1.6pt, fill=white, minimum size=10pt, inner sep=0pt] at (#1) {};
+  \node[font=\scriptsize\bfseries, text=rEve, #3, inner sep=1pt, outer sep=3pt, fill=white, fill opacity=0.85,
+    text opacity=1, rounded corners=1pt] at (#1) {#2};}
 \begin{document}
 \pagecolor{white}
 \begin{tikzpicture}[>=Stealth]
-  \personnode{alice}{0,0}{rAli}{Alice}
-  \personnode{bob}{12.6,0}{rBob}{Bob}
-  \node[font=\scriptsize, text=gray] at (6.3,0.3) {nothing more goes over the network};
-  % the shared secrets (ready: x25519)
-  \node[role=rPriv, font=\scriptsize\ttfamily, anchor=north, text width=3.5cm, align=left] (sa) at (0,-1.75)
-    {\textbf{\normalfont\small\faKey\ shared secret}\\ 4a5d9d5ba4ce2de1\ldots\\ \ldots 76f09b3c1e161742};
-  \node[role=rPriv, font=\scriptsize\ttfamily, anchor=north, text width=3.5cm, align=left] (sb) at (12.6,-1.75)
-    {\textbf{\normalfont\small\faKey\ shared secret}\\ 4a5d9d5ba4ce2de1\ldots\\ \ldots 76f09b3c1e161742};
-  \node[font=\scriptsize, text=gray, anchor=south] at (sa.north) {from x25519 (ready)};
-  \node[font=\scriptsize, text=gray, anchor=south] at (sb.north) {from x25519 (ready)};
-  % Alice: the ChaCha20 key
-  \cogbox{kdf0}{0,-4.1}{hkdf}{2.4cm}
-  \draw[data] (sa.south) -- (kdf0.north);
-  \node[font=\scriptsize\ttfamily, text=gray, anchor=north] at (kdf0.south) {info = b"lecture 5 chat key"};
-  \node[unk, font=\small\bfseries, draw=rPriv, text=rPrivText, fill=rPrivBg, anchor=west] (key) at (1.6,-4.1) {ChaCha20 key = ?};
-  \draw[data] (kdf0.east) -- (key.west);
-  % the two direction keys on both sides
-  \cogbox{kdfa}{0,-6.4}{hkdf}{2.4cm}
-  \cogbox{kdfb}{12.6,-6.4}{hkdf}{2.4cm}
-  \draw[data] (sa.west) -- ++(-0.35,0) |- (kdfa.west);
-  \draw[data] (sb.east) -- ++(0.35,0) |- (kdfb.east);
-  \node[font=\scriptsize\ttfamily, text=gray, anchor=north, align=center] at (kdfa.south) {info = b"Alice to Bob"\\ info = b"Bob to Alice"};
-  \node[font=\scriptsize\ttfamily, text=gray, anchor=north, align=center] at (kdfb.south) {info = b"Alice to Bob"\\ info = b"Bob to Alice"};
-  \foreach \s/\x/\anc/\from in {a/1.6/west/kdfa.east, b/11.0/east/kdfb.west} {
-    \node[unk, font=\small\bfseries, draw=rPriv, text=rPrivText, fill=rPrivBg, anchor=\anc] (k1\s) at (\x,-5.85) {key Alice to Bob = ?};
-    \node[unk, font=\small\bfseries, draw=rPriv, text=rPrivText, fill=rPrivBg, anchor=\anc] (k2\s) at (\x,-6.95) {key Bob to Alice = ?};
-    \draw[data] (\from) -- (k1\s.\anc);
-    \draw[data] (\from) -- (k2\s.\anc);
-  }
-  \node[font=\scriptsize\bfseries, text=rChg, anchor=north west] at ([xshift=0.1cm,yshift=-0.05cm]k2a.south west) {different?};
-  \node[font=\scriptsize\bfseries, text=rChg] at (6.3,-6.4) {the same?};
-  \draw[rChg, thick, dashed, <->] (k1a.east) -- (k1b.west);
-  \draw[rChg, thick, dashed, <->] (k2a.east) -- (k2b.west);
+  % Bob's curve and the fake points
+  \node[font=\normalsize\bfseries, text=nInk, anchor=west] at (-0.5,6.15) {Bob's curve: $y^2 = x^3 + 2x + 2 \bmod 17$};
+  \begin{scope}[x=0.32cm, y=0.32cm]
+    \gridbody
+    \fakemark{3,2}{(3, 2)}{right}
+    \fakemark{0,8}{(0, 8)}{above right}
+    \fakemark{2,3}{(2, 3)}{above right}
+  \end{scope}
+  \node[font=\scriptsize, text=rEve, anchor=north west] at (-0.5,-0.55) {red rings: Mallory's points, not on the curve};
+
+  % the flow
+  \begin{scope}[shift={(8.0,0)}]
+    \node[person=rEve] (mal) at (0.4,5.2) {\faUserSecret};
+    \node[font=\small\bfseries, text=rEve, below=0.06cm of mal] (mallbl) {Mallory};
+    \personnode{bob}{9.6,5.2}{rBob}{Bob}
+    \node[role=rPriv, font=\small, anchor=north] (d) at (9.6,3.9) {\faLock\ private $d = ?$};
+    % three fake points and three replies
+    \foreach \P/\y in {{(3, 2)}/2.55, {(0, 8)}/1.3, {(2, 3)}/0.05} {
+      \node[draw=rEve, thick, fill=rEveBg, rounded corners=3pt, font=\small, text=nInk, anchor=west, align=left]
+        (f) at (-0.9,\y) {$P = \P$\\[-1pt]\scriptsize order $= ?$};
+      \node[unk, font=\scriptsize\bfseries, anchor=west, inner sep=2pt] (r) at ([xshift=0.2cm]f.east) {d mod ? = ?};
+      \node[hwmain, font=\scriptsize, anchor=east] (c) at (10.6,\y) {\faCogs\ $S = d\,P$};
+      \draw[data, rEve] ([yshift=0.14cm]r.east) -- node[above, font=\scriptsize, text=nInk] {$P$: not on Bob's curve} ([yshift=0.14cm]c.west);
+      \draw[data, rPub] ([yshift=-0.14cm]c.west) -- node[below, font=\scriptsize, text=nInk] {reply: fingerprint of $S$}
+        ([yshift=-0.14cm]r.east);
+    }
+    \node[unk, font=\small\bfseries, anchor=north] (res) at (0.4,-0.75) {$d = \;?$};
+    \node[draw=rChg, thick, dashed, fill=white, rounded corners=3pt, font=\scriptsize, text=nInk, align=left, anchor=north]
+      (chk) at (9.0,-0.75) {\textbf{\textcolor{rChg}{TODO 4}} Bob checks:\\ is $P$ on $y^2 = x^3 + 2x + 2$?};
+  \end{scope}
 \end{tikzpicture}
 \end{document}

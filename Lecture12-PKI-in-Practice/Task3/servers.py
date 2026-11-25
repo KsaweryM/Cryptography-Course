@@ -3,12 +3,12 @@
 #   start_servers()        starts the four servers in the background (threads)
 #   PORTS                  their port numbers: 8443, 8444, 8445, 8446
 #   fetch(context, port)   connects to 127.0.0.1:port with the ssl.SSLContext you give,
-#                          asks for the page of shop.alice.example and returns the answer (str).
+#                          asks for the page of shop.bob.example and returns the answer (str).
 #                          If the certificate check fails, it raises ssl.SSLCertVerificationError.
 #
-# Every server says it is shop.alice.example. Only the first one really is:
-#   8443  the real shop: a certificate for shop.alice.example from Trusty CA
-#   8444  Mallory: a self-signed certificate that says shop.alice.example
+# Every server says it is shop.bob.example. Only the first one really is:
+#   8443  the real shop: a certificate for shop.bob.example from Trusty CA
+#   8444  Mallory: a self-signed certificate that says shop.bob.example
 #   8445  Mallory: a real Trusty CA certificate, but for her own name mallory.example
 #   8446  an old copy of the shop: a certificate from Trusty CA that expired on 2025-08-20
 import socket
@@ -16,13 +16,13 @@ import ssl
 import threading
 import time
 
-HOST = "shop.alice.example"
+HOST = "shop.bob.example"
 PORTS = [8443, 8444, 8445, 8446]
 _FILES = ["certs/shop", "certs/mallory-selfsigned", "certs/mallory-own-name", "certs/shop-expired"]
-_ANSWERS = ["[the real shop] Welcome to Alice's shop. Please log in.",
-            "[Mallory, self-signed] Welcome to Alice's shop. Please log in.",
-            "[Mallory, her own name] Welcome to Alice's shop. Please log in.",
-            "[an expired copy] Welcome to Alice's shop. Please log in."]
+_ANSWERS = ["[the real shop] Welcome to Bob's shop. Please log in.",
+            "[Mallory, self-signed] Welcome to Bob's shop. Please log in.",
+            "[Mallory, her own name] Welcome to Bob's shop. Please log in.",
+            "[an expired copy] Welcome to Bob's shop. Please log in."]
 
 
 def _serve(port, files, answer):

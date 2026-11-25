@@ -15,7 +15,7 @@ MALLORY_SAYS = b"2:1"
 
 def commit(r, prediction):
     """A commitment: the SHA-256 of r followed by the prediction, as 64 hex digits."""
-    # TODO 1: return hashlib.sha256(r + prediction).hexdigest()      (r + prediction joins the two byte strings)
+    # TODO 1: return the SHA-256 of r followed by the prediction, as 64 hex digits (r + prediction joins the two byte strings)
     return None
 
 

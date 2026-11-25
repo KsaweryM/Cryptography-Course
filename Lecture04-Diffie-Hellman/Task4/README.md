@@ -27,7 +27,7 @@ Write your code in place of the `TODO` comments in `mitm.py`. `self` is like a p
 
 ## Expected output
 
-Without your code, the program prints only what Bob reads. With it, two lines: first what Mallory reads, then what Bob reads. Both are the same text, so Bob has no reason to suspect anything.
+Without your code, the program prints only what Bob reads, and `not done yet: TODO 1 to 3`. With it, two lines: first what Mallory reads, then what Bob reads. Both are the same text, so Bob has no reason to suspect anything.
 
 <details>
 <summary>Check your answer</summary>

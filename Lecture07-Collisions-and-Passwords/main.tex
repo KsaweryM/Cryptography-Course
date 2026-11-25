@@ -299,7 +299,7 @@
     \end{tikzpicture}
   \end{center}
   \vfill
-  \say{Trzy części: paradoks urodzin i szukanie kolizji; prawdziwe kolizje MD5 i SHA-1; hasła. Dziewięć zadań, dwa na kartce. Nazwy sekcji są na pasku u góry.}
+  \say{Trzy części: paradoks urodzin i szukanie kolizji; prawdziwe kolizje MD5 i SHA-1; hasła. Jedenaście zadań, dwa na kartce. Nazwy sekcji są na pasku u góry.}
 \end{frame}
 
 \begin{frame}{Recall: a hash function}
@@ -451,7 +451,7 @@
   \vfill
   \bigdef{In a room of \textbf{23 people}, the chance that two of them share a birthday is more than \textbf{50\%}.}
   \vfill
-  \say{Najpierw zapytać salę, zanim pokażemy liczbę: ile osób musi być w sali, żeby z szansą 50\% dwie miały urodziny tego samego dnia? Zwykle pada 183 (połowa z 365). Prawda: 23 osoby. Dokładnie 50,7\% (365 dni, bez 29 lutego, każdy dzień tak samo prawdopodobny). Sprawdzenie na żywo (około 4 minuty): każdy po kolei mówi dzień i miesiąc urodzin, prowadzący zapisuje na tablicy; kto usłyszy swój dzień, podnosi rękę. Przy ponad 40 osobach para prawie na pewno się znajdzie (89\%); przy mniejszej sali pokazać to samo w symulatorze dwa slajdy dalej. Paradoks to nie błąd w matematyce, tylko błąd intuicji.}
+  \say{Najpierw zapytać salę, zanim pokażemy liczbę: ile osób musi być w sali, żeby z szansą 50\% dwie miały urodziny tego samego dnia? Zwykle pada 183 (połowa z 365). Prawda: 23 osoby. Dokładnie 50,7\% (365 dni, bez 29 lutego, każdy dzień tak samo prawdopodobny). Sprawdzenie na żywo (około 4 minuty): każdy po kolei mówi dzień i miesiąc urodzin, prowadzący zapisuje na tablicy; kto usłyszy swój dzień, podnosi rękę. Przy ponad 40 osobach para prawie na pewno się znajdzie (89\%); przy mniejszej sali pokazać to samo w symulatorze (slajd See it, cztery slajdy dalej). Paradoks to nie błąd w matematyce, tylko błąd intuicji.}
 \end{frame}
 
 \samedot
@@ -516,17 +516,17 @@
 
 \samedot
 \begin{frame}{See it: any pair or a given value}
-  \opensim{passwords/\#1}
+  \opensim{passwords/\#1.1}
   \vfill
   \begin{enumerate}\small\setlength{\itemsep}{6pt}
-    \item $N = 365$, \textbf{any pair}: press \textbf{non-stop}. Each run draws random days until one repeats; the histogram collects thousands of runs.
-    \item Switch to \textbf{a given value}: now a run ends only when one fixed day comes up. Watch the histogram move far to the right.
-    \item Repeat with $N = 2^{16}$ and $N = 2^{20}$: the orange line $1.18\sqrt{N}$ stays in the middle of the any-pair runs.
+    \item Step 1.1, $N = 365$, \textbf{any pair}: press \textbf{non-stop}. Each run draws random days until one repeats; the histogram collects thousands of runs.
+    \item Repeat with $N = 2^{16}$ and $N = 2^{20}$: the orange line $1.18\sqrt{N}$ stays in the middle of the runs.
+    \item Step 1.2, \textbf{a given value}: now a run ends only when one fixed day comes up. The histogram moves far to the right.
   \end{enumerate}
   \vfill
   \keymsg{Half of the any-pair runs end before $1.18\sqrt{N}$; a given value needs about $N$.}
   % CHECKED: python3: 1.18 * sqrt(365) = 22.5, 1.18 * 2^8 = 302, 1.18 * 2^10 = 1208; given value: median N ln 2 = 253 for N = 365
-  \say{Pokaz na żywo, około 3 minuty, szczególnie gdy sala jest za mała na sprawdzenie urodzin. Rozmiary 365, $2^{16}$ i $2^{20}$ są celowo inne niż w zadaniach 1 i 2. Dla danej wartości (dany dzień) mediana to $N \ln 2$, dla 365 dni około 253 osób; dla dowolnej pary około 23. Na histogramie widać też, że pojedynczy przebieg bywa dużo krótszy albo dłuższy: wzór mówi tylko, gdzie jest połowa.}
+  \say{Pokaz na żywo, około 3 minuty, szczególnie gdy sala jest za mała na sprawdzenie urodzin. Krok 1.1 to dowolna para, krok 1.2 (\texttt{\#1.2}) dana wartość, z tą samą skalą do porównania. Rozmiary 365, $2^{16}$ i $2^{20}$ są celowo inne niż w zadaniach 1 i 2. Dla danej wartości (dany dzień) mediana to $N \ln 2$, dla 365 dni około 253 osób; dla dowolnej pary około 23. Na histogramie widać też, że pojedynczy przebieg bywa dużo krótszy albo dłuższy: wzór mówi tylko, gdzie jest połowa.}
 \end{frame}
 
 \begin{frame}{Task 1: birthdays on paper}
@@ -561,8 +561,8 @@
     \end{tabular}
   \end{center}
   \vfill
-  \keymsg{A 64-bit digest falls to a collision in an afternoon on one laptop (with a search that saves memory).}
-  \say{Zwrócić uwagę na punkt 4: 64 bity to dużo, gdy trzeba trafić w dany skrót ($2^{64}$ prób, setki tysięcy lat na laptopie), ale mało dla kolizji. Dlatego skróty kryptograficzne mają co najmniej 256 bitów. Uwaga praktyczna: przy 5 miliardach skrótów trzeba je gdzieś przechowywać; prawdziwe ataki używają sprytniejszych metod bez dużej pamięci, ale liczba prób jest taka sama.}
+  \keymsg{A 64-bit digest falls to a collision in an afternoon on one laptop.}
+  \say{Zwrócić uwagę na punkt 4: 64 bity to dużo, gdy trzeba trafić w dany skrót ($2^{64}$ prób, setki tysięcy lat na laptopie), ale mało dla kolizji. Dlatego skróty kryptograficzne mają co najmniej 256 bitów. Uwaga praktyczna: przy 5 miliardach skrótów tablica z zadania 2 zajęłaby około 80 GB (8 bajtów skrótu i 8 bajtów numeru wiadomości na wpis); po zadaniu 2 pokażemy, jak szukać kolizji prawie bez pamięci, przy tej samej liczbie prób z dokładnością do małego czynnika.}
 \end{frame}
 
 \begin{frame}{From birthdays to digests}
@@ -594,6 +594,25 @@
   \vfill
   \keymsg{An $n$-bit digest gives only about $n/2$ bits of safety against collisions.}
   \say{To jest odpowiedź na zapowiedź z wykładu 6. Kolizja n-bitowego skrótu kosztuje około $2^{n/2}$ prób, bez żadnej wiedzy o wnętrzu funkcji. Dlatego MD5 (128 bitów) dawał najwyżej 64 bity ochrony przed kolizją, SHA-1 80 bitów, a SHA-256 128 bitów. 128 bitów to dziś standardowy poziom bezpieczeństwa.}
+\end{frame}
+
+\samedot
+\begin{frame}{Recall: the birthday bound outside hashes}
+  % CHECKED: python3: 1.18 * 2^12 = 4 833 (Lecture 1: packet 17 and packet 4 211 share an IV); 2^48 = 2.8e14
+  \vfill
+  \begin{columns}[T,onlytextwidth]
+    \column{0.48\textwidth}
+      \centering
+      \stepbox{WEP, lecture 1}{a random IV of 24 bits: $N = 2^{24}$\\[2pt] a repeat after about $1.18 \cdot 2^{12} \approx \textbf{4\,800}$ packets\\[2pt] same IV $\Rightarrow$ same keystream}
+    \column{0.48\textwidth}
+      \centering
+      \stepbox{ChaCha20, lecture 2}{a \textbf{random} nonce of 96 bits: $N = 2^{96}$\\[2pt] a repeat after about $2^{48} \approx 2.8 \times 10^{14}$ messages\\[2pt] so: a counter as the nonce, or a limit per key}
+  \end{columns}
+  \vfill
+  \begin{center}\small Any random value that must never repeat (an IV, a nonce, a salt) has the same limit: about $\sqrt{N}$.\end{center}
+  \vfill
+  \keymsg{The birthday bound limits every random identifier, not only digests.}
+  \say{Krótki powrót do wykładów 1 i 2, żeby pokazać, że wzór z urodzin działa w całej kryptografii. W WEP IV miał 24 bity; po około 4800 pakietach (dokładnie to widzieliśmy w wykładzie 1: pakiet 17 i pakiet 4211 z tym samym IV) powtarza się klucz RC4. Losowy 96-bitowy nonce ChaCha20 powtórzy się po około $2^{48}$ wiadomościach z jednym kluczem; dlatego TLS bierze nonce z licznika rekordów, a zalecenia dla losowych nonce ograniczają liczbę wiadomości na klucz. Ten sam wzór mówi, że 16-bajtowa sól (za chwilę, w części o hasłach) nie powtórzy się u nikogo. Slajd można pominąć przy braku czasu.}
 \end{frame}
 
 \begin{frame}{Short digests for practice}
@@ -713,6 +732,74 @@
   \begin{center}\small The same laptop and the same Python, about 690\,000 SHA-256 digests per second.\end{center}
   \keymsg{Matching a given digest costs about the square of a collision.}
   \say{To ta sama funkcja i ten sam komputer. Różnica bierze się tylko z tego, czy atakujący może wybrać oba wejścia. 690 tysięcy skrótów na sekundę zmierzyliśmy na laptopie autora (Python, jeden rdzeń); dokładna liczba nie jest ważna, ważny jest stosunek.}
+\end{frame}
+
+\begin{frame}{A collision search without a table}
+  % CHECKED: checks/rho_floyd.py (the same f as passwords/#1.3): f(x) = the first 16 bits of SHA-256 of x as 2 bytes;
+  %   from 0000: tail 387 steps, loop 419 steps; f(2b1f) = f(393f) = 44e0
+  \vfill
+  \begin{columns}[c,onlytextwidth]
+    \column{0.5\textwidth}
+      \centering
+      \begin{tikzpicture}[>=Stealth]
+        % the tail
+        \foreach \k in {0,...,5} \node[circle, fill=sBrown!40, draw=sBrown, inner sep=2.2pt] (t\k) at (0,{-2.4+0.48*\k}) {};
+        \foreach \k [evaluate=\k as \n using int(\k+1)] in {0,...,4} \draw[-{Stealth}, nInk, thick] (t\k) -- (t\n);
+        % the loop, centre (0,1.3), radius 1.1, entry point at the bottom
+        \node[circle, fill=AccentOrange, draw=AccentOrange, inner sep=2.6pt] (e) at (0,0.2) {};
+        \foreach \a [count=\k] in {-60,-20,...,220} \node[circle, fill=sBrown!40, draw=sBrown, inner sep=2.2pt] (c\k) at ($(0,1.3)+(\a:1.1)$) {};
+        \draw[-{Stealth}, nInk, thick] (t5) -- (e);
+        \draw[-{Stealth}, nInk, thick] (e) -- (c1);
+        \foreach \k [evaluate=\k as \n using int(\k+1)] in {1,...,7} \draw[-{Stealth}, nInk, thick] (c\k) -- (c\n);
+        \draw[-{Stealth}, nInk, thick] (c8) -- (e);
+        \node[font=\scriptsize\ttfamily, anchor=east] at (t0.west) {start 0000};
+        \node[font=\scriptsize, text=nInk, anchor=west] at (0.3,-1.2) {tail: 387 steps};
+        \node[font=\scriptsize, text=nInk] at (0,1.3) {loop: 419 steps};
+        \node[font=\scriptsize\ttfamily, text=nInk, anchor=east] at ([xshift=-2pt]t5.west) {2b1f};
+        \node[font=\scriptsize\ttfamily, text=nInk, anchor=west] at (c8.east) {393f};
+        \node[font=\scriptsize\ttfamily\bfseries, text=AccentOrange, anchor=west] at (0.2,-0.12) {44e0};
+      \end{tikzpicture}
+    \column{0.48\textwidth}
+      \small Walk: $x \rightarrow f(x) \rightarrow f(f(x)) \rightarrow \ldots$ with $f$ = a 16-bit short digest.\\[6pt]
+      Only $2^{16}$ values exist, so the walk must come back to a value it has seen: the path looks like the letter \textbf{$\rho$} (rho).\\[6pt]
+      Where the tail meets the loop, two \textbf{different} inputs give one output:\\[3pt]
+      \centering $f(\texttt{2b1f}) = f(\texttt{393f}) = \texttt{44e0}$
+  \end{columns}
+  \vfill
+  \keymsg{A walk through a short digest runs into a loop; where it closes is a collision.}
+  \say{Odpowiedź na problem pamięci z zadania 1: tablica 5 miliardów skrótów to dziesiątki GB. Pomysł Pollarda (1975, „rho”): zamiast losować nowe wiadomości, idziemy po skrótach: wejście następnego kroku to skrót poprzedniego. Funkcja ma skończenie wiele wartości, więc kiedyś wracamy do już widzianej; od tego miejsca ścieżka krąży w pętli. Kształt: ogon i pętla, jak grecka litera rho. Punkt wejścia do pętli (44e0) ma dwóch poprzedników: ostatni element ogona (2b1f) i ostatni element pętli (393f). To jest kolizja. Długość ogona i pętli razem to znów około $\sqrt{N}$ kroków (tu 806 przy $N = 65\,536$; ta funkcja ma wyjątkowo długą pętlę). Liczby są z prawdziwego 16-bitowego skrótu: $f(x)$ = pierwsze 16 bitów SHA-256 z $x$ zapisanego na 2 bajtach.}
+\end{frame}
+
+\samedot
+\begin{frame}{Finding the loop with two values: the tortoise and the hare}
+  % CHECKED: checks/rho_floyd.py: from 0000 the hare meets the tortoise after 419 steps; then 387 more steps
+  %   of both find 2b1f and 393f; f computed 3 * 419 + 2 * 387 = 2 031 times; a table would store 806 values
+  \vfill
+  \begin{columns}[c,onlytextwidth]
+    \column{0.52\textwidth}
+      \begin{enumerate}\small\setlength{\itemsep}{6pt}
+        \item The \textbf{tortoise} moves one step: $t \leftarrow f(t)$. The \textbf{hare} moves two: $h \leftarrow f(f(h))$.
+        \item Once both are in the loop, the hare gains one step per move and catches up: $t = h$.
+        \item Put the tortoise back at the start; now both move one step. They meet at the entry of the loop; the values just before it are the collision.
+      \end{enumerate}
+    \column{0.45\textwidth}
+      \centering\small
+      \renewcommand{\arraystretch}{1.35}
+      \begin{tabular}{@{}lrr@{}}
+        \toprule
+        & \textbf{table} & \textbf{tortoise and hare}\\
+        \midrule
+        $f$ computed & 806 & 2\,031\\
+        values kept & 806 & \textbf{2}\\
+        64-bit digest & $\approx 80$ GB & a few bytes\\
+        \bottomrule
+      \end{tabular}
+  \end{columns}
+  \vfill
+  \begin{center}\small Floyd's cycle finding: about 3 times more digests, but memory for two values only.\end{center}
+  \curious{passwords/\#1.3}
+  \keymsg{Real collision searches trade a little more work for almost no memory.}
+  \say{Algorytm Floyda (żółw i zając). Zając idzie dwa razy szybciej; gdy obaj są w pętli, odległość między nimi maleje o jeden w każdym ruchu, więc się spotkają. Potem żółw wraca na start i obaj idą po jednym kroku; spotykają się dokładnie w punkcie wejścia do pętli (to wynika z tego, że droga od startu do wejścia równa się drodze od miejsca spotkania do wejścia, modulo długość pętli). Wartości tuż przed spotkaniem to dwa różne wejścia z tym samym skrótem. W symulatorze (krok 1.3) widać oba pionki na rysunku rho. Gdyby ktoś pytał: prawdziwe ataki (van Oorschot i Wiener, 1994) robią to równolegle na tysiącach maszyn z „punktami wyróżnionymi” (zapamiętuje się tylko skróty zaczynające się od wielu zer). Żeby kolizja miała sens (umowy Mallory), jeden bit $x$ wybiera, czy z $x$ robimy wariant uczciwej, czy nieuczciwej umowy; wtedy co druga znaleziona kolizja łączy obie kupki.}
 \end{frame}
 
 \begin{frame}{Collisions with a meaning}
@@ -897,7 +984,40 @@
   \begin{center}\small The message is cut into blocks (64 bytes for MD5, SHA-1, SHA-256).\\
     The compression function $f$ mixes one block into the state; the last state is the digest.\end{center}
   \keymsg{MD5, SHA-1 and SHA-256 all read the message block by block, carrying a state.}
-  \say{Przypomnienie z wykładu 6. Funkcja kompresji f bierze stan (dla MD5 16 bajtów, SHA-1 20, SHA-256 32) i jeden blok wiadomości, i daje nowy stan. Wynik to stan po ostatnim bloku (po dopisaniu długości). Za chwilę zobaczymy, dlaczego ta budowa sprawia, że jedna kolizja daje nieskończenie wiele kolizji.}
+  \say{Przypomnienie z wykładu 6. Funkcja kompresji f bierze stan (dla MD5 16 bajtów, SHA-1 20, SHA-256 32) i jeden blok wiadomości, i daje nowy stan. Wynik to stan po ostatnim bloku (po dopisaniu długości). Za chwilę zobaczymy, jak Wang wykorzystała tę budowę (dwa bloki) i dlaczego jedna kolizja daje nieskończenie wiele kolizji.}
+\end{frame}
+
+\samedot
+\begin{frame}{Wang's collision: two blocks}
+  % CHECKED: checks/wang_states.py (MD5 compression function of RFC 1321) on Task4/md5_a.bin, md5_b.bin:
+  %   block 1 differs in bytes 19, 45, 59; block 2 in bytes 83, 109, 123 (64 + 19, ...);
+  %   state after block 1: A 24935852 cad79330 54dc062a 06bec520, B 249358d2 cad793b2 54dc06ac 06bec5a2;
+  %   after block 2 both 19705e8d084e8061586b5d7115c02463
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \node[hw, minimum width=1.2cm, font=\scriptsize] (iv) at (0,0) {start\\state};
+      \foreach \y/\by/\n/\s in {0.6/1.45/A/{24935852 cad79330\\ 54dc062a 06bec520}, -0.6/-1.45/B/{249358\hl{d2} cad793\hl{b2}\\ 54dc06\hl{ac} 06bec5\hl{a2}}} {
+        \node[msgval, font=\scriptsize, minimum width=1.6cm] (b1\n) at (2.4,\by) {block 1 \n};
+        \node[mech, minimum width=0.9cm, minimum height=0.7cm, font=\scriptsize\bfseries] (f1\n) at (2.4,\y) {$f$};
+        \node[hw, font=\scriptsize\ttfamily, text width=3.2cm, fill=white] (s1\n) at (5.5,\y) {\s};
+        \node[msgval, font=\scriptsize, minimum width=1.6cm] (b2\n) at (8.6,\by) {block 2 \n};
+        \node[mech, minimum width=0.9cm, minimum height=0.7cm, font=\scriptsize\bfseries] (f2\n) at (8.6,\y) {$f$};
+        \draw[data] (b1\n) -- (f1\n); \draw[data] (f1\n) -- (s1\n); \draw[data] (s1\n) -- (f2\n); \draw[data] (b2\n) -- (f2\n);
+      }
+      \draw[data] (iv) |- (f1A); \draw[data] (iv) |- (f1B);
+      \node[hw, minimum width=2.4cm, font=\scriptsize\ttfamily, line width=1.4pt, draw=AccentOrange, align=center] (s2) at (11.6,0) {\textbf{the same}\\19705e8d\\084e8061\ldots};
+      \draw[data] (f2A) -- (s2); \draw[data] (f2B) -- (s2);
+      \node[font=\tiny, text=AccentOrange] at (5.5,0) {a small, planned difference};
+      \node[font=\tiny, text=AccentOrange] at (8.6,0) {block 2 cancels it};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small Block 1 (3 bytes differ) puts a difference of a few chosen bits into the state.\\
+    Block 2 (3 more bytes differ) is chosen so that the difference disappears again.\end{center}
+  \curious{passwords/\#2.1}
+  \keymsg{Wang's pair is two blocks: the first makes a planned difference, the second cancels it.}
+  \say{Intuicja ataku Wanga, bez ścieżki różnicowej. Każda wiadomość to dwa bloki po 64 bajty; w każdym bloku różnią się trzy bajty. Po bloku 1 stany różnią się dokładnie w czterech bajtach (na górze każdego słowa, zaplanowana różnica). Blok 2 jest tak dobrany, że w 64 krokach funkcji kompresji ta różnica się znosi i oba stany wychodzą równe: 19705e8d... Ten stan to jeszcze nie skrót: MD5 dopisuje blok z dopełnieniem i długością, po nim skrót to 79054025... Cała praca ataku polega na znalezieniu takich bloków; dziś trwa to sekundy. W symulatorze (krok 2.1) widać oba tory blok po bloku na prawdziwych wartościach.}
 \end{frame}
 
 \samedot
@@ -930,6 +1050,32 @@
     So A + anything and B + the same anything collide too.\end{center}
   \keymsg{A collision of the state survives any common suffix.}
   \say{To dlatego prawdziwe ataki działają na dokumentach: wystarczy jedna kolizja w środku pliku, a resztę pliku (wspólną) można dopisać dowolnie. W formatach takich jak PDF albo program wykonywalny resztą pliku można sterować, co pokazać, zależnie od tych kilku różniących się bajtów. Studenci sprawdzą doklejanie w zadaniu 4.}
+\end{frame}
+
+\samedot
+\begin{frame}[fragile]{How one collision shows two contents}
+  % CHECKED: Task4/md5_a.bin byte 19 = 0x87, md5_b.bin byte 19 = 0x07; MD5(a + PAGE_1 + PAGE_2) = MD5(b + PAGE_1 + PAGE_2)
+  %   = 0497127355f1503dd06b6efcc72492ca (python3 hashlib, Task4/solution/real_collisions.py)
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \foreach \y/\f/\blk/\byte in {0.5/file A/block A/0x87, -0.5/file B/block B/0x07} {
+        \node[font=\small\bfseries, text=nInk, anchor=east] at (-0.15,\y) {\f};
+        \node[msgval, minimum width=1.8cm, minimum height=0.8cm, font=\scriptsize] at (0.95,\y) {same prefix};
+        \node[draw=AccentOrange, thick, fill=nFill, text=nInk, rounded corners=3pt, minimum width=2.1cm, minimum height=0.8cm, font=\scriptsize, align=center] at (3.05,\y) {\blk\\ byte 19 = \textbf{\byte}};
+        \node[msgval, minimum width=7.5cm, minimum height=0.8cm, font=\scriptsize, anchor=west] at (4.2,\y) {common suffix: \hl{the rule}, page 1 ``pay 100'', page 2 ``pay 1000''};
+      }
+      \draw[nLine, thick, decorate, decoration={brace, amplitude=5pt}] (0.05,1.05) -- (4.1,1.05) node[midway, above=5pt, font=\scriptsize, text=nInk] {the collision: one MD5 state after it};
+      \draw[nLine, thick, decorate, decoration={brace, amplitude=5pt}] (4.25,1.05) -- (11.7,1.05) node[midway, above=5pt, font=\scriptsize, text=nInk] {identical bytes: the state stays the same};
+    \end{tikzpicture}
+  \end{center}
+  \vspace{-4pt}
+\begin{lstlisting}[style=code, language=C]
+if (data[19] == 0x87)  show(page_1);     /* file A: "pay 100"  */
+else                   show(page_2);     /* file B: "pay 1000" */
+\end{lstlisting}
+  \vspace{4pt}
+  \keymsg{Both files hold both pages; the colliding byte only flips a switch.}
+  \say{Odpowiedź na pytanie, które zwykle pada: jak dwa pliki różniące się kilkoma bajtami pokazują zupełnie inną treść? Kolizja sama w sobie to śmieci (losowo wyglądające bajty). Sens jest w części wspólnej: oba pliki zawierają obie treści i tę samą regułę, która patrzy na jeden bajt z bloku kolizji. Dzięki budowie Merkle-Damgård wspólna końcówka nie psuje kolizji, więc oba pliki mają ten sam skrót. Ten sam pomysł zobaczymy za chwilę w SHAttered (PDF). Studenci napiszą taką przeglądarkę w zadaniu 4 (TODO 4), a w wykładzie 12 (zadanie 5) ten sam pomysł robi z jednego podpisu CA dwa certyfikaty.}
 \end{frame}
 
 \begin{frame}{Two kinds of real collisions}
@@ -987,39 +1133,14 @@
       \stepbox{Their attack}{about $2^{63}$ SHA-1 computations: 6\,500 CPU-years and 110 GPU-years}
   \end{columns}
   \vfill
+  \begin{center}\small The switch inside: the bytes that differ change the length of a comment in a JPEG picture,\\ so the PDF viewer skips over a different part of the file.\end{center}
   \keymsg{The first real SHA-1 collision: about 130\,000 times cheaper than the birthday bound.}
   % CHECKED: python3: 2^80 / 2^63 = 2^17 = 131 072
-  \say{SHAttered: Stevens, Bursztein, Karpman, Albertini, Markov. Identyczny prefiks, dwa pliki PDF, które wyglądają inaczej, a mają ten sam SHA-1 (całe pliki: 38762cf7f55934b34d179ae6a4c80cadccbb7f0a). $2^{80}/2^{63} = 2^{17}$, czyli około 130 tysięcy razy taniej niż atak urodzinowy. Obliczenia to duża, ale skończona moc obliczeniowa: w zasięgu dużej firmy albo państwa.}
-\end{frame}
-
-\samedot
-\begin{frame}[fragile]{How one collision shows two contents}
-  % CHECKED: Task4/md5_a.bin byte 19 = 0x87, md5_b.bin byte 19 = 0x07; MD5(a + PAGE_1 + PAGE_2) = MD5(b + PAGE_1 + PAGE_2)
-  %   = 0497127355f1503dd06b6efcc72492ca (python3 hashlib, Task4/solution/real_collisions.py)
+  \say{SHAttered: Stevens, Bursztein, Karpman, Albertini, Markov. Identyczny prefiks, dwa pliki PDF, które wyglądają inaczej, a mają ten sam SHA-1 (całe pliki: 38762cf7f55934b34d179ae6a4c80cadccbb7f0a). $2^{80}/2^{63} = 2^{17}$, czyli około 130 tysięcy razy taniej niż atak urodzinowy. Obliczenia to duża, ale skończona moc obliczeniowa: w zasięgu dużej firmy albo państwa. Przełącznik jak w przeglądarce z poprzedniego slajdu: różniące się bajty wpadają w komentarz obrazka JPEG; w jednym pliku jego długość to 0x0173, w drugim 0x017f, więc czytnik przeskakuje inny fragment i rysuje inny obrazek.}
   % CHECKED: Task4/sha1_a.bin, sha1_b.bin: a JPEG comment (ff fe) at byte 189 has the length 0x0173 in one file
   %   and 0x017f in the other (byte 192 is the first byte that differs)
-  \begin{center}
-    \begin{tikzpicture}[>=Stealth]
-      \foreach \y/\f/\blk/\byte in {0.5/file A/block A/0x87, -0.5/file B/block B/0x07} {
-        \node[font=\small\bfseries, text=nInk, anchor=east] at (-0.15,\y) {\f};
-        \node[msgval, minimum width=1.8cm, minimum height=0.8cm, font=\scriptsize] at (0.95,\y) {same prefix};
-        \node[draw=AccentOrange, thick, fill=nFill, text=nInk, rounded corners=3pt, minimum width=2.1cm, minimum height=0.8cm, font=\scriptsize, align=center] at (3.05,\y) {\blk\\ byte 19 = \textbf{\byte}};
-        \node[msgval, minimum width=7.5cm, minimum height=0.8cm, font=\scriptsize, anchor=west] at (4.2,\y) {common suffix: \hl{the rule}, page 1 ``pay 100'', page 2 ``pay 1000''};
-      }
-      \draw[nLine, thick, decorate, decoration={brace, amplitude=5pt}] (0.05,1.05) -- (4.1,1.05) node[midway, above=5pt, font=\scriptsize, text=nInk] {the collision: one MD5 state after it};
-      \draw[nLine, thick, decorate, decoration={brace, amplitude=5pt}] (4.25,1.05) -- (11.7,1.05) node[midway, above=5pt, font=\scriptsize, text=nInk] {identical bytes: the state stays the same};
-    \end{tikzpicture}
-  \end{center}
-  \vspace{-4pt}
-\begin{lstlisting}[style=code, language=C]
-if (data[19] == 0x87)  show(page_1);     /* file A: "pay 100"  */
-else                   show(page_2);     /* file B: "pay 1000" */
-\end{lstlisting}
-  \vspace{2pt}
-  \begin{center}\small SHAttered does the same inside a PDF: the bytes that differ change a length field of a JPEG picture,\\ so the viewer skips over a different part of the file.\end{center}
-  \keymsg{Both files hold both pages; the colliding byte only flips a switch.}
-  \say{Odpowiedź na pytanie, które zwykle pada: jak dwa pliki różniące się kilkoma bajtami pokazują zupełnie inną treść? Kolizja sama w sobie to śmieci (losowo wyglądające bajty). Sens jest w części wspólnej: oba pliki zawierają obie treści i tę samą regułę, która patrzy na jeden bajt z bloku kolizji. Dzięki budowie Merkle-Damgård wspólna końcówka nie psuje kolizji, więc oba pliki mają ten sam skrót. W SHAttered różniące się bajty wpadają w komentarz obrazka JPEG: w jednym pliku jego długość to 0x0173, w drugim 0x017f, więc czytnik przeskakuje inny fragment i rysuje inny obrazek. Studenci napiszą taką przeglądarkę w zadaniu 4 (TODO 4), a w wykładzie 12 (zadanie 5) ten sam pomysł robi z jednego podpisu CA dwa certyfikaty.}
 \end{frame}
+
 
 \samedot
 \begin{frame}{SHA-1 is a Shambles, 2020}
@@ -1072,9 +1193,9 @@ else                   show(page_2);     /* file B: "pay 1000" */
   \begin{center}\small The viewer: \texttt{md5\_a.bin} + both pages shows \msg{``Alice pays Mallory 100 pounds.''},\\
     \texttt{md5\_b.bin} + both pages shows \msg{``\ldots 1000 pounds.''}; MD5 of both: \dig{\texttt{04971273\ldots}}\\[4pt]
     SHA-256 gives different digests for every file. \ok\ here means ``collides'': good news for Mallory.\end{center}
-  \curious{passwords/\#2}
+  \curious{passwords/\#2.2}
   \keymsg{Each collision breaks one function; a common suffix keeps it.}
-  \say{Każda para łamie dokładnie tę funkcję, na którą była liczona; inne funkcje widzą różne pliki. Dopisek na końcu nie psuje kolizji (stan po kolizji jest wspólny, slajd One collision gives many). Przeglądarka pokazuje dwie różne umowy przy tym samym MD5 (0497127355f1503dd06b6efcc72492ca). Pełne wartości skrótów są w przewodniku. Link For the curious: symulator liczy stan MD5 po każdym bloku obu plików Wanga; można dopisać dowolny tekst i patrzeć, jak stany zostają równe.}
+  \say{Każda para łamie dokładnie tę funkcję, na którą była liczona; inne funkcje widzą różne pliki. Dopisek na końcu nie psuje kolizji (stan po kolizji jest wspólny, slajd One collision gives many). Przeglądarka pokazuje dwie różne umowy przy tym samym MD5 (0497127355f1503dd06b6efcc72492ca). Pełne wartości skrótów są w przewodniku. Link For the curious (krok 2.2): przeglądarka z dwiema treściami; można zmienić obie strony i patrzeć, że MD5 obu plików zostaje równy, a SHA-256 nie.}
 \end{frame}
 
 \begin{frame}{Why it matters: one digest, two documents}
@@ -1123,8 +1244,8 @@ else                   show(page_2);     /* file B: "pay 1000" */
       \textcolor{gray}{over 200 PlayStation 3 consoles}
   \end{columns}
   \vfill
-  \keymsg{One MD5 collision gave them a CA that every browser trusted.}
-  \say{Sotirov, Stevens, Appelbaum, Lenstra, Molnar, Osvik, de Weger; pokazane 30 grudnia 2008 na 25C3 w Berlinie. Urząd certyfikacji (CA) zaświadcza, że klucz należy do strony; robi to, podpisując skrót certyfikatu. Badacze kupili zwykły certyfikat, ale przygotowali go tak, że miał ten sam MD5 co certyfikat urzędu z ich kluczem. Mieli więc własny CA, któremu ufały przeglądarki. Szczegóły certyfikatów to wykłady 9 do 12; w wykładzie 12 jest zadanie na tym samym pomyśle.}
+  \keymsg{One MD5 collision gave them a CA certificate that browsers would have trusted (they backdated it to 2004 on purpose).}
+  \say{Sotirov, Stevens, Appelbaum, Lenstra, Molnar, Osvik, de Weger; pokazane 30 grudnia 2008 na 25C3 w Berlinie. Urząd certyfikacji (CA) zaświadcza, że klucz należy do strony; robi to, podpisując skrót certyfikatu. Badacze kupili zwykły certyfikat, ale przygotowali go tak, że miał ten sam MD5 co certyfikat urzędu z ich kluczem. Mieli więc certyfikat urzędu, któremu przeglądarki by zaufały; żeby nikomu nie zaszkodzić, celowo ustawili jego ważność na sierpień 2004, czyli był już wygasły. Szczegóły certyfikatów to wykłady 9 do 12; w wykładzie 12 wrócimy do tej historii jednym slajdem „Recall” i zobaczymy, co zmieniło się w urzędach.}
 \end{frame}
 
 \samedot
@@ -1136,7 +1257,7 @@ else                   show(page_2);     /* file B: "pay 1000" */
   \begin{center}
     \begin{tikzpicture}[>=Stealth]
       \node[attval, minimum width=2.4cm, minimum height=1.6cm, font=\small] (f) at (0,0) {\Large\faBug\\ Flame\\ \scriptsize spy software};
-      \node[digval, minimum width=3.6cm, minimum height=1.6cm, font=\small] (c) at (4.6,0) {\faCertificate\ a fake Microsoft\\ code certificate\\ \scriptsize via an MD5 collision};
+      \node[digval, minimum width=3.6cm, minimum height=1.6cm, font=\small] (c) at (4.6,0) {\faCertificate\ a certificate that\\ signs code as Microsoft\\ \scriptsize via an MD5 collision};
       \node[hw, minimum width=3.0cm, minimum height=1.6cm, font=\small] (u) at (9.2,0) {\faWindows\\ looks like a\\ Windows update};
       \draw[data] (f) -- (c);
       \draw[data] (c) -- (u);
@@ -1209,9 +1330,9 @@ else                   show(page_2);     /* file B: "pay 1000" */
   \end{center}
   \vfill
   \begin{center}\small No attack on the full SHA-256 is known that is faster than the generic one.\\
-    It was designed with the lessons of MD5 and SHA-1: more rounds, a bigger state.\end{center}
+    A bigger state (256 bits) and a stronger mixing of the message; 25 years of analysis found no shortcut.\end{center}
   \keymsg{SHA-256 holds because $2^{128}$ is out of reach and nobody has a shortcut.}
-  \say{Odpowiedź na pytanie „czemu SHA-256 jeszcze żyje”: dwa powody. Po pierwsze 256 bitów daje 128 bitów ochrony przed kolizją, a $2^{128}$ to liczba poza zasięgiem całej ludzkości (wiek Wszechświata to około 14 miliardów lat). Po drugie po 25 latach analiz nie ma ataku na pełne SHA-256 lepszego niż ogólny; ataki są tylko na wersje ze zmniejszoną liczbą rund. To samo dotyczy SHA-3 (wykład 6).}
+  \say{Odpowiedź na pytanie „czemu SHA-256 jeszcze żyje”: dwa powody. Po pierwsze 256 bitów daje 128 bitów ochrony przed kolizją, a $2^{128}$ to liczba poza zasięgiem całej ludzkości (wiek Wszechświata to około 14 miliardów lat). Po drugie po 25 latach analiz nie ma ataku na pełne SHA-256 lepszego niż ogólny; ataki są tylko na wersje ze zmniejszoną liczbą rund (z 64). Uwaga: SHA-256 nie ma więcej rund niż SHA-1 (64 wobec 80); jego siła to większy stan i mocniejsze mieszanie słów wiadomości (message schedule) i funkcja rundy. SHA-2 powstał w 2001, przed atakami na SHA-1 z 2005, więc nie jest „poprawką po SHA-1”. To samo (brak skrótu) dotyczy SHA-3 (wykład 6).}
 \end{frame}
 
 \samedot
@@ -1444,7 +1565,7 @@ else                   show(page_2);     /* file B: "pay 1000" */
   \vfill
   \opentask{Task5}{about 10 minutes}
   \vfill
-  \say{Około 10 minut. TODO 1 to logowanie (to, co robi serwer), TODO 2 i 3 to atak, TODO 4 szuka takich samych skrótów. Program kończy się w ułamku sekundy. Ważne do zauważenia: każde słowo z listy jest hashowane tylko raz, niezależnie od liczby użytkowników.}
+  \say{Około 10 minut. TODO 1 to logowanie (to, co robi serwer), TODO 2 i 3 to atak, TODO 4 szuka takich samych skrótów. Program kończy się w ułamku sekundy. Przy TODO 1 warto powiedzieć jedno zdanie: prawdziwy serwer porównuje skróty funkcją hmac.compare\_digest, która zawsze trwa tyle samo, żeby czas nieudanego logowania nie zdradzał, ile znaków się zgadza. Ważne do zauważenia: każde słowo z listy jest hashowane tylko raz, niezależnie od liczby użytkowników.}
 \end{frame}
 
 
@@ -1514,15 +1635,16 @@ else                   show(page_2);     /* file B: "pay 1000" */
         \pgfmathtruncatemacro{\n}{\k+1}
         \draw[data] (d\k) to node[right, font=\tiny] {$R_\j$} (w\n);
       }
-      \node[srvval, font=\small, text width=2.2cm, align=center] at (11.6,-1.4) {stored:\\ \textbf{sun} \ldots\ \textbf{nur}};
+      \node[srvval, font=\small, text width=1.7cm, align=center] at (12.45,-1.4) {stored:\\ \textbf{sun} \ldots\ \textbf{nur}};
     \end{tikzpicture}
   \end{center}
   \vfill
   \begin{center}\small A toy: passwords of 3 lowercase letters, $h$ = the first 16 bits of SHA-256.\\
     $R_j$ (\textbf{reduce}, step $j$) turns a digest into some next password: word number $(\text{digest} + j) \bmod 17\,576$.\\
-    Mallory computes many such chains once, and keeps only the two ends of each.\end{center}
+    Mallory computes many such chains once, and keeps only the two ends of each.\\
+    Why $R_j$ changes with the step: two chains that hit the same password in \textbf{different} steps\\ go on differently, so they do not merge into one and waste the table.\end{center}
   \keymsg{A chain of thousands of passwords is stored as two words.}
-  \say{Idea tablic tęczowych na jednym łańcuchu. Pełna tablica wszystkich haseł do 8 znaków nie zmieściłaby się na dysku, więc Mallory zapisuje tylko początki i końce łańcuchów. Łańcuch: hasło, skrót, redukcja (dowolna funkcja, która ze skrótu robi nowe hasło-kandydata), skrót, ... Tu zabawka: hasła z trzech małych liter (17 576 możliwości), skrót to pierwsze 16 bitów SHA-256, redukcja w kroku $j$ to numer słowa (skrót + $j$) mod 17 576. Prawdziwe łańcuchy mają tysiące kroków, a tablica miliony łańcuchów. „Tęczowe”, bo w każdym kroku łańcucha używa się innej redukcji ($R_0, R_1, \ldots$). Wymyślił to Philippe Oechslin w 2003, na bazie pomysłu Hellmana z 1980.}
+  \say{Idea tablic tęczowych na jednym łańcuchu. Pełna tablica wszystkich haseł do 8 znaków nie zmieściłaby się na dysku, więc Mallory zapisuje tylko początki i końce łańcuchów. Łańcuch: hasło, skrót, redukcja (dowolna funkcja, która ze skrótu robi nowe hasło-kandydata), skrót, ... Tu zabawka: hasła z trzech małych liter (17 576 możliwości), skrót to pierwsze 16 bitów SHA-256, redukcja w kroku $j$ to numer słowa (skrót + $j$) mod 17 576. Prawdziwe łańcuchy mają tysiące kroków, a tablica miliony łańcuchów. „Tęczowe”, bo w każdym kroku łańcucha używa się innej redukcji ($R_0, R_1, \ldots$). Po co: przy jednej funkcji R dwa łańcuchy, które raz trafią na to samo hasło, dalej biegną razem (zlewają się) i tablica liczy dwa razy to samo. Z różnymi $R_j$ zlewają się tylko wtedy, gdy trafią na to samo hasło w tym samym kroku, co zdarza się rzadko. Wymyślił to Philippe Oechslin w 2003, na bazie pomysłu Hellmana z 1980.}
 \end{frame}
 
 \samedot
@@ -1546,7 +1668,7 @@ else                   show(page_2);     /* file B: "pay 1000" */
   \vfill
   \begin{center}\small A lookup costs a few chain lengths of work instead of a disk full of digests.\\
     If the rebuilt chain does not contain the digest (a \textbf{false alarm}), Mallory goes on trying.\end{center}
-  \keymsg{Rainbow tables trade time for memory, and they work only without salt.}
+  \keymsg{Rainbow tables trade time for memory, and one table serves every unsalted leak.}
   \curious{passwords/\#4}
   \say{Wyszukiwanie krok po kroku. Mallory nie wie, w którym miejscu łańcucha był skradziony skrót, więc zakłada po kolei: ostatni krok, przedostatni, ... Dla każdego założenia liczy łańcuch dalej do końca i sprawdza, czy koniec jest w tablicy. Gdy trafi, liczy łańcuch od zapisanego początku i znajduje hasło tuż przed skrótem. Fałszywy alarm: dwa łańcuchy mogą się zlać (ten sam skrót z różnych haseł), wtedy odbudowany łańcuch nie zawiera skrótu i trzeba szukać dalej. W symulatorze (link) można zbudować tablicę na 16-bitowym skrócie, zobaczyć fałszywe alarmy i sprawdzić, że sól robi z tablicy śmieci. Gotowe tablice dla MD5 i haseł do kilku znaków można było kiedyś pobrać z sieci.}
 \end{frame}
@@ -1662,22 +1784,22 @@ else                   show(page_2);     /* file B: "pay 1000" */
 \end{frame}
 
 \samedot
-\begin{frame}{See it: four ways to store a password}
-  \opensim{passwords/\#3}
+\begin{frame}{See it: three ways to store a password}
+  \opensim{passwords/\#3.1}
   \vfill
   \begin{enumerate}\small\setlength{\itemsep}{6pt}
-    \item Tab \textbf{plain}, then \textbf{SHA-256}: press \textbf{attack}. Watch the work counter: one hash per guess, all users at once.
-    \item Tab \textbf{salt}: the same attack, user by user. The counter grows with the number of users.
-    \item Tab \textbf{bcrypt}: real bcrypt at cost 4 in the browser. Compare guesses per second with the SHA-256 tab.
+    \item Tab \textbf{plain text}: Mallory just reads the table.
+    \item Tab \textbf{SHA-256}: press \textbf{attack}. Watch the work counter: one hash per guess, all users at once.
+    \item Tab \textbf{SHA-256 with salt}: the same attack, user by user. The counter grows with the number of users.
   \end{enumerate}
   \vfill
-  \keymsg{The same guesses against four databases: only the work changes.}
-  \say{Pokaz na żywo, około 3 minuty, po zadaniach 5 i 6. Użytkownicy i hasła w symulatorze są inne niż w zadaniach. Warto zatrzymać się na liczniku pracy: w karcie SHA-256 równa się długości listy, w karcie z solą mnoży się przez liczbę użytkowników, w karcie bcrypt każde zgadnięcie trwa milisekundy. To zapowiedź następnego slajdu: sól nie wystarczy, bo SHA-256 jest za szybkie.}
+  \keymsg{The same guesses against three databases: only the work changes.}
+  \say{Pokaz na żywo, około 3 minuty, po zadaniach 5 i 6. Użytkownicy i hasła w symulatorze są inne niż w zadaniach. Warto zatrzymać się na liczniku pracy: w karcie SHA-256 równa się długości listy, w karcie z solą mnoży się przez liczbę użytkowników. Na liczniku czasu widać też, że i tak trwa to ułamek sekundy: to zapowiedź następnego slajdu, sól nie wystarczy, bo SHA-256 jest za szybkie. Czwarta baza, z bcrypt, jest w kroku 3.2; pokazujemy ją dopiero po zadaniu 8.}
 \end{frame}
 
 \begin{frame}{The real problem: hashes are fast}
   % CHECKED: hashcat 6.2.6, RTX 4090 (gist Chick3nman 32e662a5): MD5 164.1 GH/s, SHA-1 50.6 GH/s, SHA-256 21.98 GH/s,
-  %   bcrypt (32 iterations = cost 5) 184.0 kH/s (shown later, on "Why bcrypt is slow"); python3: 14e6 / 21.98e9 = 0.64 ms
+  %   bcrypt (32 iterations = cost 5) 184.0 kH/s (shown later, on "Why bcrypt is slow 2"); python3: 14e6 / 21.98e9 = 0.64 ms
   \vfill
   \begin{center}
     \begin{tikzpicture}[x=0.95cm]
@@ -1697,7 +1819,7 @@ else                   show(page_2);     /* file B: "pay 1000" */
   \vfill
   \begin{center}\small At 22 billion per second, a list of 14 million passwords takes \textbf{0.64 ms} per salted user.\end{center}
   \keymsg{Hashes were designed to be fast; for passwords, fast is the enemy.}
-  \say{Liczby z publicznego benchmarku hashcata (wersja 6.2.6, karta RTX 4090). Logarytmiczna skala: każda kreska to 100 razy więcej. Funkcje skrótu projektuje się, żeby były szybkie (pliki, sieci, Git). Dla haseł to wada: atakujący sprawdza miliardy kandydatów na sekundę. Tę samą miarę dla bcrypt pokażemy, gdy bcrypt będzie już znany (slajd Why bcrypt is slow). 14 milionów to zaokrąglona lista RockYou (14 344 391), ta sama liczba co w zadaniu 9.}
+  \say{Liczby z publicznego benchmarku hashcata (wersja 6.2.6, karta RTX 4090). Logarytmiczna skala: każda kreska to 100 razy więcej. Funkcje skrótu projektuje się, żeby były szybkie (pliki, sieci, Git). Dla haseł to wada: atakujący sprawdza miliardy kandydatów na sekundę. Tę samą miarę dla bcrypt pokażemy, gdy bcrypt będzie już znany (slajd Why bcrypt is slow 2, po zadaniu 8). 14 milionów to zaokrąglona lista RockYou (14 344 391), ta sama liczba co w zadaniu 9.}
 \end{frame}
 
 \samedot
@@ -1732,7 +1854,7 @@ else                   show(page_2);     /* file B: "pay 1000" */
       \node[msgval, font=\small\ttfamily, minimum width=2.6cm] (p) at (0,1.0) {blue tulip 42};
       \node[font=\scriptsize, text=gray, anchor=east] at (-1.4,1.0) {password};
       \node[saltval, font=\small, minimum width=2.6cm] (s) at (0,0) {16 random bytes};
-      \node[font=\scriptsize, text=gray, anchor=east, align=right] at (-1.4,0) {salt\\ (bcrypt picks it)};
+      \node[font=\scriptsize, text=gray, anchor=east, align=right] at (-1.4,0) {salt\\ (the library picks it)};
       \node[hw, font=\small, minimum width=2.6cm] (c) at (0,-1.0) {cost = 12};
       \node[font=\scriptsize, text=gray, anchor=east] at (-1.4,-1.0) {work factor};
       \node[mech, minimum width=2.6cm, minimum height=2.6cm, font=\large\bfseries] (b) at (4.2,0) {\faCogs\\ bcrypt};
@@ -1746,7 +1868,7 @@ else                   show(page_2);     /* file B: "pay 1000" */
   \vfill
   \begin{center}\small Niels Provos and David Mazières, 1999, for the OpenBSD system. Still widely used.\end{center}
   \keymsg{bcrypt: password, salt and cost in, one line of text out.}
-  \say{Czarna skrzynka, zanim zajrzymy do środka. Trzy wejścia: hasło, sól (bcrypt sam ją losuje) i koszt, czyli ile pracy ma wykonać. Wyjście to jedna linijka tekstu, którą serwer zapisuje w bazie. Nazwa: Blowfish (szyfr, na którym bcrypt jest zbudowany) plus crypt (stara uniksowa funkcja haseł).}
+  \say{Czarna skrzynka, zanim zajrzymy do środka. Trzy wejścia: hasło, sól (losuje ją biblioteka, np. funkcja hash\_password w zadaniu 7; sam algorytm bcrypt przyjmuje ją jako wejście) i koszt, czyli ile pracy ma wykonać. Wyjście to jedna linijka tekstu, którą serwer zapisuje w bazie. Nazwa: Blowfish (szyfr, na którym bcrypt jest zbudowany) plus crypt (stara uniksowa funkcja haseł).}
 \end{frame}
 
 \samedot
@@ -1817,23 +1939,28 @@ else                   show(page_2);     /* file B: "pay 1000" */
     \end{tikzpicture}
   \end{center}
   \vfill
-  \begin{center}\small Blowfish is a block cipher from 1993 whose key setup is slow on purpose.\\
+  \begin{center}\small Recall RC4 (lecture 1): its \textbf{key setup} (KSA) mixes the key into a table before any output.\\
+    Blowfish, a cipher from 1993, does the same with a 4\,KB table, and slowly.\\
     bcrypt repeats that slow key setup; the cost decides how many times.\end{center}
+  \curious{passwords/\#5.2}
   \keymsg{The cost sits in step 2: each $+1$ doubles the slow part.}
-  \say{Na slajdzie tylko intuicja. Blowfish (Bruce Schneier, 1993) ma tablice o rozmiarze około 4 KB, które na starcie wypełnia się cyframi liczby $\pi$ w zapisie szesnastkowym. „Expensive key setup”: hasło i sól są wmieszane w te tablice, a potem $2^{\text{cost}}$ razy na zmianę hasło i sól. Na końcu gotowymi tablicami szyfruje się 64 razy stały tekst OrpheanBeholderScryDoubt; 23 bajty wyniku to skrót.}
+  \say{Na slajdzie tylko intuicja. Szyfru Blowfish nie omawiamy; wystarczy analogia z RC4: KSA w RC4 mieszało klucz do tablicy S (256 bajtów) i działało raz, przed szyfrowaniem. Blowfish (Bruce Schneier, 1993; szyfr blokowy, czyli szyfrujący bloki po 8 bajtów) ma tablice o rozmiarze około 4 KB, które na starcie wypełnia się cyframi liczby $\pi$ w zapisie szesnastkowym. „Expensive key setup”: hasło i sól są wmieszane w te tablice, a potem $2^{\text{cost}}$ razy na zmianę hasło i sól. Na końcu gotowymi tablicami szyfruje się 64 razy stały tekst OrpheanBeholderScryDoubt; 23 bajty wyniku to skrót. Link For the curious (krok 5.2): animacja 1042 słów tablic nadpisywanych podczas jednego bcrypt przy koszcie 4.}
 \end{frame}
 
 \samedot
 \begin{frame}{The cost parameter}
-  % CHECKED: python3 crypt.crypt (libxcrypt, C) on i5-8265U, 2026-11-17: cost 4 1.7 ms, 8 22 ms, 10 88 ms, 12 0.34 s
+  % CHECKED: checks/bench_c.c (libxcrypt crypt_r in C, gcc -O2) on i5-8265U, 2026-11-25, quiet machine, three runs:
+  %   cost 4 0.90 to 0.92 ms, 8 12.5 to 12.9 ms, 10 50 to 52 ms, 12 0.199 to 0.206 s.
+  % CHECKED 2026-11-25 23:25, facts agent, five runs of checks/bench_c.c (gcc -O2), load average 0.5 before, 2.4 after (one run
+  %   disturbed at cost 8 to 12): best of 5: cost 4 0.90 ms, 5 1.66 ms, 8 12.5 ms, 10 49.7 ms, 12 0.198 s
   \vfill
   \begin{center}
-    \begin{tikzpicture}[x=1.15cm, y=0.0105cm]
-      \foreach \v/\lbl in {0/0, 100/0.1 s, 200/0.2 s, 300/0.3 s} {
+    \begin{tikzpicture}[x=1.15cm, y=0.0135cm]
+      \foreach \v/\lbl in {0/0, 100/0.1 s, 200/0.2 s} {
         \draw[nLight] (3.4,\v) -- (12.6,\v);
         \node[font=\tiny, text=gray, anchor=east] at (3.4,\v) {\lbl};
       }
-      \foreach \c/\ms/\shown in {4/1.7/1.7 ms, 8/22/22 ms, 10/88/88 ms, 12/338/0.34 s} {
+      \foreach \c/\ms/\shown in {4/0.90/0.90 ms, 8/12.7/13 ms, 10/51/51 ms, 12/200/0.20 s} {
         \fill[nInk, bar] (\c-0.35,0) rectangle (\c+0.35,\ms);
         \node[font=\small, text=nInk] at (\c,-18) {\c};
         \node[font=\scriptsize\bfseries, text=nInk, above] at (\c,\ms) {\shown};
@@ -1844,15 +1971,89 @@ else                   show(page_2);     /* file B: "pay 1000" */
   \vfill
   \begin{center}\small One bcrypt in C on a laptop \textcolor{gray}{(i5-8265U)}. Work $= 2^{\text{cost}}$: every $+2$ is 4 times slower.\end{center}
   \keymsg{The cost is a dial: turn it up as computers get faster.}
-  \say{Pomiar biblioteki w C (libxcrypt, ta sama, której używa Linux do haseł systemowych) na laptopie autora. Koszt 12 to około 0,3 s na zwykłym laptopie, czyli wyraźnie, ale do przyjęcia przy logowaniu. „Future-adaptable” w tytule pracy z 1999 oznacza właśnie to: co kilka lat zwiększa się koszt.}
+  \say{Pomiar biblioteki w C (libxcrypt, której wiele dystrybucji Linuksa używa do haseł systemowych; program checks/bench\_c.c) na laptopie autora. Koszt 12 to około 0,2 s na zwykłym laptopie, czyli wyraźnie, ale do przyjęcia przy logowaniu. „Future-adaptable” w tytule pracy z 1999 oznacza właśnie to: co kilka lat zwiększa się koszt.}
+\end{frame}
+
+
+\begin{frame}{Task 8: what the cost costs}
+  \vfill
+  \taskgoal{measure bcrypt at cost 4 to 7; crack a stolen bcrypt text with the 20 most common passwords; compare fairly with SHA-256.}
+  \taskready{\texttt{slow\_hash.py}, \texttt{bcrypt\_ready.py}, \texttt{sha256\_ready.py} (both plain Python), \texttt{stolen\_bcrypt.txt}, \texttt{top20.txt}.}
+  \vfill
+  \probbox{Predict first}{How many guesses per second does Mallory get against bcrypt, compared with SHA-256?}
+  \vfill
+  \opentask{Task8}{about 10 minutes}
+  \vfill
+  \say{Około 10 minut, z czego 5 do 20 sekund liczenia (zależnie od komputera; na zajętym komputerze liczba prób bcrypt na sekundę skacze). Czysty Python jest wolny, więc liczby bezwzględne są inne niż w C. Podwajanie z każdym kosztem jest prawdziwe. Stosunek bcrypt do SHA-256 porównujemy uczciwie: oba w czystym Pythonie (sha256\_ready.py zamiast hashlib, który jest kodem w C i byłby około 100 razy szybszy). Wynik w C podajemy na następnym slajdzie z osobnego pomiaru.}
 \end{frame}
 
 \samedot
-\begin{frame}{Why bcrypt is slow, even on a graphics card}
+\begin{frame}{Task 8: what we saw}
+  % CHECKED: Task8/solution/slow_hash.py, 2026-11-19, i5-8265U, Python 3.12.3: cost 4 0.13 s, 5 0.26 s, 6 0.53 s, 7 1.07 s;
+  %   found after 20 tries: sunshine; bcrypt cost 4: 7.1 guesses per second; SHA-256 plain Python 4 580 per s; ratio 646
+  %   (other runs: 561, 687)
+  % CHECKED: checks/bench_c.c, 2026-11-25, the same laptop, quiet, three runs: bcrypt cost 4 1 089 to 1 115 per s, SHA-256
+  %   (OpenSSL) 5.65 to 5.83 million per s: 5.74e6 / 1105 = 5 200. Busy machine (2026-11-20): both slower, ratio 1 600 to 2 500, not used.
+  %   Re-measured 2026-11-25 by the facts agent, best of 5 (load average 0.5 to 2.4): bcrypt cost 4 1 114 per s, SHA-256 5.85 million
+  %   per s: 5 250; cost 5 602 per s: 9 720 (local/audyt/tmp-facts2/bench.txt). A ratio of about 1 200 was not reproduced.
+  % CHECKED: python3, 2026-11-25: hashlib.sha256 in a loop 1.5 million per s; 1.5e6 / 7.9 bcrypt per s = 190 000 (two languages mixed)
+  \vfill
+  \begin{columns}[c,onlytextwidth]
+    \column{0.3\textwidth}
+      \centering\small
+      \begin{tabular}{@{}rr@{}}
+        \toprule
+        \textbf{cost} & \textbf{one bcrypt}\\
+        \midrule
+        4 & 0.13 s\\ 5 & 0.26 s\\ 6 & 0.53 s\\ 7 & 1.07 s\\
+        \bottomrule
+      \end{tabular}\\[4pt]
+      \scriptsize plain Python, i5-8265U\\[8pt]
+      \stepbox{The stolen text}{cracked after 20 guesses: \msg{\texttt{sunshine}}}
+    \column{0.68\textwidth}
+      \centering\small
+      \renewcommand{\arraystretch}{1.35}
+      \begin{tabular}{@{}l@{\ \ }r@{\ \ }r@{\ \ }r@{}}
+        \toprule
+        \textbf{per second} & \textbf{bcrypt, cost 4} & \textbf{SHA-256} & \textbf{ratio}\\
+        \midrule
+        both in plain Python \textcolor{gray}{(Task 8)} & 7.1 & 4\,580 & \textbf{about 650}\\
+        both in C \textcolor{gray}{(same laptop)} & 1\,100 & 5.7 million & \textbf{about 5\,200}\\
+        \bottomrule
+      \end{tabular}\\[6pt]
+      \scriptsize Compare like with like: bcrypt in Python against SHA-256 in C\\ (\texttt{hashlib}) would mix two languages and give about 190\,000.
+  \end{columns}
+  \vfill
+  \curious{passwords/\#3.2}
+  \keymsg{Each $+1$ of the cost doubles the time; one bcrypt guess costs hundreds to thousands of SHA-256 guesses.}
+  \say{Hasło z pierwszej dwudziestki pada mimo bcrypt: wolny skrót nie ratuje hasła „sunshine”. Podwajanie z każdym kosztem widać w tabeli. Stosunek prędkości mierzymy uczciwie: w zadaniu oba skróty są w czystym Pythonie (około 650; między uruchomieniami od 560 do 690). Ten sam pomiar w C na tym samym laptopie (program bench\_c.c w folderze checks; biblioteki libxcrypt i OpenSSL) daje około 5200, bo pętle Pythona spowalniają oba algorytmy w różnym stopniu. Uwaga na typowy błąd pomiaru: bcrypt w Pythonie kontra hashlib.sha256 (kod w C) dałby około 190 tysięcy, ale to porównanie dwóch języków, nie dwóch skrótów. Prawdziwe serwery używają kosztu 10 do 12, czyli kolejne 64 do 256 razy więcej. Na karcie graficznej przepaść jest jeszcze większa: o tym dwa następne slajdy. Link For the curious (krok 3.2): bcrypt i SHA-256 z solą w tej samej przeglądarce, w tym samym JavaScripcie.}
+\end{frame}
+
+\samedot
+\begin{frame}{Why bcrypt is slow 1: the amount of work}
   % CHECKED: Task7/bcrypt_ready.py: one key setup = 9 + 4 * 128 = 521 Blowfish encryptions (18 + 1024 words of 32 bits);
-  %   bcrypt = 1 + 2 * 2^cost key setups + 64 * 3 encryptions: cost 5 = 65 * 521 + 192 = 34 057
+  %   bcrypt = 1 + 2 * 2^cost key setups + 64 * 3 encryptions: cost 4 = 33 * 521 + 192 = 17 385; cost 5 = 65 * 521 + 192 = 34 057
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \node[hw, text width=3.3cm, minimum height=2.0cm, font=\small] (ks) at (0,0) {\textbf{one key setup}\\[2pt] rewrites all 4\,KB\\ of the tables:\\ \textbf{521} encryptions};
+      \node[font=\Large\bfseries, text=nInk] at (2.5,0) {$\times$};
+      \node[hw, text width=3.5cm, minimum height=2.0cm, font=\small, line width=1.4pt, draw=AccentOrange] (n) at (5.0,0) {$1 + 2 \cdot 2^{\text{cost}}$\\ key setups\\[2pt] cost 4: \textbf{33}\\ cost 12: \textbf{8\,193}};
+      \node[font=\Large\bfseries, text=nInk] at (7.5,0) {$=$};
+      \node[digval, text width=3.6cm, minimum height=2.0cm, font=\small] at (10.0,0) {cost 4: about\\ \textbf{17\,000} Blowfish\\ encryptions per guess};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small SHA-256 of a short password: \textbf{one} block, one call of the compression function.\\
+    Every encryption of Blowfish has 16 rounds; a guess of bcrypt is a long chain of small steps.\end{center}
+  \keymsg{bcrypt is slow first by the amount of work, and the cost sets it.}
+  \say{Pierwsza przyczyna: praca. Tablice Blowfisha to 18 słów P i 4 razy 256 słów S, razem 1042 słowa po 32 bity, czyli około 4 KB; jedno ustawienie klucza nadpisuje je wszystkie, po dwa słowa na jedno szyfrowanie, więc 521 szyfrowań. bcrypt robi to $1 + 2 \cdot 2^{\text{cost}}$ razy (najpierw hasło z solą, potem $2^{\text{cost}}$ rund, a w każdej rundzie raz hasło i raz sól), przy koszcie 4 to 33 razy, około 17 tysięcy szyfrowań po 16 rund, plus 192 szyfrowania stałego tekstu. SHA-256 krótkiego hasła to jeden blok, 64 rundy. Stąd tysiące razy w C.}
+\end{frame}
+
+\samedot
+\begin{frame}{Why bcrypt is slow 2: memory a graphics card lacks}
   % CHECKED: hashcat 6.2.6 on RTX 4090 (gist Chick3nman 32e662a5): SHA-256 21.98 GH/s, bcrypt (32 iterations = cost 5) 184.0 kH/s;
-  %   python3: 21.98e9 / 184.0e3 = 119 457
+  %   python3: 21.98e9 / 184.0e3 = 119 457; laptop CPU in C at cost 5: checks/bench_c.c, 561 to 602 per s, 5.74e6 / 587 = 9 800; 119 457 / 9 800 = 12
   \vfill
   \begin{center}
     \begin{tikzpicture}[x=0.95cm]
@@ -1869,54 +2070,11 @@ else                   show(page_2);     /* file B: "pay 1000" */
     \end{tikzpicture}
   \end{center}
   \vfill
-  \begin{itemize}\small\setlength{\itemsep}{4pt}
-    \item One Blowfish key setup rewrites all 4\,KB of its tables with \textbf{521} Blowfish encryptions.
-    \item Cost 5: $1 + 2 \cdot 2^5 = 65$ key setups, about \textbf{34\,000} encryptions per guess. SHA-256 of a password: one block.
-    \item Every encryption reads the tables at addresses that depend on the data: thousands of graphics-card cores share little fast memory, so they wait.
-    \item Looping SHA-256 many times also works: that is PBKDF2 \textcolor{gray}{(later)}, but a graphics card runs it faster.
-  \end{itemize}
-  \vfill
-  \keymsg{bcrypt is slow by the amount of work and by the way it uses memory.}
-  \say{Skąd 120 tysięcy razy? Po pierwsze praca: tablice Blowfisha to 18 słów P i 4 razy 256 słów S, razem 1042 słowa po 32 bity, czyli około 4 KB; jedno ustawienie klucza nadpisuje je wszystkie, po dwa słowa na jedno szyfrowanie, więc 521 szyfrowań. bcrypt robi to $1 + 2 \cdot 2^{\text{cost}}$ razy (najpierw hasło z solą, potem na zmianę hasło i sól), przy koszcie 5 to 65 razy, około 34 tysięcy szyfrowań po 16 rund. SHA-256 krótkiego hasła to jeden blok, 64 rundy. Po drugie pamięć: każda runda Blowfisha czyta cztery słowa z tablic pod adresami zależnymi od danych, a karta graficzna ma tysiące rdzeni i mało szybkiej pamięci na rdzeń. Można też po prostu powtarzać SHA-256 wiele razy; tak działa PBKDF2 (slajd Other slow hashes), ale ono nie potrzebuje pamięci, więc karta graficzna liczy je relatywnie szybciej.}
-\end{frame}
-
-\begin{frame}{Task 8: what the cost costs}
-  \vfill
-  \taskgoal{measure bcrypt at cost 4 to 7; crack a stolen bcrypt text with the 20 most common passwords; compare with SHA-256.}
-  \taskready{\texttt{slow\_hash.py}, \texttt{bcrypt\_ready.py}, \texttt{stolen\_bcrypt.txt}, \texttt{top20.txt}.}
-  \vfill
-  \probbox{Predict first}{How many guesses per second does Mallory get against bcrypt, compared with SHA-256?}
-  \vfill
-  \opentask{Task8}{about 10 minutes}
-  \vfill
-  \say{Około 10 minut, z czego 10 do 30 sekund liczenia (zależnie od komputera; na zajętym komputerze liczba prób bcrypt na sekundę skacze). Czysty Python jest wolny, więc liczby bezwzględne są inne niż w C, ale proporcje (podwajanie z każdym kosztem, przepaść między bcrypt a SHA-256) są prawdziwe.}
-\end{frame}
-
-\samedot
-\begin{frame}{Task 8: what we saw}
-  % CHECKED: Task8/solution/slow_hash.py, 2026-11-17, i5-8265U, Python 3.12.3: cost 4 0.22 s, 5 0.42 s, 6 0.82 s, 7 1.69 s;
-  %   found after 20 tries: sunshine; bcrypt cost 4: 4.4 guesses per second; SHA-256: 690 705 guesses per second
-  \vfill
-  \begin{columns}[c,onlytextwidth]
-    \column{0.42\textwidth}
-      \centering\small
-      \begin{tabular}{@{}rr@{}}
-        \toprule
-        \textbf{cost} & \textbf{one bcrypt}\\
-        \midrule
-        4 & 0.22 s\\ 5 & 0.42 s\\ 6 & 0.82 s\\ 7 & 1.69 s\\
-        \bottomrule
-      \end{tabular}\\[4pt]
-      \scriptsize pure Python, i5-8265U
-    \column{0.56\textwidth}
-      \centering
-      \stepbox{The stolen text}{cracked after 20 guesses: \msg{\texttt{sunshine}}}
-      \stepbox{Mallory's speed}{bcrypt cost 4: \textbf{4.4} guesses per second\\ SHA-256: \textbf{690\,705} guesses per second}
-  \end{columns}
-  \vfill
-  \keymsg{The same guesses, about 150\,000 times slower: and cost 4 is the lowest bcrypt allows.}
-  % CHECKED: python3: 690705 / 4.4 = 156 978
-  \say{Hasło z pierwszej dwudziestki pada mimo bcrypt: wolny skrót nie ratuje hasła „sunshine”. Ale każda próba kosztuje tyle co około 150 tysięcy prób SHA-256, a prawdziwe serwery używają kosztu 10 do 12, czyli kolejne 64 do 256 razy więcej. W C liczby byłyby około 100 razy większe po obu stronach.}
+  \begin{center}\small On a laptop CPU (in C) the gap at cost 5 is about 10\,000; on a graphics card it is 12 times bigger.\\
+    Every Blowfish round reads the 4\,KB tables at addresses that depend on the data.\\
+    Thousands of graphics-card cores share little fast memory, so they wait for it.\end{center}
+  \keymsg{bcrypt is slow on a graphics card also because of the way it uses memory.}
+  \say{Druga przyczyna: pamięć. SHA-256 to same obliczenia na rejestrach, więc karta graficzna z tysiącami rdzeni liczy go ogromnie szybko. bcrypt przy każdej rundzie Blowfisha czyta cztery słowa z tablic pod adresami zależnymi od danych; każde zgadnięcie potrzebuje własnych 4 KB, a szybkiej pamięci na rdzeń karta ma mało. Dlatego na karcie przepaść (120 tysięcy przy koszcie 5) jest około 12 razy większa niż na procesorze laptopa (około 10 tysięcy przy koszcie 5, zmierzone w C, dwa razy więcej niż 5200 przy koszcie 4). Funkcje, które celowo potrzebują dużo pamięci (scrypt, Argon2), idą dalej: za kilka slajdów.}
 \end{frame}
 
 \begin{frame}{Task 9: Mallory's bill}
@@ -1959,7 +2117,7 @@ else                   show(page_2);     /* file B: "pay 1000" */
 
 \begin{frame}{What a user can do: long and random}
   % CHECKED: python3: 26^8 = 2.09e11; / 21.98e9 per s = 9.5 s; / 1437.5 per s = 4.6 years;
-  %   7776^4 = 3.66e15; / 21.98e9 = 1.9 days; / 1437.5 = 80 600 years (one RTX 4090, hashcat numbers)
+  %   7776^4 = 3.66e15; / 21.98e9 = 1.9 days; / 1437.5 = 80 600 years, rounded like the simulator (#5.1): 81 000 (one RTX 4090, hashcat numbers)
   \vfill
   \begin{center}
     \renewcommand{\arraystretch}{1.5}
@@ -1970,7 +2128,7 @@ else                   show(page_2);     /* file B: "pay 1000" */
       \midrule
       a word from a leak list & 14 million & 0.6 ms & 2.7 hours\\
       8 random lowercase letters & $26^{8} \approx 2 \times 10^{11}$ & 9.5 s & 4.6 years\\
-      4 random words from a list of 7\,776 & $7776^{4} \approx 3.7 \times 10^{15}$ & 1.9 days & 80\,000 years\\
+      4 random words from a list of 7\,776 & $7776^{4} \approx 3.7 \times 10^{15}$ & 1.9 days & 81\,000 years\\
       \bottomrule
     \end{tabular}
   \end{center}
@@ -1996,35 +2154,201 @@ else                   show(page_2);     /* file B: "pay 1000" */
   \end{columns}
   \vfill
   \keymsg{Pick the slowest cost your logins can bear, and raise it over time.}
-  \curious{passwords/\#5}
-  \say{OWASP to organizacja publikująca zalecenia bezpieczeństwa aplikacji WWW; NIST mówi podobnie: koszt tak wysoki, jak praktycznie możliwe. Ponowne hashowanie: przy udanym logowaniu serwer zna hasło (właśnie je wpisano), więc może policzyć nowy bcrypt z wyższym kosztem i zapisać go. Limit 72 bajtów to cecha konstrukcji (klucz Blowfish); dla haseł z ludzkiej głowy zwykle nie ma znaczenia. Link For the curious: pokrętło kosztu, czas logowania serwera i czas Mallory dla różnych haseł, na CPU i karcie graficznej, oraz tablice Blowfisha nadpisywane podczas jednego bcrypt.}
+  \curious{passwords/\#5.1}
+  \say{OWASP to organizacja publikująca zalecenia bezpieczeństwa aplikacji WWW; NIST mówi podobnie: koszt tak wysoki, jak praktycznie możliwe. Ponowne hashowanie: przy udanym logowaniu serwer zna hasło (właśnie je wpisano), więc może policzyć nowy bcrypt z wyższym kosztem i zapisać go. Limit 72 bajtów to cecha konstrukcji (klucz Blowfish); dla haseł z ludzkiej głowy zwykle nie ma znaczenia. Link For the curious (krok 5.1): pokrętło kosztu, czas logowania serwera i czas Mallory dla różnych haseł, na karcie graficznej i w tej przeglądarce.}
 \end{frame}
 
 \samedot
 \begin{frame}{Other slow hashes}
   % CHECKED: OWASP Password Storage: Argon2id m=19 MiB t=2 p=1; scrypt N=2^17 r=8 p=1; PBKDF2-HMAC-SHA256 600 000 iterations
-  % CHECKED: Argon2: 2015 Password Hashing Competition, RFC 9106 (2021); scrypt: Percival 2009, RFC 7914 (2016)
+  % CHECKED: Argon2 won the Password Hashing Competition in July 2015 (as listed in local/audyt/fakty.md); the variant Argon2id was
+  %   added in the release of 29 October 2016 (same file); RFC 9106 (2021),
+  %   scrypt: Percival 2009, RFC 7914 (2016), PBKDF2: RFC 8018: as listed in the plan and in fakty.md
+  % CHECKED: python3: scrypt memory = 128 * r * N = 128 * 8 * 2^17 = 128 MiB
   \vfill
   \begin{center}
-    \renewcommand{\arraystretch}{1.5}
+    \renewcommand{\arraystretch}{1.45}
     \small
-    \begin{tabular}{@{}lp{6.8cm}l@{}}
+    \begin{tabular}{@{}l@{\quad}l@{\quad}l@{\quad}l@{}}
       \toprule
-      \textbf{name} & \textbf{one line} & \textbf{in Python}\\
+      \textbf{name} & \textbf{slow because} & \textbf{memory} & \textbf{in Python}\\
       \midrule
-      PBKDF2 & SHA-256 repeated many times with the salt; OWASP: 600\,000 times & \texttt{hashlib.pbkdf2\_hmac}\\
-      scrypt (2009) & slow \textbf{and} needs a lot of memory & \texttt{hashlib.scrypt}\\
-      Argon2id (2015) & winner of a public competition; memory and time both tunable; OWASP's first choice & extra library\\
+      PBKDF2 & HMAC repeated 600\,000 times (OWASP) & almost none & \texttt{hashlib.pbkdf2\_hmac}\\
+      bcrypt (1999) & $2^{\text{cost}}$ key setups & 4\,KB & extra library\\
+      scrypt (2009) & a big table, read in a random order & OWASP: 128\,MiB & \texttt{hashlib.scrypt}\\
+      Argon2id & like scrypt; time and memory set apart & OWASP: 19\,MiB & extra library\\
       \bottomrule
     \end{tabular}
   \end{center}
   \vfill
-  \begin{center}\small Why memory: a graphics card has thousands of cores but little memory per core.\end{center}
-  \keymsg{bcrypt, scrypt, Argon2id and PBKDF2 all make guesses expensive; Argon2id is today's default.}
-  \say{Jedno zdanie na każdy. PBKDF2 to standard (RFC 8018) i jest w module hashlib. scrypt (Colin Percival, 2009) i Argon2 (zwycięzca Password Hashing Competition w 2015, RFC 9106) wymagają dużo pamięci, a tego karty graficzne nie mają w nadmiarze, więc atak na nich nie przyspiesza tak bardzo. Zalecenia OWASP dla Argon2id: 19 MiB pamięci, 2 iteracje.}
+  \begin{center}\small Argon2 won a public competition (the Password Hashing Competition) in 2015;\\ its variant Argon2id came in 2016 and is OWASP's first choice.\end{center}
+  \keymsg{All four make every guess expensive; the last two also make it need memory.}
+  \say{Mapa przed dwoma kolejnymi tematami: pamięć (scrypt, Argon2) i klucz z hasła (PBKDF2). PBKDF2 to standard (RFC 8018), po prostu wiele razy powtórzony HMAC (z wybraną funkcją skrótu, dziś zwykle SHA-256; RFC 8018 domyślnie podaje SHA-1); jest w module hashlib, ale nie potrzebuje pamięci, więc karta graficzna liczy go szybko. bcrypt potrzebuje 4 KB. scrypt (Colin Percival, 2009, RFC 7914) i Argon2 (zwycięzca Password Hashing Competition w lipcu 2015, RFC 9106 z 2021) potrzebują dziesiątek i setek MiB. Wariant Argon2id (mieszanka wariantów d i i) dodano w wydaniu z października 2016; to on jest dziś zalecany. Zalecenia OWASP dla Argon2id: 19 MiB pamięci, 2 iteracje.}
+\end{frame}
+
+\begin{frame}{Memory-hard: the idea of scrypt}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \node[msgval, font=\scriptsize] (in) at (-0.6,0) {password\\ + \salt{salt}};
+      \node[font=\small\bfseries, text=nInk, anchor=west] at (0.6,1.55) {\badge{1} fill a table: $V_0, V_1, \ldots, V_{n-1}$, each from the one before};
+      \foreach \k in {0,...,11} {
+        \node[cell, minimum width=0.8cm, minimum height=0.55cm] (v\k) at ({1.2+0.85*\k},0.6) {};
+      }
+      \node[font=\tiny, text=gray] at (1.2,0.6) {$V_0$};
+      \node[font=\tiny, text=gray] at ({1.2+0.85*11},0.6) {$V_{n-1}$};
+      \foreach \k [evaluate=\k as \n using int(\k+1)] in {0,...,10} \draw[-{Stealth}, nLine] (v\k.east) -- (v\n.west);
+      \draw[data] (in) -- (v0);
+      \node[font=\small\bfseries, text=nInk, anchor=west] at (0.6,-1.65) {\badge{2} $n$ times: read the cell \textbf{chosen by the current value}, mix it in};
+      \node[hw, font=\scriptsize, fill=white, minimum width=1.4cm] (x) at (5.9,-0.85) {current $x$};
+      \foreach \k/\b in {7/20, 2/-25, 9/10} \draw[-{Stealth}, very thick, AccentOrange] (v\k.south) to[bend left=\b] (x);
+      \node[font=\scriptsize, text=AccentOrange, anchor=west] at (7.6,-0.95) {$j$ = (from $x$) mod $n$: nobody knows it in advance};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small Keep the whole table: $128 \cdot r \cdot n$ bytes. Throw it away: recompute cells again and again, far slower.\end{center}
+  \bigdef{\textbf{Memory-hard}: the cheapest way to compute it needs a lot of memory; the cost is time $\times$ memory.}
+  \say{Idea scrypt w dwóch krokach. Krok 1: z hasła i soli liczymy kolejno $n$ bloków $V_0 \ldots V_{n-1}$ (każdy z poprzedniego) i zapisujemy je w tablicy. Krok 2: $n$ razy bierzemy bieżącą wartość $x$, z niej wyliczamy numer komórki $j$, czytamy $V_j$ i mieszamy do $x$. Ponieważ $j$ zależy od danych, nie da się z góry wiedzieć, których komórek trzeba, więc trzeba trzymać całą tablicę albo liczyć brakujące komórki od nowa (wtedy praca rośnie z $n$ do około $n^2/2$). Przy r = 8 każda komórka ma 1 KiB, więc $n = 2^{15}$ to 32 MiB. Argon2 robi to samo w nowocześniejszej formie i pozwala osobno ustawić czas i pamięć.}
 \end{frame}
 
 \samedot
+\begin{frame}{Why memory slows a graphics card}
+  % CHECKED: python3: 24 GiB / 4 KiB = 6 291 456; 24 GiB / 32 MiB = 768; 768 / 16 384 = 4.7%
+  % CHECKED 2026-11-25: nvidia.com/en-us/geforce/graphics-cards/40-series/rtx-4090: 16 384 CUDA cores, 24 GB of memory
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}
+      \node[hw, text width=3.4cm, minimum height=1.7cm, font=\small] at (0,0) {\faMicrochip\ one RTX 4090\\ \textbf{16\,384} cores\\ \textbf{24\,GiB} memory};
+      \node[srvval, text width=4.3cm, minimum height=1.7cm, font=\small] at (4.9,0) {bcrypt: 4\,KiB per guess\\ \textbf{6 million} guesses fit\\ memory size is no limit};
+      \node[attval, text width=4.3cm, minimum height=1.7cm, font=\small] at (10.0,0) {scrypt, $n = 2^{15}$: 32\,MiB\\ only \textbf{768} guesses fit\\ \textbf{95\%} of the cores wait};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small Bob's server needs 32 MiB for one login: nothing. Mallory needs 32 MiB for \textbf{every} guess she runs at once.\\
+    Memory is costly to add to a chip; computing units are cheap.\end{center}
+  \keymsg{A memory-hard hash limits how many guesses run in parallel, not only how long each takes.}
+  \say{Rachunek, który zrobią w zadaniu 10, tu jako zapowiedź intuicji. Serwer liczy jedno hasło na raz, więc 32 MiB to dla niego drobiazg. Atakujący chce tysięcy prób naraz; karta ma tysiące rdzeni, ale pamięć na nie wszystkie jest ograniczona. Przy 32 MiB na próbę mieści się 768 prób, więc ponad 95\% rdzeni czeka. To samo dotyczy specjalnych układów (ASIC): pamięć jest droga, a jednostki liczące tanie. Dlatego scrypt i Argon2id są dziś lepsze niż bcrypt, który potrzebuje tylko 4 KB.}
+\end{frame}
+
+\begin{frame}{Task 10: a hash that needs memory}
+  \vfill
+  \taskgoal{measure scrypt for $n = 2^{12}$ to $2^{15}$, see it refuse to run in too little memory, count the guesses a graphics card holds.}
+  \taskready{\texttt{memory\_hard.py}; \texttt{hashlib.scrypt} from the standard library.}
+  \vfill
+  \probbox{Predict first}{When $n$ doubles, what happens to the time? And to the memory?}
+  \vfill
+  \opentask{Task10}{about 8 minutes}
+  \vfill
+  \say{Około 8 minut; program liczy się poniżej sekundy. hashlib.scrypt to kod w C z OpenSSL, więc czasy są prawdziwe. Parametr maxmem pozwala udać urządzenie z małą pamięcią: scrypt odmawia, zamiast liczyć wolniej. TODO 3 to dzielenie, które pokazuje, ile prób zmieści karta graficzna.}
+\end{frame}
+
+\samedot
+\begin{frame}{Task 10: what we saw}
+  % CHECKED: Task10/solution/memory_hard.py, 2026-11-20, i5-8265U, Python 3.12.3 (shortest of 3):
+  %   n = 2^12 0.012 s 4 MiB, 2^13 0.021 s 8 MiB, 2^14 0.041 s 16 MiB, 2^15 0.088 s 32 MiB; 16 MiB: refused; 6 291 456 and 768
+  \vfill
+  \begin{columns}[c,onlytextwidth]
+    \column{0.46\textwidth}
+      \centering\small
+      \renewcommand{\arraystretch}{1.3}
+      \begin{tabular}{@{}lrr@{}}
+        \toprule
+        $n$ & \textbf{time} & \textbf{memory}\\
+        \midrule
+        $2^{12}$ & 0.012 s & 4 MiB\\
+        $2^{13}$ & 0.021 s & 8 MiB\\
+        $2^{14}$ & 0.041 s & 16 MiB\\
+        $2^{15}$ & 0.088 s & 32 MiB\\
+        \bottomrule
+      \end{tabular}\\[4pt]
+      \scriptsize i5-8265U, OpenSSL through \texttt{hashlib}
+    \column{0.5\textwidth}
+      \stepbox{At most 16 MiB}{$n = 2^{15}$: \textbf{refused}}
+      \stepbox{One graphics card, 24 GiB}{bcrypt: 6\,291\,456 guesses at once\\ scrypt $2^{15}$: \textbf{768} guesses for 16\,384 cores}
+  \end{columns}
+  \vfill
+  \keymsg{Each doubling of $n$ doubles the time and the memory; the memory is what a graphics card lacks.}
+  \say{Czas i pamięć rosną razem, więc koszt dla atakującego (czas razy pamięć) rośnie czterokrotnie przy podwojeniu n. Odmowa przy 16 MiB pokazuje, że pamięci nie da się po prostu pominąć. Przy ustawieniach OWASP dla scrypt ($N = 2^{17}$, 128 MiB) na karcie zmieściłoby się tylko 192 prób naraz.}
+\end{frame}
+
+\begin{frame}{Recall: a key from a secret}
+  \vfill
+  \begin{columns}[c,onlytextwidth]
+    \column{0.48\textwidth}
+      \centering
+      \stepbox{Lecture 5: HKDF}{input: a shared secret from X25519\\ \textbf{random}, 256 bits\\[2pt] one fast hash is enough: nobody can guess the input}
+    \column{0.48\textwidth}
+      \centering
+      \stepbox{Now: a password}{input: what a person typed\\ \textbf{guessable}, often in a leak list\\[2pt] a fast hash would let Mallory try billions per second}
+  \end{columns}
+  \vfill
+  \begin{center}\small Encrypted files, password managers, Wi-Fi with a password: the key comes from a password.\end{center}
+  \bigdef{A key from a \textbf{password} needs a \textbf{slow} key derivation with a salt: PBKDF2, scrypt or Argon2id.}
+  \say{Przypomnienie z wykładu 5: KDF (tam HKDF) robi klucze z sekretu. Tam sekret był losowy (wynik X25519), więc wystarczała szybka funkcja. Hasło ma mało entropii; jeśli klucz powstaje z hasła szybką funkcją, Mallory sprawdza miliardy haseł na sekundę. Dlatego klucz z hasła robi się tymi samymi wolnymi funkcjami co przechowywanie haseł. Różnica: tu nie ma serwera, który ograniczy próby; atakujący ma plik i liczy offline.}
+\end{frame}
+
+\samedot
+\begin{frame}{Example: the Wi-Fi password}
+  % IEEE 802.11i, WPA2-Personal: PSK = PBKDF2-HMAC-SHA1(passphrase, SSID, 4096 iterations, 256 bits): the standard itself not opened;
+  %   CHECKED 2026-11-25 only indirectly: hashcat 6.2.6 benchmark (gist Chick3nman 32e662a5), mode 22000 WPA-PBKDF2 with 4095 (+1) iterations
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \node[msgval, font=\small\ttfamily] (p) at (0,0.6) {passphrase};
+      \node[saltval, font=\small\ttfamily] (s) at (0,-0.6) {SSID: HomeNet};
+      \node[mech, minimum width=3.2cm, minimum height=1.3cm] (k) at (4.2,0) {\faCogs\ PBKDF2-HMAC-SHA1\\ \scriptsize 4\,096 iterations};
+      \draw[data] (p) -- (k); \draw[data] (s) -- (k);
+      \node[hw, font=\small, fill=white] (key) at (8.4,0) {\faKey\ 256-bit key};
+      \draw[data] (k) -- (key);
+      \node[font=\Huge, text=sPink] (m) at (11.4,0) {\faUserSecret};
+      \node[font=\scriptsize, text=sPinkText, align=center] at (11.4,-0.95) {records one login,\\ then guesses offline};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small WPA2 with a password: the network name (SSID) is the salt. It is not random:\\
+    every network called ``HomeNet'' shares it, so tables for common names pay off.\end{center}
+  \keymsg{The salt makes tables useless only if it differs; a network name often does not.}
+  \say{Przykład z życia: WPA2-Personal (IEEE 802.11i). Klucz sieci to PBKDF2-HMAC-SHA1 z hasła, z nazwą sieci (SSID) jako solą, 4096 iteracji. Atakujący nagrywa jedno połączenie urządzenia z siecią i potem zgaduje offline. Sól tu nie jest losowa: wszystkie sieci o nazwie „HomeNet” albo domyślnej nazwie operatora mają tę samą sól, więc gotowe tablice dla popularnych nazw mają sens. 4096 iteracji to dziś mało. WPA3 zmienił to na wymianę kluczy, której nie da się atakować offline.}
+\end{frame}
+
+\begin{frame}{Task 11: a key from a password}
+  \vfill
+  \taskgoal{open Alice's encrypted diary with her password, then crack Bob's diary with a list of common passwords.}
+  \taskready{\texttt{password\_key.py}, \texttt{chacha.py} (lecture 2), \texttt{wordlist.txt}, \texttt{diary\_alice.bin}, \texttt{diary\_bob.bin}.}
+  \vfill
+  \probbox{Predict first}{No server limits Mallory's guesses here. What slows her down?}
+  \vfill
+  \opentask{Task11}{about 10 minutes}
+  \vfill
+  \say{Około 10 minut; atak liczy się kilka sekund. Klucz powstaje funkcją hashlib.pbkdf2\_hmac z 10 000 iteracji, a plik szyfruje ChaCha20 z wykładu 2. Mallory rozpoznaje dobry klucz po znanym początku pliku („Dear diary,”); w prawdziwych formatach jest do tego nagłówek albo znacznik uwierzytelnienia. TODO 4 przelicza czas na 600 000 iteracji z zaleceń OWASP.}
+\end{frame}
+
+\samedot
+\begin{frame}{Task 11: what we saw}
+  % CHECKED: Task11/solution/password_key.py, 2026-11-20, i5-8265U, Python 3.12.3: one key 7.0 ms; found after 902 tries:
+  %   Cookie12; attack 6.6 s; with 600 000 iterations about 7 minutes
+  \vfill
+  \begin{columns}[c,onlytextwidth]
+    \column{0.5\textwidth}
+      \stepbox{Alice, with her password}{\scriptsize\ttfamily Dear diary, today I moved my savings to the new bank. \ldots}
+      \stepbox{Bob, by Mallory}{found after \textbf{902} guesses: \msg{\texttt{Cookie12}}\\ \scriptsize\ttfamily Dear diary, Mallory asked again about the bike. \ldots}
+    \column{0.46\textwidth}
+      \centering\small
+      \renewcommand{\arraystretch}{1.35}
+      \begin{tabular}{@{}lrr@{}}
+        \toprule
+        \textbf{iterations} & \textbf{one key} & \textbf{the attack}\\
+        \midrule
+        10\,000 & 7.0 ms & 6.6 s\\
+        600\,000 & about 0.4 s & about 7 min\\
+        \bottomrule
+      \end{tabular}
+  \end{columns}
+  \vfill
+  \keymsg{Iterations multiply Mallory's work; only a password outside her list stops her.}
+  \say{Hasło Boba było na liście, więc padło mimo PBKDF2. Iteracje działają jak koszt bcrypt: mnożą pracę liniowo, 60 razy więcej iteracji to 60 razy dłuższy atak. Dla hasła z czterech losowych słów (slajd What a user can do) ta sama funkcja daje lata. Czasy zależą od komputera.}
+\end{frame}
+
 \begin{frame}{Pepper: a secret kept elsewhere}
   % CHECKED: OWASP Password Storage: the pepper is secret, not stored with the hashes, in a secrets vault or HSM;
   %   NIST SP 800-63B-4: the secret key stored separately, should be in a hardware security module
@@ -2076,7 +2400,6 @@ else                   show(page_2);     /* file B: "pay 1000" */
   \say{Jeden slajd z praktyką. Lista zakazanych haseł (np. z wycieków) to zalecenie NIST SP 800-63B: odrzucić hasło przy ustawianiu, jeśli jest na liście znanych haseł. Ograniczenie prób logowania dotyczy ataku przez stronę logowania (online), a nie kradzieży bazy; wspomnieć jednym zdaniem. Szyfrowanie zamiast skrótu jest złe, bo kto ma klucz, ma wszystkie hasła naraz.}
 \end{frame}
 
-\samedot
 \begin{frame}{Back to the leaks}
   \vfill
   \begin{center}
@@ -2099,9 +2422,9 @@ else                   show(page_2);     /* file B: "pay 1000" */
 \end{frame}
 
 
-\section[Summary]{Summary}
+\section[The answer]{The answer}
 
-\begin{frame}{How an attacker beats a hash}
+\begin{frame}{The answer: how an attacker beats a hash}
   \vfill
   \begin{center}
     \renewcommand{\arraystretch}{1.5}
@@ -2112,9 +2435,9 @@ else                   show(page_2);     /* file B: "pay 1000" */
       \midrule
       birthday collision & any pair: $2^{n/2}$, not $2^n$ & a long digest: 256 bits\\
       MD5/SHA-1 attack & MD5, SHA-1 have shortcuts & SHA-256, SHA-3\\
-      dictionary attack & people choose likely passwords & good passwords, leak lists\\
+      dictionary attack & people choose likely passwords & good passwords, leak lists, a limit on tries online\\
       ready tables & no salt: work done before the leak & a random salt per user\\
-      fast guessing & hashes are designed to be fast & bcrypt, Argon2id, a cost\\
+      fast guessing & hashes are designed to be fast & bcrypt, Argon2id, a cost, memory\\
       \bottomrule
     \end{tabular}
   \end{center}

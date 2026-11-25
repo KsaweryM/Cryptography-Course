@@ -14,7 +14,7 @@ Find the secret a of each problem by trying a = 1, 2, 3, ..., see how the time g
 
 ## Ready for you
 
-- `dlog.py`: `PROBLEMS`, the four problems, each a tuple `(p, g, A)`. Here g = 4; any g with a long cycle works.
+- `dlog.py`: `PROBLEMS`, the four problems, each a tuple `(p, g, A)`. Here g = 4. Each p is a safe prime, p = 2q + 1 with q prime too, and g = 4 has a cycle of exactly q values: a cycle of prime length, as in the real standard (slide "Why a cycle of prime length?").
 - `dlog.py`: the loop that calls your `find_exponent(p, g, A)` for each problem and prints the number of bits, `a` and the time. After the loop, `a` and `seconds` hold the result of the last (28-bit) problem.
 
 ## Steps

@@ -1,6 +1,6 @@
-% Task 6: a piece of a CT log and Alice's records. Values from Task6/ (python3, Task6/ctlog.py, 2026-11-15).
-% CHECKED: the nine entries (issued, CA, names) and the SHA-256 fingerprints 606599e5fee40972... and 4e74d58c752088e8...
-%   of the two certificates in my_orders.txt; caa.txt: alice-shop.example. CAA 0 issue "trusty-ca.example"
+% Task 6: a piece of a CT log and Bob's records. Values from Task6/ (python3, Task6/ctlog.py, 2026-11-26).
+% CHECKED: the nine entries (issued, CA, names) and the SHA-256 fingerprints 5f1d8b540c1665af... and b2acc6775a289bc0...
+%   of the two certificates in my_orders.txt; caa.txt: bob.example. CAA 0 issue "trusty-ca.example"
 \documentclass[12pt,tikz,border=6pt]{standalone}
 \input{common}
 \begin{document}
@@ -8,15 +8,15 @@
 \begin{tikzpicture}[>=Stealth]
   \node[font=\small\bfseries, text=nInk, anchor=west] at (-0.2,0.75) {\faScroll\ ct\_log.pem: a piece of a public CT log, oldest first};
   \foreach \k/\dt/\ca/\nm in {
-      0/2026-10-02/Green CA/{bob-bakery.example, www.bob-bakery.example},
-      1/2026-10-05/Trusty CA/{alice-shop.example, www.alice-shop.example},
+      0/2026-10-02/Green CA/{bakery.example, www.bakery.example},
+      1/2026-10-05/Trusty CA/{bob.example, www.bob.example},
       2/2026-10-09/Green CA/{carol.example},
-      3/2026-10-14/Trusty CA/{api.alice-shop.example},
-      4/2026-10-21/Green CA/{alice-shop.example.mallory.example},
+      3/2026-10-14/Trusty CA/{api.bob.example},
+      4/2026-10-21/Green CA/{bob.example.mallory.example},
       5/2026-10-25/Trusty CA/{dave.example, mail.dave.example},
-      6/2026-11-02/Shady CA/{alice-shop.example, www.alice-shop.example},
-      7/2026-11-06/Trusty CA/{login.alice-shop.example},
-      8/2026-11-09/Shady CA/{bob.example}} {
+      6/2026-11-02/Shady CA/{bob.example, www.bob.example},
+      7/2026-11-06/Trusty CA/{login.bob.example},
+      8/2026-11-09/Shady CA/{mallory.example}} {
     \pgfmathsetmacro{\y}{-0.62*\k}
     \node[cert, minimum width=10.4cm, minimum height=0.52cm, inner sep=2pt, anchor=west] at (0,\y) {};
     \node[font=\scriptsize\ttfamily, text=nInk, anchor=west] at (0.1,\y) {\dt};
@@ -25,15 +25,15 @@
     \node[circle, draw=AccentOrange, thick, fill=white, minimum size=0.42cm, inner sep=0pt, font=\bfseries\scriptsize,
       text=AccentOrange] at (10.75,\y) {?};
   }
-  % ---------- Alice ----------
-  \node[person=sIndigo] (a) at (14.4,0.2) {\faUser};
-  \node[font=\small\bfseries, text=sIndigo, below=0.05cm of a] {Alice};
-  \node[font=\scriptsize, text=nInk, anchor=north] at (14.4,-0.95) {owns \texttt{alice-shop.example}};
+  % ---------- Bob, the domain owner ----------
+  \node[person=sTeal] (a) at (14.4,0.2) {\faUser};
+  \node[font=\small\bfseries, text=sTeal, below=0.05cm of a] {Bob};
+  \node[font=\scriptsize, text=nInk, anchor=north] at (14.4,-0.95) {owns \texttt{bob.example}};
   \node[hw, anchor=north, text width=5.0cm, align=left, font=\scriptsize] (o) at (14.4,-1.45)
-    {\textbf{my\_orders.txt}: SHA-256 fingerprints\\ \texttt{606599e5fee40972\ldots}\\ \texttt{4e74d58c752088e8\ldots}};
+    {\textbf{my\_orders.txt}: SHA-256 fingerprints\\ \texttt{5f1d8b540c1665af\ldots}\\ \texttt{b2acc6775a289bc0\ldots}};
   \node[hw, anchor=north, text width=5.0cm, align=left, font=\scriptsize] (c) at (14.4,-3.0)
-    {\textbf{caa.txt}: her DNS record\\ \texttt{CAA 0 issue "trusty-ca.example"}};
+    {\textbf{caa.txt}: his DNS record\\ \texttt{CAA 0 issue "trusty-ca.example"}};
   \node[note, anchor=north, align=center] at (6.4,-5.6)
-    {Which entries are for Alice's domain? Which of those did she not order? Which CA broke her CAA record?};
+    {Which entries are for Bob's domain? Which of those did he not order? Which CA broke his CAA record?};
 \end{tikzpicture}
 \end{document}

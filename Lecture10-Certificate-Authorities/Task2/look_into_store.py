@@ -9,16 +9,21 @@ store = load_certs("trust_store.pem")   # a list of certificates
 we1 = load_cert("we1.pem")
 
 # TODO 1: print how many roots are in the store
+print("not done yet: TODO 1")
 
 
 # TODO 2: count the roots that signed themselves (subject == issuer)
+print("not done yet: TODO 2")
 
 
 # TODO 3: count the roots with an RSA key and with an EC key (key_type gives "RSA 4096", "EC P-384", ...)
+print("not done yet: TODO 3")
 
 
 # TODO 4: find the oldest root (the earliest valid_from) and the root that expires last
+print("not done yet: TODO 4")
 
 
 # TODO 5: find the root whose subject is the issuer of WE1, and check that it signed WE1
+print("not done yet: TODO 5")
 

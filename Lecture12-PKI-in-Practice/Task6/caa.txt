@@ -1,2 +1,2 @@
-; the DNS record of Alice's domain: only Trusty CA may issue certificates for it
-alice-shop.example.  CAA  0 issue "trusty-ca.example"
+; the DNS record of Bob's domain: only Trusty CA may issue certificates for it
+bob.example.  CAA  0 issue "trusty-ca.example"

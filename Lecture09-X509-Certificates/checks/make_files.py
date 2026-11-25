@@ -117,8 +117,11 @@ def main():
     # Task 3: Bob's certificate
     t = os.path.join(L6, "Task3")
     write_private(CA, os.path.join(t, "trusty_ca_private.pem"))
+    write_public(CA, os.path.join(t, "trusty_ca_public.pem"))
     write_public(BOB, os.path.join(t, "bob_public.pem"))
+    write_public(MALLORY, os.path.join(t, "mallory_public.pem"))
     copy("cert_tools.py", "Task3")
+    copy("signing.py", "Task3")
 
     # Task 4: four certificates
     t = os.path.join(L6, "Task4")
@@ -157,6 +160,7 @@ def main():
     t = os.path.join(L6, "Task7")
     shutil.copy(os.path.join(HERE, "cov_leaf.pem"), os.path.join(t, "coventry.pem"))
     shutil.copy(os.path.join(HERE, "bbc_leaf.pem"), os.path.join(t, "bbc.pem"))
+    shutil.copy(os.path.join(L6, "Task4", "cert_D.pem"), os.path.join(t, "cert_D.pem"))
     copy("cert_tools.py", "Task7")
 
     # for the slides

@@ -1,16 +1,16 @@
-# Task 5: check three CSRs
+# Task 5: check four CSRs
 
 ## The situation
 
-You play the CA. Three certificate signing requests (CSRs) arrived:
+You play the CA. Three certificate signing requests (CSRs) arrived, and a new customer, Carol, is about to send a fourth:
 
-- `bob.csr`: Bob's request for `bob-shop.example`;
-- `bob-changed.csr`: the same request after Mallory changed a few bytes on the way (the name);
-- `mallory.csr`: Mallory's own request for `bob-shop.example`, made with her own key.
+- `bob.csr`: Bob's request for `bob.example`;
+- `bob-changed.csr`: the same request after Mallory changed a few bytes on the way (the name `bob.example` became `mal.example`);
+- `mallory.csr`: Mallory's own request for `bob.example`, made with her own key.
 
 A CSR carries a name, a public key and a signature made with the matching private key. Which requests should you accept?
 
-![Bob sends bob.csr (bob-shop.example, Bob's key, signed by Bob's key). On the way it becomes bob-changed.csr (mal-shop.example, Bob's key, Bob's old signature). Mallory sends mallory.csr (bob-shop.example, Mallory's key, signed by Mallory's key). You, the CA: is the signature valid?](figure.svg)
+![Bob sends bob.csr (bob.example, Bob's key, signed by Bob's key). On the way it becomes bob-changed.csr (mal.example, Bob's key, Bob's old signature). Mallory sends mallory.csr (bob.example, Mallory's key, signed by Mallory's key). You, the CA: is the signature valid?](figure.svg)
 
 ## Goal
 
@@ -24,14 +24,14 @@ Check the signatures of four CSRs and see what a valid one proves.
 
 ## Steps
 
-Write your code in place of the `TODO` comments in `check_csrs.py`:
+Write your code in place of the `TODO` comments in `check_csrs.py`. Under each `TODO` there is a line `print("not done yet: TODO n")`: replace it with your code.
 
-1. Make your own key and a CSR for `"alice-shop.example"` (with the same name in `dns_names`) and save it as `alice.csr`.
-2. Load the four CSRs (yours first) into a list and print, for each, the file name, the subject and the DNS names.
+1. Make Carol's key and a CSR for `"carol.example"` (with the same name in `dns_names`) and save it as `carol.csr`.
+2. Load the four CSRs (Carol's first) into a list and print, for each, the file name, the subject and the DNS names.
 3. Print, for each CSR, whether its signature is valid.
 4. Print the `key_id` of the public key in `bob.csr` and in `mallory.csr`.
 
-`openssl req -in alice.csr -noout -text -verify` shows your CSR.
+`openssl req -in carol.csr -noout -text -verify` shows Carol's CSR.
 
 ## Expected output
 
@@ -41,18 +41,18 @@ Predict first: which CSRs have a valid signature?
 <summary>Check your answer</summary>
 
 ```
-alice.csr : CN=alice-shop.example ['alice-shop.example']
-bob.csr : CN=bob-shop.example ['bob-shop.example']
-bob-changed.csr : CN=mal-shop.example ['mal-shop.example']
-mallory.csr : CN=bob-shop.example ['bob-shop.example']
+carol.csr : CN=carol.example ['carol.example']
+bob.csr : CN=bob.example ['bob.example']
+bob-changed.csr : CN=mal.example ['mal.example']
+mallory.csr : CN=bob.example ['bob.example']
 
-alice.csr signature valid: True
+carol.csr signature valid: True
 bob.csr signature valid: True
 bob-changed.csr signature valid: False
 mallory.csr signature valid: True
 
-key in bob.csr:     74099af184f4ade6
-key in mallory.csr: 03e9a0627939012b
+key in bob.csr:     1e21088d56d9a109
+key in mallory.csr: 5dec17479913c708
 ```
 
 The changed request fails: any change breaks the signature. But Mallory's own request for Bob's name is perfectly valid, only with a different key. A CSR proves that the sender holds the private key, not that the name is theirs: that is why the CA must check the name (DV, OV or EV) before it issues anything.

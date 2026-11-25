@@ -1,43 +1,51 @@
-% Task 5: ElGamal in Python. Values from Task5/elgamal.py.
-% CHECKED (python3): y = pow(2, x, P) starts with 19681741201639 and has 617 digits; x has 617 digits;
-%   text_to_number("Meet me at the old bridge at noon.") has 271 bits (smaller than P).
-%   C1 and C2 are new on every run (a random k), so they are not shown; the result is not shown.
+% Task 5: Mallory sends 1. Values from Task5/network.py and Task5/send_one.py.
+% CHECKED: network.run calls change_A(A), Bob's check(A), change_B(B), Alice's check(B), change_message(data) in this order;
+%   a and b are random on every run, so no numbers are shown; Alice's text is not shown (it is the result).
 \documentclass[12pt,tikz,border=6pt]{standalone}
 \input{common}
 \begin{document}
 \pagecolor{white}
 \begin{tikzpicture}[>=Stealth]
-  % Bob's keys
-  \bob{bo}{13.2,2.3}
-  \node[pubv, font=\small, anchor=east] (y) at (11.9,2.75) {public key\quad $y = g^{x} \bmod p$ = \texttt{19681741201639\ldots}};
-  \node[secv, font=\small, anchor=east] (x) at (11.9,1.85) {\faLock\ private key\quad $x$ = \texttt{30211086908663\ldots}};
-  \node[font=\scriptsize, text=gray, anchor=east] at (11.9,3.45) {both ready in \texttt{elgamal.py}, 617 digits each; $p$ and $g = 2$ from RFC 3526};
+  \alice{al}{0,0}
+  \bob{bo}{14,0}
+  \mallory{ma}{7,0}
+  \node[text=nInk, font=\Large] at (7,1.05) {\faLaptop};
+  \node[font=\small\bfseries, text=rMalText] at (8.0,1.1) {you};
+  \node[malv, font=\small, anchor=west] at (7.9,-0.2) {no secret of her own:\\ she sends \textbf{1}};
 
-  % the message
-  \node[msgv, font=\small, anchor=south east] (m) at (2.35,-1.0) {``Meet me at the old bridge at noon.''};
-  \alice{al}{-4.6,-0.25}
-  \node[font=\scriptsize, text=nInk, anchor=east] at (1.45,-1.6) {\texttt{text\_to\_number} $\rightarrow$ $M$, a 271-bit number};
+  \foreach \y/\n in {-2.5/1, -3.9/1, -5.3/2} \node[anchor=east] at (-1.5,\y) {\badge{\n}};
+  % 1. A, and Bob's check
+  \node[pubv, font=\small, minimum width=1.6cm] (A) at (0,-2.5) {$A$};
+  \draw[wire] (A.east) -- (5.3,-2.5);
+  \node[todo, font=\ttfamily\small, minimum width=3.2cm] (cA) at (7,-2.5) {change\_A(A)}; \todotag{cA}
+  \draw[wire] (cA.east) -- (10.85,-2.5);
+  \node[todo, font=\ttfamily\small] (kB) at (12.25,-2.5) {check\_public}; \node[anchor=south] at (kB.north) {\badge{3}};
+  \draw[data] (kB.east) -- (14.3,-2.5);
+  \node[unkv, font=\small, minimum width=0.9cm] at (14.85,-2.5) {?};
+  % 2. B, and Alice's check
+  \node[pubv, font=\small, minimum width=1.6cm] (B) at (14,-3.9) {$B$};
+  \draw[wire] (B.west) -- (8.7,-3.9);
+  \node[todo, font=\ttfamily\small, minimum width=3.2cm] (cB) at (7,-3.9) {change\_B(B)}; \todotag{cB}
+  \draw[wire] (cB.west) -- (3.15,-3.9);
+  \node[todo, font=\ttfamily\small] (kA) at (1.75,-3.9) {check\_public}; \node[anchor=south] at (kA.north) {\badge{3}};
+  \draw[data] (kA.west) -- (-0.3,-3.9);
+  \node[unkv, font=\small, minimum width=0.9cm] at (-0.85,-3.9) {?};
+  % 3. the message
+  \node[ctxv, font=\small, minimum width=1.6cm] (C) at (0,-5.3) {\faEnvelope\ \faLock};
+  \node[todo, font=\ttfamily\small, minimum width=3.2cm] (cM) at (7,-5.3) {change\_message(data)}; \todotag{cM}
+  \draw[wire] (C.east) -- (cM.west);
+  \draw[wire] (cM.east) -- (12.9,-5.3);
+  \node[unkv, font=\small, minimum width=1.6cm] at (14,-5.3) {?};
+  \node[font=\scriptsize, text=nInk, align=center, anchor=north] at (0,-5.8) {encrypted with\\ Alice's key};
+  \node[font=\scriptsize, text=nInk, align=center, anchor=north] at (14,-5.8) {Bob decrypts it\\ and prints it};
+  \node[font=\scriptsize, text=nInk, align=center, anchor=north] at (7,-5.8) {Mallory reads it\\ with the key from which secret?};
 
-  % encrypt
-  \node[todo, font=\ttfamily\small, minimum width=3.6cm, minimum height=0.9cm] (enc) at (2.2,-2.6) {encrypt(M, y)}; \todotag{enc}
-  \draw[data] ([xshift=-0.6cm]enc.north |- m.south) -- ([xshift=-0.6cm]enc.north);
-  \draw[data, rPub] (y.west) -| ([xshift=0.5cm]enc.north);
-  \node[secv, font=\scriptsize] (k) at (-0.6,-2.6) {\faDice\ a new\\ random $k$};
-  \draw[data] (k) -- (enc);
-  \node[ctxv, font=\small, minimum width=2.6cm] (c) at (7.0,-2.6) {$(C_1, C_2)$};
-  \draw[data] (enc) -- (c);
-  % decrypt
-  \node[todo, font=\ttfamily\small, minimum width=3.6cm, minimum height=0.9cm] (dec) at (11.6,-2.6) {decrypt(C1, C2, x)}; \todotag{dec}
-  \draw[data] (c) -- (dec);
-  \draw[data, rSec] ([xshift=-1.0cm]x.south east) -- ([xshift=-1.0cm]x.south east |- dec.north);
-  \node[unkv, font=\small, minimum width=1.6cm] (out) at (11.6,-4.1) {$M$ again?};
-  \draw[data] (dec) -- (out);
-
-  % twice
-  \node[todo, font=\ttfamily\small, minimum width=3.6cm, minimum height=0.9cm, draw=nLine, fill=nFill, line width=0.8pt] (enc2) at (2.2,-4.1) {encrypt(M, y)};
-  \node[font=\scriptsize, text=nInk, anchor=east] at (enc2.west) {the same $M$ again\ };
-  \node[ctxv, font=\small, minimum width=2.6cm] (c2) at (7.0,-4.1) {$(C_1', C_2')$};
-  \draw[data] (enc2) -- (c2);
-  \node[font=\small\bfseries, text=AccentOrange] at (7.0,-3.35) {$C_1 \overset{?}{=} C_1'$};
+  % what is ready
+  \node[hw, font=\small, align=left, anchor=north, text width=13.4cm] at (7,-6.7)
+    {\textbf{ready in \texttt{network.py}} (do not change it)\\[2pt]
+     \texttt{key\_from\_secret(secret)}: a Diffie-Hellman secret $\rightarrow$ a 32-byte key\\
+     \texttt{decrypt(key, data)}\\
+     \texttt{run(mallory, check)}: Alice and Bob pass every value they receive to \texttt{check}\\[2pt]
+     \textbf{run twice}: first with no check, then with your \texttt{check\_public}};
 \end{tikzpicture}
 \end{document}

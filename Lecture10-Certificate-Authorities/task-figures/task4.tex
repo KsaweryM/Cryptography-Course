@@ -1,21 +1,27 @@
-% Task 4: Mallory's leaf signs bank.example; Acme Corp CA (permitted acme.example) issues two names.
+% Task 4: Mallory's leaf signs bank.example; Acme Corp CA (permitted acme.example, path_len 0) issues two names
+% and gets a CA below it. CHECKED: Task4/solution/who_may_sign.py.
 \documentclass[12pt,tikz,border=6pt]{standalone}
 \input{common}
 \begin{document}
 \pagecolor{white}
 \begin{tikzpicture}[>=Stealth]
 
-  \cert{in}{0,0}{sBrown}{3.6cm}{Trusty CA 1}{CA:TRUE}
+  \cert{in}{0,0}{sBrown}{3.9cm}{Trusty Issuing CA 1}{CA:TRUE}
   \cert{ma}{5.0,0}{sPink}{3.8cm}{mallory.example}{CA:FALSE\\\textcolor{sAmberText}{\faKey}\ Mallory's key}
   \node[draw=sPink, dashed, line width=1.4pt, fill=sPink!15, rounded corners=3pt, minimum width=3.8cm, minimum height=1.6cm, align=center, font=\small, text=nInk, anchor=north] (bk) at (10.0,0) {\faCertificate\ \textbf{bank.example}\\signed with\\Mallory's key};
   \draw[sig] (in.east) -- (mah.west |- in.east);
   \draw[sig] (ma.east) -- node[above, font=\Large\bfseries, text=AccentOrange] {?} (bk.west |- ma.east);
   \node[font=\small\bfseries, text=nInk, anchor=west] at (-1.8,0.8) {\badge{1}\ \badge{2}\ a leaf signs};
-  \cert{ac}{0,-3.2}{sBrown}{3.6cm}{Acme Corp CA}{permitted:\\\texttt{acme.example}}
+  \cert{ac}{0,-3.2}{sBrown}{3.6cm}{Acme Corp CA}{permitted:\\\texttt{acme.example}\\path\_len 0}
   \node[hw, font=\small\ttfamily, minimum width=3.6cm] (w) at (5.0,-3.9) {www.acme.example};
   \node[hw, font=\small\ttfamily, minimum width=3.6cm] (b) at (10.0,-3.9) {bank.example};
   \draw[sig] (ac.east) -- node[above, font=\Large\bfseries, text=AccentOrange] {?} (w.west);
   \draw[sig] (ac.south east) to[bend right=12] node[below, font=\Large\bfseries, text=AccentOrange] {?} (b.south);
   \node[font=\small\bfseries, text=nInk, anchor=west] at (-1.8,-2.4) {\badge{3}\ \badge{4}\ a CA with Name Constraints};
+  \node[draw=sBrown, dashed, line width=1.4pt, fill=sBrown!15, rounded corners=3pt, minimum width=3.6cm, minimum height=1.0cm, align=center, font=\small\bfseries, text=nInk] (sb) at (5.0,-7.0) {\faCertificate\ Acme Sub CA};
+  \node[hw, font=\small\ttfamily, minimum width=3.6cm] (w2) at (10.0,-7.0) {www.acme.example};
+  \draw[sig] (ac.south) |- (sb.west);
+  \draw[sig] (sb.east) -- node[above, font=\Large\bfseries, text=AccentOrange] {?} (w2.west);
+  \node[font=\small\bfseries, text=nInk, anchor=west] at (-1.8,-8.0) {\badge{5}\ a CA below a CA with path\_len 0};
 \end{tikzpicture}
 \end{document}

@@ -18,7 +18,7 @@ Count what is in a real trust store and find the root that issued WE1.
 
 ## Steps
 
-Write your code in place of the `TODO` comments in `look_into_store.py`:
+Write your code in place of the `TODO` comments in `look_into_store.py`. Under each `TODO` there is a line `print("not done yet: TODO n")`: replace it with your code.
 
 1. Print how many roots are in the store (`len(store)`).
 2. Count the roots that signed themselves: `store[i].subject == store[i].issuer`.

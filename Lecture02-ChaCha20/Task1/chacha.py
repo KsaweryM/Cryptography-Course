@@ -39,19 +39,26 @@ def initial_state(key, counter, nonce):
     return s
 
 
+def rounds(s, n):
+    # n rounds on the table s: odd rounds mix the 4 columns, even rounds the 4 diagonals
+    for r in range(1, n + 1):
+        if r % 2 == 1:
+            quarter_round(s, 0, 4, 8, 12)    # column round
+            quarter_round(s, 1, 5, 9, 13)
+            quarter_round(s, 2, 6, 10, 14)
+            quarter_round(s, 3, 7, 11, 15)
+        else:
+            quarter_round(s, 0, 5, 10, 15)   # diagonal round
+            quarter_round(s, 1, 6, 11, 12)
+            quarter_round(s, 2, 7, 8, 13)
+            quarter_round(s, 3, 4, 9, 14)
+
+
 def block(key, counter, nonce):
     # one 64-byte block of keystream: 20 rounds, then add the starting table back
     start = initial_state(key, counter, nonce)
     s = list(start)
-    for r in range(10):
-        quarter_round(s, 0, 4, 8, 12)    # column round
-        quarter_round(s, 1, 5, 9, 13)
-        quarter_round(s, 2, 6, 10, 14)
-        quarter_round(s, 3, 7, 11, 15)
-        quarter_round(s, 0, 5, 10, 15)   # diagonal round
-        quarter_round(s, 1, 6, 11, 12)
-        quarter_round(s, 2, 7, 8, 13)
-        quarter_round(s, 3, 4, 9, 14)
+    rounds(s, 20)
     out = b""
     for i in range(16):
         out += add32(s[i], start[i]).to_bytes(4, "little")

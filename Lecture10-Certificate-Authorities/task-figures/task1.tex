@@ -5,7 +5,7 @@
 \pagecolor{white}
 \begin{tikzpicture}[>=Stealth]
 
-  \cert{lf}{0,0}{sIndigo}{6.2cm}{leaf.pem}{\textbf{Subject:} www.coventry.ac.uk\\\textbf{Issuer:} WE1\\\textbf{Valid:} 2026-10-13 .. 2027-01-11\\\textbf{Key:} EC P-256}
+  \cert{lf}{0,0}{sTeal}{6.2cm}{leaf.pem}{\textbf{Subject:} www.coventry.ac.uk\\\textbf{Issuer:} WE1\\\textbf{Valid:} 2026-10-13 .. 2027-01-11\\\textbf{Key:} EC P-256}
   \cert{we}{7.4,0}{sBrown}{6.2cm}{intermediate.pem}{\textbf{Subject:} WE1, Google Trust Services\\\textbf{Issuer:} GTS Root R4\\\textbf{Valid:} 2023-12-13 .. 2029-02-20\\\textbf{Key:} EC P-256}
   \cert{rt}{14.8,0}{sViolet}{6.2cm}{root.pem}{\textbf{Subject:} GTS Root R4\\\textbf{Issuer:} GTS Root R4 (itself)\\\textbf{Valid:} 2016-06-22 .. 2036-06-22\\\textbf{Key:} EC P-384}
   \draw[sig] (we.west) -- node[above, font=\Large\bfseries, text=AccentOrange] {?} (lf.east);

@@ -17,7 +17,7 @@ Write ElGamal encryption and decryption with points, and check that Bob gets M b
   - `mul(k, P)`: k P = P + P + ... + P (k times).
   - `neg(P)`: -P, the point with the opposite y. Subtracting a point is adding its negative.
   - `G = (5, 1)`, Bob's `d = 5` and `Q = mul(d, G)`, the message `M = (10, 11)` and Alice's random `k = 6`.
-- At the end the file calls `encrypt(M, Q, k)`, prints the ciphertext and then the result of `decrypt`. Until a TODO is done, it prints `not done yet: TODO 1` or `TODO 2` instead.
+- At the end the file calls `encrypt(M, Q, k)`, prints the ciphertext and then the result of `decrypt`. Until a TODO is done, it prints `not done yet: TODO 1` or `TODO 2` instead. `decrypt` is first tried on the example of the slides, so you can do the two TODOs in any order.
 
 ## Steps
 

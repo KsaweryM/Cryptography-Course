@@ -9,9 +9,9 @@ print("not done yet: TODO 1")
 
 def my_sha256(message):
     """SHA-256 built from its parts (Merkle-Damgard): pad, then one compress per block."""
-    # TODO 2: padded = pad(message); state = IV
-    #         for every block (i = 0, 64, 128, ... below len(padded)): state = compress(state, padded[i:i + 64])
-    #         print the first word of the state after each block, with k = i // 64 + 1 the number of the block:
+    # TODO 2: pad the message; start with the state IV; for every 64-byte block of the padded message, from the
+    #         first to the last, the new state is compress(state, the block). The block that starts at index i is
+    #         padded[i:i + 64]. Print the first word of the state after each block, with k the number of the block:
     #         print("  after block %d: %08x ..." % (k, state[0]))
     #         at the end: return state_to_bytes(state)
     return None

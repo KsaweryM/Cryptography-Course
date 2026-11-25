@@ -13,17 +13,17 @@ Two percentages: how often `S[0] == key[0]` after the KSA, and after a fair shuf
 ## Ready for you
 
 - `rc4.py`: `ksa(key)` returns the table `S` (a list of 256 numbers) after the KSA.
-- `remember.py`: the loop over 10 000 random keys of 16 bytes (`key = random.randbytes(16)`), the counters `ksa_hits` and `shuffle_hits`, and the two `print` lines with the percentages.
+- `remember.py`: the loop over 10 000 random keys of 16 bytes (`key = random.randbytes(16)`), the counters `ksa_hits` and `shuffle_hits`, and the two `print` lines with the percentages. The module `random` is fine for a measurement like this one; real keys come from `secrets` (see the slides).
 
 ## Steps
 
 Write your code in place of the `TODO` comments in `remember.py`, inside the loop:
 
 1. `S = ksa(key)`. If `S[0] == key[0]`, add 1 to `ksa_hits`.
-2. Now a fair shuffle instead of the KSA: `S = list(range(256))`, then `random.shuffle(S)` (it shuffles the list `S` in place). If `S[0] == key[0]`, add 1 to `shuffle_hits`.
+2. Now a fair shuffle instead of the KSA: fill `S` with 0 to 255 (`S = [0] * 256`, then `S[i] = i` in a loop), then `random.shuffle(S)` (it shuffles the list `S` in place). If `S[0] == key[0]`, add 1 to `shuffle_hits`.
 3. Run it and compare the two percentages. Before you run it, guess the second one.
 
-Hint: `ksa_hits += S[0] == key[0]` works, because `True` counts as 1 (as in C, where a comparison gives 1 or 0).
+Until a step is done, the program prints `not done yet: TODO n` for it.
 
 Bonus: why is the first percentage so high? Look at the KSA step `i = 0` on the slides.
 
@@ -41,6 +41,8 @@ shuffle: 0.39%
 
 About 37% and about 0.4%.
 
+Want to see it move? Count it again in the simulator: [S after the KSA](https://ksawerym.github.io/Cryptography-simulators/rc4/#4.1).
+
 </details>
 
 ## Run
@@ -50,5 +52,3 @@ python3 remember.py
 ```
 
 It runs about a second. About 5 minutes. Python 3.9 or newer (for `random.randbytes`), no extra libraries.
-
-Want to see it move? Count it yourself in the simulator: [S remembers the key](https://ksawerym.github.io/Cryptography-simulators/rc4/#4).

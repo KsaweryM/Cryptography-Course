@@ -1,54 +1,52 @@
-# Task 6: k used twice
+# Task 6: ElGamal in Python
 
 ## The situation
 
-ElGamal is safe only if k is new for every message. One sender got this wrong: two ciphertexts for Bob were made with **the same k**, so their C1 is the same. You do not have Bob's private key. But you know the first message: it was printed on a public receipt.
+Bob has published his ElGamal public key y = g^x mod p, in the real 2048-bit group. Alice wants to send him a message. For every message she picks a new random secret k and sends a pair: C1 = g^k mod p (her half of a Diffie-Hellman exchange) and C2 = M · y^k mod p (the message, hidden by the shared value). Bob computes the same shared value from C1 with his private key x and divides it out.
 
-![Two ElGamal ciphertexts for Bob, from reuse.py. First: C1 = 26838989395851..., C2 = 17820659653148..., and its message is known from a public receipt: "Payment approved: 250 EUR, order 1187." Second: C1 = 26838989395851..., C2 = 19065383106845..., and its message is unknown. The two C1 are the same: the sender used the same k twice. Bob's private key x is not in the file: you do not have it.](figure.svg)
+![Bob's keys, both ready in elgamal.py, 617 digits each: the public key y = g^x mod p = 19681741201639... and the private key x = 30211086908663...; p and g = 2 come from RFC 3526. Alice's message "Meet me at the old bridge at noon." becomes a 271-bit number M with text_to_number. M, Bob's public key y and a new random k go into encrypt(M, y) (TODO), which gives the pair (C1, C2). The pair and Bob's private key x go into decrypt(C1, C2, x) (TODO): do we get M again? Below, the same M is encrypted again into (C1', C2'): is C1 equal to C1'?](figure.svg)
 
 ## Goal
 
-Recover the second message, without Bob's private key.
+Write `encrypt` and `decrypt` of ElGamal, then check that the message comes back and that the same message encrypted twice gives two different ciphertexts.
 
 ## Ready for you
 
-- `reuse.py`: `P` (2048 bits) and `G = 2`.
-- `reuse.py`: `C1` (the same in both), `C2_first` and `C2_second`, and the known first message `first`.
-- `reuse.py`: `text_to_number(text)` and `number_to_text(number)` turn text into a number and back.
+- `elgamal.py`: `P` (2048 bits) and `G = 2`, Bob's private key `x` and public key `y`. Here x and k are full-size (up to 2048 bits); 256 bits would also be enough.
+- `elgamal.py`: `text_to_number(text)` and `number_to_text(number)` turn text into a number and back.
+- `elgamal.py`: the code at the end, which encrypts the message, decrypts it, encrypts it once more and compares the two C1.
 
 ## Steps
 
-Write your code in place of the `TODO` comments in `reuse.py`. `pow(n, -1, P)` gives the inverse of `n` mod `P`, and `text_to_number(first)` gives the first message as a number, `M_first`.
+Write your code in place of the `TODO` comments in `elgamal.py`:
 
-1. What is the same in both C2? Get it from the known message.
-2. Use it to get the second message, `M_second`, from `C2_second`. The code at the end prints it as text.
-
-<details>
-<summary>Hint</summary>
-
-Both C2 hide their message with the same mask y^k mod p. `C2_first = M_first * y^k mod P`, so `y^k = C2_first * (inverse of M_first) mod P`. Then `M_second = C2_second * (inverse of y^k) mod P`.
-
-</details>
+1. `encrypt(M, y)`: pick a random k, `secrets.randbelow(P - 2) + 1`, and return the pair `(C1, C2)` with `C1 = G^k mod P` and `C2 = M * y^k mod P`. `return a, b` returns two values at once (a tuple), like a small struct in C.
+2. `decrypt(C1, C2, x)`: `s = C1^x mod P`, then return `M = C2 * (inverse of s) mod P`. `pow(s, -1, P)` gives the inverse.
 
 ## Expected output
 
-Without your code the program prints `not done yet: TODO 1 and 2`. With it: one line, the second message, readable text.
+Without your code the program prints `not done yet: TODO 1` (or `TODO 2` when only `encrypt` is written). With it: the first digits of C1 and C2 (new on every run, because k is random), then the message, then whether the same message gives the same C1 twice.
 
 <details>
 <summary>Check your answer</summary>
 
 ```
-second message: New door code for the server room: 4096.
+C1 = 705101917349925772918798772582 ...
+C2 = 317423494363215020228847441093 ...
+decrypted: Meet me at the old bridge at noon.
+the same message again gives the same C1: False
 ```
 
-Bob's private key was never needed. One known message and a repeated k are enough.
+Your C1 and C2 will be different. The last line is `False` on every run: a new k gives a new ciphertext.
 
 </details>
 
 ## Run
 
 ```
-python3 reuse.py
+python3 elgamal.py
 ```
 
-About 7 minutes. Python 3.8 or newer (for `pow(n, -1, P)`), no extra libraries.
+About 8 minutes. Python 3.8 or newer (for `pow(s, -1, P)`), no extra libraries.
+
+Want to see it with small numbers? The [ElGamal step](https://ksawerym.github.io/Cryptography-simulators/diffie-hellman/#4) encrypts and decrypts the example of the slides.

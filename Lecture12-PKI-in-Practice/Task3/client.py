@@ -1,5 +1,5 @@
 # Task 3: four servers, two clients.
-# Four servers say they are shop.alice.example. A client must find the real one.
+# Four servers say they are shop.bob.example. A client must find the real one.
 import ssl
 from servers import start_servers, fetch, PORTS
 

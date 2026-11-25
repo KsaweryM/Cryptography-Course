@@ -26,7 +26,7 @@ Write your code in place of the `TODO` comments in `dh.py`:
 
 ## Expected output
 
-Without your code the program prints `not done yet: TODO 1 to 4`. With it: `True`, then 20 digits, then the time. The digits are new on every run (the secrets are random). The time below was measured on a laptop with an Intel Core i5-8265U; your times will differ, but they should be a few milliseconds.
+Without your code the program prints `not done yet: TODO 1 to 4`. With it: `True`, then 20 digits, then the time. The digits are new on every run (the secrets are random). The time below was measured on a laptop with an Intel Core i5-8265U; your times will differ, but they should be about 10 ms.
 
 <details>
 <summary>Check your answer</summary>

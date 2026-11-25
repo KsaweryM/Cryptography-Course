@@ -1,9 +1,12 @@
-# RC4, ready to use: rc4(key, data) encrypts and decrypts.
+# RC4, ready to use: rc4(key, data) encrypts and decrypts. You do not need to read this file.
 
 
 def ksa(key):
-    S = list(range(256))
-    T = [key[i % len(key)] for i in range(256)]
+    S = [0] * 256
+    T = [0] * 256
+    for i in range(256):
+        S[i] = i
+        T[i] = key[i % len(key)]
     j = 0
     for i in range(256):
         j = (j + S[i] + T[i]) % 256
@@ -30,4 +33,8 @@ def keystream(key, n):
 
 def rc4(key, data):
     """Encrypt or decrypt data (bytes) with RC4: XOR with the keystream."""
-    return bytes(d ^ k for d, k in zip(data, keystream(key, len(data))))
+    z = keystream(key, len(data))
+    out = bytearray(len(data))
+    for i in range(len(data)):
+        out[i] = data[i] ^ z[i]
+    return bytes(out)

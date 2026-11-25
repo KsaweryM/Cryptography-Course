@@ -1,61 +1,56 @@
-# Task 7: get a certificate by ACME
+# Task 7: did the log only grow?
 
 ## The situation
 
-Let's Encrypt gives certificates through ACME, with no person involved. To prove that Alice controls `alice-shop.example`, the CA gives her a random token, and Alice puts a file with the "key authorization" on her web server, at `http://alice-shop.example/.well-known/acme-challenge/<token>`. The CA downloads the file; if the text is right, it signs her CSR. This is the http-01 challenge.
+Bob's monitor watches a small Certificate Transparency log. On 10 November it saved the Signed Tree Head (`sth-old.txt`): 4 entries and their root. Entry 2 is a certificate for `bob.example` that Mallory got from "Other CA"; Bob never asked for it. Today the log has 8 entries. Log A is what an honest log shows: the 4 old entries and 4 new ones. Log B is what the log would show if Mallory made it drop entry 2. Both send a new root and a consistency proof: one hash that should turn the old root into the new one. Who is honest?
 
-Here everything runs on your computer: `acme_toy.py` starts a small web server on 127.0.0.1 that serves the folder `webroot/`, and a toy CA "Toy ACME CA R1" that believes `alice-shop.example` is that web server. Simplified: real ACME signs every request with the account key and sends it over HTTPS; the http-01 challenge and the thumbprint are real (RFC 8555, RFC 7638).
-
-![A sequence between get_certificate.py (Alice) and ToyCA. 1 new_order for alice-shop.example with an account key; the CA answers with a token. 2 key authorization = token + "." + thumbprint(account key). 3 the file webroot/.well-known/acme-challenge/<token>. 4 validate(order): the CA downloads the file. 5 finalize(order, CSR) gives a certificate for 90 days.](figure.svg)
+![Left: the tree that Bob's monitor saved on 10 November, 4 entries, root 0e166364; entry 2 is Mallory's certificate for bob.example. Right: log A today, 8 entries, root acbf332a; log B today, 8 entries without entry 2, root a16e803c. Question for both: old root + proof hash = new root?](figure.svg)
 
 ## Goal
 
-Pass the http-01 challenge of a toy ACME CA and get a 90-day certificate.
+Find the certificate Bob did not ask for, and catch the log that removed it.
 
 ## Ready for you
 
-- `acme_toy.py` (a black box): `thumbprint(account_key)` gives the thumbprint of the public account key as text; `start_web_server(folder)`; `ToyCA(dns)` with `ca.new_order(domain, account_key)` (the order has `order.token`), `ca.validate(order)` (returns `"valid"` or `"invalid: ..."`) and `ca.finalize(order, csr)` (returns a certificate, or `None`).
-- `cert_ready.py` (a black box): `new_key`, `make_csr`, `subject_of`, `issuer_of`, `valid_from`, `valid_until`.
-- In `get_certificate.py` the web server and the CA are already started.
+- `log.txt`, `sth-a.txt`, `proof-a.txt` (log A), `log-b.txt`, `sth-b.txt`, `proof-b.txt` (log B), `sth-old.txt`: example data made for this task.
+- `merkle_ready.py` (a black box), the Merkle tree of Lecture 6 with the extra first byte of RFC 6962: `node_hash(left, right)` is the parent of two nodes, `tree_root(entries)` the root of a whole tree, `short(h)` the first 8 hex digits of a hash.
+- In `check_log.py` everything is loaded: `entries_a`, `root_a`, `proof_a`, the same for `b`, and `old_root`. An entry is `bytes`; `.decode()` turns it into text.
+
+The old log had 4 entries, a full half of the new tree of 8. So the new root must be `node_hash(old_root, proof)`, where `proof` is the root of the right half. (For other sizes a consistency proof has a few more hashes.)
 
 ## Steps
 
-Write your code in place of the `TODO` comments in `get_certificate.py`:
+Write your code in place of the `TODO` comments in `check_log.py`. Under each `TODO` there is a line `print("not done yet: TODO n")`: replace it with your code.
 
-1. Make an account key (`new_key()`), ask the CA for a new order for `"alice-shop.example"` and print `order.token`.
-2. Build the key authorization: `order.token + "." + thumbprint(account_key)`.
-3. Write it into the file `webroot/.well-known/acme-challenge/<token>`: build the folder name with `os.path.join("webroot", ".well-known", "acme-challenge")`, create it with `os.makedirs(folder, exist_ok=True)`, then `open(...)`, `write`, `close` as in C.
-4. Ask the CA to validate the order and print the answer.
-5. Make a new key for the website and a CSR for `"alice-shop.example"`, send it with `ca.finalize(order, csr)`, and print the subject, the issuer and the dates of the certificate.
-
-Finished early? Write a wrong text into the file and run again: the CA says `invalid`, and the order cannot be used any more.
+1. Be Bob's monitor: in a loop over log A print every entry that contains `"| bob.example |"` and not `"| Trusty Issuing CA 1 |"` (`"x" in line` is like `strstr(line, "x") != NULL` in C).
+2. Print whether `tree_root(entries_a)` equals `root_a`.
+3. Print whether `node_hash(old_root, proof_a)` equals `root_a`.
+4. Do steps 2 and 3 for log B.
 
 ## Expected output
 
-The token and the thumbprint are different in every run.
+Predict first: which of the two checks does log B pass?
 
 <details>
 <summary>Check your answer</summary>
 
 ```
-1. token: Cim7fj7KdKpGcw62kbCAnM26ya1WMSuOlv4Qnz4KRrg
-2. key authorization: Cim7fj7KdKpGcw62kbCAnM26ya1WMSuOlv4Qnz4KRrg.2AmbDUZWcLJAFpACyP6yz0aqvchW5D7ZfDULGGolajU
-3. file written
-   [CA] downloads http://alice-shop.example/.well-known/acme-challenge/Cim7fj7KdKpGcw62kbCAnM26ya1WMSuOlv4Qnz4KRrg
-   [web server] GET /.well-known/acme-challenge/Cim7fj7KdKpGcw62kbCAnM26ya1WMSuOlv4Qnz4KRrg -> 200
-4. the CA says: valid
-5. subject: CN=alice-shop.example  issuer: CN=Toy ACME CA R1
-   valid: 2026-11-15 to 2027-02-13
+saved root: 0e166364  log A: acbf332a  log B: a16e803c
+1. not mine: 2 | 2026-11-09 | Other CA | bob.example | serial 7a:03:e6:d1:58:bc:22:94
+2. root of the 8 entries of log A: True
+3. log A only grew: True
+4. root of the 8 entries of log B: True
+   log B only grew: False
 ```
 
-The CA downloaded the file from the web server and found the right text, so it signed the CSR: a certificate for 90 days. Only someone who controls the website can put that file there; certbot does the same steps over the internet.
+Log B is a correct Merkle tree of its own 8 entries, so a look at today's root alone shows nothing wrong. But it does not grow out of the root that Bob's monitor saved. No hash can repair that: to get `root_b` from `old_root`, the log would need a second preimage of SHA-256. A log signs every tree head, so the two signed roots together are proof that it cheated.
 
 </details>
 
 ## Run
 
 ```
-python3 get_certificate.py
+python3 check_log.py
 ```
 
-About 12 minutes. Python 3 and the library `cryptography` (`pip install cryptography`, version 41 or newer). No internet needed.
+Run it inside the `Task7` folder. About 8 minutes. Python 3, no other library, no internet.

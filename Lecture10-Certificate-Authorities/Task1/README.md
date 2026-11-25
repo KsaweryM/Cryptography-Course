@@ -2,7 +2,7 @@
 
 ## The situation
 
-When Bob's browser opens https://www.coventry.ac.uk, the server sends two certificates: its own (the leaf) and the intermediate certificate WE1 of Google Trust Services. The third certificate, the root GTS Root R4, is already on Bob's computer, in its trust store. The three files in this folder were saved on 15 November 2026 (`openssl s_client -connect www.coventry.ac.uk:443 -showcerts`; the root comes from the trust store of Ubuntu 24.04). Check that they really form a chain.
+When Alice's browser opens https://www.coventry.ac.uk, the server sends its own certificate (the leaf), the intermediate certificate WE1 of Google Trust Services, and one more certificate that we leave out for now (the same root signed by an older root, for old devices: cross-signing, later in the lecture). The root GTS Root R4 itself is already on Alice's computer, in her trust store. The three files in this folder were saved on 15 November 2026 (`openssl s_client -connect www.coventry.ac.uk:443 -showcerts`; the root comes from the trust store of Ubuntu 24.04). Check that they really form a chain.
 
 ![Three certificate cards: leaf.pem (www.coventry.ac.uk, issued by WE1, valid 2026-10-13 to 2027-01-11, EC P-256), intermediate.pem (WE1, Google Trust Services, issued by GTS Root R4, valid 2023-12-13 to 2029-02-20, EC P-256) and root.pem (GTS Root R4, issued by itself, valid 2016-06-22 to 2036-06-22, EC P-384). Arrows with question marks: did the next certificate sign the previous one?](figure.svg)
 
@@ -22,7 +22,7 @@ Check, link by link, that the names and the signatures of the chain of www.coven
 
 ## Steps
 
-Write your code in place of the `TODO` comments in `follow_chain.py`:
+Write your code in place of the `TODO` comments in `follow_chain.py`. Under each `TODO` there is a line `print("not done yet: TODO n")`: replace it with your code.
 
 1. Load the three certificates into a list, the leaf first: `chain = [load_cert("leaf.pem"), ...]`.
 2. For each certificate (a loop over `range(len(chain))`) print its subject, its issuer and its dates.
