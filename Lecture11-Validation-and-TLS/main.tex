@@ -518,7 +518,7 @@ tls = context.wrap_socket(sock, server_hostname="bob.example")  # the name Alice
     \end{tabular}
   \end{center}
   \vfill
-  \curious{pki/\#4.1}
+  \curious{pki/\#3.1}
   \keymsg{One good server, five errors; two different mistakes give the same message.}
   \say{Wynik sprawdzony programem z folderu solution. Nieznany wystawca i brak certyfikatu pośredniego dają ten sam komunikat: walidator nie umiał zbudować ścieżki do roota. Dlaczego, zobaczymy w następnej sekcji. W symulatorze z linku można wybrać łańcuch i nazwę i zobaczyć werdykt walidacji.}
 \end{frame}
@@ -699,7 +699,7 @@ depth=2: C = US, O = Google Trust Services LLC, CN = GTS Root R4
     \end{tabular}
   \end{center}
   \vfill
-  \curious{pki/\#3.4}
+  \curious{pki/\#2.4}
   \keymsg{``Works in my browser, fails in my script'': the server must send the intermediates.}
   \say{To był przypadek no\_intermediate z zadania 1. Przeglądarki maskują ten błąd, więc administrator go nie widzi, a skrypty i aplikacje przestają działać. Naprawa jest po stronie serwera: wysyłać pełny łańcuch, bez roota. W symulatorze z linku serwer uczelni nie wysyła WE1 i widać, co daje adres z AIA.}
 \end{frame}
@@ -751,7 +751,7 @@ depth=2: C = US, O = Google Trust Services LLC, CN = GTS Root R4
     \end{tabular}
   \end{center}
   \vfill
-  \curious{pki/\#3.2}
+  \curious{pki/\#2.2}
   \keymsg{Match the key IDs, not only the names; a pile can hold two paths.}
   \say{Gdyby walidator wziął C, podpis liścia by się nie zgodził, bo C ma inny klucz. Dwie ścieżki to dokładnie sytuacja Coventry: zwykły root i cross-sign. W symulatorze z linku jest prawdziwa kupka certyfikatów Coventry, razem z cross-signem GTS Root R4.}
 \end{frame}
@@ -918,7 +918,7 @@ depth=2: C = US, O = Google Trust Services LLC, CN = GTS Root R4
   \vfill
   {\centering\small Trust comes from \textbf{one} place: the root is in the trust store (by its key, not by its name).\par}
   \vfill
-  \curious{pki/\#3.8}
+  \curious{pki/\#2.8}
   \keymsg{The path must end in the trust store; a self-signed certificate elsewhere is just a claim.}
   \say{Root podpisuje sam siebie, więc jego podpis nic nie dowodzi: każdy może zrobić taki certyfikat. Zaufanie bierze się z tego, że program root (Mozilla, Microsoft, Apple, Google) umieścił ten klucz w magazynie. To był przypadek self\_signed z zadania 1. W symulatorze z linku łańcuch kończy się na roocie spoza magazynu.}
 \end{frame}
@@ -979,7 +979,7 @@ depth=2: C = US, O = Google Trust Services LLC, CN = GTS Root R4
   \vfill
   {\centering\small \texttt{openssl verify} agrees: errors 10, 62, 79, 7 (signature failure) and 26 (unsuitable purpose).\par}
   \vfill
-  \curious{pki/\#4.1}
+  \curious{pki/\#3.1}
   \keymsg{Each check catches a chain that passes all the others.}
   \say{Wynik sprawdzony; OpenSSL daje te same diagnozy. W case4 wszystkie podpisy są prawdziwe, daty i nazwa też: łapie go tylko Basic Constraints. W case5 Mallory podrobiła nazwę pośredniego, ale nie podpis roota. W symulatorze z linku jest scenariusz dla każdego sprawdzenia: fałszywy pośredni (podpis), wygasły pośredni (daty), gwiazdka (nazwa), liść jako CA, certyfikat klienta na serwerze; widać, które sprawdzenie pada i co mówi OpenSSL.}
 \end{frame}
@@ -1432,7 +1432,7 @@ X509v3 CRL Distribution Points:
     \end{tabular}
   \end{center}
   \vfill
-  \curious{pki/\#5}
+  \curious{pki/\#4}
   \keymsg{No method is perfect; the direction is lists pushed to browsers, and short certificates.}
   \say{Zestawienie dwóch sekcji o odwołaniu. Żadna metoda nie jest idealna. W symulatorze z linku jest taka sama tabela dla CRL, OCSP, soft-fail i staplingu, na przykładzie wykradzionego klucza Carol.}
 \end{frame}
@@ -1449,7 +1449,7 @@ X509v3 CRL Distribution Points:
   \vfill
   {\centering\footnotesize \texttt{www.coventry.ac.uk}: TLSv1.3, X25519, \texttt{TLS\_AES\_256\_GCM\_SHA384}, ECDSA signature.
     \textcolor{gray}{(simplified: no resumption)}\par}
-  \curious{pki/\#6.1}
+  \curious{pki/\#5.1}
   \say{Uproszczony obraz z RFC 9846 (lipiec 2026, zastąpiło RFC 8446 z 2018; protokół ten sam), bez wznowienia sesji i 0-RTT. Po dwóch pierwszych komunikatach, ClientHello i ServerHello z udziałami klucza (key share), wszystko jest szyfrowane kluczem z wymiany X25519 z wykładu 5. Teraz krok po kroku. W symulatorze z linku można przejść ten handshake komunikat po komunikacie. Gdyby ktoś pytał o wznowienie: przy wznowieniu sesji (PSK) serwer nie wysyła certyfikatu, a tożsamość pochodzi z pierwszego, pełnego połączenia.}
 \end{frame}
 
@@ -1577,7 +1577,7 @@ New, TLSv1.3, Cipher is TLS_AES_256_GCM_SHA384
     \end{tabular}
   \end{center}
   \vfill
-  \curious{pki/\#6.3}
+  \curious{pki/\#5.3}
   \keymsg{Only the key owner, in this very handshake, can make a CertificateVerify that passes.}
   \say{Wynik sprawdzony; treść podpisu ma 130 bajtów. Drugi wiersz: kopia certyfikatu nie wystarcza. Trzeci: nagrany podpis nie wystarcza, bo hash transkryptu jest inny w każdym połączeniu. W symulatorze z linku widać te 130 bajtów i podpis, który przeglądarka sprawdza na żywo.}
 \end{frame}
@@ -1675,7 +1675,7 @@ New, TLSv1.3, Cipher is TLS_AES_256_GCM_SHA384
     \end{tabular}
   \end{center}
   \vfill
-  \curious{pki/\#6.5}
+  \curious{pki/\#5.5}
   \keymsg{The name in a client certificate means nothing until the issuer is checked.}
   \say{Wynik sprawdzony. W TLS 1.3 klient często dowiaduje się o odrzuceniu dopiero przy czytaniu, bo jego Finished leci na końcu. Dlatego w zadaniu recv jest w tym samym try co wrap\_socket. W symulatorze z linku można przejść stronę klienta w handshake mTLS komunikat po komunikacie.}
 \end{frame}
@@ -1818,7 +1818,7 @@ EYgQ3iXaufQ2xeZk7/zwUHY6mFXSeviJ49pCLdv5ass=
   \vfill
   {\centering\small Every renewal breaks a certificate pin; a key pin survives a renewal with the same key, or with the pinned backup key.\par}
   \vfill
-  \curious{pki/\#7.2}
+  \curious{pki/\#6.2}
   \keymsg{Pin the key (SPKI), not the certificate, and always pin a backup key that you keep offline.}
   \say{Wynik sprawdzony; piny zgadzają się z poleceniem openssl ze slajdu How a pin is computed. Porównać z przewidywaniami z tablicy. W symulatorze z linku można odnowić certyfikat i zobaczyć, który pin przetrwa.}
 \end{frame}

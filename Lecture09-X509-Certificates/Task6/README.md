@@ -2,7 +2,7 @@
 
 ## The situation
 
-Alice runs a test server, `www.alice.example`, and has no CA. She makes a self-signed certificate: the issuer and the subject are the same name, and she signs it with her own private key. Its signature can be checked with the public key inside the same certificate. Mallory makes her own self-signed certificate with Alice's name. Bob wants to connect to Alice's server: which certificate is Alice's? Alice has read out to Bob on the phone the SHA-256 fingerprint of her certificate (idea 3 of Task 1).
+Alice runs a test server, `www.alice.example`, and has no CA. She makes a self-signed certificate: the issuer and the subject are the same name, and she signs it with her own private key. Its signature can be checked with the public key inside the same certificate. Mallory makes her own self-signed certificate with Alice's name. Bob wants to connect to Alice's server: which certificate is Alice's? Alice has read out to Bob on the phone the SHA-256 fingerprint of her certificate (idea 3 on the slide "Idea 3: Alice phones Bob").
 
 ![Two certificate cards, both with issuer = subject = CN=www.alice.example. Alice's certificate: Alice's key, signed with Alice's private key, verify? (steps 1 to 3). Mallory's own: Mallory's key, signed with Mallory's private key, verify? (step 4). Under each: fingerprint = ALICE_FP? Below: Alice phones Bob and reads out ALICE_FP = 6F:4B:D6:04:C8:F5:0B:73:... (step 5).](figure.svg)
 

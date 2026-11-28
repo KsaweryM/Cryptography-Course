@@ -12,7 +12,7 @@ mallory_private = load_private_key("mallory_private.pem")
 
 name = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, "www.alice.example")])
 
-# Alice read this out to Bob on the phone (idea 3 of Task 1): the SHA-256 fingerprint of her certificate.
+# Alice read this out to Bob on the phone (idea 3 on the slide "Idea 3: Alice phones Bob"): the SHA-256 fingerprint of her certificate.
 ALICE_FP = "6F:4B:D6:04:C8:F5:0B:73:21:E8:88:C3:69:39:47:95:08:C7:61:83:CB:49:5C:14:39:C8:D1:F6:EB:D1:4B:54"
 
 

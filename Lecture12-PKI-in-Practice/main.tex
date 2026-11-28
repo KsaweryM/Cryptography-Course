@@ -413,7 +413,7 @@
       \end{tikzpicture}
   \end{columns}
   \vfill
-  \curious{pki/\#2.3.eku}
+  \curious{pki/\#1.3.eku}
   \keymsg{The Extended Key Usage extension says what a certificate may be used for.}
   \say{Rozszerzenie Extended Key Usage poznaliśmy w wykładzie 9. Tu widać, po co jest: certyfikat strony nie podpisze programu, a certyfikat do poczty nie uwierzytelni serwera. Weryfikator sprawdza ten numer OID. W symulatorze z linku widać EKU prawdziwego certyfikatu www.coventry.ac.uk.}
 \end{frame}
@@ -838,7 +838,7 @@
     \end{tikzpicture}
   \end{center}
   \vfill
-  \curious{pki/\#6.5}
+  \curious{pki/\#5.5}
   \keymsg{The server checks the certificate and a fresh signature: there is no password to steal or to phish.}
   \say{Ten sam podpis, w drugą stronę niż w HTTPS: tu klient udowadnia, kim jest. Wyzwanie jest losowe, więc nagrany podpis nie zadziała drugi raz. Klucz prywatny może być na karcie i nigdy jej nie opuszcza. W TLS to jest dokładnie mutual TLS z wykładu 11. W symulatorze z linku można przejść tę stronę klienta w handshake mTLS.}
 \end{frame}
@@ -1190,7 +1190,7 @@
       \stepbox{Keep the name check}{\texttt{check\_hostname} stays \texttt{True}.}
   \end{columns}
   \vfill
-  \curious{pki/\#4.1}
+  \curious{pki/\#3.1}
   \keymsg{Fix the trust, not the check: give the client the right CA instead of turning validation off.}
   \say{Zamiast wyłączać sprawdzanie, podajemy klientowi nasze testowe CA. W produkcji zostaje domyślny magazyn zaufania systemu. W symulatorze z linku widać wszystkie sprawdzenia, które zostają włączone.}
 \end{frame}

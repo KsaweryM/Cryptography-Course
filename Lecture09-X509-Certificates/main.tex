@@ -530,46 +530,97 @@
   \vfill
   \begin{center}\mitm{3}\end{center}
   \vfill
-  \curious{pki/\#1.4}
   \keymsg{Encryption does not help when the key belongs to the wrong person: man-in-the-middle.}
-  \say{Mallory szyfruje wiadomość prawdziwym kluczem Boba i przekazuje. Bob odszyfrowuje i wszystko wygląda dobrze. Mallory może też zmienić treść. To atak man-in-the-middle (MITM). Ten sam atak na Diffie-Hellmana widzieliśmy na wykładzie 4. W symulatorze z linku można przejść tę historię krok po kroku.}
+  \say{Mallory szyfruje wiadomość prawdziwym kluczem Boba i przekazuje. Bob odszyfrowuje i wszystko wygląda dobrze. Mallory może też zmienić treść. To atak man-in-the-middle (MITM). Ten sam atak na Diffie-Hellmana widzieliśmy na wykładzie 4.}
 \end{frame}
 
-\begin{frame}{Task 1: what helps Alice?}
-  \begin{center}\small Mallory controls the network. Which ideas stop her from swapping Bob's key? Why?\end{center}
-  \vspace{0.1cm}
+% four ideas against Mallory, drawn like the attack: \ideapic{idea}
+% CHECKED 2026-11-28: python3 hashlib.sha256 of the 32 raw key bytes: Bob 42c35372..., Mallory 0b40ce33...
+\newcommand{\ideapic}[1]{%
+  \begin{tikzpicture}[>=Stealth]
+    \personnode{alice}{0,0}{sIndigo}{Alice}
+    \personnode{bob}{13,0}{sTeal}{Bob}
+    \mallorynode{mal}{6.5,-1.9}
+    \draw[nLight, line width=3pt] (alice.east) -- (bob.west);
+    \node[font=\scriptsize, text=gray] at (6.5,0.25) {the network};
+    \draw[nLine, thick, dashed] (mal.north) -- (6.5,-0.05);
+    \ifnum#1=1
+      \node[pubval, font=\scriptsize, align=left] (kb) at (10.4,0.95) {\faKey\ Bob's public key\\ \faKey\ Bob's public key};
+      \node[pubval, font=\scriptsize, align=left] (km) at (2.6,0.95) {\faKey\ Mallory's public key\\ \faKey\ Mallory's public key};
+      \draw[data] (bob.north west) to[bend right=15] (kb.east);
+      \draw[data] (kb.south west) to[bend right=25] node[pos=0.6, below right, font=\scriptsize, text=sPinkText] {both kept} (mal.north east);
+      \draw[data] (mal.north west) to[bend right=25] node[pos=0.4, below left, font=\scriptsize, text=sPinkText] {both swapped} (km.south east);
+      \draw[data] (km.west) to[bend right=15] (alice.north east);
+      \node[font=\scriptsize, text=nInk, anchor=north, align=center] at (0,-1.2) {two copies, the same:\\ \ok\ ``it is Bob's key''};
+    \fi
+    \ifnum#1=2
+      \pkey{ka}{2.6,0.95}{Alice's public key}
+      \pkey{km}{10.4,0.95}{Mallory's public key}
+      \draw[data] (alice.north east) to[bend left=15] (ka.west);
+      \draw[data] (ka.south east) to[bend left=25] node[pos=0.6, below left, font=\scriptsize, text=sPinkText] {kept} (mal.north west);
+      \draw[data] (mal.north east) to[bend left=25] node[pos=0.4, below right, font=\scriptsize, text=sPinkText] {sent instead} (km.south west);
+      \draw[data] (km.east) to[bend left=15] (bob.north west);
+      \node[msg] (mb) at (10.3,-1.3) {\faLock\ Bob's key \textcolor{sViolet}{[Mallory's key]}};
+      \node[msg] (ma) at (2.7,-1.3) {\faLock\ Mallory's key \textcolor{sViolet}{[Alice's key]}};
+      \draw[data] (boblbl.south) to[bend left=15] (mb.east);
+      \draw[data] (mb.south west) to[bend left=15] (mal.east);
+      \draw[data] (mal.west) to[bend left=15] (ma.south east);
+      \draw[data] (ma.west) to[bend left=15] (alicelbl.south);
+      \node[privval, font=\scriptsize, anchor=north] at (mallbl.south) {\faKey\ she opens it, puts in her own key, locks it again};
+    \fi
+    \ifnum#1=3
+      \node[pubval, font=\scriptsize] (km) at (2.6,0.8) {\faKey\ the key from the network};
+      \draw[data] (mal.north west) to[bend right=25] node[pos=0.4, below left, font=\scriptsize, text=sPinkText] {swapped} (km.south east);
+      \draw[data] (km.west) to[bend right=15] (alice.north east);
+      \draw[aExec, very thick, dashed, overlay] (alice.north) to[out=70, in=180] (4.0,1.45) -- (9.0,1.45) to[out=0, in=110] (bob.north);
+      \node[draw=aExec, thick, fill=white, rounded corners=3pt, font=\scriptsize, text=nInk, inner sep=3pt] at (6.5,1.45)
+        {\faPhone\ Bob reads out: \texttt{\textbf{42 c3 53 72}}};
+      \node[font=\scriptsize, text=aExec, align=center] at (10.1,0.85) {a second channel:\\not Mallory's network};
+      \node[font=\scriptsize, text=nInk, anchor=north, align=center] at (0,-1.2) {SHA-256 of her key:\\ \texttt{\textbf{0b 40 ce 33}}\\ \nok\ not the same!};
+      \node[font=\scriptsize, text=nInk, anchor=north, align=center] at (13,-1.2) {SHA-256 of his key:\\ \texttt{\textbf{42 c3 53 72}}};
+    \fi
+  \end{tikzpicture}}
+
+% pro, con and who uses it, in three boxes of the same height: \ideaboxes{pro}{con}{who: title}{who: text}
+\newcommand{\ideabox}[2]{\stepbox{#1}{\parbox[t][2\baselineskip][t]{\dimexpr\linewidth-6pt\relax}{\raggedright #2}}}
+\newcommand{\ideaboxes}[4]{%
   \begin{columns}[t,onlytextwidth]
-    \column{0.49\textwidth}
-      \stepbox{\badge{1}\ Bob sends his key twice}{Alice compares the two copies.}
-      \stepbox{\badge{2}\ Bob encrypts his key}{He sends it encrypted, so nobody can read it on the way.}
-    \column{0.49\textwidth}
-      \stepbox{\badge{3}\ Alice phones Bob}{Bob reads out the first 8 hex digits of the SHA-256 of his key; Alice compares.}
-      \stepbox{\badge{4}\ Carol signs the key}{Carol, whose public key Alice already has, signs ``bob.example has key 2f a8 \ldots''.}
-  \end{columns}
+    \column{0.32\textwidth}\ideabox{\ok\ Pro}{#1}
+    \column{0.32\textwidth}\ideabox{\nok\ Con}{#2}
+    \column{0.32\textwidth}\ideabox{#3}{#4}
+  \end{columns}}
+
+\begin{frame}{Idea 1: Bob sends his key twice}
   \vfill
-  \onpaper{about 5 minutes}
-  \say{Około 5 minut, w parach, na kartce. Dla każdego pomysłu: czy Mallory może go obejść? Podpowiedź: co z tego przechodzi przez sieć, którą Mallory kontroluje?}
+  \begin{center}\scalebox{0.8}{\ideapic{1}}\end{center}
+  \vfill
+  \ideaboxes{Easy: nobody else is needed.}
+    {Both copies cross Mallory's network. She swaps both.}
+    {Who uses it?}{Nobody: it does not stop Mallory.}
+  \keymsg{\nok\ Two copies that agree only show that nothing changed by accident.}
+  \say{Cztery pomysły, które często padają z sali; po kolei sprawdzamy, czy Mallory może je obejść. Pytanie pomocnicze do każdego: co z tego przechodzi przez sieć, którą Mallory kontroluje? Pomysł 1: obie kopie idą przez sieć Mallory, więc podmienia obie. Dwie zgodne kopie chronią przed przypadkowym błędem transmisji, nie przed atakiem.}
 \end{frame}
 
-\samedot
-\begin{frame}{Task 1: what we saw}
+\begin{frame}{Idea 2: Bob encrypts his key}
   \vfill
-  \begin{center}
-    \renewcommand{\arraystretch}{1.45}
-    \begin{tabular}{@{}c@{\quad}l@{\qquad}p{8.2cm}@{}}
-      \toprule
-      & \textbf{idea} & \textbf{why} \\
-      \midrule
-      \nok & \badge{1}\ the key twice & Mallory swaps both copies. \\
-      \nok & \badge{2}\ an encrypted key & Encrypted with which key? Mallory swaps that one too. \\
-      \ok & \badge{3}\ a phone call & Mallory does not control Bob's voice. Works, but by hand, for one key. \\
-      \ok & \badge{4}\ Carol signs & Mallory cannot make Carol's signature. Works for every key Carol signs. \\
-      \bottomrule
-    \end{tabular}
-  \end{center}
+  \begin{center}\scalebox{0.8}{\ideapic{2}}\end{center}
   \vfill
-  \keymsg{Alice needs something Mallory does not control: a key she already trusts.}
-  \say{Pomysły 3 i 4 korzystają z czegoś spoza sieci Mallory. Pomysł 3 to porównanie odcisku palca: tak robi SSH i komunikatory (numer bezpieczeństwa w Signal). Pomysł 4 skaluje się: jeden zaufany klucz Carol wystarcza do sprawdzenia wielu kluczy. Na nim stoi PKI. Nawiązać do wykładu 8, zadanie 9 (whose key?): klucz wbudowany w aplikację działa dla jednej aplikacji, ale nie dla milionów stron; to właśnie różnica między pomysłem 3 a 4.}
+  \ideaboxes{Nobody can read Bob's key on the way.}
+    {Encrypted with which key? That key also crosses the network.}
+    {Who uses it?}{Nobody: it does not stop Mallory.}
+  \keymsg{\nok\ The same problem one step earlier: whose key does Bob encrypt with?}
+  \say{Pomysł 2: zaszyfrowany czyim kluczem? Bob potrzebuje klucza publicznego Alice, a ten też idzie przez sieć Mallory. Mallory podmienia go na swój, otwiera paczkę, wkłada swój klucz i zamyka ją kluczem Alice. Mamy ten sam problem, tylko krok wcześniej. Zresztą klucz publiczny nie jest tajny, więc szyfrowanie go nic nie daje; problemem jest to, czyj jest, a nie kto go widzi.}
+\end{frame}
+
+\begin{frame}{Idea 3: Alice phones Bob}
+  \vfill
+  \begin{center}\scalebox{0.8}{\ideapic{3}}\end{center}
+  \vfill
+  \ideaboxes{Mallory does not control the phone line or Bob's voice.}
+    {By hand, one key at a time. People rarely really compare.}
+    {\hl{Who uses it? SSH}}{It shows the fingerprint and asks you (next slide). Also Signal.}
+  \keymsg{\ok\ Stops Mallory. A \textbf{fingerprint}: the first hex digits of SHA-256 of the key, short enough to read out.}
+  \say{Pomysł 3 korzysta z czegoś spoza sieci Mallory: z drugiego kanału, tu z telefonu. Bob czyta pierwsze cyfry szesnastkowe skrótu SHA-256 swojego klucza, czyli odcisk palca (fingerprint). Wartości prawdziwe: SHA-256 32 bajtów klucza Boba zaczyna się od 42c35372, klucza Mallory od 0b40ce33. Tak robi SSH (następny slajd) i komunikatory (numer bezpieczeństwa w Signal). Działa, ale ręcznie, dla jednego klucza naraz, i mało kto naprawdę porównuje.}
 \end{frame}
 
 \begin{frame}[fragile]{Good to know: SSH asks you instead}
@@ -587,41 +638,83 @@
   \end{center}
   \vfill
   \begin{columns}[t,onlytextwidth]
-    \column{0.49\textwidth}\stepbox{No CA}{SSH shows the hash of the server's key and asks you. Idea 3 from Task 1.}
-    \column{0.49\textwidth}\stepbox{Trust on first use}{After ``yes'' the key is saved; a different key next time gives a loud warning.}
+    \column{0.49\textwidth}\stepbox{No CA}{SSH shows the hash of the server's key and asks you. This is idea 3: the fingerprint.}
+    \column{0.49\textwidth}\stepbox{Trust on first use}{After ``yes'' the key is saved in \texttt{known\_hosts}; a different key next time gives a loud warning.}
   \end{columns}
-  \say{Można pominąć. SSH zwykle nie używa certyfikatów: pokazuje odcisk klucza i zostawia decyzję użytkownikowi. Mało kto naprawdę porównuje odcisk, więc pierwsze połączenie jest słabym punktem. Odcisk na slajdzie to prawdziwy odcisk klucza Boba z zadania 2.}
+  \say{Można pominąć. SSH zwykle nie używa certyfikatów: pokazuje odcisk klucza i zostawia decyzję użytkownikowi. Mało kto naprawdę porównuje odcisk, więc pierwsze połączenie jest słabym punktem. Odcisk na slajdzie to prawdziwy odcisk klucza Boba z zadania 2 (tu w formacie SSH: Base64 całego SHA-256 klucza w formacie ssh-ed25519, więc inne znaki niż 42c35372 z poprzedniego slajdu).}
 \end{frame}
 
+\begin{frame}{Idea 4: Carol signs Bob's key}
+  \vfill
+  \begin{center}
+    \scalebox{0.8}{\begin{tikzpicture}[>=Stealth]
+      \personnode{carol}{0,0.2}{sBrown}{Carol}
+      \foreach \y/\t in {1.3/{bob.example has key 2f a8 \ldots}, 0.2/{alice.example has key \ldots}, -0.9/{shop.example has key \ldots}} {
+        \node[card, font=\scriptsize\ttfamily, text=nInk, minimum width=5.2cm, minimum height=0.75cm, inner sep=3pt] (c) at (5.2,\y) {\t\quad\textcolor{sBrown}{\normalsize\faStamp}};
+        \draw[data] (carol.east) -- (c.west);
+      }
+      \node[font=\scriptsize, text=sBrown] at (1.3,1.2) {signs};
+      \node[font=\scriptsize, text=gray] at (5.2,-1.6) {and many more\ldots};
+      \personnode{alice}{12.4,0.2}{sIndigo}{Alice}
+      \pkey{ck}{12.4,-1.55}{Carol's public key}
+      \node[font=\scriptsize, text=gray, anchor=north] at (ck.south) {she has it already};
+      \foreach \y in {1.3,0.2,-0.9} \draw[data] (7.85,\y) -- (alice.west);
+      \node[font=\scriptsize, text=nInk, align=center] at (9.55,1.35) {checks each\\with one key};
+      \mallorynode{mal}{9.6,-1.45}
+      \node[font=\scriptsize, text=sPinkText, anchor=north] at (mallbl.south) {cannot make Carol's signature};
+    \end{tikzpicture}}
+  \end{center}
+  \vfill
+  \ideaboxes{It scales: one key that Alice already trusts checks many keys.}
+    {Alice must trust Carol to check whose key it is.}
+    {\hl{Who uses it? The web (PKI)}}{Carol is a \textbf{certificate authority (CA)}.}
+  \keymsg{\ok\ Alice needs something Mallory does not control: a key she already trusts.}
+  \say{Pomysł 4 skaluje się: jeden zaufany klucz Carol wystarcza do sprawdzenia wielu kluczy, ale trzeba ufać Carol, że sprawdza, czyj klucz podpisuje. Mallory nie zrobi podpisu Carol, bo nie ma jej klucza prywatnego. Na tym pomyśle stoi PKI: Carol to urząd certyfikacji (CA). Nawiązać do wykładu 8, zadanie 9 (whose key?): klucz wbudowany w aplikację działa dla jednej aplikacji, ale nie dla milionów stron; to właśnie różnica między pomysłem 3 a 4.}
+\end{frame}
 
 \begin{frame}{The idea: a signed name card}
   % CHECKED: Task2/solution/name_card.py: the card and the Ed25519 signature of Trusty CA
   \begin{columns}[c,onlytextwidth]
-    \column{0.42\textwidth}
+    \column{0.31\textwidth}
       \small
-      A party that everybody trusts checks that the key is really Bob's, then \textbf{signs} the pair
-      ``name, key''.\\[8pt]
+      A party that everybody trusts checks that the key is really Bob's, then \textbf{signs} the pair:
+      Bob's server name + Bob's public key.\\[8pt]
       \bigdef{\textbf{Certificate authority (CA)}: an organisation that checks who owns a key and signs it.}
       Here: \cax{Trusty CA}. Alice already has its public key.
-    \column{0.56\textwidth}
+    \column{0.67\textwidth}
       \centering
       \begin{tikzpicture}[>=Stealth]
-        \node[card, minimum width=7.1cm, minimum height=3.3cm] (c) at (0,0) {};
-        \node[font=\small\bfseries, text=nInk, anchor=north west] at (-3.4,1.5) {\faIdCard\ name card};
-        \node[font=\small\ttfamily, text=nInk, anchor=west] at (-3.3,0.75) {name = bob.example};
-        \node[pubval, font=\tiny\ttfamily, anchor=west, inner sep=2pt] at (-3.3,0.15) {key = 2fa8b9a6b0d5878b \ldots 04702e3c40};
-        \draw[nLine] (-3.4,-0.35) -- (3.4,-0.35);
-        \node[caval, font=\tiny\ttfamily, anchor=west, inner sep=2pt, text width=4.7cm, align=left] at (-3.3,-1.0)
+        \node[card, minimum width=6.4cm, minimum height=3.9cm, anchor=north west] (c) at (0,2.35) {};
+        \node[font=\small\bfseries, text=nInk, anchor=west] at (0.1,2.0) {\faIdCard\ name card};
+        \node[font=\scriptsize, text=gray, anchor=west] at (0.15,1.55) {Bob's server name};
+        \node[font=\small\ttfamily, text=nInk, anchor=west] (nm) at (0.1,1.2) {name = bob.example};
+        \node[font=\scriptsize, text=sViolet, anchor=west] at (0.15,0.7) {Bob's public key};
+        \node[pubval, font=\scriptsize\ttfamily, anchor=west] (ky) at (0.1,0.3) {\faKey\ key = 2fa8b9a6b0d5 \ldots 04702e3c40};
+        \draw[nLine] (0,-0.2) -- (6.4,-0.2);
+        \node[caval, font=\tiny\ttfamily, anchor=west, inner sep=2pt, text width=4.2cm, align=left] (sg) at (0.1,-0.75)
           {signature of Trusty CA:\\ 5d034483ee304edd \ldots c4043f0a};
-        \sealnode{s}{2.65,-1.0}{0.95cm}
-        \canode{ca}{0,3.3}{Trusty CA}
-        \draw[data] (calbl.south) to node[right, font=\scriptsize, text=nInk] {signs} (0,1.7);
+        \node[font=\scriptsize, text=sBrown, anchor=west] at (0.15,-1.3) {made with Trusty CA's private key};
+        \sealnode{s}{5.55,-0.8}{0.9cm}
+        \canode{ca}{3.2,3.75}{Trusty CA}
+        \draw[data] (calbl.south) to node[right, font=\scriptsize, text=nInk] {signs} (3.2,2.35);
+        % where the name comes from
+        \node[draw=nLine, thick, fill=white, rounded corners=6pt, font=\scriptsize, text=nInk, inner sep=3pt] (bar) at (8.6,1.2) {\faLock\ https://bob.example};
+        \node[font=\scriptsize, text=gray, anchor=south] at (bar.north) {what Alice types};
+        \draw[data] (bar.west) -- (nm.east);
+        % where the key comes from
+        \begin{scope}[person/.append style={minimum size=0.75cm, font=\normalsize}]
+          \personnode{bob}{8.6,-0.05}{sTeal}{Bob}
+        \end{scope}
+        \draw[data] (bob.west) -- (ky.east);
+        \node[privval, font=\scriptsize, anchor=north, align=center] at (8.6,-0.85) {\faKey\ his private key\\stays with him};
       \end{tikzpicture}
   \end{columns}
-  \say{Pomysł 4 z zadania 1, tylko zamiast Carol jest firma, której wszyscy ufają: urząd certyfikacji (CA). Trusty CA sprawdza, że klucz należy do Boba, i podpisuje bajty name=bob.example;key=... Wartości prawdziwe, z zadania 2. Skąd Alice ma klucz Trusty CA: na wykładzie 10.}
+  \say{Pomysł 4, tylko zamiast Carol jest firma, której wszyscy ufają: urząd certyfikacji (CA). Trusty CA sprawdza, że klucz należy do Boba, i podpisuje bajty name=bob.example;key=... Nazwa to adres serwera Boba, który Alice wpisuje w przeglądarce; klucz to klucz publiczny Boba, a klucz prywatny zostaje u Boba. Podpis jest zrobiony kluczem prywatnym Trusty CA. Domena .example jest zarezerwowana na przykłady (RFC 2606): bob.example to adres jak google.com, ale taka strona nigdy nie będzie istnieć. Wartości prawdziwe, z zadania 2. Skąd Alice ma klucz Trusty CA: na wykładzie 10.}
 \end{frame}
 
 
+% HIDDEN 2026-11-28 for a rework: Task 2 (two frames), A certificate, Mallory sends Bob's real certificate
+\iffalse
 \begin{frame}{Task 2: a signed name card}
   \begin{columns}[c,onlytextwidth]
     \column{0.58\textwidth}
@@ -667,9 +760,8 @@
     \end{tikzpicture}}
   \end{center}
   \vfill
-  \curious{pki/\#1.5}
   \keymsg{Alice always verifies with the CA's public key. Only the CA can make a card that passes.}
-  \say{Dwie sztuczki Mallory. Zmiana klucza w karcie zmienia podpisane bajty, więc weryfikacja zawodzi. Podpis własnym kluczem też nie przechodzi, bo Alice sprawdza kluczem publicznym Trusty CA, a nie kluczem z karty. Kod rozwiązania jest w folderze solution (Task2/solution), nie pokazujemy go. Podpis Ed25519 jest deterministyczny, więc wszyscy dostali te same bajty podpisu: 5d034483ee304edd...c4043f0a. Mallory mogłaby jeszcze poprosić Trusty CA o kartę ze swoją nazwą, ale wtedy karta mówi mallory, a nie bob.example. W symulatorze z linku (części 5 do 8) Trusty CA podpisuje kartę i można jeszcze raz spróbować obu sztuczek Mallory.}
+  \say{Dwie sztuczki Mallory. Zmiana klucza w karcie zmienia podpisane bajty, więc weryfikacja zawodzi. Podpis własnym kluczem też nie przechodzi, bo Alice sprawdza kluczem publicznym Trusty CA, a nie kluczem z karty. Kod rozwiązania jest w folderze solution (Task2/solution), nie pokazujemy go. Podpis Ed25519 jest deterministyczny, więc wszyscy dostali te same bajty podpisu: 5d034483ee304edd...c4043f0a. Mallory mogłaby jeszcze poprosić Trusty CA o kartę ze swoją nazwą, ale wtedy karta mówi mallory, a nie bob.example.}
 \end{frame}
 
 
@@ -724,6 +816,132 @@
   \end{columns}
   \keymsg{A certificate alone proves nothing. Only the owner of its private key can use it.}
   \say{Zapytać salę, zanim pokażemy odpowiedź: Mallory przechwytuje prawdziwy certyfikat Boba i wysyła go Alice jako swój. Co zyska? Nic: klucz w certyfikacie jest kluczem Boba, więc Alice szyfruje dla Boba, a Mallory nie ma klucza prywatnego Boba. Podobnie z podpisem: serwer w TLS musi podpisać rozmowę kluczem prywatnym z certyfikatu (CertificateVerify, wykład 11), a tego Mallory nie zrobi. Częsty błąd studentów: mam certyfikat, więc jestem Bobem. Certyfikat to tylko dowód osobisty bez twarzy; twarzą jest klucz prywatny.}
+\end{frame}
+\fi % END HIDDEN (Task 2, A certificate, Mallory sends Bob's real certificate)
+
+\begin{frame}{A certificate is like an ID card}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      % the ID card
+      \node[font=\small\bfseries, text=nInk] at (2.4,1.95) {an ID card};
+      \node[card, minimum width=4.8cm, minimum height=3.2cm] at (2.4,0) {};
+      \node[font=\scriptsize, text=nInk, anchor=west] (n1) at (0.25,1.05) {Name: \textbf{Bob}};
+      \node[draw=nLine, fill=nFill, rounded corners=2pt, minimum width=0.9cm, minimum height=0.75cm, font=\normalsize, text=nLine] (p1) at (0.75,0) {\faUser};
+      \node[font=\scriptsize, text=gray, anchor=west] at (1.35,0) {his photo};
+      \sealnode{s1}{0.75,-1.05}{0.7cm}
+      \node[font=\scriptsize, text=gray, anchor=west] at (1.35,-1.05) {the office's stamp};
+      % the certificate
+      \node[font=\small\bfseries, text=nInk] at (11.0,1.95) {a certificate};
+      \node[card, minimum width=4.8cm, minimum height=3.2cm] at (11.0,0) {};
+      \node[font=\scriptsize\ttfamily, text=nInk, anchor=west] (n2) at (8.85,1.05) {bob.example};
+      \node[pubval, font=\scriptsize, anchor=west] (p2) at (8.85,0) {\faKey\ Bob's public key};
+      \sealnode{s2}{9.35,-1.05}{0.7cm}
+      \node[font=\scriptsize, text=sBrown, anchor=west] at (9.95,-1.05) {the CA's signature};
+      % what matches what
+      \foreach \y/\a/\b in {1.05/{name}/{server name}, 0/{photo}/{public key}, -1.05/{stamp}/{signature}} {
+        \draw[waits] (4.95,\y) to node[above, font=\scriptsize, text=nInk] {\a\ $\to$ \b} (8.45,\y);
+      }
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{center}\small\textcolor{nInk}{\faUserShield}\ A guard does not know you, but trusts the \textbf{office} that issued the card.\\
+    Alice does not know Bob's key, but trusts the \cax{CA} that signed the certificate.\end{center}
+  \vfill
+  \bigdef{\textbf{Certificate}: a name, a public key and a few more fields, signed by a certificate authority (CA).}
+  \say{Analogia dla osób, które nigdy nie oglądały certyfikatu. Dowód osobisty łączy imię ze zdjęciem, a urząd poświadcza to pieczęcią. Ochroniarz nie zna nas osobiście, ale ufa urzędowi, który wydał dowód. Certyfikat łączy nazwę serwera z kluczem publicznym, a CA poświadcza to podpisem. Gdzie analogia nie pasuje: zdjęcie zna każdy, kto na nas patrzy, a klucz publiczny trzeba jeszcze sprawdzić w działaniu: tylko właściciel klucza prywatnego może go użyć (dwa slajdy dalej). Certyfikat to dokładnie nasza podpisana wizytówka, tylko w ustalonym formacie i z dodatkowymi polami: od kiedy do kiedy, kto podpisał, do czego wolno użyć klucza.}
+\end{frame}
+
+\begin{frame}{What Alice needs in advance}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \node[container, minimum width=4.6cm, minimum height=3.0cm] (box) at (1.6,0) {};
+      \node[font=\scriptsize\bfseries, text=nInk, anchor=north] at (1.6,1.42) {\faDesktop\ her browser / operating system};
+      \personnode{alice}{0.6,0.05}{sIndigo}{Alice}
+      \pkey{cak}{2.65,-0.85}{Trusty CA's\\public key}
+      \node[font=\scriptsize, text=gray, anchor=north] at (1.6,-1.55) {already there: Lecture 10};
+      \foreach \y/\t in {1.35/bob.example, 0.45/shop.example, -0.45/bank.example, -1.35/uni.example} {
+        \node[card, minimum width=3.6cm, minimum height=0.72cm] (c) at (9.3,\y) {};
+        \node[font=\scriptsize\bfseries\ttfamily, text=nInk, anchor=west] at (7.65,\y) {\faCertificate\ \t};
+        \sealnode{s}{10.75,\y}{0.5cm}
+        \draw[data] (cak.east) to[out=0, in=180] node[pos=0.45, font=\tiny\bfseries, text=aExec, fill=white, inner sep=1pt] {\faCheck} (c.west);
+      }
+      \node[font=\scriptsize, text=gray] at (9.3,-1.95) {and every other certificate Trusty CA signed};
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{columns}[t,onlytextwidth]
+    \column{0.49\textwidth}\ideabox{Only one key in advance}{The CA's public key: like knowing what the office's stamp looks like.}
+    \column{0.49\textwidth}\ideabox{Not from the network}{It comes with the browser or the operating system (Lecture 10).}
+  \end{columns}
+  \keymsg{Trust one key (the CA's) to trust many keys (everything it signed).}
+  \say{Alice nie musi znać kluczy Boba, sklepu ani banku. Wystarczy jej jeden klucz: klucz publiczny CA, który dostała wcześniej, nie przez sieć Mallory, razem z przeglądarką albo systemem operacyjnym. Jak pieczęć urzędu: wystarczy wiedzieć, jak wygląda. Zaufanie przechodzi z jednego klucza CA na wszystkie podpisane przez niego certyfikaty. W rzeczywistości przeglądarka ma listę kluczy wielu CA, a nie jeden; to i to, skąd się tam biorą, na wykładzie 10.}
+\end{frame}
+
+\begin{frame}{What Alice does}
+  \vfill
+  \begin{center}
+    \begin{tikzpicture}[>=Stealth]
+      \personnode{alice}{0,0}{sIndigo}{Alice}
+      \personnode{bob}{13,0}{sTeal}{Bob}
+      \draw[nLight, line width=3pt] (alice.east) -- (bob.west);
+      \node[font=\scriptsize, text=gray] at (10.2,0.25) {the network};
+      \node[draw=nLine, thick, fill=white, rounded corners=6pt, font=\scriptsize, text=nInk, inner sep=3pt] (bar) at (0,1.35) {\faLock\ https://\textbf{bob.example}};
+      \node[font=\scriptsize, text=gray, anchor=south] at (bar.north) {she types};
+      % 1: the certificate arrives
+      \node[card, minimum width=3.5cm, minimum height=1.55cm] (c) at (6.5,1.4) {};
+      \node[font=\scriptsize\bfseries, text=nInk, anchor=west] (cn) at (4.85,1.85) {\faCertificate\ bob.example};
+      \node[pubval, font=\tiny, inner sep=2pt, anchor=west] (ck) at (4.85,1.35) {\faKey\ Bob's public key};
+      \node[caval, font=\tiny, inner sep=2pt, anchor=west] at (4.85,0.9) {\faStamp\ signed by Trusty CA};
+      \draw[data] (bob.north west) to[bend right=25] node[above right, font=\scriptsize, text=nInk] {\badge{1}\ she connects, gets it} (c.east);
+      % 3: the name
+      \draw[annot] (cn.north west) rectangle (cn.south east);
+      \draw[annot, -{Stealth}] (cn.west) to node[above, font=\scriptsize, text=nInk] {\badge{3}\ the same name? \ok} (bar.east);
+      % 2: the stamp
+      \pkey{cak}{2.9,-1.35}{Trusty CA's public key}
+      \node[hwmain, font=\scriptsize] (v) at (6.5,-1.35) {\badge{2}\ the signature fits? \ok};
+      \draw[data] (cak.east) -- (v.west);
+      \draw[data] (c.south) -- (v.north);
+      % then she encrypts
+      \node[msg] (m) at (10.4,-1.35) {\faLock\ MEET AT 6 \textcolor{sViolet}{[Bob's key]}};
+      \draw[data] (v.east) to node[above, font=\scriptsize, text=nInk] {then} (m.west);
+      \draw[data] (m.east) to[bend right=20] (boblbl.south);
+    \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{columns}[t,onlytextwidth]
+    \column{0.32\textwidth}\ideabox{\badge{1}\ Get the certificate}{Alice connects to bob.example. The server sends its certificate.}
+    \column{0.32\textwidth}\ideabox{\badge{2}\ Check the stamp}{With the CA's public key: does the signature fit?}
+    \column{0.32\textwidth}\ideabox{\badge{3}\ Check the name}{The name on the certificate = the address she typed?}
+  \end{columns}
+  \keymsg{Both checks pass: Alice encrypts with the key from the certificate.}
+  \say{Trzy kroki Alice. Pierwszy: łączy się z bob.example i dostaje certyfikat; przez sieć, więc Mallory mogła go zmienić. Drugi: sprawdza pieczęć, czyli podpis, kluczem publicznym CA, który ma od dawna. Trzeci: sprawdza, czy nazwa w certyfikacie to ten adres, który wpisała. Bez trzeciego kroku Mallory pokazałaby prawdziwy certyfikat innej strony. Dopiero potem szyfruje kluczem z certyfikatu. Prawdziwa przeglądarka sprawdza jeszcze daty ważności, łańcuch CA i odwołanie (wykłady 10 i 11).}
+\end{frame}
+
+\begin{frame}{Why Mallory loses}
+  % CHECKED: Task2/solution/name_card.py prints True, False, False
+  \vfill
+  \begin{center}
+    \scalebox{0.92}{\begin{tikzpicture}[>=Stealth]
+      \foreach \x/\n/\t/\key/\sig/\res/\why in {
+          0/1/{Mallory swaps the key}/{key = \textbf{4569}\ldots\textbf{5bcb}}/{Trusty CA}/{False}/{The data changed:\\the signature no longer fits.},
+          4.8/2/{Mallory signs it herself}/{key = \textbf{4569}\ldots\textbf{5bcb}}/{\textbf{Mallory}}/{False}/{Alice checks with the CA's key,\\not with Mallory's.},
+          9.6/3/{Mallory sends Bob's real one}/{key = 2fa8\ldots3c40}/{Trusty CA}/{True}/{The key is Bob's: only Bob\\can read what Alice encrypts.}} {
+        \node[font=\small\bfseries, text=nInk] at (\x,1.55) {\badge{\n}\ \t};
+        \node[card, minimum width=4.3cm, minimum height=2.1cm] (c) at (\x,0.2) {};
+        \node[font=\scriptsize\ttfamily, text=nInk] at (\x,0.85) {name = bob.example};
+        \node[pubval, font=\tiny\ttfamily, inner sep=2pt] at (\x,0.3) {\key};
+        \node[caval, font=\tiny, inner sep=2pt] at (\x,-0.4) {\faStamp\ signed by \sig};
+        \node[hwmain, font=\scriptsize, minimum width=4.0cm] (v) at (\x,-1.45) {verify with Trusty CA's key: \res};
+        \draw[data] (c.south) -- (v.north);
+        \node[font=\scriptsize, text=nInk, align=center, anchor=north] at (\x,-1.95) {\nok\ \why};
+      }
+    \end{tikzpicture}}
+  \end{center}
+  \vfill
+  \keymsg{Only the CA can make a certificate that passes. Only the owner of the private key can use it.}
+  \say{Trzy próby Mallory. Pierwsza: zmiana klucza w karcie zmienia podpisane bajty, więc weryfikacja zawodzi. Druga: podpis własnym kluczem też nie przechodzi, bo Alice sprawdza kluczem publicznym Trusty CA, a nie kluczem z karty. Trzecia, zapytać salę, zanim pokażemy odpowiedź: Mallory przechwytuje prawdziwy certyfikat Boba i wysyła go Alice jako swój. Co zyska? Nic: klucz w certyfikacie jest kluczem Boba, więc Alice szyfruje dla Boba, a Mallory nie ma klucza prywatnego Boba. Podobnie z podpisem: serwer w TLS musi podpisać rozmowę kluczem prywatnym z certyfikatu (CertificateVerify, wykład 11), a tego Mallory nie zrobi. Częsty błąd studentów: mam certyfikat, więc jestem Bobem. Certyfikat to tylko dowód osobisty bez twarzy; twarzą jest klucz prywatny. Mallory mogłaby jeszcze poprosić Trusty CA o certyfikat ze swoją nazwą, ale wtedy certyfikat mówi mallory, a nie bob.example, i Alice odrzuci go w kroku 3.}
 \end{frame}
 
 \begin{frame}{PKI: public key infrastructure}
@@ -791,10 +1009,11 @@
       \badge{1}\ Click the icon left of the address.\\[6pt]
       \badge{2}\ ``Connection is secure''.\\[6pt]
       \badge{3}\ ``Certificate is valid'': the viewer opens.\\[6pt]
-      \badge{4}\ The ``Details'' tab shows all fields and extensions.\\[10pt]
+      \badge{4}\ The ``Details'' tab shows all fields and extensions.\\[8pt]
+      {\footnotesize The same three things as on Bob's certificate: the name (Issued To), the issuer (Issued By) and, under Details, the public key.}\\[8pt]
       \textcolor{gray}{\scriptsize A simplified drawing: the words differ between browsers and versions.}
   \end{columns}
-  \say{Najpierw czarna skrzynka: każdy z was widział już certyfikat X.509, wystarczy kliknąć ikonę obok adresu. Rysunek uproszczony, wartości prawdziwe (certyfikat zapisany 15 listopada 2026). Można to pokazać na żywo w przeglądarce; w dniu zajęć certyfikat może być już inny: ten jest ważny 90 dni i uczelnia odnawia go przed końcem. Warto zapytać: kto wystawił certyfikat naszej uczelni? Każde pole z tego okna omówimy w tej i następnych sekcjach, a na końcu wykładu przeczytamy ten certyfikat w Pythonie.}
+  \say{Zamykamy pętlę: to, co narysowaliśmy dla Boba, jest w każdej przeglądarce. Te same trzy rzeczy: nazwa (Issued To), wystawca, czyli CA (Issued By), i klucz publiczny (w zakładce Details). Każdy z was widział już certyfikat X.509, nawet jeśli o tym nie wiedział: wystarczy kliknąć ikonę obok adresu. Rysunek uproszczony, wartości prawdziwe (certyfikat zapisany 15 listopada 2026). Można to pokazać na żywo w przeglądarce; w dniu zajęć certyfikat może być już inny: ten jest ważny 90 dni i uczelnia odnawia go przed końcem. Warto zapytać: kto wystawił certyfikat naszej uczelni? Każde pole z tego okna omówimy w tej i następnych sekcjach, a na końcu wykładu przeczytamy ten certyfikat w Pythonie.}
 \end{frame}
 
 \begin{frame}{X.509: one format for everyone}
@@ -990,7 +1209,7 @@
   \begin{center}\small Both times are in UTC. Every program that uses the certificate checks the time.\\
     Why an end date: a leaked key is useful only until then, and a new check of the owner follows. How long: \textbf{Lecture 10}.\end{center}
   \vfill
-  \curious{pki/\#2.1.validity}
+  \curious{pki/\#1.1.validity}
   \keymsg{A certificate has an end date: after it, nobody should trust it.}
   \say{Termin ważności ogranicza szkody, gdy klucz wycieknie, i wymusza ponowne sprawdzenie, czy właściciel nadal kontroluje domenę. Daty zapisuje się jako UTCTime (rok dwiema cyframi, dla lat do 2049) albo GeneralizedTime (cztery cyfry, od 2050 roku), RFC 5280, 4.1.2.5; u Boba widać UTCTime w bajtach na slajdzie o DER. Komputer ze złą datą widzi dobre certyfikaty jako jeszcze nieważne albo wygasłe. Limity długości ważności i ich skracanie: wykład 10. Wygasłe certyfikaty, które położyły duże serwisy: wykład 12. W symulatorze z linku widać te dwie daty w bajtach certyfikatu Boba.}
 \end{frame}
@@ -1016,7 +1235,7 @@
     \end{tikzpicture}
   \end{center}
   \vfill
-  \curious{pki/\#2.1.spki}
+  \curious{pki/\#1.1.spki}
   \keymsg{The certificate says which algorithm the key is for, so the key cannot be misread.}
   \say{Klucz zawsze razem z nazwą algorytmu. Ed25519 i P-256 znamy z wykładu 5 (P-256 to punkt: bajt 04 i dwie współrzędne), RSA z wykładu 3. Kluczy prywatnych w certyfikacie nigdy nie ma. W symulatorze z linku widać klucz Boba w bajtach jego certyfikatu.}
 \end{frame}
@@ -1033,7 +1252,7 @@
       \badge{3}\ No extensions yet: they come in the next section.\\[8pt]
       \textcolor{gray}{All values are real: \texttt{openssl x509 -text} of the file from Task 3.}
   \end{columns}
-  \curious{pki/\#2.1.tbs}
+  \curious{pki/\#1.1.tbs}
   \say{Cały certyfikat Boba w jednym miejscu. Dokładnie ten certyfikat zbuduje każdy w zadaniu 3; klucze są ustalone, a podpis Ed25519 nie ma losowości, więc wynik jest bajt w bajt taki sam. W symulatorze z linku można kliknąć każde pole tego certyfikatu i zobaczyć jego bajty.}
 \end{frame}
 
@@ -1199,7 +1418,7 @@
   \end{center}
   \vfill
   \bigdef{\textbf{Basic Constraints}: is the subject a CA? (\texttt{CA:TRUE} or \texttt{CA:FALSE}, and for a CA a limit \texttt{pathlen}).}
-  \curious{pki/\#2.3.bc}
+  \curious{pki/\#1.3.bc}
   \say{Bez tego rozszerzenia Bob mógłby swoim kluczem podpisywać certyfikaty dla dowolnych nazw. Programy, które nie sprawdzały Basic Constraints, miały w przeszłości poważne dziury (przykład na wykładzie 10). pathlen ogranicza długość łańcucha pod CA: wykład 10. W symulatorze z linku widać Basic Constraints certyfikatu uczelni: CA:FALSE.}
 \end{frame}
 
@@ -1241,7 +1460,7 @@
   \end{columns}
   \vfill
   \begin{center}\small www.coventry.ac.uk: Key Usage \texttt{digitalSignature} (critical), EKU \texttt{serverAuth}.\end{center}
-  \curious{pki/\#2.3.eku}
+  \curious{pki/\#1.3.eku}
   \keymsg{A website key may sign handshakes, but not certificates and not programs.}
   \say{Key Usage to bity: niskopoziomowe operacje. EKU to cele: do czego certyfikat służy w praktyce. Certyfikat strony z EKU serverAuth nie nadaje się do podpisywania programów. Gdzie używa się clientAuth i codeSigning: wykłady 11 i 12. W symulatorze z linku widać EKU certyfikatu uczelni.}
 \end{frame}
@@ -1272,7 +1491,7 @@
     \column{0.49\textwidth}\stepbox{Authority Key Identifier}{The ID of the issuer's key: which key signed this one. One CA name can have several keys (old and new).}
   \end{columns}
   \begin{center}\scriptsize\textcolor{gray}{WE1: the CA that signed the university's certificate; GTS Root R4 signed WE1 (chains: Lecture 10).}\end{center}
-  \curious{pki/\#2.3.aki}
+  \curious{pki/\#1.3.aki}
   \say{WE1 to certyfikat pośredni Google Trust Services, który podpisał certyfikat uczelni. AKI certyfikatu uczelni jest równy SKI certyfikatu WE1: tak program szybko znajduje klucz wystawcy. Po co AKI, skoro jest nazwa wystawcy: jedno CA może mieć kilka kluczy pod tą samą nazwą, np. stary i nowy po wymianie klucza. Łańcuchy certyfikatów to temat wykładu 10. W symulatorze z linku można porównać AKI uczelni z SKI certyfikatu WE1.}
 \end{frame}
 
@@ -1605,7 +1824,7 @@
   \vfill
   \begin{center}\small Byte 100 is a digit of the start time: \texttt{00:00} became \texttt{00:10}. One bit, and the fingerprint is new.\\
     The signature would fail too: the CA signed the old bytes.\end{center}
-  \curious{pki/\#2.1}
+  \curious{pki/\#1.1}
   \keymsg{PEM is only DER in Base64. The fingerprint changes completely when one bit changes.}
   \say{Porównać z przewidywaniami. Czasem jeden lub dwa bajty odcisku przypadkiem się powtórzą, ale średnio zmienia się prawie wszystko. Zmieniony bit to cyfra minut w notBefore, więc takiej zmiany w pliku nie widać na oko, a odcisk i podpis ją wykrywają. W symulatorze z linku można zmienić dowolny bit certyfikatu Boba i zobaczyć nowy odcisk i wynik sprawdzenia podpisu.}
 \end{frame}
@@ -1753,7 +1972,7 @@
   \end{columns}
   \vfill
   \opentask{Task6}{about 10 minutes}
-  \say{Około 10 minut. Mallory robi własny certyfikat samopodpisany z nazwą Alice. Przed zadaniem zapytać salę: czy podpis certyfikatu Mallory się zgodzi? Zapisać głosy. Ostatni krok to pomysł 3 z zadania 1 (telefon) i odcisk z zadania 5.}
+  \say{Około 10 minut. Mallory robi własny certyfikat samopodpisany z nazwą Alice. Przed zadaniem zapytać salę: czy podpis certyfikatu Mallory się zgodzi? Zapisać głosy. Ostatni krok to pomysł 3 (slajd ``Idea 3: Alice phones Bob'', telefon) i odcisk z zadania 5.}
 \end{frame}
 
 \samedot
@@ -1799,7 +2018,7 @@
   \begin{center}\small Task 6: both certificates pass the check of their own signature.\\
     The signature only proves: \textbf{whoever made it has the private key of the key inside}.\end{center}
   \keymsg{A self-signed certificate does not prove a name. Trust must come from outside: a CA, or a fingerprint you checked.}
-  \say{Mallory może zrobić certyfikat samopodpisany z dowolną nazwą, także www.alice.example albo www.coventry.ac.uk. Podpis będzie poprawny. Dlatego certyfikatowi samopodpisanemu ufamy tylko wtedy, gdy dostaliśmy go zaufaną drogą albo sprawdziliśmy odcisk, jak w pomyśle 3 z zadania 1. Wynik zadania 6: odcisk przekazany telefonem odróżnia certyfikat Alice od certyfikatu Mallory, a CA robi to samo dla milionów certyfikatów (wykład 10).}
+  \say{Mallory może zrobić certyfikat samopodpisany z dowolną nazwą, także www.alice.example albo www.coventry.ac.uk. Podpis będzie poprawny. Dlatego certyfikatowi samopodpisanemu ufamy tylko wtedy, gdy dostaliśmy go zaufaną drogą albo sprawdziliśmy odcisk, jak w pomyśle 3 (slajd ``Idea 3: Alice phones Bob''). Wynik zadania 6: odcisk przekazany telefonem odróżnia certyfikat Alice od certyfikatu Mallory, a CA robi to samo dla milionów certyfikatów (wykład 10).}
 \end{frame}
 
 % ======================================================================
@@ -1882,7 +2101,7 @@
       \stepbox{*.dave.example}{One label for the \texttt{*}: not zero, not two.}
   \end{columns}
   \vfill
-  \curious{pki/\#2.3.san}
+  \curious{pki/\#1.3.san}
   \keymsg{The SAN decides: a name that is not in it is not covered, however similar it looks.}
   \say{Kod w folderze solution. W README są wszystkie wyniki. Przewidywania sali porównać z tabelą. To, czy adres coventry.ac.uk w ogóle podaje ten certyfikat, czy przekierowuje inaczej, sprawdzić na żywo przed zajęciami; tu mówimy tylko o zawartości certyfikatu. Prawdziwa przeglądarka porównuje nazwy bez względu na wielkość liter, a reguł jest trochę więcej (RFC 9525), ale sedno jest to samo. W symulatorze z linku widać SAN certyfikatu uczelni w bajtach. Na następnych slajdach omówienie obu certyfikatów pole po polu.}
 \end{frame}

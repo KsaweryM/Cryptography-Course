@@ -568,7 +568,7 @@
     \end{tikzpicture}
   \end{center}
   \vfill
-  \curious{pki/\#3.1}
+  \curious{pki/\#2.1}
   \keymsg{The root signs intermediates, intermediates sign websites.}
   \say{Root podpisuje tylko pośrednie CA, a pośrednie CA podpisują strony. Liść, czyli certyfikat końcowy, nie podpisuje nikogo. HSM to sprzętowy moduł bezpieczeństwa: urządzenie, z którego klucz nie wychodzi. Lista rootów na komputerze Alice to magazyn zaufania (trust store), za chwilę. W symulatorze z linku można rozłożyć łańcuch strony Boba, bob.example, na root, pośredni i liść.}
 \end{frame}
@@ -674,7 +674,7 @@
   \end{center}
   \vfill
   \begin{center}\checksteps{3}{\ok\ True}{\ok\ True}{\ok\ True: stop, the chain is trusted}\end{center}
-  \curious{pki/\#3.2}
+  \curious{pki/\#2.2}
   \keymsg{Trust in the root comes from the trust store, not from its signature.}
   \say{Zaufanie do roota nie pochodzi z podpisu, tylko z tego, że jest w magazynie Alice. Pełna walidacja ma więcej kroków (daty, nazwa, odwołanie): to wykład 11. W symulatorze z linku można sprawdzić ten sam łańcuch www.coventry.ac.uk krok po kroku.}
 \end{frame}
@@ -1156,7 +1156,7 @@ TLS, leaf only:           (*\nok*) @unable to get local issuer certificate@
     \column{0.32\textwidth}\stepbox{Acme Corp CA}{\texttt{bank.example} is outside \texttt{acme.example}.}
     \column{0.32\textwidth}\stepbox{Acme Sub CA}{Acme Corp CA has \texttt{pathlen:0}.}
   \end{columns}
-  \curious{pki/\#3.6}
+  \curious{pki/\#2.6}
   \keymsg{The client trusts the rules in the chain, not just the signatures.}
   \say{Podpis Mallory jest poprawny, ale jej certyfikat ma CA:FALSE, więc klient odrzuca łańcuch. CA Acme wystawia tylko pod acme.example. Z pathlen:1 w Acme Corp CA ten sam łańcuch przechodzi (sprawdziłem). Komunikaty to dokładne słowa OpenSSL. W symulatorze z linku Mallory podpisuje swoim liściem fałszywy certyfikat bob.example, a łańcuch zostaje odrzucony przez CA:FALSE.}
 \end{frame}
@@ -1346,7 +1346,7 @@ key in mallory.csr: 5dec17479913c708
     \column{0.48\textwidth}\probbox{mallory.csr}{valid, for Bob's name, with Mallory's key.}
   \end{columns}
   \vfill
-  \curious{pki/\#9.5}
+  \curious{pki/\#8.5}
   \keymsg{Anybody can make a valid CSR for any name: the CA must check the name.}
   \say{Zmiana bajtów w drodze psuje podpis, tak jak w każdym podpisanym dokumencie. Ale CSR Mallory dla nazwy Boba jest całkowicie poprawny: podpisała go swoim kluczem. Gdyby CA wystawiła certyfikat, Mallory byłaby stroną Boba. Dlatego następny krok: sprawdzić nazwę. W symulatorze z linku przeglądarka buduje i podpisuje prawdziwy CSR (inna nazwa niż w zadaniu): zmiana litery psuje podpis, CSR Mallory ma dobry podpis, ale CA odmawia, bo Mallory nie ma autoryzacji.}
 \end{frame}
@@ -1368,7 +1368,7 @@ key in mallory.csr: 5dec17479913c708
   \vfill
   % CHECKED: openssl x509 -ext certificatePolicies on the leaf of www.coventry.ac.uk: Policy: 2.23.140.1.2.1
   \begin{center}\small \texttt{www.coventry.ac.uk}: Certificate Policies \texttt{\hl{2.23.140.1.2.1}} $\rightarrow$ DV\end{center}
-  \curious{pki/\#2.3.pol}
+  \curious{pki/\#1.3.pol}
   \keymsg{Most of the web uses DV: the CA checks control of the domain, nothing more.}
   \say{Trzy poziomy weryfikacji. DV sprawdza tylko kontrolę nad domeną i jest w pełni automatyczna. Poziom zapisuje się w certyfikacie jako identyfikator polityki (OID). Coventry ma DV, jak większość stron. W symulatorze z linku widać to pole polityki w bajtach certyfikatu uczelni.}
 \end{frame}
@@ -1621,7 +1621,7 @@ python-org.pem  valid for 397 days   SCTs: @3@
 my-shop.pem     valid for  90 days   SCTs: @0@
 \end{termout}
   \vfill
-  \curious{pki/\#2.3.sct}
+  \curious{pki/\#1.3.sct}
   \keymsg{Real certificates carry their SCTs; ours has none.}
   \say{Liczba SCT zgadza się z regułą: 90 dni dwa, 397 dni trzy. W symulatorze z linku widać oba SCT Coventry w bajtach certyfikatu. Godzina różnicy w Coventry: Google cofa datę początku o godzinę, prawdopodobnie jako zapas na klientów ze spóźnionym zegarem. Nasz własny certyfikat nie ma SCT: przeglądarka nie przyjęłaby go jako publicznego.}
 \end{frame}
@@ -1674,7 +1674,7 @@ my-shop.pem     valid for  90 days   SCTs: @0@
       \stepbox{Recall: an inclusion proof (Lecture 6)}{the \textcolor{sTealText}{\textbf{teal}} hashes; you compute the \textcolor{AccentOrange}{\textbf{orange}} path up to the root}
   \end{columns}
   \vfill
-  \curious{pki/\#8.2}
+  \curious{pki/\#7.2}
   \keymsg{Once the root is signed, the log cannot say later that the tree was different.}
   \say{Log co jakiś czas podpisuje korzeń całego drzewa razem z liczbą wpisów: to Signed Tree Head. Kto chce sprawdzić, że wpis 2 jest w logu, nie pobiera całego logu. Log podaje trzy skróty sąsiadów ścieżki (turkusowe, jak w wykładzie 6); z wpisu i tych skrótów liczymy ścieżkę w górę (pomarańczowa) i porównujemy z podpisanym korzeniem. Dowód znamy z wykładu 6 (zadanie 9); nowe jest to, że korzeń podpisuje log. Podpisany korzeń wiąże log: nie może potem twierdzić, że w drzewie było coś innego. W symulatorze z linku można wybrać wpis i zobaczyć jego dowód (16 wymyślonych wpisów, inne niż w zadaniu 7).}
 \end{frame}
@@ -1732,7 +1732,7 @@ saved root: 0e166364  log A: acbf332a  log B: a16e803c
    log B only grew: @False@
 \end{termout}
   \vfill
-  \curious{pki/\#8.3}
+  \curious{pki/\#7.3}
   \keymsg{Log B looks fine on its own; the old root, saved by Bob's monitor, gives it away.}
   \say{Log B jest poprawnym drzewem swoich wpisów, więc sam dzisiejszy korzeń niczego nie zdradza. Zdradza go dopiero stary, podpisany korzeń: nie da się z niego dojść do nowego. Dwa podpisane korzenie razem są dowodem oszustwa. Dlatego ktoś musi korzenie zapisywać i porównywać. W symulatorze z linku dowód spójności na rysowanym drzewie; przycisk Mallory's log removed entry 2 pokazuje to samo, co log B.}
 \end{frame}
@@ -1822,7 +1822,7 @@ saved root: 0e166364  log A: acbf332a  log B: a16e803c
     \end{tikzpicture}
   \end{center}
   \vfill
-  \curious{pki/\#9.1}
+  \curious{pki/\#8.1}
   \say{Klucz konta to osobna para kluczy klienta ACME, nie klucz strony. W prawdziwym ACME każde żądanie jest podpisane kluczem konta i idzie przez HTTPS. W symulatorze z linku te kroki po kolei, z prawdziwym kluczem konta z przeglądarki.}
 \end{frame}
 
@@ -1914,7 +1914,7 @@ $ sudo certbot --nginx -d bob.example
    valid: 2026-11-19 to 2027-02-17
 \end{termout}
   \vfill
-  \curious{pki/\#9.4}
+  \curious{pki/\#8.4}
   \keymsg{Five steps, no person: a certificate in seconds.}
   \say{Token za każdym razem jest inny. Zły plik albo odcisk cudzego klucza konta (Mallory) daje invalid, a zamówienie zostaje nieważne: trzeba złożyć nowe. Certbot robi dokładnie te kroki, tylko przez sieć. W symulatorze z linku przypadek Mallory z tokenem Boba (pytanie Finished early? z zadania).}
 \end{frame}
